@@ -1,3 +1,7 @@
+static variable MODULE_NAME = "cfitsio";
+prepend_to_slang_load_path (".");
+set_import_module_path (".:" + get_import_module_path ());
+
 require ("fits");
 
 static define warn ()
@@ -18,7 +22,23 @@ static define check_key_read_write (fptr, key, val)
 	   typeof (val), typeof (val1));
 }
 
-     
+#ifndef _eqs
+static define _eqs (a, b)
+{
+   variable dims_a, dims_b;
+   (dims_a,,) = array_info (a);
+   (dims_b,,) = array_info (b);
+   if (length (dims_a) != length (dims_b))
+     return 0;
+   if (length (where(dims_a != dims_b)))
+     return 0;
+   if (_typeof (a) != _typeof(b))
+     return 0;
+   if (length (where (a != b)))
+     return 0;
+   return 1;
+}
+#endif
 
 define test_img (filename)
 {
@@ -75,3 +95,4 @@ static define test_bt (filename)
 
 test_img ("testprog.fit");
 test_bt ("testprog.fit");
+message ("Passed");

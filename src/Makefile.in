@@ -31,8 +31,8 @@ SLANG_LIB	= @SLANG_LIB@ -lslang
 #---------------------------------------------------------------------------
 CFITSIO_INC	= @CFITSIO_INC@
 CFITSIO_LIB	= @CFITSIO_LIB@ -lcfitsio
-X_XTRA_LIBS	= @X_EXTRA_LIBS@
-MODULE_LIBS	= $(CFITSIO_LIB) $(X_EXTRA_LIBS)
+OTHER_LIBS	= @X_EXTRA_LIBS@
+MODULE_LIBS	= $(CFITSIO_LIB) $(OTHER_LIBS)
 RPATH		= @RPATH@
 
 #---------------------------------------------------------------------------
@@ -105,4 +105,4 @@ install: all install_directories install_modules install_slfiles
 clean:
 	-/bin/rm -f $(MODULES) *~ \#*
 distclean: clean
-	-/bin/rm -f config.h Makefile
+	-/bin/rm -f config.h Makefile $(MODULES) *.fit

@@ -89,3 +89,4 @@ install-all: all install-help install-txt $(PS_FILES) $(PDF_FILES)
 	-mv $(PS_FILES) ../ps
 	-mv $(SGML_FILES) ../sgml
 	-mv $(PDF_FILES) ../pdf
+install: install-txt install-help

@@ -3616,34 +3616,42 @@ ELFLIB="lib\$(THIS_LIB).so"
 ELFLIB_MAJOR="\$(ELFLIB).\$(ELF_MAJOR_VERSION)"
 ELFLIB_MAJOR_MINOR="\$(ELFLIB).\$(ELF_MAJOR_VERSION).\$(ELF_MINOR_VERSION)"
 
+if test "$GCC" = yes
+then
+  if test X"$CFLAGS" = X
+  then
+     CFLAGS="-O2"
+  fi
+fi
+
 case "$host_os" in
   *linux* )
     DYNAMIC_LINK_FLAGS="-Wl,-export-dynamic"
-    ELF_CC="gcc"
-    ELF_CFLAGS="-O2 -fPIC"
-    ELF_LINK="gcc -shared -Wl,-soname#"
+    ELF_CC="\$(CC)"
+    ELF_CFLAGS="\$(CFLAGS) -fPIC"
+    ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-soname#"
     ELF_LINK_CMD="\$(ELF_LINK),\$(ELFLIB_MAJOR)"
     ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
-    CC_SHARED="gcc \$(CFLAGS) -shared -fPIC"
+    CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
     ;;
   *solaris* )
     if test "$GCC" = yes
     then
       DYNAMIC_LINK_FLAGS=""
-      ELF_CC="gcc"
-      ELF_CFLAGS="-O2 -fPIC"
-      ELF_LINK="gcc -shared -Wl,-ztext -Wl,-h#"
+      ELF_CC="\$(CC)"
+      ELF_CFLAGS="\$(CFLAGS) -fPIC"
+      ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-ztext -Wl,-h#"
       ELF_LINK_CMD="\$(ELF_LINK),\$(ELFLIB_MAJOR)"
       ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
-      CC_SHARED="gcc \$(CFLAGS) -G -fPIC"
+      CC_SHARED="\$(CC) \$(CFLAGS) -G -fPIC"
     else
       DYNAMIC_LINK_FLAGS=""
-      ELF_CC="cc"
-      ELF_CFLAGS="-K pic"
-      ELF_LINK="cc -G -h#"
+      ELF_CC="\$(CC)"
+      ELF_CFLAGS="\$(CFLAGS) -K PIC"
+      ELF_LINK="\$(CC) \$(LDFLAGS) -G -h#"
       ELF_LINK_CMD="\$(ELF_LINK)\$(ELFLIB_MAJOR)"
       ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
-      CC_SHARED="cc \$(CFLAGS) -G -K pic"
+      CC_SHARED="\$(CC) \$(CFLAGS) -G -K PIC"
     fi
     ;;
    # osr5 or unixware7 with current or late autoconf
@@ -3651,21 +3659,21 @@ case "$host_os" in
      if test "$GCC" = yes
      then
        DYNAMIC_LINK_FLAGS=""
-       ELF_CC="gcc"
-       ELF_CFLAGS="-O2 -fPIC"
-       ELF_LINK="gcc -shared -Wl,-h#"
+       ELF_CC="\$(CC)"
+       ELF_CFLAGS="\$(CFLAGS) -fPIC"
+       ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-h#"
        ELF_LINK_CMD="\$(ELF_LINK),\$(ELFLIB_MAJOR)"
        ELF_DEP_LIBS=
-       CC_SHARED="gcc \$(CFLAGS) -G -fPIC"
+       CC_SHARED="\$(CC) \$(CFLAGS) -G -fPIC"
      else
        DYNAMIC_LINK_FLAGS=""
-       ELF_CC="cc"
-       ELF_CFLAGS="-K pic"
+       ELF_CC="\$(CC)"
+       ELF_CFLAGS="\$(CFLAGS) -K pic"
        # ELF_LINK="ld -G -z text -h#"
-       ELF_LINK="cc -G -z text -h#"
+       ELF_LINK="\$(CC) \$(LDFLAGS) -G -z text -h#"
        ELF_LINK_CMD="\$(ELF_LINK)\$(ELFLIB_MAJOR)"
        ELF_DEP_LIBS=
-       CC_SHARED="cc \$(CFLAGS) -G -K pic"
+       CC_SHARED="\$(CC) \$(CFLAGS) -G -K pic"
      fi
      ;;
   *irix6.5* )
@@ -3675,30 +3683,30 @@ case "$host_os" in
      then
        # not tested
        DYNAMIC_LINK_FLAGS=""
-       ELF_CC="gcc"
-       ELF_CFLAGS="-O2 -fPIC"
-       ELF_LINK="gcc -shared -Wl,-h#"
+       ELF_CC="\$(CC)"
+       ELF_CFLAGS="\$(CFLAGS) -fPIC"
+       ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-h#"
        ELF_LINK_CMD="\$(ELF_LINK),\$(ELFLIB_MAJOR)"
        ELF_DEP_LIBS=
-       CC_SHARED="gcc \$(CFLAGS) -shared -fPIC"
+       CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
      else
        DYNAMIC_LINK_FLAGS=""
-       ELF_CC="cc"
-       ELF_CFLAGS="-K pic"     # default anyhow
-       ELF_LINK="cc -shared -o #"
+       ELF_CC="\$(CC)"
+       ELF_CFLAGS="\$(CFLAGS) -K pic"     # default anyhow
+       ELF_LINK="\$(CC) \$(LDFLAGS) -shared -o #"
        ELF_LINK_CMD="\$(ELF_LINK)\$(ELFLIB_MAJOR)"
        ELF_DEP_LIBS=
-       CC_SHARED="cc \$(CFLAGS) -shared -K pic"
+       CC_SHARED="\$(CC) \$(CFLAGS) -shared -K pic"
      fi
      ;;
   *darwin* )
      DYNAMIC_LINK_FLAGS=""
-     ELF_CC="cc"
-     ELF_CFLAGS="$CFLAGS -O2 -fno-common"
-     ELF_LINK="cc -dynamiclib"
+     ELF_CC="\$(CC)"
+     ELF_CFLAGS="\$(CFLAGS) -fno-common"
+     ELF_LINK="\$(CC) \$(LDFLAGS) -dynamiclib"
      ELF_LINK_CMD="\$(ELF_LINK) -install_name \$(install_lib_dir)/\$(ELFLIB_MAJOR) -compatibility_version \$(ELF_MAJOR_VERSION) -current_version \$(ELF_MAJOR_VERSION).\$(ELF_MINOR_VERSION)"
-     ELF_DEP_LIBS="$LDFLAGS \$(DL_LIB)"
-     CC_SHARED="cc -bundle -flat_namespace -undefined suppress \$(CFLAGS) -fno-common"
+     ELF_DEP_LIBS="\$(LDFLAGS) \$(DL_LIB)"
+     CC_SHARED="\$(CC) -bundle -flat_namespace -undefined suppress \$(CFLAGS) -fno-common"
      ELFLIB="lib\$(THIS_LIB).dylib"
      ELFLIB_MAJOR="lib\$(THIS_LIB).\$(ELF_MAJOR_VERSION).dylib"
      ELFLIB_MAJOR_MINOR="lib\$(THIS_LIB).\$(ELF_MAJOR_VERSION).\$(ELF_MINOR_VERSION).dylib"
@@ -3708,7 +3716,7 @@ case "$host_os" in
     ELF_CC="\$(CC)"
     ELF_CFLAGS="\$(CFLAGS) -fPIC"
     if test "X$PORTOBJFORMAT" = "Xelf" ; then
-      ELF_LINK="\$(CC) -shared -Wl,-soname,\$(ELFLIB_MAJOR)"
+      ELF_LINK="\$(CC) \$(LDFLAGS) -shared -Wl,-soname,\$(ELFLIB_MAJOR)"
     else
       ELF_LINK="ld -Bshareable -x"
     fi
@@ -3718,12 +3726,12 @@ case "$host_os" in
     ;;
   * )
     echo "Note: ELF compiler for host_os=$host_os may be wrong"
-    ELF_CC="$CC"
-    ELF_CFLAGS="$CFLAGS -fPIC"
-    ELF_LINK="$CC -shared"
+    ELF_CC="\$(CC)"
+    ELF_CFLAGS="\$(CFLAGS) -fPIC"
+    ELF_LINK="\$(CC) \$(LDFLAGS) -shared"
     ELF_LINK_CMD="\$(ELF_LINK)"
     ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
-    CC_SHARED="$CC $CFLAGS -shared -fPIC"
+    CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
 esac
 
 
@@ -5182,8 +5190,8 @@ fi;
      jd_with_slang_library="no"
     ;;
    x)
-    { { echo "$as_me:$LINENO: error: --with-slang requres a value" >&5
-echo "$as_me: error: --with-slang requres a value" >&2;}
+    { { echo "$as_me:$LINENO: error: --with-slang requires a value-- try yes or no" >&5
+echo "$as_me: error: --with-slang requires a value-- try yes or no" >&2;}
    { (exit 1); exit 1; }; }
     ;;
    xunspecified)
@@ -5409,8 +5417,8 @@ fi;
      jd_with_cfitsio_library="no"
     ;;
    x)
-    { { echo "$as_me:$LINENO: error: --with-cfitsio requres a value" >&5
-echo "$as_me: error: --with-cfitsio requres a value" >&2;}
+    { { echo "$as_me:$LINENO: error: --with-cfitsio requires a value-- try yes or no" >&5
+echo "$as_me: error: --with-cfitsio requires a value-- try yes or no" >&2;}
    { (exit 1); exit 1; }; }
     ;;
    xunspecified)

@@ -1127,10 +1127,10 @@ fits_read_col
 
  USAGE
   (x1, ...xN) = fits_read_col (file, c1, ... cN)
-v+
+
    Fits_File_Type or String_Type file;
    Int_Type or String_Type c1, ...cN;
-v-
+
 
  DESCRIPTION
   This function returns one or more vectors containing objects in the
@@ -1175,10 +1175,10 @@ fits_read_cell
 
  USAGE
   X = fits_read_cell (file, c, r)
-v+
+
    Fits_File_Type or String_Type file;
    Int_Type r, c;
-v-
+
 
  DESCRIPTION
   This function returns the object in the column `c' and row
@@ -1199,10 +1199,10 @@ fits_read_row
 
  USAGE
   Struct_Type fits_read_cell (file, r)
-v+
+
    Fits_File_Type or String_Type file;
    Int_Type r;
-v-
+
 
  DESCRIPTION
   This function returns a structure containing the data in the columns

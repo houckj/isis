@@ -8,6 +8,7 @@ all:
 clean:
 	/bin/rm -f *~ \#*
 	cd src; $(MAKE) clean
+distclean: clean
+	cd src; $(MAKE) distclean
 install:
 	cd src; $(MAKE) install
-

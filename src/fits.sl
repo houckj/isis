@@ -524,10 +524,10 @@ static define read_cols (fp, columns, first_row, last_row)
 %\function{fits_read_col}
 %\synopsis{Read one or more columns from a FITS binary table}
 %\usage{(x1, ...xN) = fits_read_col (file, c1, ... cN)}
-%v+
+%#v+
 %   Fits_File_Type or String_Type file;
 %   Int_Type or String_Type c1, ...cN;
-%v-
+%#v-
 %\description
 %  This function returns one or more vectors containing objects in the
 %  specified columns of the binary table indicated by \var{file}.  If
@@ -590,10 +590,10 @@ public define fits_read_col_struct ()
 %\function{fits_read_cell}
 %\synopsis{Read a cell from a FITS binary table}
 %\usage{X = fits_read_cell (file, c, r)}
-%v+
+%#v+
 %   Fits_File_Type or String_Type file;
 %   Int_Type r, c;
-%v-
+%#v-
 %\description
 %  This function returns the object in the column \var{c} and row
 %  \var{r} of the binary table indicated by \var{file}.  If \var{file}
@@ -646,10 +646,10 @@ public define fits_read_cells ()
 %\function{fits_read_row}
 %\synopsis{Read a row from a FITS binary table}
 %\usage{Struct_Type fits_read_cell (file, r)}
-%v+
+%#v+
 %   Fits_File_Type or String_Type file;
 %   Int_Type r;
-%v-
+%#v-
 %\description
 %  This function returns a structure containing the data in the columns
 %  of the row \var{r} of the binary table indicated by \var{file}. If
@@ -1826,6 +1826,15 @@ define test_fits_iterate ()
    
 }
 #endif
+
+% Obsolete functions
+
+define fits_read_image ()
+{
+   () = fprintf (stderr, "*** Warning: fits_read_image is deprecated.\n");
+   variable args = __pop_args (_NARGS);
+   return fits_read_img (__push_args (args));
+}
 
 provide ("fits");
 
