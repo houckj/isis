@@ -471,7 +471,7 @@ v-
   This function may be used to obtain the bitpix value for a specified image
   array.  The array must be an integer or floating point type, otherwise
   and error will be generated.  The bitpix value is returned.
-\seealso{fits_write_image_hdu, fits_read_image}
+\seealso{fits_write_image_hdu, fits_read_img}
 \done
 #c __LINE__: 1503
 \function{fits_read_img}

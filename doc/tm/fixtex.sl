@@ -1,7 +1,6 @@
 %quit_jed;
 
-% Version 0.3-0
-
+% Version 0.3.1-0
 !if (is_defined ("__argv"))
 {
    message ("You need a newer version of jed to run this script");
@@ -71,10 +70,17 @@ static define fixup_urldefs ()
 	() = ffind ("\\url");
 	go_left (1);
 	trim ();
-	insert("{");eol(); insert("}");
-	insert ("\n\\else\n");
+	insert("{");
+
+	% pdflatex cannot grok # in urls.  Nuke em.
+	if (ffind ("#"))
+	  {
+	     del_eol ();
+	     insert ("}");
+	  }
+	eol ();
+	insert ("}\n\\else\n");
 	insert (line); newline ();
-	%insert ("\\newcommand"); insert(macro); insert("}{}\n");
 	insert ("\\fi\n");
      }
 }

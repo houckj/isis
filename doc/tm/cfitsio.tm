@@ -69,16 +69,18 @@
 #d cfitsio_ref_url \
  http://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/cfitsio.html
 #d fits_url http://heasarc.gsfc.nasa.gov/docs/heasarc/fits.html
-#d FITS \url{\fits_url}{FITS}
-#d CFITSIO \url{\cfitsio_ref_url}{CFITSIO}
+#d FITS FITS
+
+#d CFITSIO CFITSIO
 
 \chapter{Introduction} #%{{{
 
- \FITS (Flexible Image Transport System) is a data format that is in
- widespread use by the astronomical community.  \CFITSIO is a popular
- C library that interfaces to such files and provides support for all
- features of the format.  Moreover \CFITSIO supports a number of
- unofficial or proposed \FITS conventions that are in widespread use.
+ \url{\fits_url}{FITS} (Flexible Image Transport System) is a data
+ format that is in widespread use by the astronomical community.
+ \url{\cfitsio_ref_url}{CFITSIO} is a popular C library that
+ interfaces to such files and provides support for all features of the
+ format.  Moreover \CFITSIO supports a number of unofficial or
+ proposed \FITS conventions that are in widespread use.
 
  This package makes use of the \CFITSIO library allow one to
  manipulate \FITS files from the \slang interpreter.  The package
@@ -823,6 +825,20 @@
 #%}}}
 
 \sect{Low-level Function Reference}
+
+
+#s+
+#i mkindex.sl
+#s-
+#d iflatex#2 <#if output=latex2e>$1</#if><#unless output=latex2e>$2</#unless>
+#d ifhtml#2 <#if output=html>$1</#if><#unless output=html>$2</#unless>
+
+#d xreferences#1 This function is a wrapper around \exmp{$1}. \
+ See \ifhtml{\url{\cfitsio_fun_url{$1}}{its documentation}}{its documentation}\
+ for additional information.
+
+#d cfitsioxref#1 \ifhtml{\url{\cfitsio_fun_url{$1}}{$1}}{\exmp{$1}}
+
 #i rtl/cfitsiofuns.tm
 
 \end{\documentstyle}
