@@ -3,12 +3,13 @@
 # To create the SGML files, you will need to install the tm-utils
 # package.  See http://www.jedsoft.org/ for more information.
 #
-TM2SGML = /aluche/d1/web/tm-dist/bin/tmexpand
+TMEXPAND = /aluche/d1/web/tm-dist/bin/tmexpand
 SL2TM = sl2tm
 MACRODIR = /aluche/d1/web/tm-dist/macros
 
 MODULE = cfitsio
 MODULE_DEPS = rtl/cfitsiofuns.tm fitswcsfuns.tm fitsfuns.tm
+HLPFUNS_TM = rtl/cfitsiofuns.tm fitsfuns.tm fitswcsfuns.tm
 
 TXT_FILES = $(MODULE).txt
 SGML_FILES = $(MODULE).sgml
@@ -16,6 +17,9 @@ HTML_FILES = $(MODULE).html
 TEX_FILES = $(MODULE).tex
 PS_FILES = $(MODULE).ps 
 PDF_FILES = $(MODULE).pdf
+HLP_FILE = $(MODULE).hlp
+
+HLP_TM_FILE = helpfile.tm
 
 SGML2LATEX = sgml2latex -p letter -o tex
 SGML2HTML = sgml2html
@@ -28,8 +32,9 @@ PSDIR = ../ps
 HTMLDIR = ../html
 SGMLDIR = ../sgml
 PDFDIR = ../pdf
+HELPDIR = ../help
 
-SUBDIRS = $(TEXTDIR) $(HTMLDIR) $(PSDIR) $(SGMLDIR) $(PDFDIR)
+SUBDIRS = $(TEXTDIR) $(HTMLDIR) $(PSDIR) $(SGMLDIR) $(PDFDIR) $(HELPDIR)
 SRCDIR = `pwd`
 
 all: $(SGML_FILES) $(HTML_FILES) $(TEX_FILES) $(TXT_FILES)
@@ -40,7 +45,7 @@ fitswcsfuns.tm: ../../src/fitswcs.sl
 text-files: $(TXT_FILES)
 #----- SGML Files -----------------------------------------------------------
 $(MODULE).sgml : $(MODULE).tm $(MODULE_DEPS)
-	$(TM2SGML) -I$(MACRODIR) $(MODULE).tm $(MODULE).sgml
+	$(TMEXPAND) -I$(MACRODIR) $(MODULE).tm $(MODULE).sgml
 #----- HTML Files -----------------------------------------------------------
 $(MODULE).html : $(MODULE).sgml
 	$(SGML2HTML) $(MODULE).sgml
@@ -64,19 +69,23 @@ $(MODULE).ps : $(MODULE).tex texclean
 $(MODULE).txt: $(MODULE).sgml
 	$(SGML2TXT) $(MODULE).sgml
 #----------------------------------------------------------------------------
+help-files: $(HLP_FILE)
+$(HLP_FILE): $(HLP_TM_FILE) $(HLPFUNS_TM)
+	$(TMEXPAND) -I$(MACRODIR) $(HLP_TM_FILE) $(HLP_FILE)
 texclean:
 	-rm -f *.dvi *.log *.aux *.toc *.out
 clean: texclean
-	-rm -f *~ rtl/*.BAK rtl/*~ *.tmp
+	-rm -f *~ rtl/*.BAK rtl/*~ *.tmp *-error
 distclean: clean
-	-rm -f *.html *.ps $(TXT_FILES) $(TEX_FILES) $(SGML_FILES) $(PDF_FILES)
-install-txt-files: $(TXT_FILES)
+	-rm -f *.html *.ps $(HLP_FILE) $(TXT_FILES) $(TEX_FILES) $(SGML_FILES) $(PDF_FILES)
+install-txt: $(TXT_FILES)
 	-mv $(TXT_FILES) ../text
-
-install: all $(PS_FILES) $(PDF_FILES)
-	-mkdir $(SUBDIRS)
-	-mv $(TXT_FILES) ../text
-	-mv *.html ../html
+install-help: $(HLP_FILE)
+	-mkdir -p $(HELPDIR)
+	-mv $(HLP_FILE) $(HELPDIR)
+install-all: all install-help install-txt $(PS_FILES) $(PDF_FILES)
+	-mkdir -p $(HTMLDIR) $(PSDIR) $(SGMLDIR) $(PDFDIR)
+	-mv *.html $(HTMLDIR)
 	-mv $(PS_FILES) ../ps
 	-mv $(SGML_FILES) ../sgml
 	-mv $(PDF_FILES) ../pdf
