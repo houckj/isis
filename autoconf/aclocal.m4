@@ -1,4 +1,5 @@
 dnl# -*- mode: sh; mode: fold -*-
+dnl# Version 0.1.2
 
 AC_DEFUN(JD_INIT,     dnl#{{{
 [
@@ -24,6 +25,39 @@ fi
 JD_Above_Dir2=`cd ..;pwd`
 ])
 dnl#}}}
+
+dnl# This function expand the "prefix variables.  For example, it will expand
+dnl# values such as ${exec_prefix}/foo when ${exec_prefix} itself has a 
+dnl# of ${prefix}.  This function produces the shell variables:
+dnl# jd_prefix_libdir, jd_prefix_incdir
+AC_DEFUN(JD_EXPAND_PREFIX, dnl#{{{
+[
+  if test "X$jd_prefix" = "X"
+  then
+    jd_prefix=$ac_default_prefix
+    if test "X$prefix" != "XNONE"
+    then
+      jd_prefix="$prefix"
+    fi
+    jd_exec_prefix="$jd_prefix"
+    if test "X$exec_prefix" != "XNONE"
+    then
+      jd_exec_prefix="$exec_prefix"
+    fi
+  
+    dnl#Unfortunately, exec_prefix may have a value like ${prefix}, etc.
+    dnl#Let the shell expand those.  Yuk.
+    eval `sh <<EOF
+      prefix=$jd_prefix
+      exec_prefix=$jd_exec_prefix
+      libdir=$libdir
+      includedir=$includedir
+      echo jd_prefix_libdir="\$libdir" jd_prefix_incdir="\$includedir"
+EOF
+`
+  fi
+])
+#}}}
 
 AC_DEFUN(JD_SET_OBJ_SRC_DIR, dnl#{{{
 [
@@ -144,9 +178,11 @@ dnl#}}}
 
 AC_DEFUN(JD_FIND_GENERIC, dnl#{{{
 [
-changequote(<<, >>)dnl
-define(<<JD_UP_NAME>>, translit($1, [a-z], [A-Z]))dnl
-changequote([, ])dnl
+  AC_REQUIRE([JD_EXPAND_PREFIX])dnl
+
+  changequote(<<, >>)dnl
+  define(<<JD_UP_NAME>>, translit($1, [a-z], [A-Z]))dnl
+  changequote([, ])dnl
 # Look for the JD_UP_NAME package
 #JD_UP_NAME[]_INCLUDE=""
 #JD_UP_NAME[]_LIB_DIR=""
@@ -157,11 +193,8 @@ JD_Search_Dirs="$JD_Above_Dir2/$1/libsrc,$JD_Above_Dir2/$1/libsrc/"$ARCH"objs \
 		$JD_Above_Dir2/$1/src,$JD_Above_Dir2/$1/src/"$ARCH"objs \
                 $JD_Above_Dir/$1/src,$JD_Above_Dir/$1/src/"$ARCH"objs"
 
-test "x$prefix" = "xNONE" && prefix="$ac_default_prefix"
-test "x$exec_prefix" = "xNONE" && exec_prefix="$prefix"
 JD_Search_Dirs="$JD_Search_Dirs \
-                $includedir,$libdir \
-		$prefix/include,$exec_prefix/lib \
+                $jd_prefix_incdir,$jd_prefix_libdir \
 		$HOME/include,$HOME/lib"
 
 if test -n "$ARCH"
@@ -174,8 +207,6 @@ fi
 # the other directories may have a better chance of containing a more recent
 # version.
 
-test "x$exec" = "xNONE" && exec="$ac_default_prefix"
-test "x$exec_prefix" = "xNONE" && exec_prefix="$prefix"
 JD_Search_Dirs="$JD_Search_Dirs \
                 /usr/local/include,/usr/local/lib \
 		/usr/include,/usr/lib \
@@ -267,7 +298,7 @@ AC_ARG_ENABLE(warnings,
 	      [gcc_warnings=$enableval])
 if test -n "$GCC"
 then
-  CFLAGS="$CFLAGS -fno-strength-reduce"
+  #CFLAGS="$CFLAGS -fno-strength-reduce"
   if test -n "$gcc_warnings"
   then
     CFLAGS="$CFLAGS -Wall -W -pedantic -Winline -Wmissing-prototypes \
@@ -508,7 +539,7 @@ case "$host_os" in
   *linux* )
     DYNAMIC_LINK_FLAGS="-Wl,-export-dynamic"
     ELF_CC="gcc"
-    ELF_CFLAGS="-O2 -fno-strength-reduce -fPIC"
+    ELF_CFLAGS="-O2 -fPIC"
     ELF_LINK="gcc -shared -Wl,-soname#"
     ELF_LINK_CMD="\$(ELF_LINK),\$(ELFLIB_MAJOR)"
     ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
@@ -519,7 +550,7 @@ case "$host_os" in
     then
       DYNAMIC_LINK_FLAGS=""
       ELF_CC="gcc"
-      ELF_CFLAGS="-O2 -fno-strength-reduce -fPIC"
+      ELF_CFLAGS="-O2 -fPIC"
       ELF_LINK="gcc -shared -Wl,-ztext -Wl,-h#"
       ELF_LINK_CMD="\$(ELF_LINK),\$(ELFLIB_MAJOR)"
       ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
@@ -540,7 +571,7 @@ case "$host_os" in
      then
        DYNAMIC_LINK_FLAGS=""
        ELF_CC="gcc"
-       ELF_CFLAGS="-O2 -fno-strength-reduce -fPIC"
+       ELF_CFLAGS="-O2 -fPIC"
        ELF_LINK="gcc -shared -Wl,-h#"
        ELF_LINK_CMD="\$(ELF_LINK),\$(ELFLIB_MAJOR)"
        ELF_DEP_LIBS=
@@ -564,7 +595,7 @@ case "$host_os" in
        # not tested
        DYNAMIC_LINK_FLAGS=""
        ELF_CC="gcc"
-       ELF_CFLAGS="-O2 -fno-strength-reduce -fPIC"
+       ELF_CFLAGS="-O2 -fPIC"
        ELF_LINK="gcc -shared -Wl,-h#"
        ELF_LINK_CMD="\$(ELF_LINK),\$(ELFLIB_MAJOR)"
        ELF_DEP_LIBS=
@@ -582,7 +613,7 @@ case "$host_os" in
   *darwin* )
      DYNAMIC_LINK_FLAGS=""
      ELF_CC="cc"
-     ELF_CFLAGS="$CFLAGS -O2 -fno-strength-reduce -fno-common"
+     ELF_CFLAGS="$CFLAGS -O2 -fno-common"
      ELF_LINK="cc -dynamiclib"
      ELF_LINK_CMD="\$(ELF_LINK) -install_name \$(install_lib_dir)/\$(ELFLIB_MAJOR) -compatibility_version \$(ELF_MAJOR_VERSION) -current_version \$(ELF_MAJOR_VERSION).\$(ELF_MINOR_VERSION)"
      ELF_DEP_LIBS="$LDFLAGS \$(DL_LIB)"
@@ -591,6 +622,19 @@ case "$host_os" in
      ELFLIB_MAJOR="lib\$(THIS_LIB).\$(ELF_MAJOR_VERSION).dylib"
      ELFLIB_MAJOR_MINOR="lib\$(THIS_LIB).\$(ELF_MAJOR_VERSION).\$(ELF_MINOR_VERSION).dylib"
      ;;
+  *freebsd* )
+    ELFLIB_MAJOR_MINOR="\$(ELFLIB).\$(ELF_MAJOR_VERSION)"
+    ELF_CC="\$(CC)"
+    ELF_CFLAGS="\$(CFLAGS) -fPIC"
+    if test "X$PORTOBJFORMAT" = "Xelf" ; then
+      ELF_LINK="\$(CC) -shared -Wl,-soname,\$(ELFLIB_MAJOR)"
+    else
+      ELF_LINK="ld -Bshareable -x"
+    fi
+    ELF_LINK_CMD="\$(ELF_LINK)"
+    ELF_DEP_LIBS="\$(DL_LIB) -lm"
+    CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
+    ;;
   * )
     echo "Note: ELF compiler for host_os=$host_os may be wrong"
     ELF_CC="$CC"
@@ -643,35 +687,6 @@ AC_SUBST(F77_LIBS)
 
 dnl#}}}
 
-AC_DEFUN(JD_EXPAND_PREFIX, dnl#{{{
-[
-  if test "X$jd_prefix" = "X"
-  then
-    jd_prefix=$ac_default_prefix
-    if test "X$prefix" != "XNONE"
-    then
-      jd_prefix="$prefix"
-    fi
-    jd_exec_prefix="$jd_prefix"
-    if test "X$exec_prefix" != "XNONE"
-    then
-      jd_exec_prefix="$exec_prefix"
-    fi
-  
-    dnl#Unfortunately, exec_prefix may have a value like ${prefix}, etc.
-    dnl#Let the shell expand those.  Yuk.
-    eval `sh <<EOF
-      prefix=$jd_prefix
-      exec_prefix=$jd_exec_prefix
-      libdir=$libdir
-      includedir=$includedir
-      echo jd_prefix_libdir="\$libdir" jd_prefix_incdir="\$includedir"
-EOF
-`
-  fi
-])
-#}}}
-
 dnl# This macro process the --with-xxx, --with-xxxinc, and --with-xxxlib
 dnl# command line arguments and returns the values as shell variables
 dnl# jd_xxx_include_dir and jd_xxx_library_dir.  It does not perform any
@@ -681,15 +696,22 @@ AC_DEFUN(JD_WITH_LIBRARY_PATHS, dnl#{{{
  JD_UPPERCASE($1,JD_ARG1)
  jd_$1_include_dir=""
  jd_$1_library_dir=""
+ jd_with_$1_library=""
 
  AC_ARG_WITH($1,
   [  --with-$1=DIR      Use DIR/lib and DIR/include for $1],
-  [jd_with_$1_arg=$withval], [jd_with_$1_arg=no])
+  [jd_with_$1_arg=$withval], [jd_with_$1_arg=unspecified])
+  
  case "x$jd_with_$1_arg" in
    xno)
+     jd_with_$1_library="no"
     ;;
    x)
     AC_MSG_ERROR(--with-$1 requres a value)
+    ;;
+   xunspecified)
+    ;;
+   xyes)
     ;;
    *)
     jd_$1_include_dir="$jd_with_$1_arg"/include
@@ -699,8 +721,10 @@ AC_DEFUN(JD_WITH_LIBRARY_PATHS, dnl#{{{
 
  AC_ARG_WITH($1lib,
   [  --with-$1lib=DIR   $1 library in DIR],
-  [jd_with_$1lib_arg=$withval], [jd_with_$1lib_arg=no])
+  [jd_with_$1lib_arg=$withval], [jd_with_$1lib_arg=unspecified])
  case "x$jd_with_$1lib_arg" in
+   xunspecified)
+    ;;
    xno)
     ;;
    x)
@@ -713,10 +737,12 @@ AC_DEFUN(JD_WITH_LIBRARY_PATHS, dnl#{{{
 
  AC_ARG_WITH($1inc, 
   [  --with-$1inc=DIR   $1 include files in DIR],
-  [jd_with_$1inc_arg=$withval], [jd_with_$1inc_arg=no])
+  [jd_with_$1inc_arg=$withval], [jd_with_$1inc_arg=unspecified])
  case "x$jd_with_$1inc_arg" in
    x)
      AC_MSG_ERROR(--with-$1inc requres a value)
+     ;;
+   xunspecified)
      ;;
    xno)
      ;;
@@ -727,94 +753,120 @@ AC_DEFUN(JD_WITH_LIBRARY_PATHS, dnl#{{{
 ])
 dnl#}}}
 
-AC_DEFUN(JD_WITH_LIBRARY, dnl#{{{
+dnl# This function checks for the existence of the specified library $1 with
+dnl# header file $2.  If the library exists, then the shell variables will
+dnl# be created: 
+dnl#  jd_with_$1_library=yes/no, 
+dnl#  jd_$1_inc_file
+dnl#  jd_$1_include_dir
+dnl#  jd_$1_library_dir
+AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
 [
   AC_REQUIRE([JD_EXPAND_PREFIX])dnl
-  AC_MSG_CHECKING(for the $1 library and header files)
+  AC_MSG_CHECKING(for the $1 library and header files $2)
   dnl JD_UPPERCASE($1,JD_ARG1)
   JD_WITH_LIBRARY_PATHS($1)
-  jd_inc_file=$2
-
-  if test "X$jd_inc_file" = "X"
+  if test X"$jd_with_$1_library" = X
   then
-     jd_inc_file=$1.h
-  fi
-  if test X"$jd_$1_include_dir" = X
-  then
-     lib_include_dirs="\
-          $jd_prefix_incdir \
-          /usr/local/$1/include \
-          /usr/local/include/$1 \
-	  /usr/local/include \
-	  /usr/include/$1 \
-	  /usr/$1/include \
-	  /usr/include \
-	  /opt/include/$1 \
-	  /opt/$1/include \
-	  /opt/include"
+    jd_$1_inc_file=$2
+    jd_with_$1_library="yes"
 
-     for X in $lib_include_dirs
-     do
-        if test -r "$X/$jd_inc_file"
-	then
-	  jd_$1_include_dir="$X"
-          break
-        fi
-     done
-     
-     if test X"$jd_$1_include_dir" = X
-     then
-        AC_MSG_ERROR(unable to find $jd_inc_file)
-     fi
-  fi
- 
-  if test X"$jd_$1_library_dir" = X
-  then
-     lib_library_dirs="\
-          $jd_prefix_libdir \
-          /usr/local/lib \
-          /usr/local/lib/$1 \
-          /usr/local/$1/lib \
-	  /usr/lib \
-	  /usr/lib/$1 \
-	  /usr/$1/lib \
-	  /opt/lib \
-	  /opt/lib/$1 \
-	  /opt/$1/lib"
-
-     for X in $lib_library_dirs
-     do
+    if test "X$jd_$1_inc_file" = "X"
+    then
+       jd_$1_inc_file=$1.h
+    fi
+    if test X"$jd_$1_include_dir" = X
+    then
+       lib_include_dirs="\
+            $jd_prefix_incdir \
+            /usr/local/$1/include \
+            /usr/local/include/$1 \
+  	  /usr/local/include \
+  	  /usr/include/$1 \
+  	  /usr/$1/include \
+  	  /usr/include \
+  	  /opt/include/$1 \
+  	  /opt/$1/include \
+  	  /opt/include"
+  
+       for X in $lib_include_dirs
+       do
+          if test -r "$X/$jd_$1_inc_file"
+	  then
+  	  jd_$1_include_dir="$X"
+            break
+          fi
+       done
+       if test X"$jd_$1_include_dir" = X
+       then
+         jd_with_$1_library="no"
+       fi
+    fi
+   
+    if test X"$jd_$1_library_dir" = X
+    then
+       lib_library_dirs="\
+            $jd_prefix_libdir \
+            /usr/local/lib \
+            /usr/local/lib/$1 \
+            /usr/local/$1/lib \
+  	  /usr/lib \
+  	  /usr/lib/$1 \
+  	  /usr/$1/lib \
+  	  /opt/lib \
+  	  /opt/lib/$1 \
+  	  /opt/$1/lib"
+  
+       for X in $lib_library_dirs
+       do
         if test -r "$X/lib$1.so" -o -r "$X/lib$1.a"
-	then
-	  jd_$1_library_dir="$X"
-          break
+  	then
+  	  jd_$1_library_dir="$X"
+	  break
         fi
-     done
-
-     if test X"$jd_$1_library_dir" = X
-     then
-        AC_MSG_ERROR(unable to find the $1 library)
-     fi
+       done
+       if test X"$jd_$1_library_dir" = X
+       then
+         jd_with_$1_library="no"
+       fi
+    fi
   fi
 
-  dnl#  Avoid using /usr/lib and /usr/include because of problems with
-  dnl#  gcc on some solaris systems.
-  JD_ARG1[]_LIB=-L$jd_$1_library_dir
-  if test "X$jd_$1_library_dir" = "X/usr/lib"
+  if test "$jd_with_$1_library" = "yes"
   then
-    JD_ARG1[]_LIB=""
+    AC_MSG_RESULT(yes: $jd_$1_library_dir and $jd_$1_include_dir)
+    dnl#  Avoid using /usr/lib and /usr/include because of problems with
+    dnl#  gcc on some solaris systems.
+    JD_ARG1[]_LIB=-L$jd_$1_library_dir
+    if test "X$jd_$1_library_dir" = "X/usr/lib"
+    then
+      JD_ARG1[]_LIB=""
+    else
+      JD_SET_RPATH($jd_$1_library_dir)
+    fi
+
+    JD_ARG1[]_INC=-I$jd_$1_include_dir
+    if test "X$jd_$1_include_dir" = "X/usr/include"
+    then
+      JD_ARG1[]_INC=""
+    fi
   else
-    JD_SET_RPATH($jd_$1_library_dir)
-  fi
-
-  JD_ARG1[]_INC=-I$jd_$1_include_dir
-  if test "X$jd_$1_include_dir" = "X/usr/include"
-  then
+    AC_MSG_RESULT(no)
     JD_ARG1[]_INC=""
+    JD_ARG1[]_LIB=""
   fi
   AC_SUBST(JD_ARG1[]_LIB)
   AC_SUBST(JD_ARG1[]_INC)
-  AC_MSG_RESULT(yes: $jd_$1_library_dir and $jd_$1_include_dir)
+])
+dnl#}}}
+
+AC_DEFUN(JD_WITH_LIBRARY, dnl#{{{
+[
+  JD_CHECK_FOR_LIBRARY($1, $2)
+  if test "$jd_with_$1_library" = "no"
+  then
+    AC_MSG_ERROR(unable to find the $1 library and header file $jd_$1_inc_file)
+  fi
 ])
 dnl#}}}
 
@@ -828,10 +880,10 @@ slang_major_version=`echo $slang_version |
  awk '{ print int([$]1/10000) }'`
 slang_minor_version=`echo $slang_version $slang_major_version |
  awk '{ print int(([$]1 - [$]2*10000)/100) }'`
-slang_mminor_version=`echo $slang_version $slang_major_version $slang_minor_version |
+slang_minor_version=`echo $slang_version $slang_major_version $slang_minor_version |
  awk '{ print ([$]1 - [$]2*10000 - [$]3*100) }'`
 
-slang_minor_version="$slang_minor_version.$slang_mminor_version"
+slang_minor_version="$slang_minor_version.$slang_minor_version"
 slang_version="$slang_major_version.$slang_minor_version"
 AC_MSG_RESULT($slang_version)
 AC_SUBST(slang_major_version)
@@ -852,5 +904,55 @@ AC_DEFUN(JD_SLANG_MODULE_INSTALL_DIR, dnl#{{{
   SL_FILES_INSTALL_DIR=$datadir/slsh/local-packages
   AC_SUBST(MODULE_INSTALL_DIR)
   AC_SUBST(SL_FILES_INSTALL_DIR)
+])
+#}}}
+
+AC_DEFUN(JD_CHECK_LONG_LONG, dnl#{{{
+[
+  AC_CHECK_TYPES(long long)
+  AC_CHECK_SIZEOF(long long)
+])
+dnl#}}}
+
+AC_DEFUN(JD_LARGE_FILE_SUPPORTXXX, dnl#{{{
+[
+  AC_REQUIRE([JD_CHECK_LONG_LONG])
+  AC_MSG_CHECKING(whether to explicitly activate long file support)
+  AC_DEFINE(_LARGEFILE_SOURCE, 1)
+  AC_DEFINE(_FILE_OFFSET_BITS, 64)
+  jd_large_file_support=no
+  if test X$ac_cv_type_long_long = Xyes
+  then
+    if test $ac_cv_sizeof_long_long -ge 8
+    then
+      jd_large_file_support=yes
+    fi
+  fi
+
+  if test $jd_large_file_support = yes
+  then
+    AC_DEFINE(HAVE_LARGEFILE_SUPPORT, 1)
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no)
+  fi
+])
+dnl#}}}
+
+AC_DEFUN(JD_LARGE_FILE_SUPPORT, dnl#{{{
+[
+  AC_SYS_LARGEFILE
+  AC_FUNC_FSEEKO
+  AC_TYPE_OFF_T
+  AC_CHECK_SIZEOF(off_t)
+])
+#}}}
+
+AC_DEFUN(JD_HAVE_ISINF, dnl#{{{
+[
+  AC_MSG_CHECKING([for isinf])
+  AC_LINK_IFELSE([AC_LANG_PROGRAM( [[#include <math.h>]], [[isinf (0.0);]])],
+                 [AC_MSG_RESULT([yes])
+                  AC_DEFINE(HAVE_ISINF, 1)])
 ])
 #}}}

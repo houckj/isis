@@ -25,9 +25,9 @@ typedef struct
 }
 FitsFile_Type;
 
-static SLtype Fits_Type_Id;
+static SLtype Fits_Type_Id = 0;
 
-static int map_fitsio_type_to_slang (int type, long *repeat, unsigned char *stype)
+static int map_fitsio_type_to_slang (int type, long *repeat, SLtype *stype)
 {
    /* Variable length objects have negative type values */
    if (type < 0)
@@ -358,8 +358,10 @@ static int create_img (FitsFile_Type *ft, int *bitpix,
    axes = (long *) SLmalloc ((imax+1) * sizeof (long));
    if (axes == NULL)
      return -1;
+   
+   /* Transpose to FORTRAN order */
    for (i = 0; i < imax; i++)
-     axes[i] = ((int *) at_naxes->data)[i];
+     axes[i] = ((int *) at_naxes->data)[imax-(i+1)];
 
    (void) fits_create_img (ft->fptr, *bitpix, imax, axes, &status);
    SLfree ((char *) axes);
@@ -741,6 +743,18 @@ static int write_record (FitsFile_Type *ft, char *card)
    return fits_write_record (ft->fptr, card, &status);
 }
 
+static int insert_record (FitsFile_Type *ft, int *keynum, char *card)
+{
+   int status = 0;
+   
+   if (ft->fptr == NULL)
+     return -1;
+
+   return fits_insert_record (ft->fptr, *keynum, card, &status);
+}
+
+
+
 static int modify_name (FitsFile_Type *ft, char *oldname, char *newname)
 {
    int status = 0;
@@ -1056,6 +1070,22 @@ static int get_num_rows (FitsFile_Type *ft, SLang_Ref_Type *ref)
    if (ft->fptr == NULL)
      return -1;
    if (0 == fits_get_num_rows (ft->fptr, &nrows, &status))
+     {
+	int inrows = (int) nrows;
+	if (-1 == SLang_assign_to_ref (ref, SLANG_INT_TYPE, (VOID_STAR) &inrows))
+	  return -1;
+     }
+   return status;
+}
+
+static int get_rowsize (FitsFile_Type *ft, SLang_Ref_Type *ref)
+{
+   long nrows;
+   int status = 0;
+
+   if (ft->fptr == NULL)
+     return -1;
+   if (0 == fits_get_rowsize (ft->fptr, &nrows, &status))
      {
 	int inrows = (int) nrows;
 	if (-1 == SLang_assign_to_ref (ref, SLANG_INT_TYPE, (VOID_STAR) &inrows))
@@ -1452,7 +1482,7 @@ static int read_column_values (fitsfile *f, int type, unsigned char datatype,
    return 0;
 }
 
-static int read_var_column (fitsfile *f, int ftype, unsigned char datatype, 
+static int read_var_column (fitsfile *f, int ftype, SLtype datatype,
 			    int col, unsigned int firstrow, unsigned int num_rows, 
 			    SLang_Array_Type **atp)
 {
@@ -1590,7 +1620,7 @@ static int read_col (FitsFile_Type *ft, int *colnum, int *firstrowp,
    long num_rows;
    long width;
    int status;
-   unsigned char datatype;
+   SLtype datatype;
    int num_columns;
    int firstrow;
    long repeat;
@@ -1652,6 +1682,270 @@ static int read_col (FitsFile_Type *ft, int *colnum, int *firstrowp,
      status = -1;
 
    SLang_free_array (at);
+   return status;
+}
+
+typedef struct
+{
+   int type;
+   long repeat, width;
+   SLtype datatype;
+   unsigned int data_offset;
+}
+Column_Info_Type;
+
+static int read_var_column_data (fitsfile *f, int ftype, SLtype datatype,
+				 int col, unsigned int firstrow, unsigned int num_rows,
+				 SLang_Array_Type **at_data)
+{
+   unsigned int i;
+
+   for (i = 0; i < num_rows; i++)
+     {
+	long offset;
+	long repeat;
+	unsigned int row;
+	int status = 0;
+
+	row = firstrow + i;
+	if (0 != fits_read_descript (f, col, row, &repeat, &offset, &status))
+	  return status;
+
+	status = read_column_values (f, ftype, datatype, row, col, 1, repeat, at_data+i);
+	if (status)
+	  return status;
+     }
+   return 0;
+}
+
+static int read_string_column_data (fitsfile *f, int is_var, long repeat, int col,
+				    long firstrow, unsigned int num_rows,
+				    char **strs)
+{
+   unsigned int i;
+   int status = 0;
+
+   for (i = 0; i < num_rows; i++)
+     {
+	long offset;
+	long row;
+	
+	row = firstrow + i;
+	if (is_var)
+	  {
+	     if (0 != fits_read_descript (f, col, row, &repeat, &offset, &status))
+	       return status;
+	  }
+	
+	status = read_string_cell (f, row, col, repeat, strs + i);
+	if (status != 0)
+	  return status;
+     }
+   return 0;
+}
+
+   
+/* Usage: read_cols (ft, [columns...], firstrow, nrows, &ref) */
+static int read_cols (void)
+{
+   SLang_MMT_Type *mmt;
+   FitsFile_Type *ft;
+   fitsfile *f;
+   int status;
+   int num_columns_in_table;
+   long num_rows_in_table, delta_rows;
+   int num_rows;
+   int firstrow;
+   int *cols;
+   int num_cols;
+   int i;
+   SLang_Ref_Type *ref;
+   Column_Info_Type *ci = NULL;
+   SLang_Array_Type *data_arrays_at;
+   SLang_Array_Type **data_arrays;
+   SLang_Array_Type *columns_at;
+
+   if (-1 == SLang_pop_ref (&ref))
+     return -1;
+   if ((-1 == SLang_pop_int (&num_rows))
+       || (-1 == SLang_pop_int (&firstrow))
+       || (-1 == SLang_pop_array (&columns_at, 1)))
+     {
+	SLang_free_ref (ref);
+	return -1;
+     }
+   if (NULL == (ft = pop_fits_type (&mmt)))
+     {
+	SLang_free_array (columns_at);
+	SLang_free_ref (ref);
+	return -1;
+     }
+   f = ft->fptr;
+
+   status = 0;
+   if ((0 != fits_get_num_cols (f, &num_columns_in_table, &status))
+       || (0 != fits_get_num_rows (f, &num_rows_in_table, &status)))
+     goto free_and_return_status;
+
+   if (num_rows <= 0)
+     {
+	SLang_verror (SL_INVALID_PARM, "Number of rows must positive");
+	status = -1;
+	goto free_and_return_status;
+     }
+   if ((firstrow <= 0) || (firstrow > num_rows_in_table))
+     {
+	SLang_verror (SL_INVALID_PARM, "Row number out of range");
+	return -1;
+     }
+
+   if (firstrow + num_rows > num_rows_in_table + 1)
+     num_rows = num_rows_in_table - (firstrow - 1);
+
+
+   cols = (int *)columns_at->data;
+   num_cols = columns_at->num_elements;
+
+   if (NULL == (ci = (Column_Info_Type *) SLmalloc (num_cols*sizeof (Column_Info_Type))))
+     {
+	status = -1;
+	goto free_and_return_status;
+     }
+   
+   data_arrays_at = SLang_create_array (SLANG_ARRAY_TYPE, 0, NULL, &num_cols, 1);
+   if (data_arrays_at == NULL)
+     {
+	status = -1;
+	goto free_and_return_status;
+     }
+   data_arrays = (SLang_Array_Type **)data_arrays_at->data;
+
+   for (i = 0; i < num_cols; i++)
+     {
+	SLang_Array_Type *at;
+	SLtype datatype;
+	long repeat;
+	int type;
+	int col;
+
+	col = cols[i];
+	if ((col <= 0) || (col > num_columns_in_table))
+	  {
+	     SLang_verror (SL_INVALID_PARM, "Column number out of range");
+	     status = -1;
+	     goto free_and_return_status;
+	  }
+
+	if (0 != my_fits_get_coltype (f, col, &type, &repeat, &ci[i].width, &status))
+	  goto free_and_return_status;
+
+	if (-1 == map_fitsio_type_to_slang (type, &repeat, &datatype))
+	  {
+	     status = -1;
+	     goto free_and_return_status;
+	  }
+	ci[i].repeat = repeat;
+	ci[i].type = type;
+	ci[i].datatype = datatype;
+	ci[i].data_offset = 0;
+	
+	if (datatype == SLANG_STRING_TYPE)
+	  {
+	     at = SLang_create_array (SLANG_STRING_TYPE, 0, NULL, &num_rows, 1);
+	  }
+	else if (type < 0)	       /* variable length */
+	  at = SLang_create_array (SLANG_ARRAY_TYPE, 0, NULL, &num_rows, 1);
+	else 
+	  {
+	     int dims[2];
+	     int num_dims = 1;
+	     dims[0] = num_rows;
+	     if (repeat > 1)
+	       {
+		  dims[1] = repeat;
+		  num_dims++;
+	       }
+	     at = SLang_create_array (datatype, 0, NULL, dims, num_dims);
+	  }
+	
+	if (at == NULL)
+	  {		  
+	     status = -1;
+	     goto free_and_return_status;
+	  }
+	data_arrays[i] = at;
+     }
+
+   if (fits_get_rowsize (f, &delta_rows, &status))
+     goto free_and_return_status;
+
+   if (delta_rows < 1)
+     delta_rows = 1;
+
+   while (num_rows)
+     {
+	if (num_rows < delta_rows)
+	  delta_rows = num_rows;
+	
+	for (i = 0; i < num_cols; i++)
+	  {
+	     SLtype datatype = ci[i].datatype;
+	     int type = ci[i].type;
+	     long repeat = ci[i].repeat;
+	     int col = cols[i];
+	     SLang_Array_Type *at = data_arrays[i];
+	     unsigned int data_offset = ci[i].data_offset;
+
+	     if (datatype == SLANG_STRING_TYPE)
+	       {
+		  status = read_string_column_data (f, (type < 0), repeat, col, firstrow, delta_rows, 
+						    (char **)at->data + data_offset);
+		  data_offset += delta_rows;
+	       }
+	     else if (type < 0)
+	       {
+		  status = read_var_column_data (f, -type, datatype, col, firstrow, delta_rows, 
+						 (SLang_Array_Type **)at->data + data_offset);
+		  data_offset += delta_rows;
+	       }
+	     else
+	       {
+		  unsigned int num_elements = repeat * delta_rows;
+		  unsigned char *data = (unsigned char *)at->data + data_offset;
+		  /* int anynul; */
+
+		  if (type == TBIT)
+		    status = read_bit_column (f, col, firstrow, 1, num_elements, data, at->sizeof_type);
+		  else
+		    (void) fits_read_col (f, type, col, firstrow, 1, num_elements, NULL,
+					  data, NULL, &status);
+		  
+		  data_offset += num_elements * at->sizeof_type;
+	       }
+	     ci[i].data_offset = data_offset;
+
+	     if (status)
+	       goto free_and_return_status;
+	  }
+	firstrow += delta_rows;
+	num_rows -= delta_rows;
+     }
+   
+   if (status)
+     return status;
+
+   if (-1 == SLang_assign_to_ref (ref, SLANG_ARRAY_TYPE, (VOID_STAR)&data_arrays_at))
+     status = -1;
+   
+   /* drop */
+
+   free_and_return_status:
+   SLfree ((char *)ci);
+   SLang_free_mmt (mmt);
+   SLang_free_array (columns_at);
+   SLang_free_ref (ref);
+   SLang_free_array (data_arrays_at);
+
    return status;
 }
 
@@ -1825,8 +2119,8 @@ static SLang_Intrin_Fun_Type Fits_Intrinsics [] =
    MAKE_INTRINSIC_2("_fits_write_history", write_history, I, F, S),
    MAKE_INTRINSIC_1("_fits_write_date", write_date, I, F),
    MAKE_INTRINSIC_2("_fits_write_record", &write_record, I, F, S),
-
-
+   MAKE_INTRINSIC_3("_fits_insert_record", &insert_record, I, F, I, S),
+   
    MAKE_INTRINSIC_3("_fits_modify_name", modify_name, I, F, S, S),
    MAKE_INTRINSIC_2("_fits_get_num_keys", get_num_keys, I, F, R),
    MAKE_INTRINSIC_0("_fits_read_key_integer", read_key_integer, I),
@@ -1845,11 +2139,14 @@ static SLang_Intrin_Fun_Type Fits_Intrinsics [] =
    MAKE_INTRINSIC_2("_fits_delete_col", delete_col, I, F, I),
    
    MAKE_INTRINSIC_2("_fits_get_num_cols", get_num_cols, I, F, R),
+   MAKE_INTRINSIC_2("_fits_get_rowsize", get_rowsize, I, F, R),
    MAKE_INTRINSIC_2("_fits_get_num_rows", get_num_rows, I, F, R),
    MAKE_INTRINSIC_5("_fits_write_col", write_col, I, F, I, I, I, A),
    MAKE_INTRINSIC_5("_fits_read_col", read_col, I, F, I, I, I, R),
    MAKE_INTRINSIC_3("_fits_get_keytype", get_keytype, I, F, S, R),
    MAKE_INTRINSIC_1("_fits_get_keyclass", get_keyclass, I, S),
+   
+   MAKE_INTRINSIC_0("_fits_read_cols", read_cols, I),
 
    /* checksum routines */
    MAKE_INTRINSIC_1("_fits_write_chksum", write_chksum, I, F),
@@ -2021,27 +2318,30 @@ static void free_fits_file_type (SLtype type, VOID_STAR f)
 
 int init_cfitsio_module_ns (char *ns_name)
 {
-   SLang_Class_Type *cl;
    SLang_NameSpace_Type *ns;
    
    ns = SLns_create_namespace (ns_name);
    if (ns == NULL)
      return -1;
 
-   cl = SLclass_allocate_class ("Fits_File_Type");
-   if (cl == NULL) return -1;
-   (void) SLclass_set_destroy_function (cl, free_fits_file_type);
+   if (Fits_Type_Id == 0)
+     {	
+	SLang_Class_Type *cl;
+	cl = SLclass_allocate_class ("Fits_File_Type");
+	if (cl == NULL) return -1;
+	(void) SLclass_set_destroy_function (cl, free_fits_file_type);
    
-   /* By registering as SLANG_VOID_TYPE, slang will dynamically allocate a
-    * type.
-    */
-   if (-1 == SLclass_register_class (cl, SLANG_VOID_TYPE,
-				     sizeof (FitsFile_Type), 
-				     SLANG_CLASS_TYPE_MMT))
-     return -1;
-
-   Fits_Type_Id = SLclass_get_class_id (cl);
-   patchup_intrinsic_table ();
+	/* By registering as SLANG_VOID_TYPE, slang will dynamically allocate a
+	 * type.
+	 */
+	if (-1 == SLclass_register_class (cl, SLANG_VOID_TYPE,
+					  sizeof (FitsFile_Type), 
+					  SLANG_CLASS_TYPE_MMT))
+	  return -1;
+	
+	Fits_Type_Id = SLclass_get_class_id (cl);
+	patchup_intrinsic_table ();
+     }
 
    if (-1 == SLns_add_intrin_fun_table (ns, Fits_Intrinsics, "__CFITSIO__"))
      return -1;
@@ -2049,7 +2349,7 @@ int init_cfitsio_module_ns (char *ns_name)
    if (-1 == SLns_add_iconstant_table (ns, IConst_Table, NULL))
      return -1;
    
-   if (-1 == SLadd_intrin_var_table (Intrin_Vars, NULL))
+   if (-1 == SLns_add_intrin_var_table (ns, Intrin_Vars, NULL))
      return -1;
    
    return 0;

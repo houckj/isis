@@ -4,7 +4,7 @@
 # List of modules and associated .sl files to install
 #---------------------------------------------------------------------------
 MODULES = cfitsio-module.so
-SL_FILES = cfitsio.sl fits.sl
+SL_FILES = cfitsio.sl fits.sl fitswcs.sl
 MODULE_VERSION	= `./mkversion.sh`
 
 #---------------------------------------------------------------------------
@@ -42,7 +42,7 @@ INSTALL		= @INSTALL@
 INSTALL_DATA	= @INSTALL_DATA@
 MKINSDIR	= ../autoconf/mkinsdir.sh
 RM		= rm -f
-LN		= ln -sf
+LN		= ln -s
 #---------------------------------------------------------------------------
 # DESTDIR is designed to facilitate making packages.  Normally it is empty
 #---------------------------------------------------------------------------
