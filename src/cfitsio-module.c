@@ -430,8 +430,12 @@ static int read_img (FitsFile_Type *ft, SLang_Ref_Type *ref)
 
    if (ft->fptr == NULL)
      return -1;
-   
+
+#ifdef fits_get_img_equivtype
+   status = fits_get_img_equivtype (ft->fptr, &type, &status);
+#else
    status = fits_get_img_type (ft->fptr, &type, &status);
+#endif
    if (status)
      return status;
 
@@ -1236,6 +1240,95 @@ static int write_tbit_col (fitsfile *f, unsigned int col, unsigned int row,
    return status;
 }
 
+#ifdef fits_get_eqcoltype
+# define GET_COL_TYPE fits_get_eqcoltype
+#else
+# define GET_COL_TYPE my_fits_get_coltype
+static int my_fits_get_coltype (fitsfile *fptr, int col, int *type,
+				long *repeat, long *width, int *statusp)
+{
+   int status = *statusp;
+   char tscaln[32];
+   char tzeron[32];
+   double tscal, tzero;
+   double min_val, max_val;
+
+   if (0 != fits_get_coltype (fptr, col, type, repeat, width, &status))
+     {
+	*statusp = status;
+	return status;
+     }
+   
+   sprintf (tscaln, "TSCAL%d", col);
+   sprintf (tzeron, "TZERO%d", col);
+
+   if (0 != fits_read_key (fptr, TDOUBLE, tscaln, &tscal, NULL, &status))
+     {
+	fits_clear_errmsg ();
+	tscal = 1.0;
+     }
+   
+   if (0 != fits_read_key (fptr, TDOUBLE, tzeron, &tzero, NULL, &status))
+     {
+	fits_clear_errmsg ();
+	tzero = 0;
+     }
+
+   switch (*type)
+     {
+      case TSHORT:
+	min_val = -32768.0;
+	max_val = 32767.0;
+	break;
+	
+      case TLONG:
+	min_val = -2147483648.0;
+	max_val = 2147483647.0;
+	break;
+	
+      default:
+	return 0;
+     }
+
+   min_val = tzero + tscal * min_val;
+   max_val = tzero + tscal * max_val;
+
+   if (min_val > max_val)
+     {
+	double tmp = max_val; 
+	max_val = min_val;
+	min_val = tmp;
+     }
+
+   if ((min_val >= -32768.0) && (max_val <= 32767.0))
+     {
+	*type = TSHORT;
+	return 0;
+     }
+   
+   if ((min_val >= 0) && (max_val <= 65535.0))
+     {
+	*type = TUSHORT;
+	return 0;
+     }
+   
+   if ((min_val >= -2147483648.0) && (max_val <= 2147483647.0))
+     {
+	*type = TLONG;
+	return 0;
+     }
+   
+   if ((min_val >= 0.0) && (max_val <= 4294967295.0))
+     {
+	*type = TULONG;
+	return 0;
+     }
+   
+   *type = TDOUBLE;
+   return 0;
+}
+#endif
+
 static int write_col (FitsFile_Type *ft, int *colnum,
 		      int *firstrow, int *firstelem, SLang_Array_Type *at)
 {
@@ -1249,7 +1342,8 @@ static int write_col (FitsFile_Type *ft, int *colnum,
      return -1;
    
    col = *colnum;
-   if (0 != fits_get_coltype (ft->fptr, col, &type, &repeat, &width, &status))
+
+   if (0 != GET_COL_TYPE (ft->fptr, col, &type, &repeat, &width, &status))
      return status;
 
    if (type == TBIT)
@@ -1528,90 +1622,6 @@ static int read_var_column (fitsfile *f, int ftype, SLtype datatype,
    return 0;
 }
 
-static int my_fits_get_coltype (fitsfile *fptr, int col, int *type,
-				long *repeat, long *width, int *statusp)
-{
-   int status = *statusp;
-   char tscaln[32];
-   char tzeron[32];
-   double tscal, tzero;
-   double min_val, max_val;
-
-   if (0 != fits_get_coltype (fptr, col, type, repeat, width, &status))
-     {
-	*statusp = status;
-	return status;
-     }
-   
-   sprintf (tscaln, "TSCAL%d", col);
-   sprintf (tzeron, "TZERO%d", col);
-
-   if (0 != fits_read_key (fptr, TDOUBLE, tscaln, &tscal, NULL, &status))
-     {
-	fits_clear_errmsg ();
-	tscal = 1.0;
-     }
-   
-   if (0 != fits_read_key (fptr, TDOUBLE, tzeron, &tzero, NULL, &status))
-     {
-	fits_clear_errmsg ();
-	tzero = 0;
-     }
-
-   switch (*type)
-     {
-      case TSHORT:
-	min_val = -32768.0;
-	max_val = 32767.0;
-	break;
-	
-      case TLONG:
-	min_val = -2147483648.0;
-	max_val = 2147483647.0;
-	break;
-	
-      default:
-	return 0;
-     }
-
-   min_val = tzero + tscal * min_val;
-   max_val = tzero + tscal * max_val;
-
-   if (min_val > max_val)
-     {
-	double tmp = max_val; 
-	max_val = min_val;
-	min_val = tmp;
-     }
-
-   if ((min_val >= -32768.0) && (max_val <= 32767.0))
-     {
-	*type = TSHORT;
-	return 0;
-     }
-   
-   if ((min_val >= 0) && (max_val <= 65535.0))
-     {
-	*type = TUSHORT;
-	return 0;
-     }
-   
-   if ((min_val >= -2147483648.0) && (min_val <= 2147483648.0))
-     {
-	*type = TLONG;
-	return 0;
-     }
-   
-   if ((min_val >= 0.0) && (min_val <= 4294967295.0))
-     {
-	*type = TULONG;
-	return 0;
-     }
-   
-   *type = TDOUBLE;
-   return 0;
-}
-
 static int read_col (FitsFile_Type *ft, int *colnum, int *firstrowp,
 		     int *num_rowsp, SLang_Ref_Type *ref)
 {
@@ -1661,7 +1671,7 @@ static int read_col (FitsFile_Type *ft, int *colnum, int *firstrowp,
    else
      num_rows = *num_rowsp;
 
-   if (0 != my_fits_get_coltype (ft->fptr, col, &type, &repeat, &width, &status))
+   if (0 != GET_COL_TYPE (ft->fptr, col, &type, &repeat, &width, &status))
      return status;
 
    if (-1 == map_fitsio_type_to_slang (type, &repeat, &datatype))
@@ -1836,7 +1846,7 @@ static int read_cols (void)
 	     goto free_and_return_status;
 	  }
 
-	if (0 != my_fits_get_coltype (f, col, &type, &repeat, &ci[i].width, &status))
+	if (0 != GET_COL_TYPE (f, col, &type, &repeat, &ci[i].width, &status))
 	  goto free_and_return_status;
 
 	if (-1 == map_fitsio_type_to_slang (type, &repeat, &datatype))

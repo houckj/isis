@@ -1588,51 +1588,38 @@ public define fits_create_image_hdu ()
 %  name of the image, or NULL for the primary image.  The image data written 
 %  to the file are specified by the \var{image} parameter.
 %  If the optional parameter \var{skeys} is non-NULL, then it is a 
-%  structure indicating additional keywords to be written to the header of the 
-%  binary table.  If the optional parameter \var{hist} is present and non-NULL, 
+%  structure indicating additional keywords to be written to the HDU. 
+%  If the optional parameter \var{hist} is present and non-NULL, 
 %  then it is a structure whose fields indicate either comment or history 
 %  information to be written to the header.
 %\example
 %  The following code
 %#v+
-%    variable data = struct { x, cosx, sinx };
-%    data.x = [0:2*PI:0.01];
-%    data.cosx = cos(data.x);
-%    data.sinx = sin(data.x);
-%
-%    variable keys = struct { hduname, username};
-%    keys.hduname = "COSXSINX";
-%    keys.username = "John Doe";
-%
-%    variable hist = struct { history, comment};
-%    hist.history = ["This is a history record", "This is another"];
-%    hist.comment = ["This is a comment", "And this is another"];
-%
-%    fits_write_image_hdu ("foo.fits", "COSXSINX", data, keys, hist);
+%     variable img = [1:128*128]; reshape (img, [128,128]);
+%     variable keys = struct { hduname, username};
+%     keys.hduname = "MY_IMAGE";
+%     keys.username = "John Doe";
+%     variable hist = struct { history, comment};
+%     hist.history = ["This is a history record", "This is another"];
+%     hist.comment = ["This is a comment", "And this is another"];
+%     fits_write_image_hdu ("foo.fits", NULL, img, keys, hist);
 %#v-
-% produces a binary table with the header:
+% produces an image HDU with the header:
 %#v+
-%    XTENSION= 'BINTABLE' / binary table extension
-%    BITPIX  =                   8 / 8-bit bytes
-%    NAXIS   =                   2 / 2-dimensional binary table
-%    NAXIS1  =                  24 / width of table in bytes
-%    NAXIS2  =                 629 / number of rows in table
-%    PCOUNT  =                   0 / size of special data area
-%    GCOUNT  =                   1 / one data group (required keyword)
-%    TFIELDS =                   3 / number of fields in each row
-%    TTYPE1  = 'x       ' / label for field   1
-%    TFORM1  = 'D       ' / data format of field: 8-byte DOUBLE
-%    TTYPE2  = 'cosx    ' / label for field   2
-%    TFORM2  = 'D       ' / data format of field: 8-byte DOUBLE
-%    TTYPE3  = 'sinx    ' / label for field   3
-%    TFORM3  = 'D       ' / data format of field: 8-byte DOUBLE
-%    EXTNAME = 'COSXSINX' / name of this binary table extension
-%    HDUNAME = 'COSXSINX'
-%    USERNAME= 'John Doe'
-%    HISTORY This is a history record
-%    HISTORY This is another
-%    COMMENT This is a comment
-%    COMMENT And this is another
+%     SIMPLE  =                   T / file does conform to FITS standard
+%     BITPIX  =                  32 / number of bits per data pixel
+%     NAXIS   =                   2 / number of data axes
+%     NAXIS1  =                 128 / length of data axis 1
+%     NAXIS2  =                 128 / length of data axis 2
+%     EXTEND  =                   T / FITS dataset may contain extensions
+%     COMMENT   FITS (Flexible Image Transport System) format is defined in 'Astronomy
+%     COMMENT   and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H
+%     HDUNAME = 'MY_IMAGE'
+%     USERNAME= 'John Doe'
+%     HISTORY This is a history record
+%     HISTORY This is another
+%     COMMENT This is a comment
+%     COMMENT And this is another
 %#v-
 %\notes
 %  This function provides no mechanism to mix comments and keyword records.  As
@@ -1837,6 +1824,13 @@ define fits_read_image ()
 }
 
 provide ("fits");
+
+#ifexists add_doc_file
+$1 = path_concat (path_concat (path_dirname (__FILE__), "help"),
+		  "cfitsio.hlp");
+if (NULL != stat_file ($1))
+  add_doc_file ($1);
+#endif
 
 #iffalse
 autoload ("fitswcs_get_img_wcs", "fitswcs.sl")

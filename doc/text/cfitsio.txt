@@ -1,6 +1,6 @@
   S-Lang CFITSIO Module Reference
   John E. Davis, davis@space.mit.edu
-  Mar 22, 2005
+  Mar 31, 2005
   ____________________________________________________________
 
   Table of Contents
@@ -738,10 +738,12 @@
   2.6.1.  Introduction
 
 
-  The fits package includes a set of routines deal with reading and
-  writing WCS keywords according to the conventions laid out in XXX.
-  Although they are part of the high-level interface, the routines are
-  somewhat experimental and as such must be loaded separately via:
+  The FITS package includes a set of routines for reading and writing
+  WCS <http://fits.gsfc.nasa.gov/fits_wcs.html> keywords in the form
+  proposed by Greisen   and Calabretta
+  <http://www.atnf.csiro.au/people/mcalabre/WCS/wcs.pdf>.  Although they
+  are part of the high-level interface, the routines are somewhat
+  experimental and as such must be loaded separately via:
 
 
            require ("fitswcs");
@@ -768,6 +770,7 @@
 
      cdelt
         Species the gradient at the reference pixel (Double_Type[naxis])
+
 
      pc An array used to linearly transform the WCS.
         (Double_Type[naxis,naxis] or NULL)
@@ -831,7 +834,8 @@
   to transform the WCS:
 
 
-           wcs = fitswcs_rebin_wcs (wcs, ygrid, xgrid);
+
+      wcs = fitswcs_rebin_wcs (wcs, ygrid, xgrid);
 
 
 
@@ -1818,56 +1822,43 @@
         primary image.  The image data written to the file are specified
         by the image parameter.  If the optional parameter skeys is non-
         NULL, then it is a structure indicating additional keywords to
-        be written to the header of the binary table.  If the optional
-        parameter hist is present and non-NULL, then it is a structure
-        whose fields indicate either comment or history information to
-        be written to the header.
+        be written to the HDU.  If the optional parameter hist is
+        present and non-NULL, then it is a structure whose fields
+        indicate either comment or history information to be written to
+        the header.
 
       Example
         The following code
 
 
-              variable data = struct { x, cosx, sinx };
-              data.x = [0:2*PI:0.01];
-              data.cosx = cos(data.x);
-              data.sinx = sin(data.x);
-
-              variable keys = struct { hduname, username};
-              keys.hduname = "COSXSINX";
-              keys.username = "John Doe";
-
-              variable hist = struct { history, comment};
-              hist.history = ["This is a history record", "This is another"];
-              hist.comment = ["This is a comment", "And this is another"];
-
-              fits_write_image_hdu ("foo.fits", "COSXSINX", data, keys, hist);
+               variable img = [1:128*128]; reshape (img, [128,128]);
+               variable keys = struct { hduname, username};
+               keys.hduname = "MY_IMAGE";
+               keys.username = "John Doe";
+               variable hist = struct { history, comment};
+               hist.history = ["This is a history record", "This is another"];
+               hist.comment = ["This is a comment", "And this is another"];
+               fits_write_image_hdu ("foo.fits", NULL, img, keys, hist);
 
 
 
-     produces a binary table with the header:
+     produces an image HDU with the header:
 
 
-              XTENSION= 'BINTABLE' / binary table extension
-              BITPIX  =                   8 / 8-bit bytes
-              NAXIS   =                   2 / 2-dimensional binary table
-              NAXIS1  =                  24 / width of table in bytes
-              NAXIS2  =                 629 / number of rows in table
-              PCOUNT  =                   0 / size of special data area
-              GCOUNT  =                   1 / one data group (required keyword)
-              TFIELDS =                   3 / number of fields in each row
-              TTYPE1  = 'x       ' / label for field   1
-              TFORM1  = 'D       ' / data format of field: 8-byte DOUBLE
-              TTYPE2  = 'cosx    ' / label for field   2
-              TFORM2  = 'D       ' / data format of field: 8-byte DOUBLE
-              TTYPE3  = 'sinx    ' / label for field   3
-              TFORM3  = 'D       ' / data format of field: 8-byte DOUBLE
-              EXTNAME = 'COSXSINX' / name of this binary table extension
-              HDUNAME = 'COSXSINX'
-              USERNAME= 'John Doe'
-              HISTORY This is a history record
-              HISTORY This is another
-              COMMENT This is a comment
-              COMMENT And this is another
+               SIMPLE  =                   T / file does conform to FITS standard
+               BITPIX  =                  32 / number of bits per data pixel
+               NAXIS   =                   2 / number of data axes
+               NAXIS1  =                 128 / length of data axis 1
+               NAXIS2  =                 128 / length of data axis 2
+               EXTEND  =                   T / FITS dataset may contain extensions
+               COMMENT   FITS (Flexible Image Transport System) format is defined in 'Astronomy
+               COMMENT   and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H
+               HDUNAME = 'MY_IMAGE'
+               USERNAME= 'John Doe'
+               HISTORY This is a history record
+               HISTORY This is another
+               COMMENT This is a comment
+               COMMENT And this is another
 
 
 
@@ -1945,7 +1936,8 @@
      will result in a 2 dimensional WCS from the first 2 axis of the
      input WCS.  Similarly,
 
-         wcs2 = fitswcs_slice (wcs, [1,0]);
+
+              wcs2 = fitswcs_slice (wcs, [1,0]);
 
 
 
@@ -2084,7 +2076,6 @@
 
       Usage
         fitswcs_put_img_wcs (fp, wcs [,alt])
-
       Description
         The fitswcs_put_img_wcs may be used to write the specified wcs
         out to the image HDU specified by the fp parameter.  An optional
@@ -2135,7 +2126,6 @@
         ``fitswcs_get_img_wcs''
 
 
-
   2.8.9.  fitswcs_linear_transform_wcs
 
 
@@ -2149,8 +2139,6 @@
                wcs: The specified WCS to transform
              X0,I0: 1-d arrays
                 CD: 2-d array
-
-
 
       Description
         This function may be used to create a new WCS by applying a
@@ -2248,8 +2236,9 @@
         String_Type _fits_get_errstatus (Int_Type status)
 
       Description
-        This function is a wrapper around fits_get_errstatus.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_get_errstatus.  See its documentation for additional
+        information.
 
 
 
@@ -2264,8 +2253,9 @@
         String_Type mode)
 
       Description
-        This function is a wrapper around fits_open_file.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_open_file.  See its documentation for additional
+        information.
 
         The main difference between this function and its cfitsio
         counterpart is that the mode argument is a string whose value
@@ -2297,10 +2287,9 @@
         status = _fits_delete_file (Fits_File_Type fptr)
 
       Description
-        This function is a wrapper around fits_delete_file.  See its
-        documentation for additional information.
-
-
+        This function is a wrapper around the cfitsio library  function
+        fits_delete_file.  See its documentation for additional
+        information.
 
   3.2.4.  _fits_close_file
 
@@ -2312,8 +2301,9 @@
         status = _fits_close_file (Fits_File_Type fptr)
 
       Description
-        This function is a wrapper around fits_close_file.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_close_file.  See its documentation for additional
+        information.
 
 
 
@@ -2327,8 +2317,9 @@
         status = _fits_movabs_hdu (Fits_File_Type fptr, Int_Type hdunum)
 
       Description
-        This function is a wrapper around fits_movabs_hdu.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_movabs_hdu.  See its documentation for additional
+        information.
 
       Notes
         The cfitsio counterpart also returns the HDU type of the
@@ -2346,8 +2337,9 @@
         status = _fits_movrel_hdu (Fits_File_Type fptr, Int_Type nmove)
 
       Description
-        This function is a wrapper around fits_movrel_hdu.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_movrel_hdu.  See its documentation for additional
+        information.
 
       Notes
         The cfitsio counterpart also returns the HDU type of the
@@ -2365,7 +2357,6 @@
         status = _fits_movnam_hdu (fptr, hdutype, extname, extvers)
 
 
-
         Fits_File_Type fptr;
         Int_Type hdutype, extvers;
         String_Type extname;
@@ -2373,8 +2364,9 @@
 
 
       Description
-        This function is a wrapper around fits_movnam_hdu.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_movnam_hdu.  See its documentation for additional
+        information.
 
 
 
@@ -2389,8 +2381,9 @@
         hdunum)
 
       Description
-        This function is a wrapper around fits_get_num_hdus.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_get_num_hdus.  See its documentation for additional
+        information.
 
 
 
@@ -2404,8 +2397,9 @@
         hdunum = _fits_get_hdu_num (Fits_File_Type fptr)
 
       Description
-        This function is a wrapper around fits_get_hdu_num.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_get_hdu_num.  See its documentation for additional
+        information.
 
 
 
@@ -2420,14 +2414,13 @@
         hdutype)
 
       Description
-        This function is a wrapper around fits_get_hdu_type.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_get_hdu_type.  See its documentation for additional
+        information.
 
         Upon a sucessful return, the value of the variable associated
         with the hdutype reference will be set to one of the following
         constants:
-
-
 
         _FITS_IMAGE_HDU
         _FITS_ASCII_TBL
@@ -2452,8 +2445,9 @@
 
 
       Description
-        This function is a wrapper around fits_copy_file.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_copy_file.  See its documentation for additional
+        information.
 
 
 
@@ -2473,8 +2467,9 @@
 
 
       Description
-        This function is a wrapper around fits_copy_hdu.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_copy_hdu.  See its documentation for additional
+        information.
 
 
 
@@ -2489,8 +2484,9 @@
         Fits_File_Type outfptr)
 
       Description
-        This function is a wrapper around fits_copy_header.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_copy_header.  See its documentation for additional
+        information.
 
 
 
@@ -2504,8 +2500,9 @@
         status = _fits_delete_hdu (Fits_File_Type fptr)
 
       Description
-        This function is a wrapper around fits_delete_hdu.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_delete_hdu.  See its documentation for additional
+        information.
 
       Notes
         The corresponding cfitsio function also returns the HDU type of
@@ -2531,8 +2528,9 @@
 
 
       Description
-        This function is a wrapper around fits_create_img.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_create_img.  See its documentation for additional
+        information.
 
       Notes
         This function differs from the corresponding cfitsio function in
@@ -2554,8 +2552,9 @@
         status = _fits_write_img (Fits_File_Type fptr, Array_Type img
 
       Description
-        This function is a wrapper around fits_write_img.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_write_img.  See its documentation for additional
+        information.
 
       Notes
         This function differs from its cfitsio counterpart in that the
@@ -2573,8 +2572,9 @@
         status = _fits_read_img (Fits_File_Type fptr, Ref_Type img)
 
       Description
-        This function is a wrapper around fits_read_img.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_read_img.  See its documentation for additional
+        information.
 
       Notes
         This function differs from the corresponding cfitsio routine in
@@ -2619,7 +2619,6 @@
       Synopsis
         Update a keyword or append a new one
 
-
       Usage
         status = _fits_update_key (fptr, keyname, value, comment)
 
@@ -2631,8 +2630,9 @@
 
 
       Description
-        This function is a wrapper around fits_update_key.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_update_key.  See its documentation for additional
+        information.
 
       Notes
         The data-type for the value argument must be an approriate type
@@ -2676,6 +2676,7 @@
         If the comment parameter is NULL, then the keyword's comment
         field will not be modified.
 
+
       See Also
         ``_fits_update_key''
 
@@ -2692,8 +2693,9 @@
         comment)
 
       Description
-        This function is a wrapper around fits_write_comment.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_write_comment.  See its documentation for additional
+        information.
 
 
 
@@ -2708,8 +2710,9 @@
         history)
 
       Description
-        This function is a wrapper around fits_write_history.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_write_history.  See its documentation for additional
+        information.
 
 
 
@@ -2723,8 +2726,9 @@
         status = _fits_write_date (Fits_File_Type fptr)
 
       Description
-        This function is a wrapper around fits_write_date.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_write_date.  See its documentation for additional
+        information.
 
 
 
@@ -2738,9 +2742,11 @@
         status = _fits_write_record (Fits_File_Type fptr, String_Type
         card)
 
+
       Description
-        This function is a wrapper around fits_write_record.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_write_record.  See its documentation for additional
+        information.
 
 
 
@@ -2760,8 +2766,9 @@
 
 
       Description
-        This function is a wrapper around fits_modify_name.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_modify_name.  See its documentation for additional
+        information.
 
 
 
@@ -2863,7 +2870,6 @@
         value is assigned to the variable referenced by the value
         parameter. If the comment parameter is non-NULL, then the value
         of the comment field will be assigned to it.
-
       See Also
         ``_fits_read_key'', ``_fits_read_key_integer'',
         ``_fits_read_key_string''
@@ -2918,12 +2924,14 @@
 
 
       Description
-        This function is a wrapper around fits_read_record.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_read_record.  See its documentation for additional
+        information.
 
 
 
   3.2.32.  _fits_delete_key
+
 
 
       Synopsis
@@ -2933,10 +2941,10 @@
         status = _fits_delete_key (Fits_File_Type fptr, String_Type
         keyname)
 
-
       Description
-        This function is a wrapper around fits_delete_key.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_delete_key.  See its documentation for additional
+        information.
 
 
 
@@ -2957,8 +2965,9 @@
 
 
       Description
-        This function is a wrapper around fits_get_colnum.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_get_colnum.  See its documentation for additional
+        information.
 
 
       Notes
@@ -2986,17 +2995,14 @@
 
 
       Description
-        This function is a wrapper around fits_insert_rows.  See its
-        documentation for additional information.
-
-
-
+        This function is a wrapper around the cfitsio library  function
+        fits_insert_rows.  See its documentation for additional
+        information.
   3.2.35.  _fits_delete_rows
 
 
       Synopsis
         Delete rows from a table
-
 
       Usage
         status = _fits_delete_rows (fptr, firstrow, nrows)
@@ -3008,8 +3014,9 @@
 
 
       Description
-        This function is a wrapper around fits_delete_rows.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_delete_rows.  See its documentation for additional
+        information.
 
 
 
@@ -3030,8 +3037,9 @@
 
 
       Description
-        This function is a wrapper around fits_insert_cols.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_insert_cols.  See its documentation for additional
+        information.
 
       Notes
         The number of columns to be inserted is given by the length of
@@ -3049,9 +3057,9 @@
         status = _fits_delete_col (Fits_File_Type fptr, Int_Type colnum)
 
       Description
-        This function is a wrapper around fits_delete_col.  See its
-        documentation for additional information.
-
+        This function is a wrapper around the cfitsio library  function
+        fits_delete_col.  See its documentation for additional
+        information.
 
 
   3.2.38.  _fits_get_num_cols
@@ -3065,8 +3073,9 @@
         ncols)
 
       Description
-        This function is a wrapper around fits_get_num_cols.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_get_num_cols.  See its documentation for additional
+        information.
 
 
 
@@ -3080,8 +3089,9 @@
         status = _fits_get_rowsize (Fits_File_Type fptr, Ref_Type nrows)
 
       Description
-        This function is a wrapper around fits_get_rowsize.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_get_rowsize.  See its documentation for additional
+        information.
 
 
 
@@ -3096,8 +3106,9 @@
         nrows)
 
       Description
-        This function is a wrapper around fits_get_num_rows.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_get_num_rows.  See its documentation for additional
+        information.
 
 
 
@@ -3117,15 +3128,16 @@
              Int_Type firstrow, firstelem;
              Array_Type array;
 
-
-
       Description
-        This function is a wrapper around fits_write_col.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_write_col.  See its documentation for additional
+        information.
 
       Notes
         The number of elements written out to the column by this
         function will be equal to the number of elements in the array.
+
+
 
   3.2.42.  _fits_read_col
 
@@ -3181,10 +3193,10 @@
              Ref_Type type;
 
 
-
       Description
-        This function is a wrapper around fits_get_keytype.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_get_keytype.  See its documentation for additional
+        information.
 
       Notes
         This function differs from its cfitsio counterpart in that
@@ -3205,8 +3217,9 @@
         Int_Type _fits_get_keyclass (String_Type card)
 
       Description
-        This function is a wrapper around fits_get_keyclass.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_get_keyclass.  See its documentation for additional
+        information.
 
 
 
@@ -3253,8 +3266,11 @@
         status = _fits_write_chksum (Fits_File_Type fptr)
 
       Description
-        This function is a wrapper around fits_write_chksum.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_write_chksum.  See its documentation for additional
+        information.
+
+
 
   3.2.47.  _fits_update_chksum
 
@@ -3266,8 +3282,9 @@
         status = _fits_update_chksum (Fits_File_Type fptr)
 
       Description
-        This function is a wrapper around fits_update_chksum.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_update_chksum.  See its documentation for additional
+        information.
 
 
 
@@ -3287,8 +3304,9 @@
 
 
       Description
-        This function is a wrapper around fits_verify_chksum.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_verify_chksum.  See its documentation for additional
+        information.
 
 
 
@@ -3302,14 +3320,16 @@
         status = _fits_get_chksum (fptr, datasum, hdusum)
 
 
-             Fits_File_Type fptr;
-             Ref_Type datasum, hdusum;
+
+        Fits_File_Type fptr;
+        Ref_Type datasum, hdusum;
 
 
 
       Description
-        This function is a wrapper around fits_get_chksum.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_get_chksum.  See its documentation for additional
+        information.
 
 
 
@@ -3319,13 +3339,13 @@
       Synopsis
         Get the cfitsio library version number
 
-
       Usage
         Float_Type _fits_get_version ()
 
       Description
-        This function is a wrapper around fits_get_version.  See its
-        documentation for additional information.
+        This function is a wrapper around the cfitsio library  function
+        fits_get_version.  See its documentation for additional
+        information.
 
 
 
@@ -3381,17 +3401,17 @@
   2.7.28. fits_read_img  . . . . . . . . . . . . . . . . . . . . . .  30
   2.7.29. fits_create_image_hdu  . . . . . . . . . . . . . . . . . .  31
   2.7.30. fits_write_image_hdu . . . . . . . . . . . . . . . . . . .  31
-  2.7.31. fits_write_img . . . . . . . . . . . . . . . . . . . . . .  33
+  2.7.31. fits_write_img . . . . . . . . . . . . . . . . . . . . . .  32
   2.8. WCS Function Reference  . . . . . . . . . . . . . . . . . . .  33
   2.8.1. fitswcs_new . . . . . . . . . . . . . . . . . . . . . . . .  33
   2.8.2. fitswcs_slice . . . . . . . . . . . . . . . . . . . . . . .  33
   2.8.3. fitswcs_get_img_wcs . . . . . . . . . . . . . . . . . . . .  34
   2.8.4. fitswcs_get_column_wcs  . . . . . . . . . . . . . . . . . .  34
-  2.8.5. fitswcs_get_vector_wcs  . . . . . . . . . . . . . . . . . .  35
+  2.8.5. fitswcs_get_vector_wcs  . . . . . . . . . . . . . . . . . .  34
   2.8.6. fitswcs_new_img_wcs . . . . . . . . . . . . . . . . . . . .  35
-  2.8.7. fitswcs_put_img_wcs . . . . . . . . . . . . . . . . . . . .  36
+  2.8.7. fitswcs_put_img_wcs . . . . . . . . . . . . . . . . . . . .  35
   2.8.8. fitswcs_put_column_wcs  . . . . . . . . . . . . . . . . . .  36
-  2.8.9. fitswcs_linear_transform_wcs  . . . . . . . . . . . . . . .  37
+  2.8.9. fitswcs_linear_transform_wcs  . . . . . . . . . . . . . . .  36
   2.8.10. fitswcs_rebin_wcs  . . . . . . . . . . . . . . . . . . . .  37
   3. The low-level interface . . . . . . . . . . . . . . . . . . . .  38
   3.1. Overview  . . . . . . . . . . . . . . . . . . . . . . . . . .  38
@@ -3414,7 +3434,7 @@
   3.2.16. _fits_write_img  . . . . . . . . . . . . . . . . . . . . .  43
   3.2.17. _fits_read_img . . . . . . . . . . . . . . . . . . . . . .  44
   3.2.18. _fits_create_binary_tbl  . . . . . . . . . . . . . . . . .  44
-  3.2.19. _fits_update_key . . . . . . . . . . . . . . . . . . . . .  44
+  3.2.19. _fits_update_key . . . . . . . . . . . . . . . . . . . . .  45
   3.2.20. _fits_update_logical . . . . . . . . . . . . . . . . . . .  45
   3.2.21. _fits_write_comment  . . . . . . . . . . . . . . . . . . .  46
   3.2.22. _fits_write_history  . . . . . . . . . . . . . . . . . . .  46
@@ -3430,10 +3450,10 @@
   3.2.32. _fits_delete_key . . . . . . . . . . . . . . . . . . . . .  49
   3.2.33. _fits_get_colnum . . . . . . . . . . . . . . . . . . . . .  50
   3.2.34. _fits_insert_rows  . . . . . . . . . . . . . . . . . . . .  50
-  3.2.35. _fits_delete_rows  . . . . . . . . . . . . . . . . . . . .  50
+  3.2.35. _fits_delete_rows  . . . . . . . . . . . . . . . . . . . .  51
   3.2.36. _fits_insert_cols  . . . . . . . . . . . . . . . . . . . .  51
   3.2.37. _fits_delete_col . . . . . . . . . . . . . . . . . . . . .  51
-  3.2.38. _fits_get_num_cols . . . . . . . . . . . . . . . . . . . .  51
+  3.2.38. _fits_get_num_cols . . . . . . . . . . . . . . . . . . . .  52
   3.2.39. _fits_get_rowsize  . . . . . . . . . . . . . . . . . . . .  52
   3.2.40. _fits_get_num_rows . . . . . . . . . . . . . . . . . . . .  52
   3.2.41. _fits_write_col  . . . . . . . . . . . . . . . . . . . . .  52
@@ -3441,11 +3461,11 @@
   3.2.43. _fits_get_keytype  . . . . . . . . . . . . . . . . . . . .  53
   3.2.44. _fits_get_keyclass . . . . . . . . . . . . . . . . . . . .  54
   3.2.45. _fits_read_cols  . . . . . . . . . . . . . . . . . . . . .  54
-  3.2.46. _fits_write_chksum . . . . . . . . . . . . . . . . . . . .  54
+  3.2.46. _fits_write_chksum . . . . . . . . . . . . . . . . . . . .  55
   3.2.47. _fits_update_chksum  . . . . . . . . . . . . . . . . . . .  55
   3.2.48. _fits_verify_chksum  . . . . . . . . . . . . . . . . . . .  55
   3.2.49. _fits_get_chksum . . . . . . . . . . . . . . . . . . . . .  55
-  3.2.50. _fits_get_version  . . . . . . . . . . . . . . . . . . . .  55
+  3.2.50. _fits_get_version  . . . . . . . . . . . . . . . . . . . .  56
 
 
 

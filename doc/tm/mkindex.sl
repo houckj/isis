@@ -15,6 +15,7 @@ static variable Wget_Cmd
 
 static define retrieve_url (url, outfile)
 {
+   vmessage ("Obtaining the cfitsio index from heasarc...");
    () = system (sprintf ("%s -O '%s' '%s'", Wget_Cmd, outfile, url));
 }
 

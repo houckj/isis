@@ -8,8 +8,9 @@ SL2TM = sl2tm
 MACRODIR = /aluche/d1/web/tm-dist/macros
 
 MODULE = cfitsio
-MODULE_DEPS = rtl/cfitsiofuns.tm fitswcsfuns.tm fitsfuns.tm
 HLPFUNS_TM = rtl/cfitsiofuns.tm fitsfuns.tm fitswcsfuns.tm
+AUTOGEN_TM = fitswcsfuns.tm fitsfuns.tm
+MODULE_DEPS = rtl/cfitsiofuns.tm $(AUTOGEN_TM)
 
 TXT_FILES = $(MODULE).txt
 SGML_FILES = $(MODULE).sgml
@@ -77,7 +78,7 @@ texclean:
 clean: texclean
 	-rm -f *~ rtl/*.BAK rtl/*~ *.tmp *-error
 distclean: clean
-	-rm -f *.html *.ps $(HLP_FILE) $(TXT_FILES) $(TEX_FILES) $(SGML_FILES) $(PDF_FILES)
+	-rm -f *.html *.ps $(HLP_FILE) $(TXT_FILES) $(TEX_FILES) $(SGML_FILES) $(PDF_FILES) $(AUTOGEN_TM)
 install-txt: $(TXT_FILES)
 	-mv $(TXT_FILES) ../text
 install-help: $(HLP_FILE)

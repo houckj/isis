@@ -582,8 +582,11 @@
 
  \sect1{Introduction}
 
-  The fits package includes a set of routines deal with reading and
-  writing WCS keywords according to the conventions laid out in XXX.
+  The FITS package includes a set of routines for reading and
+  writing \url{http://fits.gsfc.nasa.gov/fits_wcs.html}{WCS} keywords
+  in the form proposed by
+  \url{http://www.atnf.csiro.au/people/mcalabre/WCS/wcs.pdf}{Greisen
+  and Calabretta}.
   Although they are part of the high-level interface, the routines are
   somewhat experimental and as such must be loaded separately via:
 #v+
@@ -833,7 +836,8 @@
 #d iflatex#2 <#if output=latex2e>$1</#if><#unless output=latex2e>$2</#unless>
 #d ifhtml#2 <#if output=html>$1</#if><#unless output=html>$2</#unless>
 
-#d xreferences#1 This function is a wrapper around \exmp{$1}. \
+#d xreferences#1 This function is a wrapper around the cfitsio library \
+ function \exmp{$1}. \
  See \ifhtml{\url{\cfitsio_fun_url{$1}}{its documentation}}{its documentation}\
  for additional information.
 
