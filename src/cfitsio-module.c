@@ -1767,8 +1767,8 @@ static int read_cols (void)
 
    if (-1 == SLang_pop_ref (&ref))
      return -1;
-   if ((-1 == SLang_pop_int (&num_rows))
-       || (-1 == SLang_pop_int (&firstrow))
+   if ((-1 == SLang_pop_integer (&num_rows))
+       || (-1 == SLang_pop_integer (&firstrow))
        || (-1 == SLang_pop_array (&columns_at, 1)))
      {
 	SLang_free_ref (ref);

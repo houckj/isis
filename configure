@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='RPATH SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os RANLIB ac_ct_RANLIB INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE CONFIG_DIR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP DYNAMIC_LINK_LIB ELF_CC ELF_CFLAGS ELF_LINK ELF_LINK_CMD ELF_DEP_LIBS DYNAMIC_LINK_FLAGS CC_SHARED ELFLIB ELFLIB_MAJOR ELFLIB_MAJOR_MINOR X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS SLANG_LIB SLANG_INC CFITSIO_LIB CFITSIO_INC slang_major_version slang_minor_version slang_version MODULE_INSTALL_DIR SL_FILES_INSTALL_DIR LIBOBJS LTLIBOBJS'
+ac_subst_vars='RPATH SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os RANLIB ac_ct_RANLIB INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE CONFIG_DIR CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP DYNAMIC_LINK_LIB ELF_CC ELF_CFLAGS ELF_LINK ELF_LINK_CMD ELF_DEP_LIBS DYNAMIC_LINK_FLAGS CC_SHARED ELFLIB ELFLIB_MAJOR ELFLIB_MAJOR_MINOR X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS SLANG_LIB SLANG_INC CFITSIO_LIB CFITSIO_INC slang_version slang_major_version slang_minor_version slang_patchlevel_version MODULE_INSTALL_DIR SL_FILES_INSTALL_DIR LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -5622,13 +5622,12 @@ slang_major_version=`echo $slang_version |
  awk '{ print int($1/10000) }'`
 slang_minor_version=`echo $slang_version $slang_major_version |
  awk '{ print int(($1 - $2*10000)/100) }'`
-slang_minor_version=`echo $slang_version $slang_major_version $slang_minor_version |
+slang_patchlevel_version=`echo $slang_version $slang_major_version $slang_minor_version |
  awk '{ print ($1 - $2*10000 - $3*100) }'`
 
-slang_minor_version="$slang_minor_version.$slang_minor_version"
-slang_version="$slang_major_version.$slang_minor_version"
-echo "$as_me:$LINENO: result: $slang_version" >&5
-echo "${ECHO_T}$slang_version" >&6
+echo "$as_me:$LINENO: result: $slang_major_version.$slang_minor_version.$slang_patchlevel_version" >&5
+echo "${ECHO_T}$slang_major_version.$slang_minor_version.$slang_patchlevel_version" >&6
+
 
 
 
@@ -8536,9 +8535,10 @@ s,@SLANG_LIB@,$SLANG_LIB,;t t
 s,@SLANG_INC@,$SLANG_INC,;t t
 s,@CFITSIO_LIB@,$CFITSIO_LIB,;t t
 s,@CFITSIO_INC@,$CFITSIO_INC,;t t
+s,@slang_version@,$slang_version,;t t
 s,@slang_major_version@,$slang_major_version,;t t
 s,@slang_minor_version@,$slang_minor_version,;t t
-s,@slang_version@,$slang_version,;t t
+s,@slang_patchlevel_version@,$slang_patchlevel_version,;t t
 s,@MODULE_INSTALL_DIR@,$MODULE_INSTALL_DIR,;t t
 s,@SL_FILES_INSTALL_DIR@,$SL_FILES_INSTALL_DIR,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
