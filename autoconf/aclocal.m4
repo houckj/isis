@@ -643,64 +643,214 @@ AC_SUBST(F77_LIBS)
 
 dnl#}}}
 
-AC_DEFUN(JD_WITH_LIBRARY, dnl#{{{
+AC_DEFUN(JD_EXPAND_PREFIX, dnl#{{{
 [
-JD_UPPERCASE($1,JD_ARG1)
-AC_ARG_WITH($1,
+  if test "X$jd_prefix" = "X"
+  then
+    jd_prefix=$ac_default_prefix
+    if test "X$prefix" != "XNONE"
+    then
+      jd_prefix="$prefix"
+    fi
+    jd_exec_prefix="$jd_prefix"
+    if test "X$exec_prefix" != "XNONE"
+    then
+      jd_exec_prefix="$exec_prefix"
+    fi
+  
+    dnl#Unfortunately, exec_prefix may have a value like ${prefix}, etc.
+    dnl#Let the shell expand those.  Yuk.
+    eval `sh <<EOF
+      prefix=$jd_prefix
+      exec_prefix=$jd_exec_prefix
+      libdir=$libdir
+      includedir=$includedir
+      echo jd_prefix_libdir="\$libdir" jd_prefix_incdir="\$includedir"
+EOF
+`
+  fi
+])
+#}}}
+
+dnl# This macro process the --with-xxx, --with-xxxinc, and --with-xxxlib
+dnl# command line arguments and returns the values as shell variables
+dnl# jd_xxx_include_dir and jd_xxx_library_dir.  It does not perform any
+dnl# substitutions, nor check for the existence of the supplied values.
+AC_DEFUN(JD_WITH_LIBRARY_PATHS, dnl#{{{
+[
+ JD_UPPERCASE($1,JD_ARG1)
+ jd_$1_include_dir=""
+ jd_$1_library_dir=""
+
+ AC_ARG_WITH($1,
   [  --with-$1=DIR      Use DIR/lib and DIR/include for $1],
   [jd_with_$1_arg=$withval], [jd_with_$1_arg=no])
-case "x$jd_with_$1_arg" in
-xno)
-  ;;
-x)
-  AC_MSG_ERROR(--with-$1 requres a value)
-  ;;
-*)
-   JD_ARG1[]_INC=-I$jd_with_$1_arg/include
-   JD_ARG1[]_LIB=-L$jd_with_$1_arg/lib
-   JD_SET_RPATH($jd_with_$1_arg/lib)
-  ;;
-esac
+ case "x$jd_with_$1_arg" in
+   xno)
+    ;;
+   x)
+    AC_MSG_ERROR(--with-$1 requres a value)
+    ;;
+   *)
+    jd_$1_include_dir="$jd_with_$1_arg"/include
+    jd_$1_library_dir="$jd_with_$1_arg"/lib
+    ;;
+ esac
 
-AC_ARG_WITH($1lib,
+ AC_ARG_WITH($1lib,
   [  --with-$1lib=DIR   $1 library in DIR],
   [jd_with_$1lib_arg=$withval], [jd_with_$1lib_arg=no])
-case "x$jd_with_$1lib_arg" in
-xno)
-  ;;
-x)
-  AC_MSG_ERROR(--with-$1lib requres a value)
-  ;;
-*)
-   JD_ARG1[]_INC=-I$jd_with_$1lib_arg
-   JD_ARG1[]_LIB=-L$jd_with_$1lib_arg
-   JD_SET_RPATH($jd_with_$1lib_arg)
-  ;;
-esac
+ case "x$jd_with_$1lib_arg" in
+   xno)
+    ;;
+   x)
+    AC_MSG_ERROR(--with-$1lib requres a value)
+    ;;
+   *)
+    jd_$1_library_dir="$jd_with_$1lib_arg"
+    ;;
+ esac
 
-AC_ARG_WITH($1inc, 
+ AC_ARG_WITH($1inc, 
   [  --with-$1inc=DIR   $1 include files in DIR],
   [jd_with_$1inc_arg=$withval], [jd_with_$1inc_arg=no])
-case "x$jd_with_$1inc_arg" in
-x)
-  AC_MSG_ERROR(--with-$1inc requres a value)
-  ;;
-xno)
-  ;;
-*)
-   JD_ARG1[]_INC=-I$jd_with_$1inc_arg
-  ;;
-esac
-AC_SUBST(JD_ARG1[]_INC)
-AC_SUBST(JD_ARG1[]_LIB)
+ case "x$jd_with_$1inc_arg" in
+   x)
+     AC_MSG_ERROR(--with-$1inc requres a value)
+     ;;
+   xno)
+     ;;
+   *)
+    jd_$1_include_dir="$jd_with_$1inc_arg"
+   ;;
+ esac
 ])
 dnl#}}}
 
+AC_DEFUN(JD_WITH_LIBRARY, dnl#{{{
+[
+  AC_REQUIRE([JD_EXPAND_PREFIX])dnl
+  AC_MSG_CHECKING(for the $1 library and header files)
+  dnl JD_UPPERCASE($1,JD_ARG1)
+  JD_WITH_LIBRARY_PATHS($1)
+  jd_inc_file=$2
+
+  if test "X$jd_inc_file" = "X"
+  then
+     jd_inc_file=$1.h
+  fi
+  if test X"$jd_$1_include_dir" = X
+  then
+     lib_include_dirs="\
+          $jd_prefix_incdir \
+          /usr/local/$1/include \
+          /usr/local/include/$1 \
+	  /usr/local/include \
+	  /usr/include/$1 \
+	  /usr/$1/include \
+	  /usr/include \
+	  /opt/include/$1 \
+	  /opt/$1/include \
+	  /opt/include"
+
+     for X in $lib_include_dirs
+     do
+        if test -r "$X/$jd_inc_file"
+	then
+	  jd_$1_include_dir="$X"
+          break
+        fi
+     done
+     
+     if test X"$jd_$1_include_dir" = X
+     then
+        AC_MSG_ERROR(unable to find $jd_inc_file)
+     fi
+  fi
+ 
+  if test X"$jd_$1_library_dir" = X
+  then
+     lib_library_dirs="\
+          $jd_prefix_libdir \
+          /usr/local/lib \
+          /usr/local/lib/$1 \
+          /usr/local/$1/lib \
+	  /usr/lib \
+	  /usr/lib/$1 \
+	  /usr/$1/lib \
+	  /opt/lib \
+	  /opt/lib/$1 \
+	  /opt/$1/lib"
+
+     for X in $lib_library_dirs
+     do
+        if test -r "$X/lib$1.so" -o -r "$X/lib$1.a"
+	then
+	  jd_$1_library_dir="$X"
+          break
+        fi
+     done
+
+     if test X"$jd_$1_library_dir" = X
+     then
+        AC_MSG_ERROR(unable to find the $1 library)
+     fi
+  fi
+
+  dnl#  Avoid using /usr/lib and /usr/include because of problems with
+  dnl#  gcc on some solaris systems.
+  JD_ARG1[]_LIB=-L$jd_$1_library_dir
+  if test "X$jd_$1_library_dir" = "X/usr/lib"
+  then
+    JD_ARG1[]_LIB=""
+  else
+    JD_SET_RPATH($jd_$1_library_dir)
+  fi
+
+  JD_ARG1[]_INC=-I$jd_$1_include_dir
+  if test "X$jd_$1_include_dir" = "X/usr/include"
+  then
+    JD_ARG1[]_INC=""
+  fi
+  AC_SUBST(JD_ARG1[]_LIB)
+  AC_SUBST(JD_ARG1[]_INC)
+  AC_MSG_RESULT(yes: $jd_$1_library_dir and $jd_$1_include_dir)
+])
+dnl#}}}
+
+AC_DEFUN(JD_SLANG_VERSION, dnl#{{{
+[
+ slang_h=$jd_slang_include_dir/slang.h
+ AC_MSG_CHECKING(SLANG_VERSION in $slang_h)
+slang_version=`grep "^#define  *SLANG_VERSION " $slang_h |
+               awk '{ print [$]3 }'`
+slang_major_version=`echo $slang_version |
+ awk '{ print int([$]1/10000) }'`
+slang_minor_version=`echo $slang_version $slang_major_version |
+ awk '{ print int(([$]1 - [$]2*10000)/100) }'`
+slang_mminor_version=`echo $slang_version $slang_major_version $slang_minor_version |
+ awk '{ print ([$]1 - [$]2*10000 - [$]3*100) }'`
+
+slang_minor_version="$slang_minor_version.$slang_mminor_version"
+slang_version="$slang_major_version.$slang_minor_version"
+AC_MSG_RESULT($slang_version)
+AC_SUBST(slang_major_version)
+AC_SUBST(slang_minor_version)
+AC_SUBST(slang_version)
+])
+#}}}
+
 AC_DEFUN(JD_SLANG_MODULE_INSTALL_DIR, dnl#{{{
 [
-MODULE_INSTALL_DIR=$libdir/slang/modules
-SL_FILES_INSTALL_DIR=$datadir/slsh/local-packages
-AC_SUBST(MODULE_INSTALL_DIR)
-AC_SUBST(SL_FILES_INSTALL_DIR)
+  AC_REQUIRE([JD_SLANG_VERSION])
+  if test "X$slang_major_version" = "X1"
+  then
+    MODULE_INSTALL_DIR="$libdir/slang/modules"
+  else
+    MODULE_INSTALL_DIR="$libdir/slang/v$slang_major_version/modules"
+  fi
+  SL_FILES_INSTALL_DIR=$datadir/slsh/local-packages
+  AC_SUBST(MODULE_INSTALL_DIR)
+  AC_SUBST(SL_FILES_INSTALL_DIR)
 ])
-#}}
+#}}}

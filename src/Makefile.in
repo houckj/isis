@@ -4,7 +4,8 @@
 # List of modules and associated .sl files to install
 #---------------------------------------------------------------------------
 MODULES = cfitsio-module.so
-SL_FILES = fits.sl
+SL_FILES = cfitsio.sl fits.sl
+MODULE_VERSION	= `./mkversion.sh`
 
 #---------------------------------------------------------------------------
 # Installation Directories
@@ -31,6 +32,7 @@ SLANG_LIB	= @SLANG_LIB@ -lslang
 CFITSIO_INC	= @CFITSIO_INC@
 CFITSIO_LIB	= @CFITSIO_LIB@ -lcfitsio
 X_XTRA_LIBS	= @X_EXTRA_LIBS@
+MODULE_LIBS	= $(CFITSIO_LIB) $(X_EXTRA_LIBS)
 RPATH		= @RPATH@
 
 #---------------------------------------------------------------------------
@@ -38,8 +40,9 @@ RPATH		= @RPATH@
 #---------------------------------------------------------------------------
 INSTALL		= @INSTALL@
 INSTALL_DATA	= @INSTALL_DATA@
-MKINSDIR = ../autoconf/mkinsdir.sh
-
+MKINSDIR	= ../autoconf/mkinsdir.sh
+RM		= rm -f
+LN		= ln -sf
 #---------------------------------------------------------------------------
 # DESTDIR is designed to facilitate making packages.  Normally it is empty
 #---------------------------------------------------------------------------
@@ -48,8 +51,8 @@ DEST_MODULE_INSTALL_DIR = $(DESTDIR)$(MODULE_INSTALL_DIR)
 DEST_SL_FILES_INSTALL_DIR = $(DESTDIR)$(SL_FILES_INSTALL_DIR)
 
 #---------------------------------------------------------------------------
-LIBS = $(RPATH) $(X_XTRA_LIBS) $(DL_LIB) -lm
-INCS = $(SLANG_INC)
+LIBS = $(SLANG_LIB) $(MODULE_LIBS) $(RPATH) $(DL_LIB) -lm
+INCS = $(SLANG_INC) $(CFITSIO_INC)
 
 all: $(MODULES)
 
@@ -57,8 +60,15 @@ all: $(MODULES)
 # Put Rules to create the modules here
 #---------------------------------------------------------------------------
 cfitsio-module.so: cfitsio-module.c
-	$(CC_SHARED) $(INCS) $(CFITSIO_INC) cfitsio-module.c -o cfitsio-module.so $(SLANG_LIB) $(CFITSIO_LIB) $(LIBS)
-
+	$(CC_SHARED) $(INCS) cfitsio-module.c -o cfitsio-module.so $(LIBS)
+#---------------------------------------------------------------------------
+# Regression tests
+#---------------------------------------------------------------------------
+test:
+	@for X in tests/test_*.sl; \
+	do \
+		slsh $$X; \
+	done
 #---------------------------------------------------------------------------
 # Installation Rules
 #---------------------------------------------------------------------------
@@ -69,12 +79,17 @@ install_directories:
 install_modules:
 	@for X in $(MODULES); \
 	do \
-		echo $(INSTALL_DATA) $$X $(DEST_MODULE_INSTALL_DIR); \
-		$(INSTALL_DATA) $$X $(DEST_MODULE_INSTALL_DIR); \
+		Y=$$X.$(MODULE_VERSION); \
+		YDEST=$(DEST_MODULE_INSTALL_DIR)/$$Y; \
+		echo $(INSTALL_DATA) $$X $$YDEST; \
+		$(INSTALL_DATA) $$X $$YDEST; \
 		if [ "$$?" != "0" ]; then \
 		  exit 1; \
 		fi; \
+		$(RM) $(DEST_MODULE_INSTALL_DIR)/$$X; \
+		$(LN) $$Y $(DEST_MODULE_INSTALL_DIR)/$$X; \
 	done
+
 install_slfiles:
 	@for X in $(SL_FILES); \
 	do \
@@ -89,3 +104,5 @@ install: all install_directories install_modules install_slfiles
 
 clean:
 	-/bin/rm -f $(MODULES) *~ \#*
+distclean: clean
+	-/bin/rm -f config.h Makefile

@@ -17,8 +17,7 @@ SLANG_MODULE(cfitsio);
 }
 #endif
 
-#define FITS_MODULE_VERSION    100
-static char *Version_String = "0.1.0";
+#include "version.h"
 
 typedef struct
 {
@@ -26,7 +25,7 @@ typedef struct
 }
 FitsFile_Type;
 
-static int Fits_Type_Id;
+static SLtype Fits_Type_Id;
 
 static int map_fitsio_type_to_slang (int type, long *repeat, unsigned char *stype)
 {
@@ -356,7 +355,7 @@ static int create_img (FitsFile_Type *ft, int *bitpix,
      }
 
    imax = at_naxes->num_elements;
-   axes = (long *) SLmalloc (imax * sizeof (long));
+   axes = (long *) SLmalloc ((imax+1) * sizeof (long));
    if (axes == NULL)
      return -1;
    for (i = 0; i < imax; i++)
@@ -633,8 +632,13 @@ static int update_key (void)
       case SLANG_DOUBLE_TYPE:
       default:
 	type = TDOUBLE;
+#if SLANG_VERSION < 20000
 	if (-1 == SLang_pop_double (&d, NULL, NULL))
 	  goto free_and_return;
+#else
+	if (-1 == SLang_pop_double (&d))
+	  goto free_and_return;
+#endif
 	v = (VOID_STAR) &d;
 	break;
      }
@@ -1962,14 +1966,14 @@ static SLang_IConstant_Type IConst_Table [] =
    MAKE_ICONSTANT("_FITS_TYP_USER_KEY",	TYP_USER_KEY),
 
    
-   MAKE_ICONSTANT("_cfitsio_module_version", FITS_MODULE_VERSION),
+   MAKE_ICONSTANT("_cfitsio_module_version", MODULE_VERSION_NUMBER),
    
    SLANG_END_ICONST_TABLE
 };
 
 static SLang_Intrin_Var_Type Intrin_Vars[] =
 {
-   MAKE_VARIABLE("_cfitsio_module_version_string", &Version_String, SLANG_STRING_TYPE, 1),
+   MAKE_VARIABLE("_cfitsio_module_version_string", &Module_Version_String, SLANG_STRING_TYPE, 1),
    SLANG_END_INTRIN_VAR_TABLE
 };
 
@@ -1981,26 +1985,26 @@ static void patchup_intrinsic_table (void)
    while (f->name != NULL)
      {
 	unsigned int i, nargs;
-	unsigned char *args;
+	SLtype *args;
 	
 	nargs = f->num_args;
 	args = f->arg_types;
 	for (i = 0; i < nargs; i++)
 	  {
 	     if (args[i] == DUMMY_FITS_FILE_TYPE)
-	       args[i] = (unsigned char) Fits_Type_Id;
+	       args[i] = Fits_Type_Id;
 	  }
 	
 	/* For completeness */
 	if (f->return_type == DUMMY_FITS_FILE_TYPE)
-	  f->return_type = (unsigned char) Fits_Type_Id;
+	  f->return_type = Fits_Type_Id;
 
 	f++;
      }
 }
 
 
-static void free_fits_file_type (unsigned char type, VOID_STAR f)
+static void free_fits_file_type (SLtype type, VOID_STAR f)
 {
    FitsFile_Type *ft;
    int status = 0;

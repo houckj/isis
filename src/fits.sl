@@ -925,26 +925,98 @@ public define fits_create_binary_table ()
 % the end of the table.
 %\seealso{fits_createe_binary_table, fits_open_file}
 %!%-
+
+static define add_keys_and_history_func (fp, keys, history)
+{
+   variable val;
+   if (keys != NULL)
+     {
+	foreach (get_struct_field_names (keys))
+	  {
+	     variable keyword = ();
+	     val = get_struct_field (keys, keyword);
+	     do_fits_error (_fits_update_key (fp, keyword, val, NULL));
+	  }
+     }
+
+   if (typeof (history) == String_Type)
+     {
+	history;
+	history = struct {history}; 
+	history.history = ();
+     }
+
+   if (history == NULL)
+     return;
+
+   foreach (get_struct_field_names (history))
+     {
+	keyword = ();
+	val = get_struct_field (history, keyword);
+	if (typeof (val) == String_Type)
+	  val = [val];
+	keyword = strlow (keyword);
+	foreach (val)
+	  {
+	     val = ();
+	     if (keyword == "history")
+	       {
+		  do_fits_error (_fits_write_history (fp, val));
+		  continue;
+	       }
+	     if (keyword == "comment")
+	       {
+		  do_fits_error (_fits_write_comment (fp, val));
+		  continue;
+	       }
+	     vmessage ("*** WARNING: history/comment record name '%s' is not supported",
+		       history);
+	  }
+     }
+}
+
+
 public define fits_write_binary_table ()
 {
    variable fp, extname, s, keys, history;
    variable needs_close;
+   variable keyfunc, keyfunc_args;
 
-   switch (_NARGS)
+   variable usage_str = "\n"
+     + "Form 1: fits_write_binary_table (file, extname, data_struct [,opt-keyword_struct [,opt-history]])\n"
+     + "Form 2: fits_write_binary_table (file, extname, data_struct, &keyfunc [,opt-args...])";
+
+   if (_NARGS < 3)
+     usage (usage_str);
+
+   keyfunc = NULL;
+   if (_NARGS > 3)
      {
-      case 4:
-	history = NULL;
-     }
-     {
-      case 5:
-	history = ();
-     }
-     {
-	_pop_n (_NARGS);
-	usage ("fits_write_binary_table (file, extname, data_struct, keyword_struct, history)");
+	_stk_reverse (_NARGS - 3);
+	keyfunc = ();
+	_stk_reverse (_NARGS - 4);
+	
+	if (typeof (keyfunc) != Ref_Type)
+	  {
+	     % keyfunc must be the keys struct
+	     if (_NARGS == 4)
+	       history = NULL;
+	     else if (_NARGS == 5)
+	       history = ();
+	     else
+	       {
+		  _pop_n (_NARGS);
+		  usage (usage_str);
+	       }
+	     (keyfunc, history);	       %  put back on stack
+	     keyfunc_args = __pop_args (2);
+	     keyfunc = &add_keys_and_history_func;
+	  }
+	else
+	  keyfunc_args = __pop_args (_NARGS - 4);
      }
 
-   (fp, extname, s, keys) = ();
+   (fp, extname, s) = ();
 
    fp = get_open_write_fp (fp, "c", &needs_close);
 
@@ -1017,16 +1089,6 @@ public define fits_write_binary_table ()
 
    fits_create_binary_table (fp, extname, nrows, ttype, tform, NULL);
 
-   if (keys != NULL)
-     {
-	foreach (get_struct_field_names (keys))
-	  {
-	     variable keyword = ();
-	     val = get_struct_field (keys, keyword);
-	     do_fits_error (_fits_update_key (fp, keyword, val, NULL));
-	  }
-     }
-
    _for (0, ncols-1, 1)
      {
 	i = ();
@@ -1034,40 +1096,8 @@ public define fits_write_binary_table ()
 	  do_fits_error (_fits_update_key (fp, sprintf("TDIM%d", i+1), tdim[i], NULL));
      }
 
-   if (typeof (history) == String_Type)
-     {
-	history;
-	history = struct {history}; 
-	history.history = ();
-     }
-
-   if (history != NULL)
-     {
-	foreach (get_struct_field_names (history))
-	  {
-	     keyword = ();
-	     val = get_struct_field (history, keyword);
-	     if (typeof (val) == String_Type)
-	       val = [val];
-	     keyword = strlow (keyword);
-	     foreach (val)
-	       {
-		  val = ();
-		  if (keyword == "history")
-		    {
-		       do_fits_error (_fits_write_history (fp, val));
-		       continue;
-		    }
-		  if (keyword == "comment")
-		    {
-		       do_fits_error (_fits_write_comment (fp, val));
-		       continue;
-		    }
-		  vmessage ("*** WARNING: history/comment record name '%s' is not supported",
-			    history);
-	       }
-	  }
-     }
+   if (keyfunc != NULL)
+     (@keyfunc)(fp, __push_args(keyfunc_args));
 
    _for (0, ncols-1, 1)
      {
@@ -1076,6 +1106,39 @@ public define fits_write_binary_table ()
 	do_fits_error (_fits_write_col (fp, i+1, 1, 1, val));
      }
    
+   do_close_file (fp, needs_close);
+}
+
+
+static define do_write_xxx (func, nargs)
+{
+   variable args = __pop_args (nargs-1);
+   variable fp = ();
+
+   variable needs_close;
+   fp = get_open_write_fp (fp, "w", &needs_close);
+
+   if (nargs > 1)
+     do_fits_error ((@func)(fp, __push_args(args)));
+   else
+     do_fits_error ((@func)(fp));
+
+   do_close_file (fp, needs_close);
+}
+
+static define do_read_xxx (func, nargs)
+{
+   variable args = __pop_args (nargs-1);
+   variable fp = ();
+
+   variable needs_close;
+   fp = get_open_fp (fp, &needs_close);
+
+   if (nargs > 1)
+     do_fits_error ((@func)(fp, __push_args(args)));
+   else
+     do_fits_error ((@func)(fp));
+
    do_close_file (fp, needs_close);
 }
 
@@ -1100,18 +1163,107 @@ public define fits_update_key ()
 {
    if (_NARGS != 4)
      usage ("fits_update_key (fp, key, value, comment)");
+   
+   do_write_xxx (&_fits_update_key, _NARGS);
+}
 
-   variable fp, key, value, comment;
-   (fp, key, value, comment) = ();
+%!%+
+%\function{}
+%\synopsis{}
+%\usage{}
+%\description
+%\example
+%\notes
+%\seealso{}
+%!%-
+public define fits_write_comment ()
+{
+   if (_NARGS != 2)
+     usage ("fits_write_comment (fp, value)");
 
-   variable needs_close;
-   fp = get_open_write_fp (fp, "w", &needs_close);
+   do_write_xxx (&_fits_write_comment, _NARGS);
+}
 
-   do_fits_error (_fits_update_key (fp, key, value, comment));
-   do_close_file (fp, needs_close);
+%!%+
+%\function{}
+%\synopsis{}
+%\usage{}
+%\description
+%\example
+%\notes
+%\seealso{}
+%!%-
+public define fits_write_history ()
+{
+   if (_NARGS != 2)
+     usage ("fits_write_history (fp, value)");
+
+   do_write_xxx (&_fits_write_history, _NARGS);
+}
+
+%!%+
+%\function{}
+%\synopsis{}
+%\usage{}
+%\description
+%\example
+%\notes
+%\seealso{}
+%!%-
+public define fits_write_date ()
+{
+   if (_NARGS != 1)
+     usage ("fits_write_date (fp)");
+   do_write_xxx (&_fits_write_date, _NARGS);
+}
+
+%!%+
+%\function{}
+%\synopsis{}
+%\usage{}
+%\description
+%\example
+%\notes
+%\seealso{}
+%!%-
+public define fits_write_chksum ()
+{
+   if (_NARGS != 1)
+     usage ("fits_write_chksum (fp)");
+   do_write_xxx (&_fits_write_chksum, _NARGS);
 }
 
 
+%!%+
+%\function{}
+%\synopsis{}
+%\usage{}
+%\description
+%\example
+%\notes
+%\seealso{}
+%!%-
+public define fits_verify_chksum ()
+{
+   variable dataok_buf, hduok_buf;
+   variable dataok = &dataok_buf, hduok = &dataok_buf;
+
+   if (_NARGS == 3)
+     (dataok, hduok) = ();
+   else if (_NARGS != 1)
+     usage ("ok = fits_verify_chksum (fp [,&dataok, &hduok])");
+
+   if (dataok == NULL)
+     dataok = &dataok_buf;
+   if (hduok == NULL)
+     hduok = &hduok_buf;
+
+   &dataok, &hduok;		       %  push
+   
+   do_read_xxx (&_fits_verify_chksum, 3);
+   
+   return min([@dataok, @hduok]);
+}
 
 %!%+
 %\function{fits_read_records}
@@ -1204,12 +1356,44 @@ public define fits_get_bitpix (image)
 		     Int32_Type, UInt32_Type, Float32_Type, Float64_Type];
    variable bitpix = [8, 8, 16, 16, 32, 32, -32, -64];
 
-   variable b = _typeof (image);
+   variable b;
+
+   if (typeof (image) == DataType_Type)
+     b = image;
+   else
+     b = _typeof (image);
+
    variable i = where (types == b);
    if (length (i) == 0)
      verror ("fits_get_bitpix: %S is not supported", b);
    
    return bitpix[i[0]];
+}
+
+
+%!%+
+%\function{}
+%\synopsis{}
+%\usage{}
+%\description
+%\example
+%\notes
+%\seealso{}
+%!%-
+public define fits_create_img ()
+{
+   if (_NARGS != 3)
+     usage ("fits_create_img (file, type, dims)");
+
+   variable fp, type, dims;
+
+   (fp, type, dims) = ();
+
+   variable needs_close;
+   fp = get_open_write_fp (fp, "c", &needs_close);
+
+   do_fits_error (_fits_create_img (fp, fits_get_bitpix (type), reverse(dims)));
+   do_close_file (fp, needs_close);
 }
 
 %!%+

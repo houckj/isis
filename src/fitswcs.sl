@@ -46,6 +46,7 @@ static variable WCS_Type = struct
    wcsname,			       %  String_Type[naxis]
 };
 
+   
 static define read_simple_wcs_keywords ()
 {
    variable indices = __pop_args (_NARGS-2);
@@ -76,7 +77,7 @@ static define read_simple_wcs_keywords ()
 static define make_diag_matrix (n, diag)
 {
    variable d = Double_Type[n, n];
-   d [[0:n*n-1:n]] = diag;
+   d [[0:n*n-1:n+1]] = diag;
    return d;
 }
 
@@ -136,26 +137,6 @@ static define allocate_wcs (naxis)
    return wcs;
 }
 
-% This function will be used later when applying the wcs
-static define simplify_wcs (wcs)
-{
-   variable pc = wcs.pc;
-   variable n = wcs.naxis;
-
-   if (pc != NULL)
-     {
-	% If pc is diagonal, then factor diagonal elements into the cdelts
-	variable d = @pc;
-	variable i = [0:n*n-1:n];      %  diagonal elements
-	d[i] = 0.0;
-	if (0 == length (where (d != pc)))
-	  {
-	     wcs.cdelts *= pc[i];
-	     wcs.pc = NULL;
-	  }
-     }
-   return wcs;
-}
 
 static define check_for_crota_hack (fp, wcs)
 {
@@ -283,5 +264,7 @@ public define fitswcs_get_column_wcs ()
    wcs.pc = pc;
    return wcs;
 }
+
+
 
 provide("fitswcs");

@@ -16,8 +16,10 @@
 @autoconf/install-sh 0755
 @autoconf/mkinsdir.sh 0755
 
+@src/mkversion.sh 0755
 @src/Makefile.in
 @src/cfitsio-module.c
+@src/cfitsio.sl
 @src/fits.sl
 @src/fitswcs.sl
 @src/config.hin
