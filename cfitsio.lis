@@ -1,0 +1,27 @@
+@cfitsio.lis
+@configure 0755
+@COPYRIGHT
+@README
+@INSTALL.txt
+
+@ChangeLog
+
+@share/readrmf.sl
+
+@autoconf/Makefile.in
+@autoconf/aclocal.m4
+@autoconf/config.guess 0755
+@autoconf/config.sub 0755
+@autoconf/configure.in
+@autoconf/install-sh 0755
+@autoconf/mkinsdir.sh 0755
+
+@src/Makefile.in
+@src/cfitsio-module.c
+@src/fits.sl
+@src/fitswcs.sl
+@src/config.hin
+
+@doc/fits.txt
+
+
