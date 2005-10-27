@@ -1,6 +1,6 @@
   S-Lang CFITSIO Module Reference
   John E. Davis, davis@space.mit.edu
-  Mar 31, 2005
+  May 18, 2005
   ____________________________________________________________
 
   Table of Contents

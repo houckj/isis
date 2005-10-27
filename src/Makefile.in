@@ -15,7 +15,7 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 MODULE_INSTALL_DIR = @MODULE_INSTALL_DIR@
 SL_FILES_INSTALL_DIR = @SL_FILES_INSTALL_DIR@
-HELP_FILES_INSTALL_DIR = $(SL_FILES_INSTALL_DIR)/help
+HLP_FILES_INSTALL_DIR = $(SL_FILES_INSTALL_DIR)/help
 
 #---------------------------------------------------------------------------
 # C Compiler to create a shared library
@@ -51,7 +51,7 @@ LN		= ln -s
 DESTDIR =
 DEST_MODULE_INSTALL_DIR = $(DESTDIR)$(MODULE_INSTALL_DIR)
 DEST_SL_FILES_INSTALL_DIR = $(DESTDIR)$(SL_FILES_INSTALL_DIR)
-DEST_HELP_FILES_INSTALL_DIR = $(DESTDIR)$(HELP_FILES_INSTALL_DIR)
+DEST_HLP_FILES_INSTALL_DIR = $(DESTDIR)$(HLP_FILES_INSTALL_DIR)
 #---------------------------------------------------------------------------
 LIBS = $(SLANG_LIB) $(MODULE_LIBS) $(RPATH) $(DL_LIB) -lm
 INCS = $(SLANG_INC) $(CFITSIO_INC)
@@ -77,7 +77,7 @@ test:
 install_directories:
 	$(MKINSDIR) $(DEST_MODULE_INSTALL_DIR)
 	$(MKINSDIR) $(DEST_SL_FILES_INSTALL_DIR)
-	$(MKINSDIR) $(DEST_HELP_FILES_INSTALL_DIR)
+	$(MKINSDIR) $(DEST_HLP_FILES_INSTALL_DIR)
 
 install_modules:
 	@for X in $(MODULES); \
@@ -106,8 +106,8 @@ install_slfiles:
 install_hlpfiles:
 	@for X in $(HLP_FILES); \
 	do \
-		echo $(INSTALL_DATA) $$X $(DEST_HELP_FILES_INSTALL_DIR); \
-		$(INSTALL_DATA) $$X $(DEST_HELP_FILES_INSTALL_DIR); \
+		echo $(INSTALL_DATA) $$X $(DEST_HLP_FILES_INSTALL_DIR); \
+		$(INSTALL_DATA) $$X $(DEST_HLP_FILES_INSTALL_DIR); \
 		if [ "$$?" != "0" ]; then \
 		  exit 1; \
 		fi; \

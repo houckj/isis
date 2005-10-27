@@ -1,0 +1,16 @@
+2005-10-27  John E. Davis  <davis@space.mit.edu>
+
+	* src/Makefile.in: changed *HELP_* to *HLP_*
+
+2005-5-18  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (_fits_sl_version_string): Bumped to 0.4.2-0
+
+	* src/fits.sl: Changed static qualifier to private and
+	dropped the public qualifiers.
+
+	* src/fitswcs.sl (_fitswcs_version_string): Bumped to 0.1.1-0
+
+	* src/fitswcs.sl: Changed static qualifier to private and
+	dropped the public qualifiers.
+

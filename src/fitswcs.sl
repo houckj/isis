@@ -1,3 +1,21 @@
+%    Copyright (C) 2004-2005 Massachusetts Institute of Technology
+%
+%    Author:  John E. Davis <davis@space.mit.edu>
+%
+%    This program is free software; you can redistribute it and/or modify
+%    it under the terms of the GNU General Public License as published by
+%    the Free Software Foundation; either version 2 of the License, or
+%    (at your option) any later version.
+%
+%    This program is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+%
+%    You should have received a copy of the GNU General Public License
+%    along with this program; if not, write to the Free Software
+%    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
 % TODO:
 % 
 %   * Add support for cross-references when dealing with vector columns.
@@ -15,39 +33,39 @@
 %   the WCS by extracting that subspace via the fitswcs_slice routine.
 
 require ("fits");
-public variable _fitswcs_version = 100;
-public variable _fitswcs_version_string = "0.1.0-0";
+variable _fitswcs_version = 100;
+variable _fitswcs_version_string = "0.1.1-0";
 
 % FITS WCS may be attached to images or pixel-lists.  The images may be
 % found in a standard image HDU, or as a cell of a binary table.
 % Pixel lists are encoded as columns of a FITS binary table.  Hence, there
 % are three forms of keywords that describe the wcs.
 
-static variable CTYPE_INDX	= 0;
-static variable CUNIT_INDX	= 1;
-static variable CRVAL_INDX	= 2;
-static variable CDELT_INDX	= 3;
-static variable CRPIX_INDX	= 4;
-static variable PC_INDX		= 5;
-static variable CD_INDX		= 6;
-static variable PV_INDX		= 7;
-static variable PS_INDX		= 8;
-static variable Image_Formats = 
+private variable CTYPE_INDX	= 0;
+private variable CUNIT_INDX	= 1;
+private variable CRVAL_INDX	= 2;
+private variable CDELT_INDX	= 3;
+private variable CRPIX_INDX	= 4;
+private variable PC_INDX	= 5;
+private variable CD_INDX	= 6;
+private variable PV_INDX	= 7;
+private variable PS_INDX	= 8;
+private variable Image_Formats = 
   ["CTYPE%d", "CUNIT%d", "CRVAL%d", "CDELT%d", "CRPIX%d", 
    "PC%d_%d", "CD%d_%d", "PV%d_%d", "PS%d_%d"];
-static variable Image_Formats_Alt = Image_Formats + "%c";
+private variable Image_Formats_Alt = Image_Formats + "%c";
 
-static variable Column_Formats =
+private variable Column_Formats =
   ["TCTYP%d", "TCUNI%d", "TCRVL%d", "TCDLT%d", "TCRPX%d", 
    "TP%d_%d", "TC%d_%d", "TV%d_%d", "TS%d_%d"];
-static variable Column_Formats_Alt =
+private variable Column_Formats_Alt =
   ["TCTY%d%c", "TCUN%d%c", "TCRV%d%c", "TCDE%d%c", "TCRP%d%c", 
    "TP%d_%d%c", "TC%d_%d%c", "TV%d_%d%c", "TS%d_%d%c"];
 
-static variable Vector_Formats = 
+private variable Vector_Formats = 
   ["%dCTYP%d", "%dCUNI%d", "%dCRVL%d", "%dCDLT%d", "%dCRPX%d", 
    "%dP%d_%d", "%dC%d_%d", "%dV%d_%d", "%dS%d_%d"];
-static variable Vector_Formats_Alt =
+private variable Vector_Formats_Alt =
   ["%dCTY%d%c", "%dCUN%d%c", "%dCRV%d%c", "%dCDE%d%c", "%dCRP%d%c", 
    "%dP%d_%d%c", "%dC%d_%d%c", "%dV%d_%d%c", "%dS%d_%d%c"];
 
@@ -61,7 +79,7 @@ static variable Vector_Formats_Alt =
 % 
 %    {B}_i = {CDELT}_i {PC}_ij ({A}_j - {CRPIX}_j)  (no sum on i)
 %
-static variable WCS_Type = struct
+private variable WCS_Type = struct
 {
    naxis,			       %  number of axis to transform
    ctype,			       %  String_Type[naxis]
@@ -84,7 +102,7 @@ static variable WCS_Type = struct
 %  that represents an identity (linear) transformation.
 %\seealso{fitswcs_get_img_wcs, fitswcs_get_column_wcs, fitswcs_get_vector_wcs}
 %!%-
-public define fitswcs_new (naxis)
+define fitswcs_new (naxis)
 {
    variable wcs = @WCS_Type;
    wcs.naxis = naxis;
@@ -121,7 +139,7 @@ public define fitswcs_new (naxis)
 %  will produce a 2d WCS with the first two axes swapped.
 %\seealso{fitswcs_get_img_wcs, fitswcs_get_column_wcs, fitswcs_get_vector_wcs}
 %!%-
-public define fitswcs_slice ()
+define fitswcs_slice ()
 {
    if (_NARGS < 2)
      usage ("wcs1 = %s(wcs, dims-array)", _function_name ());
@@ -146,14 +164,14 @@ public define fitswcs_slice ()
 % Some simple utility functions
 %---------------------------------------------------------------------------
 
-static define make_diag_matrix (n, diag)
+private define make_diag_matrix (n, diag)
 {
    variable d = Double_Type[n, n];
    d [[0:n*n-1:n+1]] = diag;
    return d;
 }
 
-static define inverse_2x2 (a)
+private define inverse_2x2 (a)
 {
    variable a_00 = a[0,0], a_01 = a[0,1], a_10 = a[1,0], a_11 = a[1,1];
    variable det = (a_00*a_11 - a_01*a_10);
@@ -167,7 +185,7 @@ static define inverse_2x2 (a)
    return a/det;
 }
 
-static define dup_wcs (wcs)
+private define dup_wcs (wcs)
 {
    wcs = @wcs;
    
@@ -182,12 +200,12 @@ static define dup_wcs (wcs)
 }
 
 % Convert to/from FORTRAN/C order
-static define reverse_wcs (wcs)
+private define reverse_wcs (wcs)
 {
    return fitswcs_slice (wcs, [wcs.naxis-1:0:-1]);
 }
 
-static define read_simple_wcs_keywords ()
+private define read_simple_wcs_keywords ()
 {
    variable indices = __pop_args (_NARGS-2);
    variable formats = ();
@@ -214,7 +232,7 @@ static define read_simple_wcs_keywords ()
    return (ctype, cunit, crval, crpix, cdelt);
 }
 
-static define read_matrix_wcs_keywords (fp, pc_fmt, is, js, a, diag)
+private define read_matrix_wcs_keywords (fp, pc_fmt, is, js, a, diag)
 {
    variable pc = NULL;
    variable n = length (is);
@@ -239,7 +257,7 @@ static define read_matrix_wcs_keywords (fp, pc_fmt, is, js, a, diag)
    return pc;
 }
 
-static define get_wcs_naxis (fp)
+private define get_wcs_naxis (fp)
 {
    variable naxis = fits_read_key (fp, "WCSAXES");
    if (naxis == NULL)
@@ -248,7 +266,7 @@ static define get_wcs_naxis (fp)
    return naxis;
 }
 
-static define open_interesting_hdu (file, type)
+private define open_interesting_hdu (file, type)
 {
    variable fp = fits_open_file (file, "r");
    fits_move_to_interesting_hdu (fp, type);
@@ -256,7 +274,7 @@ static define open_interesting_hdu (file, type)
 }
 
 
-static define check_for_crota_hack (fp, wcs)
+private define check_for_crota_hack (fp, wcs)
 {
    if (wcs.naxis < 2)
      return NULL;
@@ -305,7 +323,7 @@ static define check_for_crota_hack (fp, wcs)
 %#v-
 %\seealso{fitswcs_put_img_wcs, fitswcs_get_column_wcs, fitswcs_get_vector_wcs}
 %!%-
-public define fitswcs_get_img_wcs ()
+define fitswcs_get_img_wcs ()
 {
    variable fp, a = 0;
 
@@ -366,7 +384,7 @@ public define fitswcs_get_img_wcs ()
 %#v-
 %\seealso{fitswcs_put_column_wcs, fitswcs_get_img_wcs, fitswcs_get_vector_wcs}
 %!%-
-public define fitswcs_get_column_wcs ()
+define fitswcs_get_column_wcs ()
 {
    variable fp, a = 0, column_names = NULL;
 
@@ -419,7 +437,7 @@ public define fitswcs_get_column_wcs ()
    return wcs;
 }
 
-static define read_key_or_col (fp, key, row)
+private define read_key_or_col (fp, key, row)
 {
    %vmessage ("Looking for %s in row %d", key, row);
    variable val = fits_read_key (fp, key);
@@ -433,7 +451,7 @@ static define read_key_or_col (fp, key, row)
    return val;
 }
 
-static define read_vector_matrix_wcs_keywords (fp, pc_fmt, is, js, col, row, a, diag)
+private define read_vector_matrix_wcs_keywords (fp, pc_fmt, is, js, col, row, a, diag)
 {
    variable pc = NULL;
    variable n = length (is);
@@ -480,7 +498,7 @@ static define read_vector_matrix_wcs_keywords (fp, pc_fmt, is, js, col, row, a, 
 %  of other cells.
 %\seealso{fitswcs_get_column_wcs, fitswcs_get_img_wcs}
 %!%-
-public define fitswcs_get_vector_wcs ()
+define fitswcs_get_vector_wcs ()
 {
    variable fp, col, row, a = 0;
 
@@ -575,7 +593,7 @@ public define fitswcs_get_vector_wcs ()
 %#v-
 %\seealso{fitswcs_new, fitswcs_get_img_wcs}
 %!%-
-public define fitswcs_new_img_wcs ()
+define fitswcs_new_img_wcs ()
 {
    variable naxis = _NARGS;
    if (naxis == 0)
@@ -595,7 +613,7 @@ public define fitswcs_new_img_wcs ()
    return wcs;
 }
 
-static define write_wcs_keyword (fp, format, index, axis, a, value, i)
+private define write_wcs_keyword (fp, format, index, axis, a, value, i)
 {
    if (value == NULL)
      return;
@@ -626,7 +644,7 @@ static define write_wcs_keyword (fp, format, index, axis, a, value, i)
 %#v-
 %\seealso{fitswcs_put_column_wcs}
 %!%-
-public define fitswcs_put_img_wcs ()
+define fitswcs_put_img_wcs ()
 {
    variable fp, a = 0;
    variable wcs;
@@ -700,7 +718,7 @@ public define fitswcs_put_img_wcs ()
 %#v-
 %\seealso{fitswcs_get_column_wcs, fitswcs_put_img_wcs, fitswcs_get_img_wcs}
 %!%-
-public define fitswcs_put_column_wcs ()
+define fitswcs_put_column_wcs ()
 {
    variable fp, wcs, columns, a = 0;
 
@@ -769,7 +787,7 @@ public define fitswcs_put_column_wcs ()
 
 
 % This function will be used later when applying the wcs
-static define simplify_wcs (wcs)
+private define simplify_wcs (wcs)
 {
    variable pc = wcs.pc;
    variable n = wcs.naxis;
