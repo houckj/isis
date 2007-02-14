@@ -1547,12 +1547,16 @@ static int read_column_values (fitsfile *f, int type, unsigned char datatype,
    
    if (f == NULL)
      return -1;
-   
-   dims[0] = num_elements = num_rows;
-   num_dims = 1;
-   if (repeat > 1)
+
+   num_elements = num_rows * repeat;
+   if (num_rows <= 1)
      {
-	num_elements *= repeat;
+	dims[0] = num_elements;
+	num_dims = 1;
+     }
+   else				       /* was repeat>1 */
+     {
+	dims[0] = num_rows;
 	dims[1] = repeat;
 	num_dims++;
      }
@@ -1561,11 +1565,15 @@ static int read_column_values (fitsfile *f, int type, unsigned char datatype,
    if (at == NULL)
      return -1;
 
-   if (type == TBIT)
-     status = read_bit_column (f, col, row, 1, num_elements, (unsigned char *)at->data, at->sizeof_type);
-   else
-     (void) fits_read_col (f, type, col, row, 1, num_elements, NULL, 
-			   at->data, &anynul, &status);
+   if (num_elements)
+     {
+	if (type == TBIT)
+	  status = read_bit_column (f, col, row, 1, num_elements, (unsigned char *)at->data, at->sizeof_type);
+	else
+	  (void) fits_read_col (f, type, col, row, 1, num_elements, NULL, 
+				at->data, &anynul, &status);
+     }
+
    if (status)
      {
 	SLang_free_array (at);
@@ -1914,7 +1922,7 @@ static int read_cols (void)
 	       }
 	     else if (type < 0)
 	       {
-		  status = read_var_column_data (f, -type, datatype, col, firstrow, delta_rows, 
+		  status = read_var_column_data (f, -type, datatype, col, firstrow, delta_rows,
 						 (SLang_Array_Type **)at->data + data_offset);
 		  data_offset += delta_rows;
 	       }

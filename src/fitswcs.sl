@@ -91,7 +91,13 @@ private variable WCS_Type = struct
    pv,				       %  array of parameters 
    ps,				       %  array of string parms
    wcsname,			       %  String_Type
+   radsys,
+   equinox
 };
+
+% Notes: For usage of the and default values for the radsys and
+% equinox, see, e.g.,
+% <http://stsdas.stsci.edu/cgi-bin/gethelp.cgi?imcctran>
 
 %!%+
 %\function{fitswcs_new}

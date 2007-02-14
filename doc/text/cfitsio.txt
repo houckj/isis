@@ -1,6 +1,6 @@
   S-Lang CFITSIO Module Reference
   John E. Davis, davis@space.mit.edu
-  May 18, 2005
+  Feb 14, 2007
   ____________________________________________________________
 
   Table of Contents
@@ -134,7 +134,7 @@
 
 
 
-  1.  Introduction
+  [1m1.  Introduction[0m
 
 
 
@@ -148,13 +148,13 @@
   widespread use.
 
   This package makes use of the CFITSIO library allow one to manipulate
-  FITS files from the S-lang interpreter.  The package consists of two
+  FITS files from the [1mS-lang [22minterpreter.  The package consists of two
   interfaces: a high level interface and a low level one. The low level
   interface is implemented as a module and is more or less a
   straightforward wrapping of the functions of the CFITSIO library.
   Functions from this interface are prefixed with an underscore to
   indicate that they are part of the low-level interface.  The high
-  level interface is written in S-lang and makes use of functions from
+  level interface is written in [1mS-lang [22mand makes use of functions from
   the low level interface.  While there is some overlap with the
   semantics of the CFITSIO library, the high level interface should be
   regarded as a separate interface to fits files.
@@ -174,16 +174,16 @@
 
 
 
-  2.  The high-level interface
+  [1m2.  The high-level interface[0m
 
 
 
-  2.1.  Overview
+  [1m2.1.  Overview[0m
 
 
 
   The high-level interface consists of a number of functions that are
-  written in S-lang and are designed to take some of the tedium out of
+  written in [1mS-lang [22mand are designed to take some of the tedium out of
   performing standard operations on fits files.  To illustrate this
   point, consider the creation of a fits file with a binary table
   extension called called ``COSXSINX'':
@@ -201,7 +201,7 @@
 
 
 
-  2.2.  Opening and Closing Files
+  [1m2.2.  Opening and Closing Files[0m
 
 
 
@@ -299,14 +299,14 @@
                fits_close_file (fptr);
             }
 
-  2.3.  Keywords
+  [1m2.3.  Keywords[0m
 
 
   The high-level interface contains several functions for manipulating
   header keywords and records.
 
 
-  2.3.1.  Reading Header Keywords
+  [1m2.3.1.  Reading Header Keywords[0m
 
 
 
@@ -377,7 +377,7 @@
 
 
 
-  2.3.2.  Writing  Header Keywords
+  [1m2.3.2.  Writing  Header Keywords[0m
 
 
 
@@ -395,11 +395,11 @@
 
 
 
-  2.4.  Binary Tables
+  [1m2.4.  Binary Tables[0m
 
 
 
-  2.4.1.  Reading Binary Tables
+  [1m2.4.1.  Reading Binary Tables[0m
 
 
 
@@ -513,7 +513,7 @@
 
 
 
-  2.4.2.  Writing Binary Tables
+  [1m2.4.2.  Writing Binary Tables[0m
 
 
 
@@ -618,8 +618,8 @@
   It is important to note that in the the above examples, the name of
   the file to contain the binary table was explicitly passed to the
   fits_write_binary_table function.  This causes fits_write_binary_table
-  to create a new file containing the binary table, and if a file of
-  that name exists, it will be deleted before the new one is created.
+  to create a [4mnew[24m file containing the binary table, and if a file of
+  that name exists, [4mit[24m [4mwill[24m [4mbe[24m [4mdeleted[24m before the new one is created.
 
   To append a table to an existing file, first open it using the
   fits_open_file function, and then use the file pointer in place of the
@@ -649,33 +649,33 @@
 
 
 
-  2.5.  Images
+  [1m2.5.  Images[0m
 
 
 
-  2.5.1.  Preliminaries
+  [1m2.5.1.  Preliminaries[0m
 
 
 
-  Dealing with FITS images in S-lang is easy as long as one understands
-  that FITS stores images in FORTRAN column-major order, whereas S-lang
-  utilizes a C row-major order.  That is, the first dimension of a FITS
-  array varies fastest whereas it is the last dimension of a S-lang
+  Dealing with FITS images in [1mS-lang [22mis easy as long as one understands
+  that FITS stores images in FORTRAN [4mcolumn-major[24m order, whereas [1mS-lang[0m
+  utilizes a C [4mrow-major[24m order.  That is, the first dimension of a FITS
+  array varies fastest whereas it is the last dimension of a [1mS-lang[0m
   array that varies fastest.  This difference is automatically accounted
   for by the underlying cfitsio module.  In other words, images may be
-  used in S-lang scope as ordinary S-lang arrays where the first
+  used in [1mS-lang [22mscope as ordinary [1mS-lang [22marrays where the first
   dimension varies slowest, and the cfitsio module will make the
   necessary translations when reading or writing an image from a file.
-  An easy way to remember the S-lang or C ordering is that for a 2-d
+  An easy way to remember the [1mS-lang [22mor C ordering is that for a 2-d
   array, the first index is a row index and the second a column--- the
   same as matrices are indexed in linear algebra.  Do not fall into the
-  trap of indexing a S-lang array the same as you would of indexing a
+  trap of indexing a [1mS-lang [22marray the same as you would of indexing a
   point in Cartesian space (x,y), instead think in terms of rows and
   columns.
 
 
 
-  2.5.2.  Reading and Writing Images
+  [1m2.5.2.  Reading and Writing Images[0m
 
 
 
@@ -731,11 +731,11 @@
 
 
 
-  2.6.  WCS Routines
+  [1m2.6.  WCS Routines[0m
 
 
 
-  2.6.1.  Introduction
+  [1m2.6.1.  Introduction[0m
 
 
   The FITS package includes a set of routines for reading and writing
@@ -753,34 +753,34 @@
   The routines in this interface deal with a structure that describes
   the WCS via the following fields:
 
-     naxis
+     [1mnaxis[0m
         The number of axes to transform (Int_Type)
 
-     ctype
+     [1mctype[0m
         Specifies the WCS transformation (String_Type[naxis])
 
-     cunit
+     [1mcunit[0m
         Units (String_Type[naxis])
 
-     crval
+     [1mcrval[0m
         WCS values at the reference pixel (Double_Type[naxis])
 
-     crpix
+     [1mcrpix[0m
         The coordinates of the reference pixel (Double_Type[naxis])
 
-     cdelt
+     [1mcdelt[0m
         Species the gradient at the reference pixel (Double_Type[naxis])
 
 
-     pc An array used to linearly transform the WCS.
+     [1mpc [22mAn array used to linearly transform the WCS.
         (Double_Type[naxis,naxis] or NULL)
 
-     pv An array of addition parameters used to specify the WCS (NULL in
+     [1mpv [22mAn array of addition parameters used to specify the WCS (NULL in
         most cases)
 
-     ps An array of additional string parameters (NULL in most cases).
+     [1mps [22mAn array of additional string parameters (NULL in most cases).
 
-     wcsname
+     [1mwcsname[0m
         A name given to this coordinate system.
 
   While the user is encouraged to understand the FITS WCS conventions
@@ -790,7 +790,7 @@
   this.
 
 
-  2.6.2.  Examples
+  [1m2.6.2.  Examples[0m
 
 
   Consider once again the example of creating a FITS image by binning
@@ -848,7 +848,7 @@
 
   It is important to note the order in which the X and Y arguments were
   used.  Recall that FITS stores images in a FORTRAN column-major order
-  whereas S-lang uses a row-major order.  For this reason, ``row-like''
+  whereas [1mS-lang [22muses a row-major order.  For this reason, ``row-like''
   parameters come before ``column-like'' parameters in statements such
   as
 
@@ -859,7 +859,7 @@
 
 
 
-  2.6.3.  Alternate WCS
+  [1m2.6.3.  Alternate WCS[0m
 
 
   Sometimes it is useful to attach more than one coordinate system to an
@@ -880,7 +880,7 @@
   played as the physical system by the DS9 image display program.
 
 
-  2.6.4.  Degenerate Axes
+  [1m2.6.4.  Degenerate Axes[0m
 
 
   Consider a FITS file hydra.fits containing an image HDU with the
@@ -944,9 +944,9 @@
 
 
 
-  producing a 2d image of type Float_Type[1,1,657,657].  The correspond-
-  ing wcs may be obtained using the fitswcs_slice function to extract
-  the last two dimensions of the WCS:
+  producing a 2d image of type Float_Type[657,657].  The corresponding
+  wcs may be obtained using the fitswcs_slice function to extract the
+  last two dimensions of the WCS:
 
 
 
@@ -974,20 +974,20 @@
 
 
 
-  2.7.  High-level Function Reference
+  [1m2.7.  High-level Function Reference[0m
 
 
-  2.7.1.  fits_open_file
+  [1m2.7.1.  fits_open_file[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Open a fits file
 
-      Usage
+      [1mUsage[0m
         Fits_File_Type fits_open_file (String_Type filename, String_Type
         mode)
 
-      Description
+      [1mDescription[0m
         The fits_open_file function can be used to open and existing
         fits file for reading or updating, or to create a new fits file,
         depending upon the value of the mode parameter.  Specifically,
@@ -1001,37 +1001,37 @@
         If the function fails, it will signal an error; otherwise an
         open file pointer will be returned.
 
-      See Also
+      [1mSee Also[0m
         ``fits_close_file'', ``fits_create_binary_table''
 
 
-  2.7.2.  fits_close_file
+  [1m2.7.2.  fits_close_file[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Close a fits file
-      Usage
+      [1mUsage[0m
         fits_close_file (Fits_File_Type f)
 
-      Description
+      [1mDescription[0m
         The fits_close_file closes a previously opened fits file.  The
         function will signal an error if the operation fails.
 
-      Notes
+      [1mNotes[0m
         This function could fail if it fails to write out any buffered
         data because of filesystem errors (disk full, etc.).
 
-      See Also
+      [1mSee Also[0m
         ``fits_open_file''
 
 
-  2.7.3.  fits_move_to_interesting_hdu
+  [1m2.7.3.  fits_move_to_interesting_hdu[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Move to an extension that looks interesting
 
-      Usage
+      [1mUsage[0m
         fits_move_to_interesting_hdu (fp [, hdu_type]
 
 
@@ -1040,7 +1040,7 @@
 
 
 
-      Description
+      [1mDescription[0m
         The function move the fits file pointer fp forward to an HDU
         that looks interesting.  By definition, an interesting HDU is
         one in which NAXIS is non-zero.  The first parameter fp must be
@@ -1052,17 +1052,17 @@
         If the function fails to find an interesting HDU of the
         appropriate type, an exception will be generated.
 
-      See Also
+      [1mSee Also[0m
         ``fits_open_file''
 
 
-  2.7.4.  fits_key_exists
+  [1m2.7.4.  fits_key_exists[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Check for the existence of a keyword
 
-      Usage
+      [1mUsage[0m
         Int_Type fits_key_exists (fd, key)
 
 
@@ -1071,7 +1071,7 @@
 
 
 
-      Description
+      [1mDescription[0m
         The fits_key_exists function checks for the existence of a
         specified keyword in the file specified by the descriptor fd,
         which must specify the name of a file or an open file pointer.
@@ -1079,17 +1079,17 @@
         If the specified key exists, the function return 1, otherwise it
         returns 0.
 
-      See Also
+      [1mSee Also[0m
         ``fits_read_key'', ``fits_read_header''
 
 
-  2.7.5.  fits_get_colnum
+  [1m2.7.5.  fits_get_colnum[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Get the column numbers of specified columns
 
-      Usage
+      [1mUsage[0m
         column_num = fits_get_colnum (fd, column_name)
 
 
@@ -1098,22 +1098,22 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function returns the column number of the column with the
         specified name.  The file-descriptor fd must specify the name of
         a file, or an open fits file pointer.
 
-      See Also
+      [1mSee Also[0m
         ``fits_binary_table_column_exists''
 
 
-  2.7.6.  fits_binary_table_column_exists
+  [1m2.7.6.  fits_binary_table_column_exists[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Check for the existence of a binary table column
 
-      Usage
+      [1mUsage[0m
         Int_Type fits_binary_table_column_exists (fd, col)
 
 
@@ -1122,7 +1122,7 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function may be used to determine whether or not a named
         column exists in a binary table.  The table is specified via the
         fd parameter which must either be the name of a file containing
@@ -1131,18 +1131,18 @@
         If the specified column exists, 1 will be returned; otherwise
         the function will return 0.
 
-      See Also
+      [1mSee Also[0m
         ``fits_key_exists'', ``fits_open_file''
 
 
 
-  2.7.7.  fits_read_col
+  [1m2.7.7.  fits_read_col[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read one or more columns from a FITS binary table
 
-      Usage
+      [1mUsage[0m
         (x1, ...xN) = fits_read_col (file, c1, ... cN)
 
 
@@ -1151,7 +1151,7 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function returns one or more vectors containing objects in
         the specified columns of the binary table indicated by file.  If
         file is a string, then the file will be opened via the virtual
@@ -1160,17 +1160,17 @@
         may either be strings denoting the column names, or integers
         representing the column numbers.
 
-      See Also
+      [1mSee Also[0m
         ``fits_read_cell'', ``fits_read_row'', ``fits_read_table''
 
 
-  2.7.8.  fits_read_col_struct
+  [1m2.7.8.  fits_read_col_struct[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read one or more columns from a FITS binary table
 
-      Usage
+      [1mUsage[0m
         struct = fits_read_col_struct (file, col1, ...)
 
 
@@ -1179,24 +1179,24 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function works exactly like fits_read_col except it returns
         the values in a structure.  See the documentation on that
         function for more information.
 
 
-      See Also
+      [1mSee Also[0m
         ``fits_read_col'', ``fits_read_key_struct'', ``fits_read_row'',
         ``fits_read_header''
 
 
-  2.7.9.  fits_read_cell
+  [1m2.7.9.  fits_read_cell[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read a cell from a FITS binary table
 
-      Usage
+      [1mUsage[0m
         X = fits_read_cell (file, c, r)
 
 
@@ -1205,24 +1205,24 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function returns the object in the column c and row r of
         the binary table indicated by file.  If file is a string, then
         the file will be opened via the virtual file specification
         implied by file. Otherwise, file should represent an already
         opened FITS file.
 
-      See Also
+      [1mSee Also[0m
         ``fits_read_col'', ``fits_read_row''
 
 
-  2.7.10.  fits_read_row
+  [1m2.7.10.  fits_read_row[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read a row from a FITS binary table
 
-      Usage
+      [1mUsage[0m
         Struct_Type fits_read_cell (file, r)
 
 
@@ -1231,24 +1231,24 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function returns a structure containing the data in the
         columns of the row r of the binary table indicated by file. If
         file is a string, then the file will be opened via the virtual
         file specification implied by file. Otherwise, file should
         represent an already opened FITS file.
 
-      See Also
+      [1mSee Also[0m
         ``fits_read_col'', ``fits_read_cell''
 
 
-  2.7.11.  fits_read_header
+  [1m2.7.11.  fits_read_header[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read a FITS header
 
-      Usage
+      [1mUsage[0m
         Struct_Type fits_read_header (file)
 
 
@@ -1256,24 +1256,24 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function reads the header of the fits file given by the
         file parameter and returns it as a structure.  If file is a
         string, then the file will be opened via the virtual file
         specification implied by file. Otherwise, file should represent
         an already opened FITS file.
 
-      See Also
+      [1mSee Also[0m
         ``fits_read_table''
 
 
-  2.7.12.  fits_read_table
+  [1m2.7.12.  fits_read_table[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read a FITS table
 
-      Usage
+      [1mUsage[0m
         Struct_Type fits_read_table (file [,columns...])
 
 
@@ -1281,7 +1281,7 @@
 
 
 
-      Description
+      [1mDescription[0m
         fits_read_table reads the data in a table of the FITS file
         specified by file and returns it as a structure.  If the
         optional column name parameters are specified, then only those
@@ -1292,18 +1292,18 @@
         virtual file specification implied by file. Otherwise, file
         should represent an already opened FITS file.
 
-      See Also
+      [1mSee Also[0m
         ``fits_read_col'', ``fits_read_cell'', ``fits_read_row'',
         ``fits_read_header''
 
 
-  2.7.13.  fits_read_key
+  [1m2.7.13.  fits_read_key[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read one or more keywords from a FITS file
 
-      Usage
+      [1mUsage[0m
         (val1,...) = fits_read_key (file, key1, ...)
 
 
@@ -1312,7 +1312,7 @@
 
 
 
-      Description
+      [1mDescription[0m
         fits_read_key reads the values of one or more keywords in the
         fits file specified by file and returns them.  If file is a
         string, then the file will be opened via the virtual file
@@ -1321,19 +1321,19 @@
         exist, a value of NULL will be returned for the corresponding
         keyword.
 
-      See Also
+      [1mSee Also[0m
         ``fits_read_key_struct'', ``fits_read_col'', ``fits_read_cell'',
         ``fits_read_row'', ``fits_read_header''
 
 
 
-  2.7.14.  fits_read_key_struct
+  [1m2.7.14.  fits_read_key_struct[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read one or more keywords from a FITS file
 
-      Usage
+      [1mUsage[0m
         struct = fits_read_key (file, key1, ...)
 
 
@@ -1342,23 +1342,23 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function works exactly like fits_read_key excepts returns
         the values in a structure.  See the documentation on that
         function for more information.
 
-      See Also
+      [1mSee Also[0m
         ``fits_read_key'', ``fits_read_col'', ``fits_read_cell'',
         ``fits_read_row'', ``fits_read_header''
 
 
-  2.7.15.  fits_create_binary_table
+  [1m2.7.15.  fits_create_binary_table[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Prepare a binary table
 
-      Usage
+      [1mUsage[0m
         fits_create_binary_table (file, extname, nrows, ttype, tform,
         tunit)
 
@@ -1372,24 +1372,24 @@
 
 
 
-      Description
+      [1mDescription[0m
         This creates a new binary table with the specified structure.
         The parameters ttype, tform, and tunit are string arrays that
         specify the column names, column data type, and column units,
         respectively.  The binary table will be given the extension name
         extname.
 
-      See Also
+      [1mSee Also[0m
         ``fits_write_binary_table'', ``fits_open_file''
 
 
-  2.7.16.  fits_write_binary_table
+  [1m2.7.16.  fits_write_binary_table[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Write a binary table
 
-      Usage
+      [1mUsage[0m
         fits_write_binary_table (file, extname, sdata, [skeys [,hist]])
               Fits_File_Type or String_Type file;
               String_Type extname;
@@ -1399,7 +1399,7 @@
 
 
 
-      Description
+      [1mDescription[0m
         The fits_write_binary_table function creates a new binary table
         in the specified file.  The parameter file specifies either a
         filename or an open file pointer.  The extname parameter
@@ -1412,7 +1412,7 @@
         a structure whose fields indicate either comment or history
         information to be written to the header.
 
-      Example
+      [1mExample[0m
         The following code
 
 
@@ -1461,22 +1461,22 @@
 
 
 
-      Notes
+      [1mNotes[0m
         This function provides no mechanism to mix comments and keyword
         records.  As the example shows, this function places the comment
         and history records at the end of the table.
 
-      See Also
+      [1mSee Also[0m
         ``fits_create_binary_table'', ``fits_open_file''
 
 
-  2.7.17.  fits_update_key
+  [1m2.7.17.  fits_update_key[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Update the value of a keyword
 
-      Usage
+      [1mUsage[0m
         fits_update_key (fd, key, val [,comment])
 
 
@@ -1487,24 +1487,24 @@
 
 
 
-      Description
+      [1mDescription[0m
         The fits_update_key function updates the value and comment
         fields of an existing keyword with the specified name.  If the
         keyword does not exist, a new keyword will be appended to the
         end of the header.
 
-      See Also
+      [1mSee Also[0m
         ``fits_update_logical'', ``fits_read_key''
 
 
-  2.7.18.  fits_update_logical
+  [1m2.7.18.  fits_update_logical[0m
 
 
 
-      Synopsis
+      [1mSynopsis[0m
         Update the value of a logical (boolean) keyword
 
-      Usage
+      [1mUsage[0m
         fits_update_logical (fd, key, val, comment)
 
 
@@ -1515,23 +1515,23 @@
 
 
 
-      Description
+      [1mDescription[0m
         The fits_update_logical function updates the value and comment
         fields of an existing keyword of the specified name with the
         specified boolean value.  If the keyword does not exist, a new
         keyword will be appended to the end of the header.
 
-      See Also
+      [1mSee Also[0m
         ``fits_update_key''
 
 
-  2.7.19.  fits_write_comment
+  [1m2.7.19.  fits_write_comment[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Write a comment to the header
 
-      Usage
+      [1mUsage[0m
         fits_write_comment (fd, comment)
 
 
@@ -1540,22 +1540,22 @@
 
 
 
-      Description
+      [1mDescription[0m
         As the name indicates, this function writes a comment record to
         the specified fits file.  The file-descriptor fd must either be
         the name of a fits file or an open fits file pointer.
 
-      See Also
+      [1mSee Also[0m
         ``fits_update_key'', ``fits_write_history''
 
 
-  2.7.20.  fits_write_history
+  [1m2.7.20.  fits_write_history[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Write a history record to the header
 
-      Usage
+      [1mUsage[0m
         fits_write_history (fd, history)
 
 
@@ -1564,22 +1564,22 @@
 
 
 
-      Description
+      [1mDescription[0m
         As the name indicates, this function writes a history record to
         the specified fits file.  The file-descriptor fd must either be
         the name of a fits file or an open fits file pointer.
 
-      See Also
+      [1mSee Also[0m
         ``fits_update_key'', ``fits_write_comment''
 
 
-  2.7.21.  fits_write_date
+  [1m2.7.21.  fits_write_date[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Write the DATE keyword to the current HDU
 
-      Usage
+      [1mUsage[0m
         fits_write_date (fd)
 
 
@@ -1587,22 +1587,22 @@
 
 
 
-      Description
+      [1mDescription[0m
         The fits_write_date function calls _fits_write_date to write the
         DATE to the header of the specified file descriptor, which  must
         either be the name of a fits file or an open fits file pointer.
 
-      See Also
+      [1mSee Also[0m
         ``fits_update_key''
 
 
-  2.7.22.  fits_write_chksum
+  [1m2.7.22.  fits_write_chksum[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Compute and write the DATASUM and CHECKSUM keywords
 
-      Usage
+      [1mUsage[0m
         fits_write_chksum (fd)
 
 
@@ -1610,30 +1610,30 @@
 
 
 
-      Description
+      [1mDescription[0m
         The fits_write_chksum function calls _fits_write_comment to
         compute and write the DATASUM and CHECKSUM keywords to the
         header of the specified file descriptor, which  must either be
         the name of a fits file or an open fits file pointer.
 
-      See Also
+      [1mSee Also[0m
         ``fits_update_key'', ``fits_verify_chksum''
 
 
-  2.7.23.  fits_verify_chksum
+  [1m2.7.23.  fits_verify_chksum[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Verify the checksums for the current HDU
 
-      Usage
+      [1mUsage[0m
         isok = fits_verify_chksum (fd [,dataok, hduok])
              Fits_File_Type or String_Type fd;
              Ref_Type dataok, hduok;
 
 
 
-      Description
+      [1mDescription[0m
         The fits_verify_chksum function calls _fits_verify_chksum to
         verify the header and data checksums of the current HDU.  A non-
         zero return value signifies that the checksums are ok, otherwise
@@ -1641,35 +1641,35 @@
         invalid.  The individual checksums of the HDU or data can be
         checked through the use of the optional parameters.
 
-      See Also
+      [1mSee Also[0m
         ``fits_write_chksum''
 
 
-  2.7.24.  fits_read_records
+  [1m2.7.24.  fits_read_records[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read all the records in a fits header
 
-      Usage
+      [1mUsage[0m
         String_Type[] fits_read_records (Fits_File_Type or String_Type
         fp)
 
-      Description
+      [1mDescription[0m
         This function returns a list of all the header records
         associated with the fits file descriptor as an array of strings.
 
-      See Also
+      [1mSee Also[0m
         ``fits_write_records'', ``fits_read_key''
 
 
-  2.7.25.  fits_write_records
+  [1m2.7.25.  fits_write_records[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Write records to fits header
 
-      Usage
+      [1mUsage[0m
         fits_write_records (fd, records)
 
 
@@ -1678,30 +1678,30 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function uses the _fits_write_record function to write a
         series of records to the current HDU.
 
-      See Also
+      [1mSee Also[0m
         ``fits_read_records''
 
 
-  2.7.26.  fits_get_keyclass
+  [1m2.7.26.  fits_get_keyclass[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Obtain the key classes for a set of cards
 
-      Usage
+      [1mUsage[0m
         Int_Type[] = fits_get_keyclass (Array_Type cards)
 
-      Description
+      [1mDescription[0m
         This function uses the _fits_get_keyclass function to obtain the
         key-classes associated with one or more cards.  The function
         returns an integer-valued array of the same length as the cards
         array.
 
-      Example
+      [1mExample[0m
         Obtain set of header cards to those that are not associated with
         the cards describing the structure of the HDU:
 
@@ -1712,36 +1712,36 @@
 
 
 
-      See Also
+      [1mSee Also[0m
         ``fits_read_records'', ``fits_read_key''
 
 
-  2.7.27.  fits_get_bitpix
+  [1m2.7.27.  fits_get_bitpix[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Get the fits bitpix value for an array
 
-      Usage
+      [1mUsage[0m
         Int_Type fits_get_bitpix (array)
 
-      Description
+      [1mDescription[0m
         This function may be used to obtain the bitpix value for a
         specified image array.  The array must be an integer or floating
         point type, otherwise and error will be generated.  The bitpix
         value is returned.
 
-      See Also
+      [1mSee Also[0m
         ``fits_write_image_hdu'', ``fits_read_img''
 
 
-  2.7.28.  fits_read_img
+  [1m2.7.28.  fits_read_img[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read image data from a fits file
 
-      Usage
+      [1mUsage[0m
         Array_Type fits_read_img (fd)
 
 
@@ -1749,25 +1749,25 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function reads an image from the specified file descriptor.
         The file descriptor must be either the name of an existing file,
         or an open file pointer.  It returns the image upon sucess, or
         signals an error upon failure.
 
 
-      See Also
+      [1mSee Also[0m
         ``fits_read_table'', ``fits_read_col'', ``fits_open_file'',
         ``fits_write_img''
 
 
-  2.7.29.  fits_create_image_hdu
+  [1m2.7.29.  fits_create_image_hdu[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Create a primary array or image extension
 
-      Usage
+      [1mUsage[0m
         fits_create_image_hdu (fd, extname, type, dims)
 
 
@@ -1778,7 +1778,7 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function make use of the _fits_create_img function to
         create an image extension or primary array of the specified type
         and size.  If the extname parameter is non-NULL, then an EXTNAME
@@ -1792,17 +1792,17 @@
         undesired, then explicitly open the file and pass this routine
         the resulting file pointer.
 
-      See Also
+      [1mSee Also[0m
         ``fits_write_image_hdu''
 
 
-  2.7.30.  fits_write_image_hdu
+  [1m2.7.30.  fits_write_image_hdu[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Write an image extension
 
-      Usage
+      [1mUsage[0m
         fits_write_image_hdu (file, extname, image [,skeys [,hist]])
 
 
@@ -1814,7 +1814,7 @@
 
 
 
-      Description
+      [1mDescription[0m
         The fits_write_image_hdu function creates a new image extension
         in the specified file.  The parameter file specifies either a
         filename or an open file pointer.  The extname parameter
@@ -1827,7 +1827,7 @@
         indicate either comment or history information to be written to
         the header.
 
-      Example
+      [1mExample[0m
         The following code
 
 
@@ -1862,70 +1862,70 @@
 
 
 
-      Notes
+      [1mNotes[0m
         This function provides no mechanism to mix comments and keyword
         records.  As the example shows, this function places the comment
         and history records at the end of the table.
 
-      See Also
+      [1mSee Also[0m
         ``fits_create_binary_table'', ``fits_open_file''
 
 
-  2.7.31.  fits_write_img
+  [1m2.7.31.  fits_write_img[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Write the image data to an Image HDU
 
-      Usage
+      [1mUsage[0m
         fits_write_img (Fits_File_Type fptr, Any_Type data)
 
-      Description
+      [1mDescription[0m
         This function writes the image data out to current HDU, assumed
         to be an Image HDU.
 
-      See Also
+      [1mSee Also[0m
         ``fits_write_image_hdu'', ``fits_create_image_hdu''
 
 
 
-  2.8.  WCS Function Reference
+  [1m2.8.  WCS Function Reference[0m
 
 
-  2.8.1.  fitswcs_new
+  [1m2.8.1.  fitswcs_new[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Create a new-ndimensional linear WCS
 
-      Usage
+      [1mUsage[0m
         wcs = fitswcs_new (Int_Type naxis)
 
-      Description
+      [1mDescription[0m
         This function returns a new WCS structure of the specified
         dimensionality that represents an identity (linear)
         transformation.
 
-      See Also
+      [1mSee Also[0m
         ``fitswcs_get_img_wcs'', ``fitswcs_get_column_wcs'',
         ``fitswcs_get_vector_wcs''
 
 
-  2.8.2.  fitswcs_slice
+  [1m2.8.2.  fitswcs_slice[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Form a new wcs from one or more axes of another
 
-      Usage
+      [1mUsage[0m
         new_wcs = fitswcs_slice (wcs, dims)
 
-      Description
+      [1mDescription[0m
         This function may be used to construct a new wcs from another by
         rearranging its axes or by using a subset of them.  The dims
         argument specifies the dimensions to use.
 
-      Example
+      [1mExample[0m
         Suppose that wcs represents a 4 dimensional WCS. Then
 
 
@@ -1943,83 +1943,83 @@
 
      will produce a 2d WCS with the first two axes swapped.
 
-      See Also
+      [1mSee Also[0m
         ``fitswcs_get_img_wcs'', ``fitswcs_get_column_wcs'',
         ``fitswcs_get_vector_wcs''
 
 
-  2.8.3.  fitswcs_get_img_wcs
+  [1m2.8.3.  fitswcs_get_img_wcs[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read a WCS for a FITS image
 
-      Usage
+      [1mUsage[0m
         wcs = fitswcs_get_img_wcs (fp [,alt])
 
-      Description
+      [1mDescription[0m
         The fitswcs_get_img_wcs returns a structure representing a WCS
         from the specified file descriptor fp corresponding to an image
         HDU.  An optional parameter may be used to specified an
         alternate WCS.
 
-      Example
+      [1mExample[0m
 
 
              wcs = fitswcs_get_img_wcs ("img.fits[IMAGE]", 'P');
 
 
 
-      See Also
+      [1mSee Also[0m
         ``fitswcs_put_img_wcs'', ``fitswcs_get_column_wcs'',
         ``fitswcs_get_vector_wcs''
 
 
-  2.8.4.  fitswcs_get_column_wcs
+  [1m2.8.4.  fitswcs_get_column_wcs[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Get the WCS attached to one or more columns of a binary table
 
-      Usage
+      [1mUsage[0m
         fitswcs_get_column_wcs (fp, columns-array [,alt]
 
-      Description
+      [1mDescription[0m
         This function may be used to obtain the WCS associated with one
         or more columns of a binary table.  The file descriptor fp must
         specify a binary table.  The columns-array parameter should be
         an array of columns names.  The third parameter is optional and
         is used to specify an alternate WCS.
 
-      Example
+      [1mExample[0m
 
 
              wcs = fitswcs_get_column_wcs ("evt1.fits[EVENTS]", ["X","Y"]);
 
 
 
-      See Also
+      [1mSee Also[0m
         ``fitswcs_put_column_wcs'', ``fitswcs_get_img_wcs'',
         ``fitswcs_get_vector_wcs''
 
 
-  2.8.5.  fitswcs_get_vector_wcs
+  [1m2.8.5.  fitswcs_get_vector_wcs[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Get the WCS of an image in a specified table cell
 
-      Usage
+      [1mUsage[0m
         wcs = fitswcs_get_vector_wcs (fp, column_name, row [,alt])
 
-      Description
+      [1mDescription[0m
         This function reads the WCS of an image in a specified cell of a
         binary table given by fp parameter.  The second and third
         parameters specify the column name and row number of the cell.
         An optional fourth parameter may be used to obtain the
         corresponding alternate WCS.
 
-      Example
+      [1mExample[0m
         This example reads the WCS associated with the image in the
         second row of the QEU column of the binary table with HDUNAME
         equal to AXAF_QEU1 in the file "HRCQEU.fits":
@@ -2029,28 +2029,28 @@
 
 
 
-      Notes
+      [1mNotes[0m
         The current implementation does not yet support references to
         the WCS of other cells.
 
-      See Also
+      [1mSee Also[0m
         ``fitswcs_get_column_wcs'', ``fitswcs_get_img_wcs''
 
 
-  2.8.6.  fitswcs_new_img_wcs
+  [1m2.8.6.  fitswcs_new_img_wcs[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Create a linear WCS for an image
 
-      Usage
+      [1mUsage[0m
         wcs = fitswcs_new_img_wcs (grid0,grid1,...)
 
-      Description
+      [1mDescription[0m
         This function may be used to construct a linear WCS for an image
         with the specified grids.  The grids are assumed to be linear.
 
-      Example
+      [1mExample[0m
         Use the histogram module's hist2d function to create an image
         from the X and Y columns in a file, and the construct a
         corresponding WCS:
@@ -2064,24 +2064,24 @@
 
 
 
-      See Also
+      [1mSee Also[0m
         ``fitswcs_new'', ``fitswcs_get_img_wcs''
 
 
-  2.8.7.  fitswcs_put_img_wcs
+  [1m2.8.7.  fitswcs_put_img_wcs[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Write a WCS out to an image header
 
-      Usage
+      [1mUsage[0m
         fitswcs_put_img_wcs (fp, wcs [,alt])
-      Description
+      [1mDescription[0m
         The fitswcs_put_img_wcs may be used to write the specified wcs
         out to the image HDU specified by the fp parameter.  An optional
         third parameter may be used to specify an alternate WCS.
 
-      Example
+      [1mExample[0m
 
 
               fp = fits_open_file ("img.fits", "w");
@@ -2093,20 +2093,20 @@
 
 
 
-      See Also
+      [1mSee Also[0m
         ``fitswcs_put_column_wcs''
 
 
-  2.8.8.  fitswcs_put_column_wcs
+  [1m2.8.8.  fitswcs_put_column_wcs[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Write the WCS attached to one or more table columns
 
-      Usage
+      [1mUsage[0m
         fitswcs_put_column_wcs (fp, wcs, columns-array [,alt])
 
-      Description
+      [1mDescription[0m
         This function may be used to attach a WCS to one or more columns
         of a binary table.  The dimensionality of the specified WCS must
         match the length of the array specifying the column names.  The
@@ -2114,25 +2114,25 @@
         fourth parameter is optional and may be used to specify an
         alternate WCS.
 
-      Example
+      [1mExample[0m
 
 
              fitswcs_put_column_wcs ("evt2.fits[EVENTS], wcs, ["X","Y"]);
 
 
 
-      See Also
+      [1mSee Also[0m
         ``fitswcs_get_column_wcs'', ``fitswcs_put_img_wcs'',
         ``fitswcs_get_img_wcs''
 
 
-  2.8.9.  fitswcs_linear_transform_wcs
+  [1m2.8.9.  fitswcs_linear_transform_wcs[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Apply a linear transformation to a WCS
 
-      Usage
+      [1mUsage[0m
         wcs1 = fitswcs_linear_transform_wcs (wcs, X0, CD, I0)
 
 
@@ -2140,42 +2140,42 @@
              X0,I0: 1-d arrays
                 CD: 2-d array
 
-      Description
+      [1mDescription[0m
         This function may be used to create a new WCS by applying a
         linear transformation to an existing one.
 
-      Notes
+      [1mNotes[0m
         The dimensionality of the WCS is limited to 2 in the current
         implementation.
 
-      See Also
+      [1mSee Also[0m
         ``fitswcs_rebin_wcs''
 
 
-  2.8.10.  fitswcs_rebin_wcs
+  [1m2.8.10.  fitswcs_rebin_wcs[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         This function may be used to obtain the wcs for a rebinned image
 
-      Usage
+      [1mUsage[0m
         wcs1 = fitswcs_rebin_wcs (wcs, grid0, grid1, ...)
 
-      Description
+      [1mDescription[0m
         This function may be used to construct the WCS for a rebinned
         image from the WCS of of the unbinned image.  The grid
         parameters specify the linear grids the new image.
 
-      See Also
+      [1mSee Also[0m
         ``fitswcs_linear_transform_wcs'', ``fitswcs_slice''
 
 
 
-  3.  The low-level interface
+  [1m3.  The low-level interface[0m
 
 
 
-  3.1.  Overview
+  [1m3.1.  Overview[0m
 
 
 
@@ -2214,45 +2214,45 @@
 
 
 
-  This function has been wrapped such that it is to be called from S-
-  lang via
+  This function has been wrapped such that it is to be called from [1mS-[0m
+  [1mlang [22mvia
 
 
           status = _fits_get_num_hdus (fptr, &hdunum);
 
 
 
-  3.2.  Low-level Function Reference
+  [1m3.2.  Low-level Function Reference[0m
 
 
 
-  3.2.1.  _fits_get_errstatus
+  [1m3.2.1.  _fits_get_errstatus[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Retrieve a text string corresponding to an error code
 
-      Usage
+      [1mUsage[0m
         String_Type _fits_get_errstatus (Int_Type status)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_get_errstatus.  See its documentation for additional
         information.
 
 
 
-  3.2.2.  _fits_open_file
+  [1m3.2.2.  _fits_open_file[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Open a fits file
 
-      Usage
+      [1mUsage[0m
         status = _fits_open_file (Ref_Type fptr, String_Type file,
         String_Type mode)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_open_file.  See its documentation for additional
         information.
@@ -2277,83 +2277,83 @@
 
 
 
-  3.2.3.  _fits_delete_file
+  [1m3.2.3.  _fits_delete_file[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Delete the file associated with a Fits_File_Type object
 
-      Usage
+      [1mUsage[0m
         status = _fits_delete_file (Fits_File_Type fptr)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_delete_file.  See its documentation for additional
         information.
 
-  3.2.4.  _fits_close_file
+  [1m3.2.4.  _fits_close_file[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Close a fits file
 
-      Usage
+      [1mUsage[0m
         status = _fits_close_file (Fits_File_Type fptr)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_close_file.  See its documentation for additional
         information.
 
 
 
-  3.2.5.  _fits_movabs_hdu
+  [1m3.2.5.  _fits_movabs_hdu[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Move to an absolute HDU number
 
-      Usage
+      [1mUsage[0m
         status = _fits_movabs_hdu (Fits_File_Type fptr, Int_Type hdunum)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_movabs_hdu.  See its documentation for additional
         information.
 
-      Notes
+      [1mNotes[0m
         The cfitsio counterpart also returns the HDU type of the
         resulting HDU.
 
 
 
-  3.2.6.  _fits_movrel_hdu
+  [1m3.2.6.  _fits_movrel_hdu[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Move a relative number of HDUs
 
-      Usage
+      [1mUsage[0m
         status = _fits_movrel_hdu (Fits_File_Type fptr, Int_Type nmove)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_movrel_hdu.  See its documentation for additional
         information.
 
-      Notes
+      [1mNotes[0m
         The cfitsio counterpart also returns the HDU type of the
         resulting HDU.
 
 
 
-  3.2.7.  _fits_movnam_hdu
+  [1m3.2.7.  _fits_movnam_hdu[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Move to a named HDU
 
-      Usage
+      [1mUsage[0m
         status = _fits_movnam_hdu (fptr, hdutype, extname, extvers)
 
 
@@ -2363,57 +2363,57 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_movnam_hdu.  See its documentation for additional
         information.
 
 
 
-  3.2.8.  _fits_get_num_hdus
+  [1m3.2.8.  _fits_get_num_hdus[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Return the number of HDUs in a FITS file
 
-      Usage
+      [1mUsage[0m
         status = _fits_get_num_hdus (Fits_File_Type fptr, Ref_Type
         hdunum)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_get_num_hdus.  See its documentation for additional
         information.
 
 
 
-  3.2.9.  _fits_get_hdu_num
+  [1m3.2.9.  _fits_get_hdu_num[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Return the current HDU number
 
-      Usage
+      [1mUsage[0m
         hdunum = _fits_get_hdu_num (Fits_File_Type fptr)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_get_hdu_num.  See its documentation for additional
         information.
 
 
 
-  3.2.10.  _fits_get_hdu_type
+  [1m3.2.10.  _fits_get_hdu_type[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Get the current HDU type
 
-      Usage
+      [1mUsage[0m
         status = _fits_get_hdu_type (Fits_File_Type fptr, Ref_Type
         hdutype)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_get_hdu_type.  See its documentation for additional
         information.
@@ -2428,13 +2428,13 @@
 
 
 
-  3.2.11.  _fits_copy_file
+  [1m3.2.11.  _fits_copy_file[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Copy a fits file
 
-      Usage
+      [1mUsage[0m
         status = _fits_copy_file (infptr, outfptr, previous, current,
         following)
 
@@ -2444,20 +2444,20 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_copy_file.  See its documentation for additional
         information.
 
 
 
-  3.2.12.  _fits_copy_hdu
+  [1m3.2.12.  _fits_copy_hdu[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Copy an HDU
 
-      Usage
+      [1mUsage[0m
         status = _fits_copy_hdu (infptr, outfptr, morekeys)
 
 
@@ -2466,58 +2466,58 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_copy_hdu.  See its documentation for additional
         information.
 
 
 
-  3.2.13.  _fits_copy_header
+  [1m3.2.13.  _fits_copy_header[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Copy a fits header from one HDU to another
 
-      Usage
+      [1mUsage[0m
         status = _fits_copy_header (Fits_File_Type infptr,
         Fits_File_Type outfptr)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_copy_header.  See its documentation for additional
         information.
 
 
 
-  3.2.14.  _fits_delete_hdu
+  [1m3.2.14.  _fits_delete_hdu[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Delete the current HDU
 
-      Usage
+      [1mUsage[0m
         status = _fits_delete_hdu (Fits_File_Type fptr)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_delete_hdu.  See its documentation for additional
         information.
 
-      Notes
+      [1mNotes[0m
         The corresponding cfitsio function also returns the HDU type of
         the new HDU.  If that information is necessary, make a separate
         call to _fits_get_hdu_type.
 
 
 
-  3.2.15.  _fits_create_img
+  [1m3.2.15.  _fits_create_img[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Create a new image extension
 
-      Usage
+      [1mUsage[0m
         status = _fits_create_img (fptr, bitpix, dims)
 
 
@@ -2527,12 +2527,12 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_create_img.  See its documentation for additional
         information.
 
-      Notes
+      [1mNotes[0m
         This function differs from the corresponding cfitsio function in
         that the dims array is assumed to be a 1-d integer array whose
         elements specify the number of axes and the size of each axis.
@@ -2542,41 +2542,41 @@
 
 
 
-  3.2.16.  _fits_write_img
+  [1m3.2.16.  _fits_write_img[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Write an image
 
-      Usage
+      [1mUsage[0m
         status = _fits_write_img (Fits_File_Type fptr, Array_Type img
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_write_img.  See its documentation for additional
         information.
 
-      Notes
+      [1mNotes[0m
         This function differs from its cfitsio counterpart in that the
         whole image represented by the array img will be written out.
 
 
 
-  3.2.17.  _fits_read_img
+  [1m3.2.17.  _fits_read_img[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read an image
 
-      Usage
+      [1mUsage[0m
         status = _fits_read_img (Fits_File_Type fptr, Ref_Type img)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_read_img.  See its documentation for additional
         information.
 
-      Notes
+      [1mNotes[0m
         This function differs from the corresponding cfitsio routine in
         that the type of the image returned is automatically determined
         by the routine via a call to fits_get_img_type.  The
@@ -2586,13 +2586,13 @@
 
 
 
-  3.2.18.  _fits_create_binary_tbl
+  [1m3.2.18.  _fits_create_binary_tbl[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Create a binary table extension
 
-      Usage
+      [1mUsage[0m
         status = _fits_create_binary_tbl (fptr, naxis2, ttype, tform,
         tunit, extname)
 
@@ -2604,7 +2604,7 @@
 
 
 
-      Notes
+      [1mNotes[0m
         The _fits_create_binary_tbl function is a wrapper around the
         fits_create_tbl function explicitly creating a binary table.
         The input arrays ttype, tform, and tunit must be the same
@@ -2613,13 +2613,13 @@
 
 
 
-  3.2.19.  _fits_update_key
+  [1m3.2.19.  _fits_update_key[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Update a keyword or append a new one
 
-      Usage
+      [1mUsage[0m
         status = _fits_update_key (fptr, keyname, value, comment)
 
 
@@ -2629,12 +2629,12 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_update_key.  See its documentation for additional
         information.
 
-      Notes
+      [1mNotes[0m
         The data-type for the value argument must be an approriate type
         for FITS keywords.  If value is a string, then the string will
         be written as a cfitsio long-string using the
@@ -2650,13 +2650,13 @@
 
 
 
-  3.2.20.  _fits_update_logical
+  [1m3.2.20.  _fits_update_logical[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Update the value of a boolean keyword
 
-      Usage
+      [1mUsage[0m
         status = _fits_update_logical (fptr, keyname, value, comment)
 
 
@@ -2666,7 +2666,7 @@
 
 
 
-      Description
+      [1mDescription[0m
         The _fits_update_logical function is a wrapper around the
         cfitsio fits_update_key function with TLOGICAL specified as the
         datatype argument.  If the value parameter is non-zero, then a
@@ -2677,86 +2677,86 @@
         field will not be modified.
 
 
-      See Also
+      [1mSee Also[0m
         ``_fits_update_key''
 
 
 
-  3.2.21.  _fits_write_comment
+  [1m3.2.21.  _fits_write_comment[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Write a COMMENT header
 
-      Usage
+      [1mUsage[0m
         status = _fits_write_comment (Fits_File_Type fptr, String_Type
         comment)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_write_comment.  See its documentation for additional
         information.
 
 
 
-  3.2.22.  _fits_write_history
+  [1m3.2.22.  _fits_write_history[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Write a HISTORY header
 
-      Usage
+      [1mUsage[0m
         status = _fits_write_history (Fits_File_Type fptr, String_Type
         history)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_write_history.  See its documentation for additional
         information.
 
 
 
-  3.2.23.  _fits_write_date
+  [1m3.2.23.  _fits_write_date[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Write a DATE keyword
 
-      Usage
+      [1mUsage[0m
         status = _fits_write_date (Fits_File_Type fptr)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_write_date.  See its documentation for additional
         information.
 
 
 
-  3.2.24.  _fits_write_record
+  [1m3.2.24.  _fits_write_record[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Write a keyword record
 
-      Usage
+      [1mUsage[0m
         status = _fits_write_record (Fits_File_Type fptr, String_Type
         card)
 
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_write_record.  See its documentation for additional
         information.
 
 
 
-  3.2.25.  _fits_modify_name
+  [1m3.2.25.  _fits_modify_name[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Rename a keyword
 
-      Usage
+      [1mUsage[0m
         status = _fits_modify_name (fptr, oldname, newname)
 
 
@@ -2765,24 +2765,24 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_modify_name.  See its documentation for additional
         information.
 
 
 
-  3.2.26.  _fits_get_num_keys
+  [1m3.2.26.  _fits_get_num_keys[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Get the number of keywords in the current HDU
 
-      Usage
+      [1mUsage[0m
         status _fits_get_num_keys (Fits_File_Type fptr, Ref_Type
         numkeys)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio fits_get_hdrspace
         function.  It obtains the number of existing keywords in the
         current HDU (excluding the END keyword) and assigns that value
@@ -2790,13 +2790,13 @@
 
 
 
-  3.2.27.  _fits_read_key_integer
+  [1m3.2.27.  _fits_read_key_integer[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read the value of a keyword as an integer
 
-      Usage
+      [1mUsage[0m
         status = _fits_read_key_integer (fptr, keyname, value, comment)
 
 
@@ -2806,26 +2806,26 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function uses the cfitsio fits_read_key function to read
         the value of the specifed keyword as an integer.  Its value is
         assigned to the variable referenced by the value parameter.  If
         the comment parameter is non-NULL, then the value of the comment
         field will be assigned to it.
 
-      See Also
+      [1mSee Also[0m
         ``_fits_read_key'', ``_fits_read_key_string'',
         ``_fits_read_key_double''
 
 
 
-  3.2.28.  _fits_read_key_string
+  [1m3.2.28.  _fits_read_key_string[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read the value of a keyword as a string
 
-      Usage
+      [1mUsage[0m
         status = _fits_read_key_string (fptr, keyname, value, comment)
 
 
@@ -2835,26 +2835,26 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function uses the cfitsio fits_read_key_longstr function to
         read the value of the specifed keyword as a cfitsio long-string.
         The string is assigned to the variable referenced by the value
         parameter. If the comment parameter is non-NULL, then the value
         of the comment field will be assigned to it.
 
-      See Also
+      [1mSee Also[0m
         ``_fits_read_key'', ``_fits_read_key_integer'',
         ``_fits_read_key_double''
 
 
 
-  3.2.29.  _fits_read_key_double
+  [1m3.2.29.  _fits_read_key_double[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read the value of a keyword as a double
 
-      Usage
+      [1mUsage[0m
         status = _fits_read_key_double (fptr, keyname, value, comment)
 
 
@@ -2864,25 +2864,25 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function uses the cfitsio fits_read_key function to read
         the value of the specifed keyword as a double.  The keyword's
         value is assigned to the variable referenced by the value
         parameter. If the comment parameter is non-NULL, then the value
         of the comment field will be assigned to it.
-      See Also
+      [1mSee Also[0m
         ``_fits_read_key'', ``_fits_read_key_integer'',
         ``_fits_read_key_string''
 
 
 
-  3.2.30.  _fits_read_key
+  [1m3.2.30.  _fits_read_key[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read the value of a keyword
 
-      Usage
+      [1mUsage[0m
         status = _fits_read_key (fptr, keyname, value, comment)
 
 
@@ -2892,7 +2892,7 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function uses the cfitsio fits_read_key function to read
         the value of the specifed keyword.  It first uses the cfitsio
         fits_get_keytype function to determine the data-type for the
@@ -2901,19 +2901,19 @@
         value parameter. If the comment parameter is non-NULL, then the
         value of the comment field will be assigned to it.
 
-      See Also
+      [1mSee Also[0m
         ``_fits_read_key_integer'', ``_fits_read_key_string'',
         ``_fits_read_key_double''
 
 
 
-  3.2.31.  _fits_read_record
+  [1m3.2.31.  _fits_read_record[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read a specified record from the current HDU
 
-      Usage
+      [1mUsage[0m
         status = _fits_read_record (fptr, keynum, card)
 
 
@@ -2923,38 +2923,38 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_read_record.  See its documentation for additional
         information.
 
 
 
-  3.2.32.  _fits_delete_key
+  [1m3.2.32.  _fits_delete_key[0m
 
 
 
-      Synopsis
+      [1mSynopsis[0m
         Delete a keyword from the header
 
-      Usage
+      [1mUsage[0m
         status = _fits_delete_key (Fits_File_Type fptr, String_Type
         keyname)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_delete_key.  See its documentation for additional
         information.
 
 
 
-  3.2.33.  _fits_get_colnum
+  [1m3.2.33.  _fits_get_colnum[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Get the column number of a specfied table column
 
-      Usage
+      [1mUsage[0m
         status = _fits_get_colnum (fptr, colname, colnum)
 
 
@@ -2964,13 +2964,13 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_get_colnum.  See its documentation for additional
         information.
 
 
-      Notes
+      [1mNotes[0m
         The corresponding cfitsio function permits a wildcard match to
         the colname parameter.  The current wrapping of this function
         does not support such matching.
@@ -2979,13 +2979,13 @@
 
 
 
-  3.2.34.  _fits_insert_rows
+  [1m3.2.34.  _fits_insert_rows[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Insert rows into a table
 
-      Usage
+      [1mUsage[0m
         status = _fits_insert_rows (fptr, firstrow, nrows)
 
 
@@ -2994,17 +2994,17 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_insert_rows.  See its documentation for additional
         information.
-  3.2.35.  _fits_delete_rows
+  [1m3.2.35.  _fits_delete_rows[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Delete rows from a table
 
-      Usage
+      [1mUsage[0m
         status = _fits_delete_rows (fptr, firstrow, nrows)
 
 
@@ -3013,20 +3013,20 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_delete_rows.  See its documentation for additional
         information.
 
 
 
-  3.2.36.  _fits_insert_cols
+  [1m3.2.36.  _fits_insert_cols[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Insert columns into a table
 
-      Usage
+      [1mUsage[0m
         status = _fits_insert_cols (fptr, colnum, ttype, tform)
 
 
@@ -3036,89 +3036,89 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_insert_cols.  See its documentation for additional
         information.
 
-      Notes
+      [1mNotes[0m
         The number of columns to be inserted is given by the length of
         the ttype and tform arrays, which must be of the same length.
 
 
 
-  3.2.37.  _fits_delete_col
+  [1m3.2.37.  _fits_delete_col[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Delete a column from a table
 
-      Usage
+      [1mUsage[0m
         status = _fits_delete_col (Fits_File_Type fptr, Int_Type colnum)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_delete_col.  See its documentation for additional
         information.
 
 
-  3.2.38.  _fits_get_num_cols
+  [1m3.2.38.  _fits_get_num_cols[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Get the number of table columns
 
-      Usage
+      [1mUsage[0m
         status = _fits_get_num_cols (Fits_File_Type fptr, Ref_Type
         ncols)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_get_num_cols.  See its documentation for additional
         information.
 
 
 
-  3.2.39.  _fits_get_rowsize
+  [1m3.2.39.  _fits_get_rowsize[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Get the number of rows to read or write for maximum efficiency
 
-      Usage
+      [1mUsage[0m
         status = _fits_get_rowsize (Fits_File_Type fptr, Ref_Type nrows)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_get_rowsize.  See its documentation for additional
         information.
 
 
 
-  3.2.40.  _fits_get_num_rows
+  [1m3.2.40.  _fits_get_num_rows[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Get the number of table rows
 
-      Usage
+      [1mUsage[0m
         status = _fits_get_num_cols (Fits_File_Type fptr, Ref_Type
         nrows)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_get_num_rows.  See its documentation for additional
         information.
 
 
 
-  3.2.41.  _fits_write_col
+  [1m3.2.41.  _fits_write_col[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Write data to a table column
 
-      Usage
+      [1mUsage[0m
         status = _fits_write_col (fptr, colnum, firstrow, firstelem,
         array)
 
@@ -3128,24 +3128,24 @@
              Int_Type firstrow, firstelem;
              Array_Type array;
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_write_col.  See its documentation for additional
         information.
 
-      Notes
+      [1mNotes[0m
         The number of elements written out to the column by this
         function will be equal to the number of elements in the array.
 
 
 
-  3.2.42.  _fits_read_col
+  [1m3.2.42.  _fits_read_col[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read elements from a column
 
-      Usage
+      [1mUsage[0m
         status = _fits_read_col (fptr, colnum, firstrow, numrows, array
 
 
@@ -3155,7 +3155,7 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function is a complicated wrapper around a number of
         cfitsio functions to enable it to read any type of column,
         including vector and variable length columns.  The data read by
@@ -3173,18 +3173,18 @@
         as an array of integers of the appropriate size.  Currently only
         8X, 16X, and 32X bit columns are supported.
 
-      See Also
+      [1mSee Also[0m
         ``_fits_read_cols'', ``_fits_write_col''
 
 
 
-  3.2.43.  _fits_get_keytype
+  [1m3.2.43.  _fits_get_keytype[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Get a keyword's data type
 
-      Usage
+      [1mUsage[0m
         status = _fits_get_keytype (fptr, keyname, type)
 
 
@@ -3193,43 +3193,43 @@
              Ref_Type type;
 
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_get_keytype.  See its documentation for additional
         information.
 
-      Notes
+      [1mNotes[0m
         This function differs from its cfitsio counterpart in that
         instead of explicitly specifying the keyword's value string,
         this function uses the value of the specified keyword.  It also
-        returns the type as a S-lang DataType_Type object, e.g.,
+        returns the type as a [1mS-lang [22mDataType_Type object, e.g.,
         Int_Type, Complex_Type, etc.
 
 
 
-  3.2.44.  _fits_get_keyclass
+  [1m3.2.44.  _fits_get_keyclass[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Get the class of an input header record
 
-      Usage
+      [1mUsage[0m
         Int_Type _fits_get_keyclass (String_Type card)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_get_keyclass.  See its documentation for additional
         information.
 
 
 
-  3.2.45.  _fits_read_cols
+  [1m3.2.45.  _fits_read_cols[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Read one or more table columns
 
-      Usage
+      [1mUsage[0m
         status = _fits_read_cols (fptr, colnums, firstrow, nrows,
         arrays)
 
@@ -3241,7 +3241,7 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function performs a similar task as the _fits_read_col.
         The main difference is that instead of reading a single column,
         it is capable of reading multiple columns specified by the
@@ -3250,51 +3250,51 @@
         documentation for the _fits_read_col function for more
         information.
 
-      Notes
+      [1mNotes[0m
         This function takes advantage of the cfitsio buffering mechanism
         to optimize the reads.
 
 
 
-  3.2.46.  _fits_write_chksum
+  [1m3.2.46.  _fits_write_chksum[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Compute and write DATASUM and CHECKSUM keywords
 
-      Usage
+      [1mUsage[0m
         status = _fits_write_chksum (Fits_File_Type fptr)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_write_chksum.  See its documentation for additional
         information.
 
 
 
-  3.2.47.  _fits_update_chksum
+  [1m3.2.47.  _fits_update_chksum[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Update the CHECKSUM keyword
 
-      Usage
+      [1mUsage[0m
         status = _fits_update_chksum (Fits_File_Type fptr)
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_update_chksum.  See its documentation for additional
         information.
 
 
 
-  3.2.48.  _fits_verify_chksum
+  [1m3.2.48.  _fits_verify_chksum[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Verify the checksums for the current HDU
 
-      Usage
+      [1mUsage[0m
         status = _fits_verify_chksum (fptr, dataok, hduok)
 
 
@@ -3303,20 +3303,20 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_verify_chksum.  See its documentation for additional
         information.
 
 
 
-  3.2.49.  _fits_get_chksum
+  [1m3.2.49.  _fits_get_chksum[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Get the checksums for the current HDU
 
-      Usage
+      [1mUsage[0m
         status = _fits_get_chksum (fptr, datasum, hdusum)
 
 
@@ -3326,30 +3326,30 @@
 
 
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_get_chksum.  See its documentation for additional
         information.
 
 
 
-  3.2.50.  _fits_get_version
+  [1m3.2.50.  _fits_get_version[0m
 
 
-      Synopsis
+      [1mSynopsis[0m
         Get the cfitsio library version number
 
-      Usage
+      [1mUsage[0m
         Float_Type _fits_get_version ()
 
-      Description
+      [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_get_version.  See its documentation for additional
         information.
 
 
 
-                            Table of Contents
+                            [1mTable of Contents[0m
 
 
   1. Introduction  . . . . . . . . . . . . . . . . . . . . . . . . .   4

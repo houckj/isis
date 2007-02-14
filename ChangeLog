@@ -1,3 +1,38 @@
+2007-2-14  John E. Davis  <davis@space.mit.edu>
+
+	* src/version.h (MODULE_PATCH_LEVEL): Bumped to version 0.3-3
+
+	* src/cfitsio-module.c (read_column_values): repeat=0 (a
+	  column with 0 length was not supported).
+
+2006-6-13  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (fits_update_logical): Usage message referred to
+	  fits_update_key.
+	(_fits_sl_version_string): Updated to 0.4.2-4
+
+2006-4-7  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (_fits_sl_version_string): bumped to 0.4.2-3
+	(fits_write_binary_table): allow data struct to be NULL
+
+2006-2-17  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (fits_write_records): The usage string referred
+	  to fits_read+records.
+	(_fits_sl_version_string): version string bumped to 0.4.2-2
+
+2006-1-26  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitswcs.sl (struct): Added radsys and equinox fields to
+	  the the wcs structure.
+
+2005-11-10  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (_fits_sl_version_string): bumped to 0.4.2-1.
+	(read_cols): numrows was not being passed to _fits_read_cols
+	(Ronnie Hoogerwerf ronnieh at head, cfa, harvard, edu)
+
 2005-10-27  John E. Davis  <davis@space.mit.edu>
 
 	* autoconf/configure.in: removed JD_SET_RPATH.

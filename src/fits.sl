@@ -1,4 +1,4 @@
-%    Copyright (C) 1998-2005 Massachusetts Institute of Technology
+%    Copyright (C) 1998-2006 Massachusetts Institute of Technology
 %
 %    Author:  John E. Davis <davis@space.mit.edu>
 %
@@ -22,7 +22,7 @@
 import ("cfitsio");
 
 variable _fits_sl_version = 402;
-variable _fits_sl_version_string = "0.4.2-0";
+variable _fits_sl_version_string = "0.4.2-4";
 
 % Forward declarations
 private define do_fits_error ()
@@ -499,8 +499,8 @@ private define read_cols (fp, columns, first_row, last_row)
 
    variable numcols = length (columns);
    variable data_arrays;   
-   do_fits_error (_fits_read_cols (fp, columns, first_row, last_row, &data_arrays));
    numrows = last_row - first_row + 1;
+   do_fits_error (_fits_read_cols (fp, columns, first_row, numrows, &data_arrays));
    _for (0, numcols-1, 1)
      {
 	variable i = ();
@@ -1056,7 +1056,11 @@ define fits_write_binary_table ()
 
    fp = get_open_write_fp (fp, "c", &needs_close);
 
-   variable ttype = get_struct_field_names (s);
+   variable ttype;
+   if (s == NULL)
+     ttype = String_Type[0];
+   else
+     ttype = get_struct_field_names (s);
    variable ncols = length (ttype);
    variable tform = String_Type [ncols];
    variable nrows = -1;
@@ -1129,6 +1133,8 @@ define fits_write_binary_table ()
 	ttype[i] = colname;
      }
 
+   if (nrows == -1)		       %  ncols is 0
+     nrows = 0;
    fits_create_binary_table (fp, extname, nrows, ttype, tform, NULL);
 
    _for (0, ncols-1, 1)
@@ -1236,7 +1242,7 @@ define fits_update_key ()
 define fits_update_logical ()
 {
    if (_NARGS != 4)
-     usage ("fits_update_key (fp, key, value, comment)");
+     usage ("fits_update_logical (fp, key, value, comment)");
    
    do_write_xxx (&_fits_update_logical, _NARGS);
 }
@@ -1412,7 +1418,7 @@ define fits_read_records ()
 define fits_write_records ()
 {
    if (_NARGS != 2)
-     usage ("fits_read_records (fp, records[])");
+     usage ("fits_write_records (fp, records[])");
    
    variable fp, records;
    (fp, records) = ();

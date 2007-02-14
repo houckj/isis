@@ -747,7 +747,7 @@
 #v+
     img = img[0,0,*,*];
 #v-
- producing a 2d image of type \exmp{Float_Type[1,1,657,657]}.  The
+ producing a 2d image of type \exmp{Float_Type[657,657]}.  The
  corresponding wcs may be obtained using the \sfun{fitswcs_slice}
  function to extract the last two dimensions of the WCS:
 #v+
