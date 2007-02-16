@@ -1,3 +1,15 @@
+2007-2-16  John E. Davis  <davis@space.mit.edu>
+
+	* src/cfitsio-module.c (write_img): added support for unsigned types.
+
+	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.3.4
+
+	* src/fits.sl (fits_write_binary_table): Added support for
+	  unsigned 16 and 32 bit integers.
+	(fits_get_bitpix): modified bitpix values for unsigned types
+	  and Char_Type.
+	(_fits_sl_version_string): version bumped to 0.4.3-0
+
 2007-2-14  John E. Davis  <davis@space.mit.edu>
 
 	* src/version.h (MODULE_PATCH_LEVEL): Bumped to version 0.3-3

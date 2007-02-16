@@ -4,11 +4,14 @@ set_import_module_path (".:" + get_import_module_path ());
 
 require ("fits");
 
+variable Failed = 0;
+
 static define warn ()
 {
    variable args = __pop_args (_NARGS);
    () = fprintf (stderr, "**** Warning: %s\n",
 		 sprintf (__push_args (args)));
+   Failed++;
 }
 
 static define check_key_read_write (fptr, key, val)
@@ -22,8 +25,7 @@ static define check_key_read_write (fptr, key, val)
 	   typeof (val), typeof (val1));
 }
 
-#ifndef _eqs
-static define _eqs (a, b)
+define is_identical (a, b)
 {
    variable dims_a, dims_b;
    (dims_a,,) = array_info (a);
@@ -38,7 +40,6 @@ static define _eqs (a, b)
      return 0;
    return 1;
 }
-#endif
 
 define test_img (filename)
 {
@@ -46,7 +47,7 @@ define test_img (filename)
    variable dims = [2,10];
    variable npixels = dims[0]*dims[1];
 
-   fits_create_image_hdu (fptr, NULL, Int32_Type, dims);
+   fits_create_image_hdu (fptr, NULL, UInt32_Type, dims);
    variable card = 
      "key_prec= 'This keyword was written by fxprec' / comment goes here";
    
@@ -78,9 +79,12 @@ define test_img (filename)
    fits_write_img (fptr, array);
    fits_close_file (fptr);
    
+   array = typecast (array, UInt32_Type);
+   reshape (array, dims);
+
    fptr = fits_open_file (filename, "w");
    variable img = fits_read_img (fptr);
-   if (_eqs (img, array))
+   if (0 == is_identical (img, array))
      {
 	warn ("Write then read image failed: %S vs %S", array, img);
      }
@@ -90,9 +94,36 @@ define test_img (filename)
 
 static define test_bt (filename)
 {
-   variable fptr = fits_open_file (filename, "w");
+   variable uint16s = UInt16_Type[65]; uint16s[*] = [1:65];
+   variable uint32s = UInt32_Type[65]; uint32s[*] = [1:65];
+   variable data = struct {u16, u32};
+   data.u16 = uint16s;
+   data.u32 = uint16s;
+   fits_write_binary_table (filename, "FOO", data);
+   
+   variable delete = 1;
+
+   variable table = fits_read_table (filename + "[FOO]");
+   if (0 == is_identical (table.u16, data.u16))
+     {
+	warn ("testbt: failed to read/write an unsigned 16 bit column");
+	delete = 0;
+     }
+   if (0 == is_identical (table.u32, data.u32))
+     {
+	warn ("testbt: failed to read/write an unsigned 16 bit column");
+	delete = 0;
+     }
+   
+   if (delete) 
+     () = remove (filename);
 }
 
-test_img ("testprog.fit");
-test_bt ("testprog.fit");
-message ("Passed");
+test_img ("testimg.fit");
+test_bt ("testbt.fit");
+
+if (Failed == 0)
+  message ("Passed");
+else
+  message ("Failed");
+

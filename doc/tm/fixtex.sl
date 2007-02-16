@@ -1,19 +1,14 @@
-%quit_jed;
+#!/usr/bin/env jed-script
 
-% Version 0.3.1-0
-!if (is_defined ("__argv"))
+% Version 0.3.2-0
+
+if (__argc != 2)
 {
-   message ("You need a newer version of jed to run this script");
+   message ("Usage: ./fixtex.sl <filename>");
    quit_jed ();
 }
 
-if (__argc != 4)
-{
-   message ("Usage: jed -script fixtex.sl <filename>");
-   quit_jed ();
-}
-
-variable file = __argv[3];
+variable file = __argv[1];
 () = read_file (file);
 
 % Patch up the >,< signs

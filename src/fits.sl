@@ -21,8 +21,8 @@
 %else
 import ("cfitsio");
 
-variable _fits_sl_version = 402;
-variable _fits_sl_version_string = "0.4.2-4";
+variable _fits_sl_version = 403;
+variable _fits_sl_version_string = "0.4.3-0";
 
 % Forward declarations
 private define do_fits_error ()
@@ -1092,6 +1092,12 @@ define fits_write_binary_table ()
 	   case Int16_Type: t = "I";
 	  }
 	  {
+	   case UInt16_Type: t = "U";
+	  }
+	  {
+	   case UInt32_Type: t = "V";
+	  }
+	  {
 	   case String_Type:
 	     (,ndims,) = array_info (val);
 	     if (ndims > 1)
@@ -1484,7 +1490,7 @@ define fits_get_bitpix (image)
 {
    variable types = [Char_Type, UChar_Type, Int16_Type, UInt16_Type,
 		     Int32_Type, UInt32_Type, Float32_Type, Float64_Type];
-   variable bitpix = [8, 8, 16, 16, 32, 32, -32, -64];
+   variable bitpix = [10, 8, 16, 20, 32, 40, -32, -64];
 
    variable b;
 

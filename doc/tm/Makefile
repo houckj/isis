@@ -53,7 +53,7 @@ $(MODULE).html : $(MODULE).sgml
 #----- TeX Files ------------------------------------------------------------
 $(MODULE).tex : $(MODULE).sgml
 	$(SGML2LATEX) $(MODULE).sgml
-	jed -script ./fixtex.sl $(MODULE).tex
+	./fixtex.sl $(MODULE).tex
 #----- PDF Files -----------------------------------------------------------
 $(MODULE).pdf : $(MODULE).tex
 	$(MAKE) texclean

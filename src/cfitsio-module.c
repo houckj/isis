@@ -19,6 +19,16 @@ SLANG_MODULE(cfitsio);
 
 #include "version.h"
 
+#define SLANG_UINT16_TYPE SLANG_USHORT_TYPE
+#define SLANG_INT16_TYPE SLANG_SHORT_TYPE
+#if SIZEOF_INT == 32
+# define SLANG_INT32_TYPE	SLANG_INT_TYPE
+# define SLANG_INT32_TYPE	SLANG_UINT_TYPE
+#else
+# define SLANG_INT32_TYPE	SLANG_LONG_TYPE
+# define SLANG_UINT32_TYPE	SLANG_LONG_TYPE
+#endif
+
 typedef struct
 {
    fitsfile *fptr;
@@ -407,6 +417,18 @@ static int write_img (FitsFile_Type *ft, SLang_Array_Type *at)
 	type = TLONG;
 	break;
 	
+      case SLANG_UINT_TYPE:
+	type = TUINT;
+	break;
+	
+      case SLANG_USHORT_TYPE:
+	type = TUSHORT;
+	break;
+	
+      case SLANG_ULONG_TYPE:
+	type = TULONG;
+	break;
+
       default:
 	SLang_verror (SL_NOT_IMPLEMENTED,
 		      "fits_write_img: %s not supported",
@@ -446,14 +468,24 @@ static int read_img (FitsFile_Type *ft, SLang_Ref_Type *ref)
 	type = TBYTE;
 	break;
 	
-      case SHORT_IMG:
+      case SHORT_IMG:		       /* 16 bit image */
 	stype = SLANG_SHORT_TYPE;
-	type = TSHORT;
+	type = TSHORT;		       /* C short */
+	break;
+	
+      case USHORT_IMG:
+	stype = SLANG_SHORT_TYPE;
+	type = TUSHORT;
 	break;
 	
       case LONG_IMG:
 	stype = SLANG_LONG_TYPE;
 	type = TLONG;
+	break;
+
+      case ULONG_IMG:
+	stype = SLANG_ULONG_TYPE;
+	type = TULONG;
 	break;
 	
       case DOUBLE_IMG:
