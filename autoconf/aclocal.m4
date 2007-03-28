@@ -1,4 +1,6 @@
 dnl# -*- mode: sh; mode: fold -*-
+dnl# Version 0.1.10: rpath support for netbsd
+dnl# Version 0.1.9: When searching for libs, use dylib on darwin
 dnl# Version 0.1.8: Add rpath support for OpenBSD
 dnl# Version 0.1.7: removed "-K pic" from IRIX compiler lines
 dnl# Version 0.1.6: Added cygwin module support
@@ -118,6 +120,12 @@ case "$host_os" in
       RPATH="-Wl,-rpath,"
     else
       RPATH="-rpath "
+    fi
+  ;;
+  *netbsd*)
+    if test "X$GCC" = Xyes
+    then
+      RPATH="-Wl,-R"
     fi
   ;;
 esac
@@ -836,14 +844,31 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
   	  /opt/lib \
   	  /opt/lib/$1 \
   	  /opt/$1/lib"
-  
+
+       case "$host_os" in
+         *darwin* )
+	   exts="dylib so a"
+	   ;;
+	 * )
+	   exts="so a"
+       esac
+   
+       found=0
        for X in $lib_library_dirs
        do
-        if test -r "$X/lib$1.so" -o -r "$X/lib$1.a"
-  	then
-  	  jd_$1_library_dir="$X"
-	  break
-        fi
+         for E in $exts
+	 do
+           if test -r "$X/lib$1.$E"
+	   then
+  	     jd_$1_library_dir="$X"
+	     found=1
+	     break
+           fi
+         done
+	 if test $found -eq 1
+	 then
+	   break
+	 fi
        done
        if test X"$jd_$1_library_dir" = X
        then

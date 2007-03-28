@@ -5307,13 +5307,30 @@ echo "$as_me: error: --with-slanginc requres a value" >&2;}
   	  /opt/lib/slang \
   	  /opt/slang/lib"
 
+       case "$host_os" in
+         *darwin* )
+	   exts="dylib so a"
+	   ;;
+	 * )
+	   exts="so a"
+       esac
+
+       found=0
        for X in $lib_library_dirs
        do
-        if test -r "$X/libslang.so" -o -r "$X/libslang.a"
-  	then
-  	  jd_slang_library_dir="$X"
-	  break
-        fi
+         for E in $exts
+	 do
+           if test -r "$X/libslang.$E"
+	   then
+  	     jd_slang_library_dir="$X"
+	     found=1
+	     break
+           fi
+         done
+	 if test $found -eq 1
+	 then
+	   break
+	 fi
        done
        if test X"$jd_slang_library_dir" = X
        then
@@ -5362,6 +5379,12 @@ case "$host_os" in
       RPATH="-Wl,-rpath,"
     else
       RPATH="-rpath "
+    fi
+  ;;
+  *netbsd*)
+    if test "X$GCC" = Xyes
+    then
+      RPATH="-Wl,-R"
     fi
   ;;
 esac
@@ -5534,13 +5557,30 @@ echo "$as_me: error: --with-cfitsioinc requres a value" >&2;}
   	  /opt/lib/cfitsio \
   	  /opt/cfitsio/lib"
 
+       case "$host_os" in
+         *darwin* )
+	   exts="dylib so a"
+	   ;;
+	 * )
+	   exts="so a"
+       esac
+
+       found=0
        for X in $lib_library_dirs
        do
-        if test -r "$X/libcfitsio.so" -o -r "$X/libcfitsio.a"
-  	then
-  	  jd_cfitsio_library_dir="$X"
-	  break
-        fi
+         for E in $exts
+	 do
+           if test -r "$X/libcfitsio.$E"
+	   then
+  	     jd_cfitsio_library_dir="$X"
+	     found=1
+	     break
+           fi
+         done
+	 if test $found -eq 1
+	 then
+	   break
+	 fi
        done
        if test X"$jd_cfitsio_library_dir" = X
        then
@@ -5589,6 +5629,12 @@ case "$host_os" in
       RPATH="-Wl,-rpath,"
     else
       RPATH="-rpath "
+    fi
+  ;;
+  *netbsd*)
+    if test "X$GCC" = Xyes
+    then
+      RPATH="-Wl,-R"
     fi
   ;;
 esac
