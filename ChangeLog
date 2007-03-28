@@ -1,3 +1,10 @@
+2007-3-28  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitswcs.sl (simplify_wcs): work-around what appears to
+	  be a ds9 bug-- if a PC matrix is present, then the CDELT
+	  values must be equal.
+	(_fitswcs_version_string): 0.2.0-1
+
 2007-3-27  John E. Davis  <davis@space.mit.edu>
 
 	* src/fitswcs.sl (_fitswcs_version_string): bumped to 0.2.0-0

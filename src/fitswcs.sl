@@ -34,7 +34,7 @@
 
 require ("fits");
 variable _fitswcs_version = 0*10000 + 2*100 + 0;
-variable _fitswcs_version_string = "0.2.0-0";
+variable _fitswcs_version_string = "0.2.0-1";
 
 % FITS WCS may be attached to images or pixel-lists.  The images may be
 % found in a standard image HDU, or as a cell of a binary table.
@@ -818,13 +818,32 @@ private define simplify_wcs (wcs)
 	     _for (0, n-1, 1)
 	       {
 		  i = ();
+#iffalse
+		  % Unfortunately ds9 is unable to grok files that contain
+		  % a PC matrix and unequal CDELT values.  So, we will not
+		  % use this code.
 		  d = max(abs(pc[i,*]));
 		  if (d != 0.0)
 		    {
 		       pc[i,*] /= d;
 		       wcs.cdelt[i] *= d;
 		    }
+#else
+		  % part 1 of ds9 hack
+		  d = abs (wcs.cdelt[i]);
+		  if (d != 0.0)
+		    {
+		       pc[i,*] *= d;
+		       wcs.cdelt[i] /= d;
+		    }
+#endif
 	       }
+#iftrue
+	     % part 2 of ds9 hack
+	     d = max (abs(pc));
+	     wcs.cdelt *= d;
+	     pc /= d;
+#endif
 	     if (n == 2)
 	       {
 		  d = abs(det_2x2 (pc));
