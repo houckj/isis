@@ -2,6 +2,7 @@
 #include "config.h"
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include <slang.h>
 
 #include <errno.h>
@@ -123,6 +124,7 @@ static int open_file (SLang_Ref_Type *ref, char *filename, char *mode)
      return -1;
 
    status = 0;
+   fptr = NULL;
    switch (*mode)
      {
       case 'r':
@@ -142,14 +144,17 @@ static int open_file (SLang_Ref_Type *ref, char *filename, char *mode)
 	  }
 	(void) fits_create_file (&fptr, filename, &status);
 	break;
-	
+
       default:
 	SLang_verror (SL_INVALID_PARM, "fits_open_file: iomode \"%s\" is invalid", mode);
 	return -1;
      }
 
-   if (fptr == NULL)
+   if (status)
      return status;
+
+   if (fptr == NULL)
+     return -1;
 
    ft = (FitsFile_Type *) SLmalloc (sizeof (FitsFile_Type));
    if (ft == NULL)
@@ -1590,7 +1595,7 @@ static int read_column_values (fitsfile *f, int type, unsigned char datatype,
      {
 	dims[0] = num_rows;
 	dims[1] = repeat;
-	num_dims++;
+	num_dims = 2;
      }
 
    at = SLang_create_array (datatype, 0, NULL, dims, num_dims);
@@ -2365,6 +2370,30 @@ static void free_fits_file_type (SLtype type, VOID_STAR f)
    SLfree ((char *) ft);
 }
 
+static int check_version (void)
+{
+   float compiled_version = 0;
+   float linked_version = 0;
+   float tol = 0.0001;
+
+#ifdef CFITSIO_VERSION
+   compiled_version = CFITSIO_VERSION;
+   (void) fits_get_version (&linked_version);
+#endif
+   
+   if (fabs (linked_version - compiled_version) <= tol)
+     return 0;
+   
+   fprintf (stderr, "\n\
+***WARNING: The version of CFITSIO that this module is linked against (%g)\n\
+   is not the same as the version it was compiled against (%g).\n\
+   As the CFITSIO developers make no guarantees of binary compatibility,\n\
+   you may experience problems with this module.  You are stongly urged to\n\
+   recompile the module.\n\n\
+", linked_version, compiled_version);
+   
+   return -1;
+}
 
 int init_cfitsio_module_ns (char *ns_name)
 {
@@ -2377,6 +2406,9 @@ int init_cfitsio_module_ns (char *ns_name)
    if (Fits_Type_Id == 0)
      {	
 	SLang_Class_Type *cl;
+
+	(void) check_version ();
+
 	cl = SLclass_allocate_class ("Fits_File_Type");
 	if (cl == NULL) return -1;
 	(void) SLclass_set_destroy_function (cl, free_fits_file_type);

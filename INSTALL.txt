@@ -1,3 +1,5 @@
+See the README file before reading this.
+
 Basic Installation
 ==================
 

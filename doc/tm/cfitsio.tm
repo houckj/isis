@@ -658,10 +658,10 @@
 #v-
   These grids describe a simple linear transformation from image pixel
   coordinates to the (X,Y) coordinates of the binary table.  Since the
-  transformation is linear, the \exmp{fitswcs_rebin_wcs} function may be 
+  transformation is linear, the \exmp{fitswcs_bin_wcs} function may be 
   used to transform the WCS:
 #v+
-    wcs = fitswcs_rebin_wcs (wcs, ygrid, xgrid);
+    wcs = fitswcs_bin_wcs (wcs, ygrid, xgrid);
 #v-
   It is the transformed WCS that is to be written out:
 #v+
@@ -676,7 +676,7 @@
 #v+
     img = hist2d (y, x, ygrid, xgrid);
     wcs = fitswcs_get_column_wcs ("evt2.fits[EVENTS]", ["Y", "X"]);
-    wcs = fitswcs_rebin_wcs (wcs, ygrid, xgrid);
+    wcs = fitswcs_bin_wcs (wcs, ygrid, xgrid);
 #v-
 
  \sect1{Alternate WCS}

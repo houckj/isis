@@ -1,7 +1,3 @@
-***  NOTE: This module is a work-in-progress.  
-     This is a development snapshot.
-***
-     
 The code here provides a slang module for the CFITSIO library.  It
 also provides a higher-level interface to the module via the slang
 wrappers in src/fits.sl.
@@ -15,6 +11,22 @@ To build the code, you will need the following additional libraries:
    1.  The slang library (http://www.jedsoft.org/slang/)
    2.  The CFITSIO library
        (http://heasarc.gsfc.nasa.gov/docs/software/fitsio/fitsio.html)
+       
+  *** NOTE: You may already have the cfitsio library installed as part
+  of some other package, e.g., CIAO, LHEASOFT, HEADAS, etc.  Although
+  unrecommended, if you want to link against cfitsio in one of these
+  packages, be aware that the library may have been renamed to a
+  package specific name, e.g., libcxccfitsio.  As such, the configure
+  script may not be able to find the library.  If this happens, you
+  will have to edit the cfitsio specific variables in src/Makefile.
+
+  *** NOTE: The cfitsio developers have informed me that they make no
+  guarantees of binary compatibility between releases.  Hence, if you
+  upgrade your cfitsio library, then you should recompile the cfitsio
+  module and anything else that depends upon the upgraded library.
+  This is also true if you have linked against a package-specific
+  version of cfitsio (e.g., from HEADAS) and you have upgraded the
+  package. 
 
 You must run the configure script before you can compile the module.
 If either the slang or cfitsio libraries are installed in

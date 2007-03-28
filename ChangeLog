@@ -1,3 +1,37 @@
+2007-3-27  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitswcs.sl (_fitswcs_version_string): bumped to 0.2.0-0
+	(fitswcs_linear_transform_wcs): Modified the interface to make
+	  it more intuitive.
+	(fitswcs_bin_wcs): New function
+	(fitswcs_rebin_wcs): Changed the interface so that it works
+	  with images-- not event lists.
+
+2007-3-22  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitswcs.sl (fitswcs_new): typo that initialized cdelt to 0.
+	(_fitswcs_version_string): bumped to 0.1.1-1
+
+2007-3-8  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (make_tdim_string): Use array_reverse instead of
+	  reverse. 
+	(_fits_sl_version_string): bumped to 0.4.3-1
+
+2007-2-21  John E. Davis  <davis@space.mit.edu>
+
+	* src/cfitsio-module.c (open_file): fits_open_file does not
+	  set fptr to NULL upon return if an error occurs as assumed.
+
+	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.3.5
+
+	* src/cfitsio-module.c (check_version): Added a warning
+	  message if the compiled and linked cfitsio versions do not match.
+
+	* src/cfitsio-module.c (read_column_values): change to support
+	  repeat = 0 for variable length arrays left an uninitialized
+	  variable.
+
 2007-2-16  John E. Davis  <davis@space.mit.edu>
 
 	* src/cfitsio-module.c (write_img): added support for unsigned types.

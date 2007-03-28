@@ -1,12 +1,12 @@
-static variable MODULE_NAME = "cfitsio";
+private variable MODULE_NAME = "cfitsio";
 prepend_to_slang_load_path (".");
 set_import_module_path (".:" + get_import_module_path ());
 
 require ("fits");
 
-variable Failed = 0;
+private variable Failed = 0;
 
-static define warn ()
+private define warn ()
 {
    variable args = __pop_args (_NARGS);
    () = fprintf (stderr, "**** Warning: %s\n",
@@ -14,7 +14,7 @@ static define warn ()
    Failed++;
 }
 
-static define check_key_read_write (fptr, key, val)
+private define check_key_read_write (fptr, key, val)
 {
    variable val1;
 
@@ -92,7 +92,7 @@ define test_img (filename)
 }
 
 
-static define test_bt (filename)
+private define test_bt (filename)
 {
    variable uint16s = UInt16_Type[65]; uint16s[*] = [1:65];
    variable uint32s = UInt32_Type[65]; uint32s[*] = [1:65];

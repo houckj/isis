@@ -1,6 +1,6 @@
   S-Lang CFITSIO Module Reference
   John E. Davis, davis@space.mit.edu
-  Feb 14, 2007
+  Mar 27, 2007
   ____________________________________________________________
 
   Table of Contents
@@ -74,7 +74,8 @@
      8.8 fitswcs_put_column_wcs
      8.9 fitswcs_linear_transform_wcs
      8.10 fitswcs_rebin_wcs
-     8.10 The low-level interface
+     8.11 fitswcs_bin_wcs
+     8.11 The low-level interface
 
   9. Overview
   10. Low-level Function Reference
@@ -830,12 +831,12 @@
 
   These grids describe a simple linear transformation from image pixel
   coordinates to the (X,Y) coordinates of the binary table.  Since the
-  transformation is linear, the fitswcs_rebin_wcs function may be used
-  to transform the WCS:
+  transformation is linear, the fitswcs_bin_wcs function may be used to
+  transform the WCS:
 
 
 
-      wcs = fitswcs_rebin_wcs (wcs, ygrid, xgrid);
+      wcs = fitswcs_bin_wcs (wcs, ygrid, xgrid);
 
 
 
@@ -855,7 +856,7 @@
 
            img = hist2d (y, x, ygrid, xgrid);
            wcs = fitswcs_get_column_wcs ("evt2.fits[EVENTS]", ["Y", "X"]);
-           wcs = fitswcs_rebin_wcs (wcs, ygrid, xgrid);
+           wcs = fitswcs_bin_wcs (wcs, ygrid, xgrid);
 
 
 
@@ -2133,23 +2134,38 @@
         Apply a linear transformation to a WCS
 
       [1mUsage[0m
-        wcs1 = fitswcs_linear_transform_wcs (wcs, X0, CD, I0)
+        wcs1 = fitswcs_linear_transform_wcs (wcs, U0, A, X0)
 
 
                wcs: The specified WCS to transform
-             X0,I0: 1-d arrays
-                CD: 2-d array
+             U0,X0: 1-d arrays
+                 A: 2-d array (or 1-d array representing a diagonal matrix)
 
       [1mDescription[0m
         This function may be used to create a new WCS by applying a
-        linear transformation to an existing one.
+        linear transformation to an existing one.  This is useful when
+        one has a WCS associated with physical coordinates X, and then
+        applies the linear transformation
+
+
+               U = U0 + A#(X-X0)
+
+
+
+     to the coordinates X.  Then corresponding WCS for the resulting
+     image is given by
+
+
+               new_wcs = fitswcs_linear_transform_wcs (wcs, U0, A, X0);
+
+
 
       [1mNotes[0m
         The dimensionality of the WCS is limited to 2 in the current
         implementation.
 
       [1mSee Also[0m
-        ``fitswcs_rebin_wcs''
+        ``fitswcs_rebin_wcs'', ``fitswcs_bin_wcs''
 
 
   [1m2.8.10.  fitswcs_rebin_wcs[0m
@@ -2159,15 +2175,43 @@
         This function may be used to obtain the wcs for a rebinned image
 
       [1mUsage[0m
-        wcs1 = fitswcs_rebin_wcs (wcs, grid0, grid1, ...)
+        wcs1 = fitswcs_rebin_wcs (wcs, old_dims, new_dims...)
 
       [1mDescription[0m
         This function may be used to construct the WCS for a rebinned
         image from the WCS of of the unbinned image.  The grid
         parameters specify the linear grids the new image.
 
+      [1mExample[0m
+        new_img = hist2d_rebin (new_yrid, new_xgrid, old_ygrid,
+        old_xgrid, old_img); new_wcs = fitswcs_rebin_wcs (old_wcs,
+        array_shape(old_img), array_shape(new_img));
+
       [1mSee Also[0m
-        ``fitswcs_linear_transform_wcs'', ``fitswcs_slice''
+        ``fitswcs_bin_wcs'', ``fitswcs_linear_transform_wcs'',
+        ``fitswcs_slice''
+
+
+  [1m2.8.11.  fitswcs_bin_wcs[0m
+
+
+      [1mSynopsis[0m
+        This function may be used to obtain the wcs for a rebinned image
+
+      [1mUsage[0m
+        wcs1 = fitswcs_rebin_wcs (wcs, grid0, grid1, ...)
+
+      [1mDescription[0m
+        This function may be used to construct the WCS for an image
+        created by binning a set of coordinates from, e.g., a pixel-
+        list.  The wcs parameter represents the wcs attached to the
+        unbinnned coordinates.  The grid parameters specify the linear
+        grids that were used to create the image.
+
+
+      [1mSee Also[0m
+        ``fitswcs_rebin_wcs'', ``fitswcs_linear_transform_wcs'',
+        ``fitswcs_slice''
 
 
 
@@ -3413,59 +3457,60 @@
   2.8.8. fitswcs_put_column_wcs  . . . . . . . . . . . . . . . . . .  36
   2.8.9. fitswcs_linear_transform_wcs  . . . . . . . . . . . . . . .  36
   2.8.10. fitswcs_rebin_wcs  . . . . . . . . . . . . . . . . . . . .  37
-  3. The low-level interface . . . . . . . . . . . . . . . . . . . .  38
-  3.1. Overview  . . . . . . . . . . . . . . . . . . . . . . . . . .  38
-  3.2. Low-level Function Reference  . . . . . . . . . . . . . . . .  38
-  3.2.1. _fits_get_errstatus . . . . . . . . . . . . . . . . . . . .  39
-  3.2.2. _fits_open_file . . . . . . . . . . . . . . . . . . . . . .  39
-  3.2.3. _fits_delete_file . . . . . . . . . . . . . . . . . . . . .  39
-  3.2.4. _fits_close_file  . . . . . . . . . . . . . . . . . . . . .  40
-  3.2.5. _fits_movabs_hdu  . . . . . . . . . . . . . . . . . . . . .  40
-  3.2.6. _fits_movrel_hdu  . . . . . . . . . . . . . . . . . . . . .  40
-  3.2.7. _fits_movnam_hdu  . . . . . . . . . . . . . . . . . . . . .  40
-  3.2.8. _fits_get_num_hdus  . . . . . . . . . . . . . . . . . . . .  41
-  3.2.9. _fits_get_hdu_num . . . . . . . . . . . . . . . . . . . . .  41
-  3.2.10. _fits_get_hdu_type . . . . . . . . . . . . . . . . . . . .  41
-  3.2.11. _fits_copy_file  . . . . . . . . . . . . . . . . . . . . .  42
-  3.2.12. _fits_copy_hdu . . . . . . . . . . . . . . . . . . . . . .  42
-  3.2.13. _fits_copy_header  . . . . . . . . . . . . . . . . . . . .  42
-  3.2.14. _fits_delete_hdu . . . . . . . . . . . . . . . . . . . . .  43
-  3.2.15. _fits_create_img . . . . . . . . . . . . . . . . . . . . .  43
-  3.2.16. _fits_write_img  . . . . . . . . . . . . . . . . . . . . .  43
-  3.2.17. _fits_read_img . . . . . . . . . . . . . . . . . . . . . .  44
-  3.2.18. _fits_create_binary_tbl  . . . . . . . . . . . . . . . . .  44
-  3.2.19. _fits_update_key . . . . . . . . . . . . . . . . . . . . .  45
-  3.2.20. _fits_update_logical . . . . . . . . . . . . . . . . . . .  45
-  3.2.21. _fits_write_comment  . . . . . . . . . . . . . . . . . . .  46
-  3.2.22. _fits_write_history  . . . . . . . . . . . . . . . . . . .  46
-  3.2.23. _fits_write_date . . . . . . . . . . . . . . . . . . . . .  46
-  3.2.24. _fits_write_record . . . . . . . . . . . . . . . . . . . .  46
-  3.2.25. _fits_modify_name  . . . . . . . . . . . . . . . . . . . .  47
-  3.2.26. _fits_get_num_keys . . . . . . . . . . . . . . . . . . . .  47
-  3.2.27. _fits_read_key_integer . . . . . . . . . . . . . . . . . .  47
-  3.2.28. _fits_read_key_string  . . . . . . . . . . . . . . . . . .  48
-  3.2.29. _fits_read_key_double  . . . . . . . . . . . . . . . . . .  48
-  3.2.30. _fits_read_key . . . . . . . . . . . . . . . . . . . . . .  49
-  3.2.31. _fits_read_record  . . . . . . . . . . . . . . . . . . . .  49
-  3.2.32. _fits_delete_key . . . . . . . . . . . . . . . . . . . . .  49
-  3.2.33. _fits_get_colnum . . . . . . . . . . . . . . . . . . . . .  50
-  3.2.34. _fits_insert_rows  . . . . . . . . . . . . . . . . . . . .  50
-  3.2.35. _fits_delete_rows  . . . . . . . . . . . . . . . . . . . .  51
-  3.2.36. _fits_insert_cols  . . . . . . . . . . . . . . . . . . . .  51
-  3.2.37. _fits_delete_col . . . . . . . . . . . . . . . . . . . . .  51
-  3.2.38. _fits_get_num_cols . . . . . . . . . . . . . . . . . . . .  52
-  3.2.39. _fits_get_rowsize  . . . . . . . . . . . . . . . . . . . .  52
-  3.2.40. _fits_get_num_rows . . . . . . . . . . . . . . . . . . . .  52
-  3.2.41. _fits_write_col  . . . . . . . . . . . . . . . . . . . . .  52
-  3.2.42. _fits_read_col . . . . . . . . . . . . . . . . . . . . . .  53
-  3.2.43. _fits_get_keytype  . . . . . . . . . . . . . . . . . . . .  53
-  3.2.44. _fits_get_keyclass . . . . . . . . . . . . . . . . . . . .  54
-  3.2.45. _fits_read_cols  . . . . . . . . . . . . . . . . . . . . .  54
-  3.2.46. _fits_write_chksum . . . . . . . . . . . . . . . . . . . .  55
-  3.2.47. _fits_update_chksum  . . . . . . . . . . . . . . . . . . .  55
-  3.2.48. _fits_verify_chksum  . . . . . . . . . . . . . . . . . . .  55
-  3.2.49. _fits_get_chksum . . . . . . . . . . . . . . . . . . . . .  55
-  3.2.50. _fits_get_version  . . . . . . . . . . . . . . . . . . . .  56
+  2.8.11. fitswcs_bin_wcs  . . . . . . . . . . . . . . . . . . . . .  37
+  3. The low-level interface . . . . . . . . . . . . . . . . . . . .  39
+  3.1. Overview  . . . . . . . . . . . . . . . . . . . . . . . . . .  39
+  3.2. Low-level Function Reference  . . . . . . . . . . . . . . . .  39
+  3.2.1. _fits_get_errstatus . . . . . . . . . . . . . . . . . . . .  40
+  3.2.2. _fits_open_file . . . . . . . . . . . . . . . . . . . . . .  40
+  3.2.3. _fits_delete_file . . . . . . . . . . . . . . . . . . . . .  40
+  3.2.4. _fits_close_file  . . . . . . . . . . . . . . . . . . . . .  41
+  3.2.5. _fits_movabs_hdu  . . . . . . . . . . . . . . . . . . . . .  41
+  3.2.6. _fits_movrel_hdu  . . . . . . . . . . . . . . . . . . . . .  41
+  3.2.7. _fits_movnam_hdu  . . . . . . . . . . . . . . . . . . . . .  41
+  3.2.8. _fits_get_num_hdus  . . . . . . . . . . . . . . . . . . . .  42
+  3.2.9. _fits_get_hdu_num . . . . . . . . . . . . . . . . . . . . .  42
+  3.2.10. _fits_get_hdu_type . . . . . . . . . . . . . . . . . . . .  42
+  3.2.11. _fits_copy_file  . . . . . . . . . . . . . . . . . . . . .  43
+  3.2.12. _fits_copy_hdu . . . . . . . . . . . . . . . . . . . . . .  43
+  3.2.13. _fits_copy_header  . . . . . . . . . . . . . . . . . . . .  43
+  3.2.14. _fits_delete_hdu . . . . . . . . . . . . . . . . . . . . .  44
+  3.2.15. _fits_create_img . . . . . . . . . . . . . . . . . . . . .  44
+  3.2.16. _fits_write_img  . . . . . . . . . . . . . . . . . . . . .  44
+  3.2.17. _fits_read_img . . . . . . . . . . . . . . . . . . . . . .  45
+  3.2.18. _fits_create_binary_tbl  . . . . . . . . . . . . . . . . .  45
+  3.2.19. _fits_update_key . . . . . . . . . . . . . . . . . . . . .  46
+  3.2.20. _fits_update_logical . . . . . . . . . . . . . . . . . . .  46
+  3.2.21. _fits_write_comment  . . . . . . . . . . . . . . . . . . .  47
+  3.2.22. _fits_write_history  . . . . . . . . . . . . . . . . . . .  47
+  3.2.23. _fits_write_date . . . . . . . . . . . . . . . . . . . . .  47
+  3.2.24. _fits_write_record . . . . . . . . . . . . . . . . . . . .  47
+  3.2.25. _fits_modify_name  . . . . . . . . . . . . . . . . . . . .  48
+  3.2.26. _fits_get_num_keys . . . . . . . . . . . . . . . . . . . .  48
+  3.2.27. _fits_read_key_integer . . . . . . . . . . . . . . . . . .  48
+  3.2.28. _fits_read_key_string  . . . . . . . . . . . . . . . . . .  49
+  3.2.29. _fits_read_key_double  . . . . . . . . . . . . . . . . . .  49
+  3.2.30. _fits_read_key . . . . . . . . . . . . . . . . . . . . . .  50
+  3.2.31. _fits_read_record  . . . . . . . . . . . . . . . . . . . .  50
+  3.2.32. _fits_delete_key . . . . . . . . . . . . . . . . . . . . .  50
+  3.2.33. _fits_get_colnum . . . . . . . . . . . . . . . . . . . . .  51
+  3.2.34. _fits_insert_rows  . . . . . . . . . . . . . . . . . . . .  51
+  3.2.35. _fits_delete_rows  . . . . . . . . . . . . . . . . . . . .  52
+  3.2.36. _fits_insert_cols  . . . . . . . . . . . . . . . . . . . .  52
+  3.2.37. _fits_delete_col . . . . . . . . . . . . . . . . . . . . .  52
+  3.2.38. _fits_get_num_cols . . . . . . . . . . . . . . . . . . . .  53
+  3.2.39. _fits_get_rowsize  . . . . . . . . . . . . . . . . . . . .  53
+  3.2.40. _fits_get_num_rows . . . . . . . . . . . . . . . . . . . .  53
+  3.2.41. _fits_write_col  . . . . . . . . . . . . . . . . . . . . .  53
+  3.2.42. _fits_read_col . . . . . . . . . . . . . . . . . . . . . .  54
+  3.2.43. _fits_get_keytype  . . . . . . . . . . . . . . . . . . . .  54
+  3.2.44. _fits_get_keyclass . . . . . . . . . . . . . . . . . . . .  55
+  3.2.45. _fits_read_cols  . . . . . . . . . . . . . . . . . . . . .  55
+  3.2.46. _fits_write_chksum . . . . . . . . . . . . . . . . . . . .  56
+  3.2.47. _fits_update_chksum  . . . . . . . . . . . . . . . . . . .  56
+  3.2.48. _fits_verify_chksum  . . . . . . . . . . . . . . . . . . .  56
+  3.2.49. _fits_get_chksum . . . . . . . . . . . . . . . . . . . . .  56
+  3.2.50. _fits_get_version  . . . . . . . . . . . . . . . . . . . .  57
 
 
 

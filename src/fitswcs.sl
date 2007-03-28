@@ -1,4 +1,4 @@
-%    Copyright (C) 2004-2005 Massachusetts Institute of Technology
+%    Copyright (C) 2004-2007 Massachusetts Institute of Technology
 %
 %    Author:  John E. Davis <davis@space.mit.edu>
 %
@@ -33,8 +33,8 @@
 %   the WCS by extracting that subspace via the fitswcs_slice routine.
 
 require ("fits");
-variable _fitswcs_version = 100;
-variable _fitswcs_version_string = "0.1.1-0";
+variable _fitswcs_version = 0*10000 + 2*100 + 0;
+variable _fitswcs_version_string = "0.2.0-0";
 
 % FITS WCS may be attached to images or pixel-lists.  The images may be
 % found in a standard image HDU, or as a cell of a binary table.
@@ -116,7 +116,7 @@ define fitswcs_new (naxis)
    wcs.cunit = String_Type[naxis];
    wcs.crval = Double_Type[naxis];  wcs.crval[*] = 0.0;
    wcs.crpix = Double_Type[naxis];  wcs.crpix[*] = 0.0;
-   wcs.cdelt = Double_Type[naxis];  wcs.crpix[*] = 1.0;
+   wcs.cdelt = Double_Type[naxis];  wcs.cdelt[*] = 1.0;
    wcs.pc = NULL;
    wcs.pv = NULL;
    wcs.ps = NULL;
@@ -177,18 +177,22 @@ private define make_diag_matrix (n, diag)
    return d;
 }
 
+private define det_2x2 (a)
+{
+   return a[0,0]*a[1,1] - a[0,1]*a[1,0];
+}
+
 private define inverse_2x2 (a)
 {
-   variable a_00 = a[0,0], a_01 = a[0,1], a_10 = a[1,0], a_11 = a[1,1];
-   variable det = (a_00*a_11 - a_01*a_10);
+   variable det = det_2x2 (a);
    if (det == 0.0)
      verror ("FITS wcs matrix has no inverse");
-   a = Double_Type[2,2];
-   a[0,0] = a_11;
-   a[0,1] = -a_01;
-   a[1,0] = -a_10;
-   a[1,1] = a_00;
-   return a/det;
+   variable a1 = Double_Type[2,2];
+   a1[0,0] = a[1,1];
+   a1[0,1] = -a[0,1];
+   a1[1,0] = -a[1,0];
+   a1[1,1] = a[0,0];
+   return a1/det;
 }
 
 private define dup_wcs (wcs)
@@ -802,108 +806,138 @@ private define simplify_wcs (wcs)
      {
 	% If pc is diagonal, then factor diagonal elements into the cdelts
 	variable d = @pc;
-	variable i = [0:n*n-1:n+1]*1;  %  *1 to force it from being a range
+	variable i = [0:n*n-1:n+1]*1;  %  *1 to force it from being a range.  Huh??
 	d[i] = 0.0;
 	if (0 == length (where (d != 0)))
 	  {
 	     wcs.cdelt *= pc[i];
 	     wcs.pc = NULL;
 	  }
-#iffalse
-	else
+	else 
 	  {
-	     print (d);
-	     print (pc);
+	     _for (0, n-1, 1)
+	       {
+		  i = ();
+		  d = max(abs(pc[i,*]));
+		  if (d != 0.0)
+		    {
+		       pc[i,*] /= d;
+		       wcs.cdelt[i] *= d;
+		    }
+	       }
+	     if (n == 2)
+	       {
+		  d = abs(det_2x2 (pc));
+		  if (d != 0.0)
+		    {
+		       pc /= d;
+		       wcs.cdelt *= d;
+		    }
+	       }
+	     wcs.pc = pc;
 	  }
-#endif
      }
+
    return wcs;
 }
-
 
 %!%+
 %\function{fitswcs_linear_transform_wcs}
 %\synopsis{Apply a linear transformation to a WCS}
-%\usage{wcs1 = fitswcs_linear_transform_wcs (wcs, X0, CD, I0)}
+%\usage{wcs1 = fitswcs_linear_transform_wcs (wcs, U0, A, X0)}
 %#v+
 %     wcs: The specified WCS to transform
-%   X0,I0: 1-d arrays
-%      CD: 2-d array
+%   U0,X0: 1-d arrays
+%       A: 2-d array (or 1-d array representing a diagonal matrix)
 %#v-
 %\description
 %  This function may be used to create a new WCS by applying a linear 
-%  transformation to an existing one.
+%  transformation to an existing one.  This is useful when one
+%  has a WCS associated with physical coordinates \exmp{X}, and then
+%  applies the linear transformation
+%#v+
+%     U = U0 + A#(X-X0)
+%#v-
+%  to the coordinates X.  Then corresponding WCS for the resulting image is
+%  given by
+%#v+
+%     new_wcs = fitswcs_linear_transform_wcs (wcs, U0, A, X0);
+%#v-
 %\notes
 %  The dimensionality of the WCS is limited to 2 in the 
 %  current implementation.
-%\seealso{fitswcs_rebin_wcs}
+%\seealso{fitswcs_rebin_wcs, fitswcs_bin_wcs}
 %!%-
 
-% The FITS linear transformation may be written:
-% 
-%     W_i = W0_i + \sum_j D_i PC_ij (X_j - X0_j)
-%     
-%  written as:  LX = W = W0 + CD#(X-X0)
-%  
-% Consider now another linear transformation:
-% 
-%    X = L'I = X0' + CD' # (I-I0)
+% The algorithm:
 %
-% Then LX = LL'I
+% The existing WCS maps X to the world coordinate W via
+%   W = CRVAL + CD#(X-CRPIX)
+% Now, a linear transformation is applied to X:
+%   U = U0 + A#(X-X0)
+% Then
+%   X = X0 + invA#(U-U0)
+% So:
+%   W = CRVAL + CD#(X0 + invA#(U-U0) - CRPIX)
+%     = CRVAL + CD#invA#(U-CRPIX')
+%     = CRVAL + CD'#(U-CRPIX')
+% where
+%   CRPIX' = U0+A#(CRPIX-X0)
+%   CD' = CD#invA
 %
-%      (LL')I = W0 + CD#(X0' + CD'#(I-I0) - X0)
-%             = W0 + (CD#CD')#[I-I0 - invCD'#(X0-X0')]
-%             = W0 + (CD#CD')#[I-I0']
-%
-% where I0' = I0 + invCD'#(X0-X0')
-%
+% Note: CD_ij = CDELT_i PC_ij  (no sum on i)
+% or CD = CDELT#PC
+% ==> CD' = CDELT#PC#invA = CDELT#PC'
+% In other words, CDELT is unaffected by this transformation.
 define fitswcs_linear_transform_wcs ()
 {
    if (_NARGS != 4)
-     usage ("new_wcs = %s(old_wcs, X0, CD, I0);\n%s\n%s",
+     usage ("new_wcs = %s(old_wcs, U0, A, X0);\n%s\n%s",
 	    _function_name,
-	    "where X = X0 + CD#(I-I0) is the relationship between the new system I",
-	    "and the old system X");
+	    "where U = U0 + A#(X-X0) is the relationship between the new coordinates U",
+	    "and the old coordintes X");
    
-   variable wcs, x0, cd, i0;
-   (wcs, x0, cd, i0) = ();
+   variable wcs, u0, a, x0;
+   (wcs, u0, a, x0) = ();
 
    variable wcs_naxis = wcs.naxis;
    if (wcs_naxis != 2)
      verror ("%s: Currently this routine supports only 2d wcs systems", _function_name);
 
    variable dims, num_dims;
-   (dims, num_dims, ) = array_info (cd);
+   (dims, num_dims, ) = array_info (a);
    variable naxis;
    
    if (num_dims == 1)
      {
 	naxis = dims[0];
 	variable tmp = Double_Type[naxis, naxis];
-	tmp[[0:naxis*naxis-1:naxis+1]] = cd;
-	cd = tmp;
+	tmp[[0:naxis*naxis-1:naxis+1]] = a;
+	a = tmp;
      }
    else if (num_dims == 2)
      {
 	naxis = dims[0];
 	if (naxis != dims[1])
-	  verror ("%s: CD matrix must be square", _function_name);
+	  verror ("%s: The A matrix must be square", _function_name);
      }
-   else verror ("%s: CD matrix must be square", _function_name);
+   else verror ("%s: The A matrix must be square", _function_name);
 
    if (wcs_naxis != naxis)
-     verror ("%s: wcs requires CD to be [%d,%d]", _function_name, wcs_naxis, wcs_naxis);
-	
+     verror ("%s: The wcs requires A to be [%d,%d]", _function_name, wcs_naxis, wcs_naxis);
+
    wcs = dup_wcs (wcs);
    
-   % Compute this: I0' = I0 + invCD'#(X0-X0')
-   wcs.crpix = i0 + inverse_2x2(cd)#(wcs.crpix-x0);
-
+   % Compute this: CRPIX' = U0 + A#(CRPIX-X0)
+   wcs.crpix = u0 + a#(wcs.crpix-x0);
+   variable inv_a = inverse_2x2(a);
    variable pc = wcs.pc;
    if (pc != NULL)
-     pc = pc#cd;
+     {
+	pc = pc#inv_a;
+     }
    else
-     pc = cd;
+     pc = inv_a;
    
    wcs.pc = pc;
    return simplify_wcs (wcs);
@@ -913,12 +947,18 @@ define fitswcs_linear_transform_wcs ()
 %!%+
 %\function{fitswcs_rebin_wcs}
 %\synopsis{This function may be used to obtain the wcs for a rebinned image}
-%\usage{wcs1 = fitswcs_rebin_wcs (wcs, grid0, grid1, ...)}
+%\usage{wcs1 = fitswcs_rebin_wcs (wcs, old_dims, new_dims...)}
 %\description
 %  This function may be used to construct the WCS for a rebinned image from
 %  the WCS of of the unbinned image.  The grid parameters specify the linear
 %  grids the new image.
-%\seealso{fitswcs_linear_transform_wcs, fitswcs_slice}
+%\example
+%  new_img = hist2d_rebin (new_yrid, new_xgrid, 
+%                          old_ygrid, old_xgrid, old_img);
+%  new_wcs = fitswcs_rebin_wcs (old_wcs, 
+%                               array_shape(old_img),
+%                               array_shape(new_img));
+%\seealso{fitswcs_bin_wcs, fitswcs_linear_transform_wcs, fitswcs_slice}
 %!%-
 define fitswcs_rebin_wcs ()
 {
@@ -939,6 +979,75 @@ define fitswcs_rebin_wcs ()
      }
    variable wcs = ();
    return fitswcs_linear_transform_wcs (wcs, X0, dX, I0);
+}
+
+%!%+
+%\function{fitswcs_bin_wcs}
+%\synopsis{This function may be used to obtain the wcs for a rebinned image}
+%\usage{wcs1 = fitswcs_rebin_wcs (wcs, grid0, grid1, ...)}
+%\description
+%
+% This function may be used to construct the WCS for an image created
+% by binning a set of coordinates from, e.g., a pixel-list.  The
+% \exmp{wcs} parameter represents the wcs attached to the unbinnned
+% coordinates.  The grid parameters specify the linear grids that were
+% used to create the image.
+%
+%\seealso{fitswcs_rebin_wcs, fitswcs_linear_transform_wcs, fitswcs_slice}
+%!%-
+%
+% Denote the grid used for binning by
+%   X = [X0,X0+dX,...,X0+(N)dX] = X0+[0,1,..,N]*dX
+% The associated image system will be 
+%   I = [0.5,1.5,,...0.5+(N)] = 0.5+[0,1,..N]
+% This defines a linear transformation from X to I:
+%
+%    I = 0.5+(1/dX)*(X-X0)
+define fitswcs_bin_wcs ()
+{
+   if (_NARGS < 2)
+     usage ("wcs = %s (wcs, grid_dim0, grid_dim1,...)", _function_name());
+
+   variable naxis = _NARGS-1;
+   variable X0 = Double_Type[naxis];
+   variable dX = Double_Type[naxis];
+   variable I0 = 0.5 + Double_Type[naxis];
+   variable i = naxis;
+   loop (naxis)
+     {
+	i--;
+	variable grid = ();
+	X0[i] = grid[0];
+	dX[i] = grid[1]-grid[0];
+     }
+   variable wcs = ();
+   return fitswcs_linear_transform_wcs (wcs, I0, 1.0/dX, X0);
+}
+
+% Suppose an image I[M0,M1,...] is rebinnned to J[N0,N1,...]
+% This is a mapping I to J:
+%   0.5 <= I <= M+0.5
+%   0.5 <= J <= N+0.5
+% or
+%    (J-0.5)/(I-0.5) = N/M
+%    J = 0.5 + N/M(I-0.5)
+%
+define fitswcs_rebin_wcs ()
+{
+   if (_NARGS != 3)
+     usage ("wcs = %s (wcs, old_dims, new_dims)", _function_name());
+
+   variable wcs, old_dims, new_dims;
+   (wcs, old_dims, new_dims) = ();
+   
+   variable n = length (old_dims);
+   if (n != length(new_dims))
+     verror ("The old_dims and new_dims must have an equal number of dimensions");
+
+   variable u0 = 0.5 + Double_Type[n];
+   variable x0 = @u0;
+   variable a = double (new_dims)/old_dims;
+   return fitswcs_linear_transform_wcs (wcs, u0, a, x0);
 }
 
 define fitswcs_translate_wcs ()

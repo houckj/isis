@@ -2013,23 +2013,33 @@ fitswcs_linear_transform_wcs
   Apply a linear transformation to a WCS
 
  USAGE
-  wcs1 = fitswcs_linear_transform_wcs (wcs, X0, CD, I0)
+  wcs1 = fitswcs_linear_transform_wcs (wcs, U0, A, X0)
 
      wcs: The specified WCS to transform
-   X0,I0: 1-d arrays
-      CD: 2-d array
+   U0,X0: 1-d arrays
+       A: 2-d array (or 1-d array representing a diagonal matrix)
 
 
  DESCRIPTION
   This function may be used to create a new WCS by applying a linear
-  transformation to an existing one.
+  transformation to an existing one.  This is useful when one
+  has a WCS associated with physical coordinates `X', and then
+  applies the linear transformation
+
+     U = U0 + A#(X-X0)
+
+  to the coordinates X.  Then corresponding WCS for the resulting image is
+  given by
+
+     new_wcs = fitswcs_linear_transform_wcs (wcs, U0, A, X0);
+
 
  NOTES
   The dimensionality of the WCS is limited to 2 in the
   current implementation.
 
  SEE ALSO
-  fitswcs_rebin_wcs
+  fitswcs_rebin_wcs, fitswcs_bin_wcs
 
 --------------------------------------------------------------
 
@@ -2039,14 +2049,42 @@ fitswcs_rebin_wcs
   This function may be used to obtain the wcs for a rebinned image
 
  USAGE
-  wcs1 = fitswcs_rebin_wcs (wcs, grid0, grid1, ...)
+  wcs1 = fitswcs_rebin_wcs (wcs, old_dims, new_dims...)
 
  DESCRIPTION
   This function may be used to construct the WCS for a rebinned image from
   the WCS of of the unbinned image.  The grid parameters specify the linear
   grids the new image.
 
+ EXAMPLE
+  new_img = hist2d_rebin (new_yrid, new_xgrid,
+                          old_ygrid, old_xgrid, old_img);
+  new_wcs = fitswcs_rebin_wcs (old_wcs,
+                               array_shape(old_img),
+                               array_shape(new_img));
+
  SEE ALSO
-  fitswcs_linear_transform_wcs, fitswcs_slice
+  fitswcs_bin_wcs, fitswcs_linear_transform_wcs, fitswcs_slice
+
+--------------------------------------------------------------
+
+fitswcs_bin_wcs
+
+ SYNOPSIS
+  This function may be used to obtain the wcs for a rebinned image
+
+ USAGE
+  wcs1 = fitswcs_rebin_wcs (wcs, grid0, grid1, ...)
+
+ DESCRIPTION
+
+ This function may be used to construct the WCS for an image created
+ by binning a set of coordinates from, e.g., a pixel-list.  The
+ `wcs' parameter represents the wcs attached to the unbinnned
+ coordinates.  The grid parameters specify the linear grids that were
+ used to create the image.
+
+ SEE ALSO
+  fitswcs_rebin_wcs, fitswcs_linear_transform_wcs, fitswcs_slice
 
 --------------------------------------------------------------

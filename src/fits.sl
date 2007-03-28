@@ -22,9 +22,26 @@
 import ("cfitsio");
 
 variable _fits_sl_version = 403;
-variable _fits_sl_version_string = "0.4.3-0";
+variable _fits_sl_version_string = "0.4.3-1";
 
 % Forward declarations
+
+define reverse (a)
+{
+#ifexists array_reverse
+   a = @a;
+   array_reverse (a);
+   return a;
+#else
+   variable i = length (a);
+   if (i <= 1)
+     return a;
+   
+   i--;
+   __tmp(a)[[i:0:-1]];
+#endif
+}
+   
 private define do_fits_error ()
 {
    variable status, file = "";
