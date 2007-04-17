@@ -84,14 +84,19 @@ static int map_fitsio_type_to_slang (int type, long *repeat, SLtype *stype)
       case TBIT:
 	switch ((int)*repeat)
 	  {
+	     /* Make sure these all map to SIGNED types -- not unsigned.  This
+	      * way they will be written out as SIGNED types and avoid the
+	      * bit corruption that takes place when cfitsio adds, e.g., 0x7FFFFFFF
+	      * to push the value into the unsigned range.
+	      */
 	   case 32:
-	     *stype = SLANG_UINT_TYPE;
+	     *stype = SLANG_INT_TYPE;
 	     break;
 	   case 16:
 	     *stype = SLANG_SHORT_TYPE;
 	     break;
 	   case 8:
-	     *stype = SLANG_UCHAR_TYPE;
+	     *stype = SLANG_CHAR_TYPE;
 	     break;
 	   default:
 	     SLang_verror (SL_NOT_IMPLEMENTED, "bit type %ldX is not supported", *repeat);
@@ -1724,7 +1729,17 @@ static int read_col (FitsFile_Type *ft, int *colnum, int *firstrowp,
    
    
    if (datatype == SLANG_STRING_TYPE)
-     status = read_string_column (ft->fptr, (type < 0), repeat, col, firstrow, num_rows, &at);
+     {
+	/* This assumes an ASCII_TBL, which will always have a 
+	 * repeat of 1, and the number of bytes is given by the
+	 * width field.  In contrast, a BINARY_TBL will have
+	 * repeat = number of bytes, and width represents the 
+	 * number of bytes in a substring.
+	 */
+	if ((repeat == 1) && (width != 1))
+	  repeat = width;
+	status = read_string_column (ft->fptr, (type < 0), repeat, col, firstrow, num_rows, &at);
+     }
    else if (type < 0)
      status = read_var_column (ft->fptr, -type, datatype, col, firstrow, num_rows, &at);
    else
@@ -1953,6 +1968,15 @@ static int read_cols (void)
 
 	     if (datatype == SLANG_STRING_TYPE)
 	       {
+		  /* This assumes an ASCII_TBL, which will always have a 
+		   * repeat of 1, and the number of bytes is given by the
+		   * width field.  In contrast, a BINARY_TBL will have
+		   * repeat = number of bytes, and width represents the 
+		   * number of bytes in a substring.
+		   */
+		  if ((repeat == 1) && (ci[i].width != 1))
+		    repeat = ci[i].width;
+
 		  status = read_string_column_data (f, (type < 0), repeat, col, firstrow, delta_rows, 
 						    (char **)at->data + data_offset);
 		  data_offset += delta_rows;

@@ -1,4 +1,36 @@
+2007-4-17  John E. Davis  <davis@space.mit.edu>
+
+	* src/version.h (MODULE_VERSION_NUMBER): bumped to 0.3.7
+
+	* src/fits.sl (get_open_hdu_of_type): If looking for a binary
+	  table, accept an ascii table.
+	(_fits_sl_version_string): bumped to 0.4.2-0
+
+	* src/cfitsio-module.c (read_col): Support for ascii tables
+	  added.  For string columns, this required a different
+	  interpretation of the TFORM specifier.  Binary tables use,
+	  e.g, 8A for TFORM whereas ASCII tables use A8.  Nice.
+
+2007-4-10  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (_fits_sl_version_string): bumped to 0.4.1-0
+	* src/fits.sl: Added additional information to calls to
+	  do_fits_error in an effort to improve the error messages.
+	
+
+2007-4-6  John E. Davis  <davis@space.mit.edu>
+
+	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.3.6
+
+	* src/cfitsio-module.c (map_fitsio_type_to_slang): bit types
+	  get mapped to SIGNED int values instead of unsigned values.
+	  This avoids the silly unsigned integer convention when such
+	  values get written out as integers.
+
 2007-3-28  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (reverse): made reverse a private function.
+	(_fits_sl_version_string): bumped to 0.4.4-0
 
 	* src/fitswcs.sl (simplify_wcs): work-around what appears to
 	  be a ds9 bug-- if a PC matrix is present, then the CDELT

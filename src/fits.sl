@@ -1,4 +1,4 @@
-%    Copyright (C) 1998-2006 Massachusetts Institute of Technology
+%    Copyright (C) 1998-2007 Massachusetts Institute of Technology
 %
 %    Author:  John E. Davis <davis@space.mit.edu>
 %
@@ -21,12 +21,12 @@
 %else
 import ("cfitsio");
 
-variable _fits_sl_version = 403;
-variable _fits_sl_version_string = "0.4.3-1";
+variable _fits_sl_version = 402;
+variable _fits_sl_version_string = "0.4.2-0";
 
 % Forward declarations
 
-define reverse (a)
+private define reverse (a)
 {
 #ifexists array_reverse
    a = @a;
@@ -53,8 +53,8 @@ private define do_fits_error ()
      return;
    
    if (strlen(file))
-     file = strcat (file, ": ");
-   verror ("%s%s", file, _fits_get_errstatus (status));
+     file = strcat (": ", file);
+   verror ("%s%s", _fits_get_errstatus (status), file);
 }
 
 %!%+
@@ -136,6 +136,8 @@ private define find_interesting_hdu (f, hdu_type, check_naxis)
 	variable status;
 
 	do_fits_error (_fits_get_hdu_type (f, &type));
+	if (type == _FITS_ASCII_TBL)
+	  type = _FITS_BINARY_TBL;
 
 	if ((hdu_type == NULL) or (type == hdu_type))
 	  {
@@ -170,6 +172,10 @@ private define get_open_hdu_of_type (f, hdu_type, needs_close, check_naxis)
 	type_str = "an image";
      }
      {
+      case _FITS_ASCII_TBL:
+	type_str = "an ascii table";
+     }
+     {
 	% default
 	type_str = "an interesting hdu";
      }
@@ -178,8 +184,14 @@ private define get_open_hdu_of_type (f, hdu_type, needs_close, check_naxis)
    if (typeof (f) == Fits_File_Type)
      {
 	do_fits_error (_fits_get_hdu_type (f, &type));
+	if ((hdu_type == _FITS_BINARY_TBL)
+	    and (type == _FITS_ASCII_TBL))
+	  hdu_type = type;
+
 	if ((hdu_type != NULL) and (type != hdu_type))
-	  verror ("Extension is not %s", type_str);
+	  {
+	     verror ("Extension is not %s", type_str);
+	  }
 	return f;
      }
 
@@ -343,7 +355,7 @@ define fits_get_colnum ()
    f = get_open_binary_table (f, &needs_close);
 
    variable colnum;
-   do_fits_error (_fits_get_colnum (f, column_names, &colnum));
+   do_fits_error (_fits_get_colnum (f, column_names, &colnum), column_names);
 
    do_close_file (f, needs_close);
    return colnum;
@@ -393,7 +405,7 @@ private define get_tdim_string (fp, col)
    !if (fits_key_exists (fp, tdim))
      return NULL;
 
-   do_fits_error (_fits_read_key (fp, tdim, &tdim, NULL));
+   do_fits_error (_fits_read_key (fp, tdim, &tdim, NULL), tdim);
    return tdim;
 }
 
@@ -475,7 +487,8 @@ private define get_column_number (fp, col)
 {
    if (typeof (col) == String_Type)
      {
-	do_fits_error (_fits_get_colnum (fp, col, &col));
+	variable col_str = col;
+	do_fits_error (_fits_get_colnum (fp, col_str, &col), col_str);
 	return col;
      }
    return int (col);
@@ -824,7 +837,7 @@ define fits_read_key ()
 	if (status == _FITS_KEY_NO_EXIST)
 	  value = NULL;
 	else if (status)
-	  do_fits_error (status);
+	  do_fits_error (status, key);
 
 	value;
      }
@@ -913,11 +926,11 @@ define fits_create_binary_table ()
 %\synopsis{Write a binary table}
 %\usage{fits_write_binary_table (file, extname, sdata, [skeys [,hist]])}
 %#v+
-%    Fits_File_Type or String_Type file;
-%    String_Type extname;
-%    Struct_Type sdata;
-%    Struct_Type skeys;
-%    Struct_Type hist;
+%Fits_File_Type or String_Type file;
+%String_Type extname;
+%Struct_Type sdata;
+%Struct_Type skeys;
+%Struct_Type hist;
 %#v-
 %\description
 %  The \var{fits_write_binary_table} function creates a new binary table in
@@ -988,7 +1001,7 @@ private define add_keys_and_history_func (fp, keys, history)
 	  {
 	     variable keyword = ();
 	     val = get_struct_field (keys, keyword);
-	     do_fits_error (_fits_update_key (fp, keyword, val, NULL));
+	     do_fits_error (_fits_update_key (fp, keyword, val, NULL), keyword);
 	  }
      }
 
@@ -1690,7 +1703,7 @@ define fits_write_image_hdu ()
 	  {
 	     variable keyword = ();
 	     variable val = get_struct_field (keys, keyword);
-	     do_fits_error (_fits_update_key (fp, keyword, val, NULL));
+	     do_fits_error (_fits_update_key (fp, keyword, val, NULL), keyword);
 	  }
      }
 
