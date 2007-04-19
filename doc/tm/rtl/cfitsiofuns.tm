@@ -4,6 +4,17 @@
 \usage{String_Type _fits_get_errstatus (Int_Type status)}
 \description
   \xreferences{fits_get_errstatus}
+\seealso{fits_read_errmsgs, _fits_read_errmsg}
+\done
+
+\function{_fits_read_errmsg}
+\synopsis{Retrieve an error message from the cfitsio error message stack}
+\usage{String_Type _fits_read_errmsg ()}
+\description
+  \xreferences{fits_read_errmsg}
+\notes
+  This function returns \NULL if there are no error messages available.
+\seealso{fits_read_errmsgs, fits_set_verbose_errors}
 \done
 
 \function{_fits_open_file}

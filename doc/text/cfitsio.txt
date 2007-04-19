@@ -1,6 +1,6 @@
   S-Lang CFITSIO Module Reference
   John E. Davis, davis@space.mit.edu
-  Mar 27, 2007
+  Apr 19, 2007
   ____________________________________________________________
 
   Table of Contents
@@ -31,37 +31,39 @@
      6.4 Degenerate Axes
 
   7. High-level Function Reference
-     7.1 fits_open_file
-     7.2 fits_close_file
-     7.3 fits_move_to_interesting_hdu
-     7.4 fits_key_exists
-     7.5 fits_get_colnum
-     7.6 fits_binary_table_column_exists
-     7.7 fits_read_col
-     7.8 fits_read_col_struct
-     7.9 fits_read_cell
-     7.10 fits_read_row
-     7.11 fits_read_header
-     7.12 fits_read_table
-     7.13 fits_read_key
-     7.14 fits_read_key_struct
-     7.15 fits_create_binary_table
-     7.16 fits_write_binary_table
-     7.17 fits_update_key
-     7.18 fits_update_logical
-     7.19 fits_write_comment
-     7.20 fits_write_history
-     7.21 fits_write_date
-     7.22 fits_write_chksum
-     7.23 fits_verify_chksum
-     7.24 fits_read_records
-     7.25 fits_write_records
-     7.26 fits_get_keyclass
-     7.27 fits_get_bitpix
-     7.28 fits_read_img
-     7.29 fits_create_image_hdu
-     7.30 fits_write_image_hdu
-     7.31 fits_write_img
+     7.1 fits_read_errmsgs
+     7.2 fits_set_verbose_errors
+     7.3 fits_open_file
+     7.4 fits_close_file
+     7.5 fits_move_to_interesting_hdu
+     7.6 fits_key_exists
+     7.7 fits_get_colnum
+     7.8 fits_binary_table_column_exists
+     7.9 fits_read_col
+     7.10 fits_read_col_struct
+     7.11 fits_read_cell
+     7.12 fits_read_row
+     7.13 fits_read_header
+     7.14 fits_read_table
+     7.15 fits_read_key
+     7.16 fits_read_key_struct
+     7.17 fits_create_binary_table
+     7.18 fits_write_binary_table
+     7.19 fits_update_key
+     7.20 fits_update_logical
+     7.21 fits_write_comment
+     7.22 fits_write_history
+     7.23 fits_write_date
+     7.24 fits_write_chksum
+     7.25 fits_verify_chksum
+     7.26 fits_read_records
+     7.27 fits_write_records
+     7.28 fits_get_keyclass
+     7.29 fits_get_bitpix
+     7.30 fits_read_img
+     7.31 fits_create_image_hdu
+     7.32 fits_write_image_hdu
+     7.33 fits_write_img
 
   8. WCS Function Reference
      8.1 fitswcs_new
@@ -80,55 +82,56 @@
   9. Overview
   10. Low-level Function Reference
      10.1 _fits_get_errstatus
-     10.2 _fits_open_file
-     10.3 _fits_delete_file
-     10.4 _fits_close_file
-     10.5 _fits_movabs_hdu
-     10.6 _fits_movrel_hdu
-     10.7 _fits_movnam_hdu
-     10.8 _fits_get_num_hdus
-     10.9 _fits_get_hdu_num
-     10.10 _fits_get_hdu_type
-     10.11 _fits_copy_file
-     10.12 _fits_copy_hdu
-     10.13 _fits_copy_header
-     10.14 _fits_delete_hdu
-     10.15 _fits_create_img
-     10.16 _fits_write_img
-     10.17 _fits_read_img
-     10.18 _fits_create_binary_tbl
-     10.19 _fits_update_key
-     10.20 _fits_update_logical
-     10.21 _fits_write_comment
-     10.22 _fits_write_history
-     10.23 _fits_write_date
-     10.24 _fits_write_record
-     10.25 _fits_modify_name
-     10.26 _fits_get_num_keys
-     10.27 _fits_read_key_integer
-     10.28 _fits_read_key_string
-     10.29 _fits_read_key_double
-     10.30 _fits_read_key
-     10.31 _fits_read_record
-     10.32 _fits_delete_key
-     10.33 _fits_get_colnum
-     10.34 _fits_insert_rows
-     10.35 _fits_delete_rows
-     10.36 _fits_insert_cols
-     10.37 _fits_delete_col
-     10.38 _fits_get_num_cols
-     10.39 _fits_get_rowsize
-     10.40 _fits_get_num_rows
-     10.41 _fits_write_col
-     10.42 _fits_read_col
-     10.43 _fits_get_keytype
-     10.44 _fits_get_keyclass
-     10.45 _fits_read_cols
-     10.46 _fits_write_chksum
-     10.47 _fits_update_chksum
-     10.48 _fits_verify_chksum
-     10.49 _fits_get_chksum
-     10.50 _fits_get_version
+     10.2 _fits_read_errmsg
+     10.3 _fits_open_file
+     10.4 _fits_delete_file
+     10.5 _fits_close_file
+     10.6 _fits_movabs_hdu
+     10.7 _fits_movrel_hdu
+     10.8 _fits_movnam_hdu
+     10.9 _fits_get_num_hdus
+     10.10 _fits_get_hdu_num
+     10.11 _fits_get_hdu_type
+     10.12 _fits_copy_file
+     10.13 _fits_copy_hdu
+     10.14 _fits_copy_header
+     10.15 _fits_delete_hdu
+     10.16 _fits_create_img
+     10.17 _fits_write_img
+     10.18 _fits_read_img
+     10.19 _fits_create_binary_tbl
+     10.20 _fits_update_key
+     10.21 _fits_update_logical
+     10.22 _fits_write_comment
+     10.23 _fits_write_history
+     10.24 _fits_write_date
+     10.25 _fits_write_record
+     10.26 _fits_modify_name
+     10.27 _fits_get_num_keys
+     10.28 _fits_read_key_integer
+     10.29 _fits_read_key_string
+     10.30 _fits_read_key_double
+     10.31 _fits_read_key
+     10.32 _fits_read_record
+     10.33 _fits_delete_key
+     10.34 _fits_get_colnum
+     10.35 _fits_insert_rows
+     10.36 _fits_delete_rows
+     10.37 _fits_insert_cols
+     10.38 _fits_delete_col
+     10.39 _fits_get_num_cols
+     10.40 _fits_get_rowsize
+     10.41 _fits_get_num_rows
+     10.42 _fits_write_col
+     10.43 _fits_read_col
+     10.44 _fits_get_keytype
+     10.45 _fits_get_keyclass
+     10.46 _fits_read_cols
+     10.47 _fits_write_chksum
+     10.48 _fits_update_chksum
+     10.49 _fits_verify_chksum
+     10.50 _fits_get_chksum
+     10.51 _fits_get_version
 
 
   ______________________________________________________________________
@@ -978,7 +981,48 @@
   [1m2.7.  High-level Function Reference[0m
 
 
-  [1m2.7.1.  fits_open_file[0m
+  [1m2.7.1.  fits_read_errmsgs[0m
+
+
+      [1mSynopsis[0m
+        Retrieve all error messages from the CFITSIO error stack
+
+      [1mUsage[0m
+        String_Type[] fits_read_errmsgs ()
+
+      [1mDescription[0m
+        This function returns all the error messages from the CFITSIO
+        error message stack as an array of strings.
+
+      [1mNotes[0m
+        Using this function will cause the error message stack to be
+        cleared.
+
+      [1mSee Also[0m
+        ``_fits_read_errmsg'', ``fits_set_verbose_errors''
+
+
+  [1m2.7.2.  fits_set_verbose_errors[0m
+
+
+      [1mSynopsis[0m
+        Set the verbosity level of the cfitsio error messages
+
+      [1mUsage[0m
+        fits_set_verbose_errors (Int_Type level)
+
+      [1mDescription[0m
+        When a call to a function in the high-level interface fails, a
+        error message will get generated.  By default, all messages from
+        the underlying cfitsio error stack are printed.  This behavior
+        may be turned off by calling this function with level equal to
+        0.
+
+      [1mSee Also[0m
+        ``fits_read_errmsgs''
+
+
+  [1m2.7.3.  fits_open_file[0m
 
 
       [1mSynopsis[0m
@@ -1006,11 +1050,12 @@
         ``fits_close_file'', ``fits_create_binary_table''
 
 
-  [1m2.7.2.  fits_close_file[0m
+  [1m2.7.4.  fits_close_file[0m
 
 
       [1mSynopsis[0m
         Close a fits file
+
       [1mUsage[0m
         fits_close_file (Fits_File_Type f)
 
@@ -1026,7 +1071,7 @@
         ``fits_open_file''
 
 
-  [1m2.7.3.  fits_move_to_interesting_hdu[0m
+  [1m2.7.5.  fits_move_to_interesting_hdu[0m
 
 
       [1mSynopsis[0m
@@ -1035,9 +1080,8 @@
       [1mUsage[0m
         fits_move_to_interesting_hdu (fp [, hdu_type]
 
-
-            Fits_File_Type fp;
-            Int_Type hdu_type;
+       Fits_File_Type fp;
+       Int_Type hdu_type;
 
 
 
@@ -1057,7 +1101,7 @@
         ``fits_open_file''
 
 
-  [1m2.7.4.  fits_key_exists[0m
+  [1m2.7.6.  fits_key_exists[0m
 
 
       [1mSynopsis[0m
@@ -1084,7 +1128,7 @@
         ``fits_read_key'', ``fits_read_header''
 
 
-  [1m2.7.5.  fits_get_colnum[0m
+  [1m2.7.7.  fits_get_colnum[0m
 
 
       [1mSynopsis[0m
@@ -1108,7 +1152,7 @@
         ``fits_binary_table_column_exists''
 
 
-  [1m2.7.6.  fits_binary_table_column_exists[0m
+  [1m2.7.8.  fits_binary_table_column_exists[0m
 
 
       [1mSynopsis[0m
@@ -1136,8 +1180,7 @@
         ``fits_key_exists'', ``fits_open_file''
 
 
-
-  [1m2.7.7.  fits_read_col[0m
+  [1m2.7.9.  fits_read_col[0m
 
 
       [1mSynopsis[0m
@@ -1164,8 +1207,7 @@
       [1mSee Also[0m
         ``fits_read_cell'', ``fits_read_row'', ``fits_read_table''
 
-
-  [1m2.7.8.  fits_read_col_struct[0m
+  [1m2.7.10.  fits_read_col_struct[0m
 
 
       [1mSynopsis[0m
@@ -1191,7 +1233,7 @@
         ``fits_read_header''
 
 
-  [1m2.7.9.  fits_read_cell[0m
+  [1m2.7.11.  fits_read_cell[0m
 
 
       [1mSynopsis[0m
@@ -1201,8 +1243,8 @@
         X = fits_read_cell (file, c, r)
 
 
-        Fits_File_Type or String_Type file;
-        Int_Type r, c;
+             Fits_File_Type or String_Type file;
+             Int_Type r, c;
 
 
 
@@ -1217,7 +1259,7 @@
         ``fits_read_col'', ``fits_read_row''
 
 
-  [1m2.7.10.  fits_read_row[0m
+  [1m2.7.12.  fits_read_row[0m
 
 
       [1mSynopsis[0m
@@ -1227,8 +1269,9 @@
         Struct_Type fits_read_cell (file, r)
 
 
-             Fits_File_Type or String_Type file;
-             Int_Type r;
+
+        Fits_File_Type or String_Type file;
+        Int_Type r;
 
 
 
@@ -1243,7 +1286,7 @@
         ``fits_read_col'', ``fits_read_cell''
 
 
-  [1m2.7.11.  fits_read_header[0m
+  [1m2.7.13.  fits_read_header[0m
 
 
       [1mSynopsis[0m
@@ -1268,7 +1311,7 @@
         ``fits_read_table''
 
 
-  [1m2.7.12.  fits_read_table[0m
+  [1m2.7.14.  fits_read_table[0m
 
 
       [1mSynopsis[0m
@@ -1298,7 +1341,7 @@
         ``fits_read_header''
 
 
-  [1m2.7.13.  fits_read_key[0m
+  [1m2.7.15.  fits_read_key[0m
 
 
       [1mSynopsis[0m
@@ -1327,8 +1370,7 @@
         ``fits_read_row'', ``fits_read_header''
 
 
-
-  [1m2.7.14.  fits_read_key_struct[0m
+  [1m2.7.16.  fits_read_key_struct[0m
 
 
       [1mSynopsis[0m
@@ -1353,7 +1395,8 @@
         ``fits_read_row'', ``fits_read_header''
 
 
-  [1m2.7.15.  fits_create_binary_table[0m
+
+  [1m2.7.17.  fits_create_binary_table[0m
 
 
       [1mSynopsis[0m
@@ -1384,7 +1427,7 @@
         ``fits_write_binary_table'', ``fits_open_file''
 
 
-  [1m2.7.16.  fits_write_binary_table[0m
+  [1m2.7.18.  fits_write_binary_table[0m
 
 
       [1mSynopsis[0m
@@ -1392,11 +1435,13 @@
 
       [1mUsage[0m
         fits_write_binary_table (file, extname, sdata, [skeys [,hist]])
-              Fits_File_Type or String_Type file;
-              String_Type extname;
-              Struct_Type sdata;
-              Struct_Type skeys;
-              Struct_Type hist;
+
+
+          Fits_File_Type or String_Type file;
+          String_Type extname;
+          Struct_Type sdata;
+          Struct_Type skeys;
+          Struct_Type hist;
 
 
 
@@ -1415,8 +1460,6 @@
 
       [1mExample[0m
         The following code
-
-
               variable data = struct { x, cosx, sinx };
               data.x = [0:2*PI:0.01];
               data.cosx = cos(data.x);
@@ -1437,28 +1480,27 @@
      produces a binary table with the header:
 
 
-
-         XTENSION= 'BINTABLE' / binary table extension
-         BITPIX  =                   8 / 8-bit bytes
-         NAXIS   =                   2 / 2-dimensional binary table
-         NAXIS1  =                  24 / width of table in bytes
-         NAXIS2  =                 629 / number of rows in table
-         PCOUNT  =                   0 / size of special data area
-         GCOUNT  =                   1 / one data group (required keyword)
-         TFIELDS =                   3 / number of fields in each row
-         TTYPE1  = 'x       ' / label for field   1
-         TFORM1  = 'D       ' / data format of field: 8-byte DOUBLE
-         TTYPE2  = 'cosx    ' / label for field   2
-         TFORM2  = 'D       ' / data format of field: 8-byte DOUBLE
-         TTYPE3  = 'sinx    ' / label for field   3
-         TFORM3  = 'D       ' / data format of field: 8-byte DOUBLE
-         EXTNAME = 'COSXSINX' / name of this binary table extension
-         HDUNAME = 'COSXSINX'
-         USERNAME= 'John Doe'
-         HISTORY This is a history record
-         HISTORY This is another
-         COMMENT This is a comment
-         COMMENT And this is another
+              XTENSION= 'BINTABLE' / binary table extension
+              BITPIX  =                   8 / 8-bit bytes
+              NAXIS   =                   2 / 2-dimensional binary table
+              NAXIS1  =                  24 / width of table in bytes
+              NAXIS2  =                 629 / number of rows in table
+              PCOUNT  =                   0 / size of special data area
+              GCOUNT  =                   1 / one data group (required keyword)
+              TFIELDS =                   3 / number of fields in each row
+              TTYPE1  = 'x       ' / label for field   1
+              TFORM1  = 'D       ' / data format of field: 8-byte DOUBLE
+              TTYPE2  = 'cosx    ' / label for field   2
+              TFORM2  = 'D       ' / data format of field: 8-byte DOUBLE
+              TTYPE3  = 'sinx    ' / label for field   3
+              TFORM3  = 'D       ' / data format of field: 8-byte DOUBLE
+              EXTNAME = 'COSXSINX' / name of this binary table extension
+              HDUNAME = 'COSXSINX'
+              USERNAME= 'John Doe'
+              HISTORY This is a history record
+              HISTORY This is another
+              COMMENT This is a comment
+              COMMENT And this is another
 
 
 
@@ -1471,7 +1513,7 @@
         ``fits_create_binary_table'', ``fits_open_file''
 
 
-  [1m2.7.17.  fits_update_key[0m
+  [1m2.7.19.  fits_update_key[0m
 
 
       [1mSynopsis[0m
@@ -1481,10 +1523,11 @@
         fits_update_key (fd, key, val [,comment])
 
 
-              String_Type or Fits_File_Type fd;
-              String_Type key;
-              Any type val;
-              String_Type comment;
+
+         String_Type or Fits_File_Type fd;
+         String_Type key;
+         Any type val;
+         String_Type comment;
 
 
 
@@ -1498,8 +1541,7 @@
         ``fits_update_logical'', ``fits_read_key''
 
 
-  [1m2.7.18.  fits_update_logical[0m
-
+  [1m2.7.20.  fits_update_logical[0m
 
 
       [1mSynopsis[0m
@@ -1526,7 +1568,7 @@
         ``fits_update_key''
 
 
-  [1m2.7.19.  fits_write_comment[0m
+  [1m2.7.21.  fits_write_comment[0m
 
 
       [1mSynopsis[0m
@@ -1545,12 +1587,11 @@
         As the name indicates, this function writes a comment record to
         the specified fits file.  The file-descriptor fd must either be
         the name of a fits file or an open fits file pointer.
-
       [1mSee Also[0m
         ``fits_update_key'', ``fits_write_history''
 
 
-  [1m2.7.20.  fits_write_history[0m
+  [1m2.7.22.  fits_write_history[0m
 
 
       [1mSynopsis[0m
@@ -1574,7 +1615,7 @@
         ``fits_update_key'', ``fits_write_comment''
 
 
-  [1m2.7.21.  fits_write_date[0m
+  [1m2.7.23.  fits_write_date[0m
 
 
       [1mSynopsis[0m
@@ -1597,7 +1638,7 @@
         ``fits_update_key''
 
 
-  [1m2.7.22.  fits_write_chksum[0m
+  [1m2.7.24.  fits_write_chksum[0m
 
 
       [1mSynopsis[0m
@@ -1610,7 +1651,6 @@
              Fits_File_Type or String_Type fd;
 
 
-
       [1mDescription[0m
         The fits_write_chksum function calls _fits_write_comment to
         compute and write the DATASUM and CHECKSUM keywords to the
@@ -1621,7 +1661,7 @@
         ``fits_update_key'', ``fits_verify_chksum''
 
 
-  [1m2.7.23.  fits_verify_chksum[0m
+  [1m2.7.25.  fits_verify_chksum[0m
 
 
       [1mSynopsis[0m
@@ -1629,6 +1669,8 @@
 
       [1mUsage[0m
         isok = fits_verify_chksum (fd [,dataok, hduok])
+
+
              Fits_File_Type or String_Type fd;
              Ref_Type dataok, hduok;
 
@@ -1646,7 +1688,7 @@
         ``fits_write_chksum''
 
 
-  [1m2.7.24.  fits_read_records[0m
+  [1m2.7.26.  fits_read_records[0m
 
 
       [1mSynopsis[0m
@@ -1664,7 +1706,7 @@
         ``fits_write_records'', ``fits_read_key''
 
 
-  [1m2.7.25.  fits_write_records[0m
+  [1m2.7.27.  fits_write_records[0m
 
 
       [1mSynopsis[0m
@@ -1674,8 +1716,8 @@
         fits_write_records (fd, records)
 
 
-             Fits_File_Type or String_Type fd;
-             Array_Type records;
+        Fits_File_Type or String_Type fd;
+        Array_Type records;
 
 
 
@@ -1687,7 +1729,7 @@
         ``fits_read_records''
 
 
-  [1m2.7.26.  fits_get_keyclass[0m
+  [1m2.7.28.  fits_get_keyclass[0m
 
 
       [1mSynopsis[0m
@@ -1717,7 +1759,7 @@
         ``fits_read_records'', ``fits_read_key''
 
 
-  [1m2.7.27.  fits_get_bitpix[0m
+  [1m2.7.29.  fits_get_bitpix[0m
 
 
       [1mSynopsis[0m
@@ -1736,7 +1778,8 @@
         ``fits_write_image_hdu'', ``fits_read_img''
 
 
-  [1m2.7.28.  fits_read_img[0m
+
+  [1m2.7.30.  fits_read_img[0m
 
 
       [1mSynopsis[0m
@@ -1756,13 +1799,12 @@
         or an open file pointer.  It returns the image upon sucess, or
         signals an error upon failure.
 
-
       [1mSee Also[0m
         ``fits_read_table'', ``fits_read_col'', ``fits_open_file'',
         ``fits_write_img''
 
 
-  [1m2.7.29.  fits_create_image_hdu[0m
+  [1m2.7.31.  fits_create_image_hdu[0m
 
 
       [1mSynopsis[0m
@@ -1797,7 +1839,8 @@
         ``fits_write_image_hdu''
 
 
-  [1m2.7.30.  fits_write_image_hdu[0m
+  [1m2.7.32.  fits_write_image_hdu[0m
+
 
 
       [1mSynopsis[0m
@@ -1872,7 +1915,7 @@
         ``fits_create_binary_table'', ``fits_open_file''
 
 
-  [1m2.7.31.  fits_write_img[0m
+  [1m2.7.33.  fits_write_img[0m
 
 
       [1mSynopsis[0m
@@ -1929,8 +1972,7 @@
       [1mExample[0m
         Suppose that wcs represents a 4 dimensional WCS. Then
 
-
-              wcs2 = fitswcs_slice (wcs, [0,1]);
+         wcs2 = fitswcs_slice (wcs, [0,1]);
 
 
 
@@ -1991,6 +2033,7 @@
         specify a binary table.  The columns-array parameter should be
         an array of columns names.  The third parameter is optional and
         is used to specify an alternate WCS.
+
 
       [1mExample[0m
 
@@ -2056,12 +2099,11 @@
         from the X and Y columns in a file, and the construct a
         corresponding WCS:
 
-
-              (x,y) = fits_read_col ("table.fits", "X", "Y");
-              gridx = [min(x):max(x):0.5];
-              gridy = [min(y):max(y):0.5];
-              img = hist2d (y,x,gridy,gridx);
-              wcs = fitswcs_new_img_wcs (gridy, gridx);
+         (x,y) = fits_read_col ("table.fits", "X", "Y");
+         gridx = [min(x):max(x):0.5];
+         gridy = [min(y):max(y):0.5];
+         img = hist2d (y,x,gridy,gridx);
+         wcs = fitswcs_new_img_wcs (gridy, gridx);
 
 
 
@@ -2077,6 +2119,7 @@
 
       [1mUsage[0m
         fitswcs_put_img_wcs (fp, wcs [,alt])
+
       [1mDescription[0m
         The fitswcs_put_img_wcs may be used to write the specified wcs
         out to the image HDU specified by the fp parameter.  An optional
@@ -2120,8 +2163,6 @@
 
              fitswcs_put_column_wcs ("evt2.fits[EVENTS], wcs, ["X","Y"]);
 
-
-
       [1mSee Also[0m
         ``fitswcs_get_column_wcs'', ``fitswcs_put_img_wcs'',
         ``fitswcs_get_img_wcs''
@@ -2140,6 +2181,8 @@
                wcs: The specified WCS to transform
              U0,X0: 1-d arrays
                  A: 2-d array (or 1-d array representing a diagonal matrix)
+
+
 
       [1mDescription[0m
         This function may be used to create a new WCS by applying a
@@ -2181,6 +2224,7 @@
         This function may be used to construct the WCS for a rebinned
         image from the WCS of of the unbinned image.  The grid
         parameters specify the linear grids the new image.
+
 
       [1mExample[0m
         new_img = hist2d_rebin (new_yrid, new_xgrid, old_ygrid,
@@ -2284,9 +2328,35 @@
         fits_get_errstatus.  See its documentation for additional
         information.
 
+      [1mSee Also[0m
+        ``fits_read_errmsgs'', ``_fits_read_errmsg''
 
 
-  [1m3.2.2.  _fits_open_file[0m
+
+  [1m3.2.2.  _fits_read_errmsg[0m
+
+
+      [1mSynopsis[0m
+        Retrieve an error message from the cfitsio error message stack
+
+      [1mUsage[0m
+        String_Type _fits_read_errmsg ()
+
+      [1mDescription[0m
+        This function is a wrapper around the cfitsio library  function
+        fits_read_errmsg.  See its documentation for additional
+        information.
+
+      [1mNotes[0m
+        This function returns NULL if there are no error messages
+        available.
+
+      [1mSee Also[0m
+        ``fits_read_errmsgs'', ``fits_set_verbose_errors''
+
+
+
+  [1m3.2.3.  _fits_open_file[0m
 
 
       [1mSynopsis[0m
@@ -2310,8 +2380,6 @@
               "w"     Open the file in read-write mode
               "c"     Create a new file.
 
-
-
      Note that if the mode argument is "c", then the cfitsio fits_cre-
      ate_file function will be called.  An important difference between
      this intrinsic function and the fits_create_file library function
@@ -2321,7 +2389,7 @@
 
 
 
-  [1m3.2.3.  _fits_delete_file[0m
+  [1m3.2.4.  _fits_delete_file[0m
 
 
       [1mSynopsis[0m
@@ -2335,7 +2403,9 @@
         fits_delete_file.  See its documentation for additional
         information.
 
-  [1m3.2.4.  _fits_close_file[0m
+
+
+  [1m3.2.5.  _fits_close_file[0m
 
 
       [1mSynopsis[0m
@@ -2351,7 +2421,7 @@
 
 
 
-  [1m3.2.5.  _fits_movabs_hdu[0m
+  [1m3.2.6.  _fits_movabs_hdu[0m
 
 
       [1mSynopsis[0m
@@ -2371,12 +2441,11 @@
 
 
 
-  [1m3.2.6.  _fits_movrel_hdu[0m
+  [1m3.2.7.  _fits_movrel_hdu[0m
 
 
       [1mSynopsis[0m
         Move a relative number of HDUs
-
       [1mUsage[0m
         status = _fits_movrel_hdu (Fits_File_Type fptr, Int_Type nmove)
 
@@ -2391,7 +2460,7 @@
 
 
 
-  [1m3.2.7.  _fits_movnam_hdu[0m
+  [1m3.2.8.  _fits_movnam_hdu[0m
 
 
       [1mSynopsis[0m
@@ -2401,9 +2470,9 @@
         status = _fits_movnam_hdu (fptr, hdutype, extname, extvers)
 
 
-        Fits_File_Type fptr;
-        Int_Type hdutype, extvers;
-        String_Type extname;
+             Fits_File_Type fptr;
+             Int_Type hdutype, extvers;
+             String_Type extname;
 
 
 
@@ -2414,7 +2483,7 @@
 
 
 
-  [1m3.2.8.  _fits_get_num_hdus[0m
+  [1m3.2.9.  _fits_get_num_hdus[0m
 
 
       [1mSynopsis[0m
@@ -2431,7 +2500,7 @@
 
 
 
-  [1m3.2.9.  _fits_get_hdu_num[0m
+  [1m3.2.10.  _fits_get_hdu_num[0m
 
 
       [1mSynopsis[0m
@@ -2447,7 +2516,7 @@
 
 
 
-  [1m3.2.10.  _fits_get_hdu_type[0m
+  [1m3.2.11.  _fits_get_hdu_type[0m
 
 
       [1mSynopsis[0m
@@ -2466,13 +2535,14 @@
         with the hdutype reference will be set to one of the following
         constants:
 
-        _FITS_IMAGE_HDU
-        _FITS_ASCII_TBL
-        _FITS_BINARY_TBL
+
+             _FITS_IMAGE_HDU
+             _FITS_ASCII_TBL
+             _FITS_BINARY_TBL
 
 
 
-  [1m3.2.11.  _fits_copy_file[0m
+  [1m3.2.12.  _fits_copy_file[0m
 
 
       [1mSynopsis[0m
@@ -2495,7 +2565,7 @@
 
 
 
-  [1m3.2.12.  _fits_copy_hdu[0m
+  [1m3.2.13.  _fits_copy_hdu[0m
 
 
       [1mSynopsis[0m
@@ -2503,8 +2573,6 @@
 
       [1mUsage[0m
         status = _fits_copy_hdu (infptr, outfptr, morekeys)
-
-
              Fits_File_Type infptr, outfptr;
              Int_Type morekeys;
 
@@ -2517,7 +2585,7 @@
 
 
 
-  [1m3.2.13.  _fits_copy_header[0m
+  [1m3.2.14.  _fits_copy_header[0m
 
 
       [1mSynopsis[0m
@@ -2534,7 +2602,7 @@
 
 
 
-  [1m3.2.14.  _fits_delete_hdu[0m
+  [1m3.2.15.  _fits_delete_hdu[0m
 
 
       [1mSynopsis[0m
@@ -2555,7 +2623,7 @@
 
 
 
-  [1m3.2.15.  _fits_create_img[0m
+  [1m3.2.16.  _fits_create_img[0m
 
 
       [1mSynopsis[0m
@@ -2568,7 +2636,6 @@
              Fits_File_Type fptr;
              Int_Type bitpix;
              Array_Type dims;
-
 
 
       [1mDescription[0m
@@ -2586,7 +2653,7 @@
 
 
 
-  [1m3.2.16.  _fits_write_img[0m
+  [1m3.2.17.  _fits_write_img[0m
 
 
       [1mSynopsis[0m
@@ -2606,7 +2673,7 @@
 
 
 
-  [1m3.2.17.  _fits_read_img[0m
+  [1m3.2.18.  _fits_read_img[0m
 
 
       [1mSynopsis[0m
@@ -2630,11 +2697,12 @@
 
 
 
-  [1m3.2.18.  _fits_create_binary_tbl[0m
+  [1m3.2.19.  _fits_create_binary_tbl[0m
 
 
       [1mSynopsis[0m
         Create a binary table extension
+
 
       [1mUsage[0m
         status = _fits_create_binary_tbl (fptr, naxis2, ttype, tform,
@@ -2657,7 +2725,7 @@
 
 
 
-  [1m3.2.19.  _fits_update_key[0m
+  [1m3.2.20.  _fits_update_key[0m
 
 
       [1mSynopsis[0m
@@ -2694,7 +2762,7 @@
 
 
 
-  [1m3.2.20.  _fits_update_logical[0m
+  [1m3.2.21.  _fits_update_logical[0m
 
 
       [1mSynopsis[0m
@@ -2720,13 +2788,12 @@
         If the comment parameter is NULL, then the keyword's comment
         field will not be modified.
 
-
       [1mSee Also[0m
         ``_fits_update_key''
 
 
 
-  [1m3.2.21.  _fits_write_comment[0m
+  [1m3.2.22.  _fits_write_comment[0m
 
 
       [1mSynopsis[0m
@@ -2743,7 +2810,7 @@
 
 
 
-  [1m3.2.22.  _fits_write_history[0m
+  [1m3.2.23.  _fits_write_history[0m
 
 
       [1mSynopsis[0m
@@ -2760,7 +2827,7 @@
 
 
 
-  [1m3.2.23.  _fits_write_date[0m
+  [1m3.2.24.  _fits_write_date[0m
 
 
       [1mSynopsis[0m
@@ -2776,7 +2843,7 @@
 
 
 
-  [1m3.2.24.  _fits_write_record[0m
+  [1m3.2.25.  _fits_write_record[0m
 
 
       [1mSynopsis[0m
@@ -2786,7 +2853,6 @@
         status = _fits_write_record (Fits_File_Type fptr, String_Type
         card)
 
-
       [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_write_record.  See its documentation for additional
@@ -2794,7 +2860,7 @@
 
 
 
-  [1m3.2.25.  _fits_modify_name[0m
+  [1m3.2.26.  _fits_modify_name[0m
 
 
       [1mSynopsis[0m
@@ -2816,7 +2882,7 @@
 
 
 
-  [1m3.2.26.  _fits_get_num_keys[0m
+  [1m3.2.27.  _fits_get_num_keys[0m
 
 
       [1mSynopsis[0m
@@ -2832,9 +2898,7 @@
         current HDU (excluding the END keyword) and assigns that value
         to variable associated with the numkeys parameter.
 
-
-
-  [1m3.2.27.  _fits_read_key_integer[0m
+  [1m3.2.28.  _fits_read_key_integer[0m
 
 
       [1mSynopsis[0m
@@ -2863,7 +2927,7 @@
 
 
 
-  [1m3.2.28.  _fits_read_key_string[0m
+  [1m3.2.29.  _fits_read_key_string[0m
 
 
       [1mSynopsis[0m
@@ -2892,7 +2956,7 @@
 
 
 
-  [1m3.2.29.  _fits_read_key_double[0m
+  [1m3.2.30.  _fits_read_key_double[0m
 
 
       [1mSynopsis[0m
@@ -2914,13 +2978,14 @@
         value is assigned to the variable referenced by the value
         parameter. If the comment parameter is non-NULL, then the value
         of the comment field will be assigned to it.
+
       [1mSee Also[0m
         ``_fits_read_key'', ``_fits_read_key_integer'',
         ``_fits_read_key_string''
 
 
 
-  [1m3.2.30.  _fits_read_key[0m
+  [1m3.2.31.  _fits_read_key[0m
 
 
       [1mSynopsis[0m
@@ -2951,7 +3016,7 @@
 
 
 
-  [1m3.2.31.  _fits_read_record[0m
+  [1m3.2.32.  _fits_read_record[0m
 
 
       [1mSynopsis[0m
@@ -2961,9 +3026,9 @@
         status = _fits_read_record (fptr, keynum, card)
 
 
-             Fits_File_Type fptr;
-             Int_Type keynum;
-             Ref_Type card;
+        Fits_File_Type fptr;
+        Int_Type keynum;
+        Ref_Type card;
 
 
 
@@ -2974,8 +3039,7 @@
 
 
 
-  [1m3.2.32.  _fits_delete_key[0m
-
+  [1m3.2.33.  _fits_delete_key[0m
 
 
       [1mSynopsis[0m
@@ -2992,7 +3056,7 @@
 
 
 
-  [1m3.2.33.  _fits_get_colnum[0m
+  [1m3.2.34.  _fits_get_colnum[0m
 
 
       [1mSynopsis[0m
@@ -3023,7 +3087,7 @@
 
 
 
-  [1m3.2.34.  _fits_insert_rows[0m
+  [1m3.2.35.  _fits_insert_rows[0m
 
 
       [1mSynopsis[0m
@@ -3042,7 +3106,10 @@
         This function is a wrapper around the cfitsio library  function
         fits_insert_rows.  See its documentation for additional
         information.
-  [1m3.2.35.  _fits_delete_rows[0m
+
+
+
+  [1m3.2.36.  _fits_delete_rows[0m
 
 
       [1mSynopsis[0m
@@ -3064,7 +3131,7 @@
 
 
 
-  [1m3.2.36.  _fits_insert_cols[0m
+  [1m3.2.37.  _fits_insert_cols[0m
 
 
       [1mSynopsis[0m
@@ -3091,7 +3158,7 @@
 
 
 
-  [1m3.2.37.  _fits_delete_col[0m
+  [1m3.2.38.  _fits_delete_col[0m
 
 
       [1mSynopsis[0m
@@ -3106,7 +3173,8 @@
         information.
 
 
-  [1m3.2.38.  _fits_get_num_cols[0m
+
+  [1m3.2.39.  _fits_get_num_cols[0m
 
 
       [1mSynopsis[0m
@@ -3123,7 +3191,7 @@
 
 
 
-  [1m3.2.39.  _fits_get_rowsize[0m
+  [1m3.2.40.  _fits_get_rowsize[0m
 
 
       [1mSynopsis[0m
@@ -3139,7 +3207,7 @@
 
 
 
-  [1m3.2.40.  _fits_get_num_rows[0m
+  [1m3.2.41.  _fits_get_num_rows[0m
 
 
       [1mSynopsis[0m
@@ -3148,7 +3216,6 @@
       [1mUsage[0m
         status = _fits_get_num_cols (Fits_File_Type fptr, Ref_Type
         nrows)
-
       [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_get_num_rows.  See its documentation for additional
@@ -3156,7 +3223,7 @@
 
 
 
-  [1m3.2.41.  _fits_write_col[0m
+  [1m3.2.42.  _fits_write_col[0m
 
 
       [1mSynopsis[0m
@@ -3172,6 +3239,8 @@
              Int_Type firstrow, firstelem;
              Array_Type array;
 
+
+
       [1mDescription[0m
         This function is a wrapper around the cfitsio library  function
         fits_write_col.  See its documentation for additional
@@ -3183,7 +3252,7 @@
 
 
 
-  [1m3.2.42.  _fits_read_col[0m
+  [1m3.2.43.  _fits_read_col[0m
 
 
       [1mSynopsis[0m
@@ -3222,7 +3291,7 @@
 
 
 
-  [1m3.2.43.  _fits_get_keytype[0m
+  [1m3.2.44.  _fits_get_keytype[0m
 
 
       [1mSynopsis[0m
@@ -3235,6 +3304,7 @@
              Fits_File_Type fptr;
              String_Type keyname;
              Ref_Type type;
+
 
 
       [1mDescription[0m
@@ -3251,7 +3321,7 @@
 
 
 
-  [1m3.2.44.  _fits_get_keyclass[0m
+  [1m3.2.45.  _fits_get_keyclass[0m
 
 
       [1mSynopsis[0m
@@ -3267,7 +3337,7 @@
 
 
 
-  [1m3.2.45.  _fits_read_cols[0m
+  [1m3.2.46.  _fits_read_cols[0m
 
 
       [1mSynopsis[0m
@@ -3300,7 +3370,7 @@
 
 
 
-  [1m3.2.46.  _fits_write_chksum[0m
+  [1m3.2.47.  _fits_write_chksum[0m
 
 
       [1mSynopsis[0m
@@ -3316,7 +3386,7 @@
 
 
 
-  [1m3.2.47.  _fits_update_chksum[0m
+  [1m3.2.48.  _fits_update_chksum[0m
 
 
       [1mSynopsis[0m
@@ -3332,7 +3402,7 @@
 
 
 
-  [1m3.2.48.  _fits_verify_chksum[0m
+  [1m3.2.49.  _fits_verify_chksum[0m
 
 
       [1mSynopsis[0m
@@ -3340,8 +3410,6 @@
 
       [1mUsage[0m
         status = _fits_verify_chksum (fptr, dataok, hduok)
-
-
              Fits_File_Type fptr;
              Ref_Type dataok, hduok;
 
@@ -3354,7 +3422,7 @@
 
 
 
-  [1m3.2.49.  _fits_get_chksum[0m
+  [1m3.2.50.  _fits_get_chksum[0m
 
 
       [1mSynopsis[0m
@@ -3364,9 +3432,8 @@
         status = _fits_get_chksum (fptr, datasum, hdusum)
 
 
-
-        Fits_File_Type fptr;
-        Ref_Type datasum, hdusum;
+             Fits_File_Type fptr;
+             Ref_Type datasum, hdusum;
 
 
 
@@ -3377,7 +3444,7 @@
 
 
 
-  [1m3.2.50.  _fits_get_version[0m
+  [1m3.2.51.  _fits_get_version[0m
 
 
       [1mSynopsis[0m
@@ -3415,102 +3482,105 @@
   2.6.3. Alternate WCS . . . . . . . . . . . . . . . . . . . . . . .  16
   2.6.4. Degenerate Axes . . . . . . . . . . . . . . . . . . . . . .  16
   2.7. High-level Function Reference . . . . . . . . . . . . . . . .  18
-  2.7.1. fits_open_file  . . . . . . . . . . . . . . . . . . . . . .  18
-  2.7.2. fits_close_file . . . . . . . . . . . . . . . . . . . . . .  18
-  2.7.3. fits_move_to_interesting_hdu  . . . . . . . . . . . . . . .  19
-  2.7.4. fits_key_exists . . . . . . . . . . . . . . . . . . . . . .  19
-  2.7.5. fits_get_colnum . . . . . . . . . . . . . . . . . . . . . .  20
-  2.7.6. fits_binary_table_column_exists . . . . . . . . . . . . . .  20
-  2.7.7. fits_read_col . . . . . . . . . . . . . . . . . . . . . . .  21
-  2.7.8. fits_read_col_struct  . . . . . . . . . . . . . . . . . . .  21
-  2.7.9. fits_read_cell  . . . . . . . . . . . . . . . . . . . . . .  21
-  2.7.10. fits_read_row  . . . . . . . . . . . . . . . . . . . . . .  22
-  2.7.11. fits_read_header . . . . . . . . . . . . . . . . . . . . .  22
-  2.7.12. fits_read_table  . . . . . . . . . . . . . . . . . . . . .  23
-  2.7.13. fits_read_key  . . . . . . . . . . . . . . . . . . . . . .  23
-  2.7.14. fits_read_key_struct . . . . . . . . . . . . . . . . . . .  24
-  2.7.15. fits_create_binary_table . . . . . . . . . . . . . . . . .  24
-  2.7.16. fits_write_binary_table  . . . . . . . . . . . . . . . . .  24
-  2.7.17. fits_update_key  . . . . . . . . . . . . . . . . . . . . .  26
-  2.7.18. fits_update_logical  . . . . . . . . . . . . . . . . . . .  26
-  2.7.19. fits_write_comment . . . . . . . . . . . . . . . . . . . .  27
-  2.7.20. fits_write_history . . . . . . . . . . . . . . . . . . . .  27
-  2.7.21. fits_write_date  . . . . . . . . . . . . . . . . . . . . .  28
-  2.7.22. fits_write_chksum  . . . . . . . . . . . . . . . . . . . .  28
-  2.7.23. fits_verify_chksum . . . . . . . . . . . . . . . . . . . .  28
-  2.7.24. fits_read_records  . . . . . . . . . . . . . . . . . . . .  29
-  2.7.25. fits_write_records . . . . . . . . . . . . . . . . . . . .  29
-  2.7.26. fits_get_keyclass  . . . . . . . . . . . . . . . . . . . .  29
-  2.7.27. fits_get_bitpix  . . . . . . . . . . . . . . . . . . . . .  30
-  2.7.28. fits_read_img  . . . . . . . . . . . . . . . . . . . . . .  30
-  2.7.29. fits_create_image_hdu  . . . . . . . . . . . . . . . . . .  31
-  2.7.30. fits_write_image_hdu . . . . . . . . . . . . . . . . . . .  31
-  2.7.31. fits_write_img . . . . . . . . . . . . . . . . . . . . . .  32
+  2.7.1. fits_read_errmsgs . . . . . . . . . . . . . . . . . . . . .  18
+  2.7.2. fits_set_verbose_errors . . . . . . . . . . . . . . . . . .  18
+  2.7.3. fits_open_file  . . . . . . . . . . . . . . . . . . . . . .  19
+  2.7.4. fits_close_file . . . . . . . . . . . . . . . . . . . . . .  19
+  2.7.5. fits_move_to_interesting_hdu  . . . . . . . . . . . . . . .  19
+  2.7.6. fits_key_exists . . . . . . . . . . . . . . . . . . . . . .  20
+  2.7.7. fits_get_colnum . . . . . . . . . . . . . . . . . . . . . .  20
+  2.7.8. fits_binary_table_column_exists . . . . . . . . . . . . . .  21
+  2.7.9. fits_read_col . . . . . . . . . . . . . . . . . . . . . . .  21
+  2.7.10. fits_read_col_struct . . . . . . . . . . . . . . . . . . .  22
+  2.7.11. fits_read_cell . . . . . . . . . . . . . . . . . . . . . .  22
+  2.7.12. fits_read_row  . . . . . . . . . . . . . . . . . . . . . .  22
+  2.7.13. fits_read_header . . . . . . . . . . . . . . . . . . . . .  23
+  2.7.14. fits_read_table  . . . . . . . . . . . . . . . . . . . . .  23
+  2.7.15. fits_read_key  . . . . . . . . . . . . . . . . . . . . . .  24
+  2.7.16. fits_read_key_struct . . . . . . . . . . . . . . . . . . .  24
+  2.7.17. fits_create_binary_table . . . . . . . . . . . . . . . . .  25
+  2.7.18. fits_write_binary_table  . . . . . . . . . . . . . . . . .  25
+  2.7.19. fits_update_key  . . . . . . . . . . . . . . . . . . . . .  26
+  2.7.20. fits_update_logical  . . . . . . . . . . . . . . . . . . .  27
+  2.7.21. fits_write_comment . . . . . . . . . . . . . . . . . . . .  27
+  2.7.22. fits_write_history . . . . . . . . . . . . . . . . . . . .  28
+  2.7.23. fits_write_date  . . . . . . . . . . . . . . . . . . . . .  28
+  2.7.24. fits_write_chksum  . . . . . . . . . . . . . . . . . . . .  28
+  2.7.25. fits_verify_chksum . . . . . . . . . . . . . . . . . . . .  29
+  2.7.26. fits_read_records  . . . . . . . . . . . . . . . . . . . .  29
+  2.7.27. fits_write_records . . . . . . . . . . . . . . . . . . . .  29
+  2.7.28. fits_get_keyclass  . . . . . . . . . . . . . . . . . . . .  30
+  2.7.29. fits_get_bitpix  . . . . . . . . . . . . . . . . . . . . .  30
+  2.7.30. fits_read_img  . . . . . . . . . . . . . . . . . . . . . .  31
+  2.7.31. fits_create_image_hdu  . . . . . . . . . . . . . . . . . .  31
+  2.7.32. fits_write_image_hdu . . . . . . . . . . . . . . . . . . .  31
+  2.7.33. fits_write_img . . . . . . . . . . . . . . . . . . . . . .  33
   2.8. WCS Function Reference  . . . . . . . . . . . . . . . . . . .  33
   2.8.1. fitswcs_new . . . . . . . . . . . . . . . . . . . . . . . .  33
   2.8.2. fitswcs_slice . . . . . . . . . . . . . . . . . . . . . . .  33
   2.8.3. fitswcs_get_img_wcs . . . . . . . . . . . . . . . . . . . .  34
   2.8.4. fitswcs_get_column_wcs  . . . . . . . . . . . . . . . . . .  34
-  2.8.5. fitswcs_get_vector_wcs  . . . . . . . . . . . . . . . . . .  34
+  2.8.5. fitswcs_get_vector_wcs  . . . . . . . . . . . . . . . . . .  35
   2.8.6. fitswcs_new_img_wcs . . . . . . . . . . . . . . . . . . . .  35
-  2.8.7. fitswcs_put_img_wcs . . . . . . . . . . . . . . . . . . . .  35
+  2.8.7. fitswcs_put_img_wcs . . . . . . . . . . . . . . . . . . . .  36
   2.8.8. fitswcs_put_column_wcs  . . . . . . . . . . . . . . . . . .  36
-  2.8.9. fitswcs_linear_transform_wcs  . . . . . . . . . . . . . . .  36
+  2.8.9. fitswcs_linear_transform_wcs  . . . . . . . . . . . . . . .  37
   2.8.10. fitswcs_rebin_wcs  . . . . . . . . . . . . . . . . . . . .  37
-  2.8.11. fitswcs_bin_wcs  . . . . . . . . . . . . . . . . . . . . .  37
+  2.8.11. fitswcs_bin_wcs  . . . . . . . . . . . . . . . . . . . . .  38
   3. The low-level interface . . . . . . . . . . . . . . . . . . . .  39
   3.1. Overview  . . . . . . . . . . . . . . . . . . . . . . . . . .  39
   3.2. Low-level Function Reference  . . . . . . . . . . . . . . . .  39
   3.2.1. _fits_get_errstatus . . . . . . . . . . . . . . . . . . . .  40
-  3.2.2. _fits_open_file . . . . . . . . . . . . . . . . . . . . . .  40
-  3.2.3. _fits_delete_file . . . . . . . . . . . . . . . . . . . . .  40
-  3.2.4. _fits_close_file  . . . . . . . . . . . . . . . . . . . . .  41
-  3.2.5. _fits_movabs_hdu  . . . . . . . . . . . . . . . . . . . . .  41
-  3.2.6. _fits_movrel_hdu  . . . . . . . . . . . . . . . . . . . . .  41
-  3.2.7. _fits_movnam_hdu  . . . . . . . . . . . . . . . . . . . . .  41
-  3.2.8. _fits_get_num_hdus  . . . . . . . . . . . . . . . . . . . .  42
-  3.2.9. _fits_get_hdu_num . . . . . . . . . . . . . . . . . . . . .  42
-  3.2.10. _fits_get_hdu_type . . . . . . . . . . . . . . . . . . . .  42
-  3.2.11. _fits_copy_file  . . . . . . . . . . . . . . . . . . . . .  43
-  3.2.12. _fits_copy_hdu . . . . . . . . . . . . . . . . . . . . . .  43
-  3.2.13. _fits_copy_header  . . . . . . . . . . . . . . . . . . . .  43
-  3.2.14. _fits_delete_hdu . . . . . . . . . . . . . . . . . . . . .  44
-  3.2.15. _fits_create_img . . . . . . . . . . . . . . . . . . . . .  44
-  3.2.16. _fits_write_img  . . . . . . . . . . . . . . . . . . . . .  44
-  3.2.17. _fits_read_img . . . . . . . . . . . . . . . . . . . . . .  45
-  3.2.18. _fits_create_binary_tbl  . . . . . . . . . . . . . . . . .  45
-  3.2.19. _fits_update_key . . . . . . . . . . . . . . . . . . . . .  46
-  3.2.20. _fits_update_logical . . . . . . . . . . . . . . . . . . .  46
-  3.2.21. _fits_write_comment  . . . . . . . . . . . . . . . . . . .  47
-  3.2.22. _fits_write_history  . . . . . . . . . . . . . . . . . . .  47
-  3.2.23. _fits_write_date . . . . . . . . . . . . . . . . . . . . .  47
-  3.2.24. _fits_write_record . . . . . . . . . . . . . . . . . . . .  47
-  3.2.25. _fits_modify_name  . . . . . . . . . . . . . . . . . . . .  48
-  3.2.26. _fits_get_num_keys . . . . . . . . . . . . . . . . . . . .  48
-  3.2.27. _fits_read_key_integer . . . . . . . . . . . . . . . . . .  48
-  3.2.28. _fits_read_key_string  . . . . . . . . . . . . . . . . . .  49
-  3.2.29. _fits_read_key_double  . . . . . . . . . . . . . . . . . .  49
-  3.2.30. _fits_read_key . . . . . . . . . . . . . . . . . . . . . .  50
-  3.2.31. _fits_read_record  . . . . . . . . . . . . . . . . . . . .  50
-  3.2.32. _fits_delete_key . . . . . . . . . . . . . . . . . . . . .  50
-  3.2.33. _fits_get_colnum . . . . . . . . . . . . . . . . . . . . .  51
-  3.2.34. _fits_insert_rows  . . . . . . . . . . . . . . . . . . . .  51
-  3.2.35. _fits_delete_rows  . . . . . . . . . . . . . . . . . . . .  52
-  3.2.36. _fits_insert_cols  . . . . . . . . . . . . . . . . . . . .  52
-  3.2.37. _fits_delete_col . . . . . . . . . . . . . . . . . . . . .  52
-  3.2.38. _fits_get_num_cols . . . . . . . . . . . . . . . . . . . .  53
-  3.2.39. _fits_get_rowsize  . . . . . . . . . . . . . . . . . . . .  53
-  3.2.40. _fits_get_num_rows . . . . . . . . . . . . . . . . . . . .  53
-  3.2.41. _fits_write_col  . . . . . . . . . . . . . . . . . . . . .  53
-  3.2.42. _fits_read_col . . . . . . . . . . . . . . . . . . . . . .  54
-  3.2.43. _fits_get_keytype  . . . . . . . . . . . . . . . . . . . .  54
-  3.2.44. _fits_get_keyclass . . . . . . . . . . . . . . . . . . . .  55
-  3.2.45. _fits_read_cols  . . . . . . . . . . . . . . . . . . . . .  55
-  3.2.46. _fits_write_chksum . . . . . . . . . . . . . . . . . . . .  56
-  3.2.47. _fits_update_chksum  . . . . . . . . . . . . . . . . . . .  56
-  3.2.48. _fits_verify_chksum  . . . . . . . . . . . . . . . . . . .  56
-  3.2.49. _fits_get_chksum . . . . . . . . . . . . . . . . . . . . .  56
-  3.2.50. _fits_get_version  . . . . . . . . . . . . . . . . . . . .  57
+  3.2.2. _fits_read_errmsg . . . . . . . . . . . . . . . . . . . . .  40
+  3.2.3. _fits_open_file . . . . . . . . . . . . . . . . . . . . . .  40
+  3.2.4. _fits_delete_file . . . . . . . . . . . . . . . . . . . . .  41
+  3.2.5. _fits_close_file  . . . . . . . . . . . . . . . . . . . . .  41
+  3.2.6. _fits_movabs_hdu  . . . . . . . . . . . . . . . . . . . . .  41
+  3.2.7. _fits_movrel_hdu  . . . . . . . . . . . . . . . . . . . . .  41
+  3.2.8. _fits_movnam_hdu  . . . . . . . . . . . . . . . . . . . . .  42
+  3.2.9. _fits_get_num_hdus  . . . . . . . . . . . . . . . . . . . .  42
+  3.2.10. _fits_get_hdu_num  . . . . . . . . . . . . . . . . . . . .  42
+  3.2.11. _fits_get_hdu_type . . . . . . . . . . . . . . . . . . . .  43
+  3.2.12. _fits_copy_file  . . . . . . . . . . . . . . . . . . . . .  43
+  3.2.13. _fits_copy_hdu . . . . . . . . . . . . . . . . . . . . . .  43
+  3.2.14. _fits_copy_header  . . . . . . . . . . . . . . . . . . . .  44
+  3.2.15. _fits_delete_hdu . . . . . . . . . . . . . . . . . . . . .  44
+  3.2.16. _fits_create_img . . . . . . . . . . . . . . . . . . . . .  44
+  3.2.17. _fits_write_img  . . . . . . . . . . . . . . . . . . . . .  45
+  3.2.18. _fits_read_img . . . . . . . . . . . . . . . . . . . . . .  45
+  3.2.19. _fits_create_binary_tbl  . . . . . . . . . . . . . . . . .  45
+  3.2.20. _fits_update_key . . . . . . . . . . . . . . . . . . . . .  46
+  3.2.21. _fits_update_logical . . . . . . . . . . . . . . . . . . .  46
+  3.2.22. _fits_write_comment  . . . . . . . . . . . . . . . . . . .  47
+  3.2.23. _fits_write_history  . . . . . . . . . . . . . . . . . . .  47
+  3.2.24. _fits_write_date . . . . . . . . . . . . . . . . . . . . .  47
+  3.2.25. _fits_write_record . . . . . . . . . . . . . . . . . . . .  48
+  3.2.26. _fits_modify_name  . . . . . . . . . . . . . . . . . . . .  48
+  3.2.27. _fits_get_num_keys . . . . . . . . . . . . . . . . . . . .  48
+  3.2.28. _fits_read_key_integer . . . . . . . . . . . . . . . . . .  49
+  3.2.29. _fits_read_key_string  . . . . . . . . . . . . . . . . . .  49
+  3.2.30. _fits_read_key_double  . . . . . . . . . . . . . . . . . .  49
+  3.2.31. _fits_read_key . . . . . . . . . . . . . . . . . . . . . .  50
+  3.2.32. _fits_read_record  . . . . . . . . . . . . . . . . . . . .  50
+  3.2.33. _fits_delete_key . . . . . . . . . . . . . . . . . . . . .  51
+  3.2.34. _fits_get_colnum . . . . . . . . . . . . . . . . . . . . .  51
+  3.2.35. _fits_insert_rows  . . . . . . . . . . . . . . . . . . . .  52
+  3.2.36. _fits_delete_rows  . . . . . . . . . . . . . . . . . . . .  52
+  3.2.37. _fits_insert_cols  . . . . . . . . . . . . . . . . . . . .  52
+  3.2.38. _fits_delete_col . . . . . . . . . . . . . . . . . . . . .  53
+  3.2.39. _fits_get_num_cols . . . . . . . . . . . . . . . . . . . .  53
+  3.2.40. _fits_get_rowsize  . . . . . . . . . . . . . . . . . . . .  53
+  3.2.41. _fits_get_num_rows . . . . . . . . . . . . . . . . . . . .  53
+  3.2.42. _fits_write_col  . . . . . . . . . . . . . . . . . . . . .  54
+  3.2.43. _fits_read_col . . . . . . . . . . . . . . . . . . . . . .  54
+  3.2.44. _fits_get_keytype  . . . . . . . . . . . . . . . . . . . .  55
+  3.2.45. _fits_get_keyclass . . . . . . . . . . . . . . . . . . . .  55
+  3.2.46. _fits_read_cols  . . . . . . . . . . . . . . . . . . . . .  55
+  3.2.47. _fits_write_chksum . . . . . . . . . . . . . . . . . . . .  56
+  3.2.48. _fits_update_chksum  . . . . . . . . . . . . . . . . . . .  56
+  3.2.49. _fits_verify_chksum  . . . . . . . . . . . . . . . . . . .  56
+  3.2.50. _fits_get_chksum . . . . . . . . . . . . . . . . . . . . .  57
+  3.2.51. _fits_get_version  . . . . . . . . . . . . . . . . . . . .  57
 
 
 

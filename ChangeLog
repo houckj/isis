@@ -1,10 +1,31 @@
+2007-4-19  John E. Davis  <davis@space.mit.edu>
+
+        * src/fits.sl: (_fits_sl_version_string): bumped to 0.4.2-0
+
+	* src/fits.sl (fits_set_verbose_errors): Used to control the
+	  error message verbosity.
+
+2007-4-18  John E. Davis  <davis@space.mit.edu>
+
+	* src/cfitsio-module.c (clear_errmsg): Made _fits_clear_errmsg
+	  a wrapper around fits_clear_errmsg.
+
+	* src/version.h (MODULE_VERSION_NUMBER): bumped to 0.3.8
+
 2007-4-17  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (do_fits_error): modified to use
+	  _fits_read_errmsg. Also added a FitsError exception and
+	  added a function called fits_get_errmsgs, which returns the
+	  messages from the fits errmsg queue.
+
+	* src/cfitsio-module.c (read_errmsg): Added wrapper for
+	  fits_read_errmsg.
 
 	* src/version.h (MODULE_VERSION_NUMBER): bumped to 0.3.7
 
 	* src/fits.sl (get_open_hdu_of_type): If looking for a binary
 	  table, accept an ascii table.
-	(_fits_sl_version_string): bumped to 0.4.2-0
 
 	* src/cfitsio-module.c (read_col): Support for ascii tables
 	  added.  For string columns, this required a different

@@ -21,10 +21,18 @@
 %else
 import ("cfitsio");
 
-variable _fits_sl_version = 402;
-variable _fits_sl_version_string = "0.4.2-0";
+variable _fits_sl_version = 403;
+variable _fits_sl_version_string = "0.4.3-0";
 
+private variable Verbose = 1;
 % Forward declarations
+
+#ifexists new_exception
+if (0 == is_defined ("FitsError"))
+  new_exception ("FitsError", RunTimeError, "Fits Error");
+#endif
+
+private variable Last_Error_Messages = String_Type[0];
 
 private define reverse (a)
 {
@@ -41,7 +49,56 @@ private define reverse (a)
    __tmp(a)[[i:0:-1]];
 #endif
 }
+
+
+%!%+
+%\function{fits_read_errmsgs}
+%\synopsis{Retrieve all error messages from the CFITSIO error stack}
+%\usage{String_Type[] fits_read_errmsgs ()}
+%\description
+% This function returns all the error messages from the CFITSIO error
+% message stack as an array of strings.
+%\notes
+% Using this function will cause the error message stack to be cleared.
+%\seealso{_fits_read_errmsg, fits_set_verbose_errors}
+%!%-
+define fits_read_errmsgs ()
+{
+   variable err;
+   variable errlist = String_Type[0];
+   while (err = _fits_read_errmsg (), err != NULL)
+     {
+	errlist = [errlist, err];
+     }
+   return errlist;
+}
+
+define fits_get_errmsgs ()
+{
+   return Last_Error_Messages;
+}
+
+
+%!%+
+%\function{fits_set_verbose_errors}
+%\synopsis{Set the verbosity level of the cfitsio error messages}
+%\usage{fits_set_verbose_errors (Int_Type level)}
+%\description
+% When a call to a function in the high-level interface fails, a error
+% message will get generated.  By default, all messages from the
+% underlying cfitsio error stack are printed.  This behavior may be
+% turned off by calling this function with \exmp{level} equal to 0.
+%\seealso{fits_read_errmsgs}
+%!%-
+define fits_set_verbose_errors ()
+{
+   variable v = 1;
+   if (_NARGS)
+     v = ();
    
+   Verbose = v;
+}
+
 private define do_fits_error ()
 {
    variable status, file = "";
@@ -50,11 +107,24 @@ private define do_fits_error ()
      file = ();
    status = ();
    if (status == 0)
-     return;
+     {
+	_fits_clear_errmsg ();
+	Last_Error_Messages = String_Type[0];
+	return;
+     }
    
    if (strlen(file))
      file = strcat (": ", file);
-   verror ("%s%s", _fits_get_errstatus (status), file);
+   variable errmsg = strcat (_fits_get_errstatus (status), file);
+   Last_Error_Messages = fits_read_errmsgs ();
+   if (Verbose)
+     errmsg = strjoin ([Last_Error_Messages, errmsg], "\n");
+
+#ifexists new_exception
+   throw FitsError, errmsg, Last_Error_Messages;
+#else
+   error (errmsg);
+#endif
 }
 
 %!%+

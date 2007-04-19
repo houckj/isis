@@ -1239,7 +1239,7 @@ static int write_tbit_col (fitsfile *f, unsigned int col, unsigned int row,
 
    if (8 * sizeof_type != repeat)
      {
-	SLang_verror (0, "Writing a %dX bit column requires the appropriately sized integer",
+	SLang_verror (SL_NOT_IMPLEMENTED, "Writing a %dX bit column requires the appropriately sized integer",
 		      repeat);
 	return -1;
      }
@@ -1264,7 +1264,7 @@ static int write_tbit_col (fitsfile *f, unsigned int col, unsigned int row,
 	break;
 	
       default:
-	SLang_verror (0, "writing to a %dX column is not supported", repeat);
+	SLang_verror (SL_NOT_IMPLEMENTED, "writing to a %dX column is not supported", repeat);
 	return -1;
      }
 
@@ -2028,6 +2028,11 @@ static int read_cols (void)
    return status;
 }
 
+static void clear_errmsg (void)
+{
+   fits_clear_errmsg ();
+}
+
 static void get_errstatus (int *status)
 {
    char errbuf [FLEN_ERRMSG];
@@ -2035,6 +2040,16 @@ static void get_errstatus (int *status)
    *errbuf = 0;
    fits_get_errstatus (*status, errbuf);
    (void) SLang_push_string (errbuf);
+}
+
+static void read_errmsg (void)
+{
+   char errbuf [FLEN_ERRMSG];
+
+   if (0 == fits_read_errmsg (errbuf))
+     (void) SLang_push_null ();
+   else
+     (void) SLang_push_string (errbuf);
 }
 
 static int get_num_keys (FitsFile_Type *f, SLang_Ref_Type *ref)
@@ -2169,6 +2184,8 @@ static int get_chksum (FitsFile_Type *f, SLang_Ref_Type *datasum, SLang_Ref_Type
 
 static SLang_Intrin_Fun_Type Fits_Intrinsics [] = 
 {
+   MAKE_INTRINSIC_0("_fits_clear_errmsg", clear_errmsg, SLANG_VOID_TYPE),
+   MAKE_INTRINSIC_0("_fits_read_errmsg", read_errmsg, SLANG_VOID_TYPE),
    MAKE_INTRINSIC_I("_fits_get_errstatus", get_errstatus, SLANG_VOID_TYPE),
    MAKE_INTRINSIC_3("_fits_open_file", open_file, I, R, S, S),
    MAKE_INTRINSIC_1("_fits_delete_file", delete_file, I, F),

@@ -10,6 +10,29 @@ _fits_get_errstatus
   This function is a wrapper around the CFITSIO function `fits_get_errstatus'.
   See its documentation for additional information.
 
+ SEE ALSO
+  fits_read_errmsgs, _fits_read_errmsg
+
+--------------------------------------------------------------
+
+_fits_read_errmsg
+
+ SYNOPSIS
+  Retrieve an error message from the cfitsio error message stack
+
+ USAGE
+  String_Type _fits_read_errmsg ()
+
+ DESCRIPTION
+  This function is a wrapper around the CFITSIO function `fits_read_errmsg'.
+  See its documentation for additional information.
+
+ NOTES
+  This function returns NULL if there are no error messages available.
+
+ SEE ALSO
+  fits_read_errmsgs, fits_set_verbose_errors
+
 --------------------------------------------------------------
 
 _fits_open_file
@@ -973,6 +996,45 @@ _fits_get_version
 
 --------------------------------------------------------------
 
+fits_read_errmsgs
+
+ SYNOPSIS
+  Retrieve all error messages from the CFITSIO error stack
+
+ USAGE
+  String_Type[] fits_read_errmsgs ()
+
+ DESCRIPTION
+ This function returns all the error messages from the CFITSIO error
+ message stack as an array of strings.
+
+ NOTES
+ Using this function will cause the error message stack to be cleared.
+
+ SEE ALSO
+  _fits_read_errmsg, fits_set_verbose_errors
+
+--------------------------------------------------------------
+
+fits_set_verbose_errors
+
+ SYNOPSIS
+  Set the verbosity level of the cfitsio error messages
+
+ USAGE
+  fits_set_verbose_errors (Int_Type level)
+
+ DESCRIPTION
+ When a call to a function in the high-level interface fails, a error
+ message will get generated.  By default, all messages from the
+ underlying cfitsio error stack are printed.  This behavior may be
+ turned off by calling this function with `level' equal to 0.
+
+ SEE ALSO
+  fits_read_errmsgs
+
+--------------------------------------------------------------
+
 fits_open_file
 
  SYNOPSIS
@@ -1347,11 +1409,11 @@ fits_write_binary_table
  USAGE
   fits_write_binary_table (file, extname, sdata, [skeys [,hist]])
 
-    Fits_File_Type or String_Type file;
-    String_Type extname;
-    Struct_Type sdata;
-    Struct_Type skeys;
-    Struct_Type hist;
+Fits_File_Type or String_Type file;
+String_Type extname;
+Struct_Type sdata;
+Struct_Type skeys;
+Struct_Type hist;
 
 
  DESCRIPTION
