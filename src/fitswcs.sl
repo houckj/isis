@@ -50,24 +50,26 @@ private variable PC_INDX	= 5;
 private variable CD_INDX	= 6;
 private variable PV_INDX	= 7;
 private variable PS_INDX	= 8;
+% private variable CNAME_INDX	= 9;
+
 private variable Image_Formats = 
-  ["CTYPE%d", "CUNIT%d", "CRVAL%d", "CDELT%d", "CRPIX%d", 
-   "PC%d_%d", "CD%d_%d", "PV%d_%d", "PS%d_%d"];
+  ["CTYPE%d", "CUNIT%d", "CRVAL%d", "CDELT%d", "CRPIX%d",
+   "PC%d_%d", "CD%d_%d", "PV%d_%d", "PS%d_%d"]; %, "CNAME%d"];
 private variable Image_Formats_Alt = Image_Formats + "%c";
 
 private variable Column_Formats =
   ["TCTYP%d", "TCUNI%d", "TCRVL%d", "TCDLT%d", "TCRPX%d", 
-   "TP%d_%d", "TC%d_%d", "TV%d_%d", "TS%d_%d"];
+   "TP%d_%d", "TC%d_%d", "TV%d_%d", "TS%d_%d"]; %, ""];
 private variable Column_Formats_Alt =
   ["TCTY%d%c", "TCUN%d%c", "TCRV%d%c", "TCDE%d%c", "TCRP%d%c", 
-   "TP%d_%d%c", "TC%d_%d%c", "TV%d_%d%c", "TS%d_%d%c"];
+   "TP%d_%d%c", "TC%d_%d%c", "TV%d_%d%c", "TS%d_%d%c"]; %, "TCNA%d"];
 
 private variable Vector_Formats = 
   ["%dCTYP%d", "%dCUNI%d", "%dCRVL%d", "%dCDLT%d", "%dCRPX%d", 
-   "%dP%d_%d", "%dC%d_%d", "%dV%d_%d", "%dS%d_%d"];
+   "%dP%d_%d", "%dC%d_%d", "%dV%d_%d", "%dS%d_%d"];%, "%dCNA%d"];
 private variable Vector_Formats_Alt =
   ["%dCTY%d%c", "%dCUN%d%c", "%dCRV%d%c", "%dCDE%d%c", "%dCRP%d%c", 
-   "%dP%d_%d%c", "%dC%d_%d%c", "%dV%d_%d%c", "%dS%d_%d%c"];
+   "%dP%d_%d%c", "%dC%d_%d%c", "%dV%d_%d%c", "%dS%d_%d%c"];% "%dCNA%d%c"];
 
 % This structure defines a transformation of the following form:
 % 
@@ -390,8 +392,14 @@ define fitswcs_get_img_wcs ()
 %  an alternate WCS.
 %\example
 %#v+
-%   wcs = fitswcs_get_column_wcs ("evt1.fits[EVENTS]", ["X","Y"]);
+%   wcs = fitswcs_get_column_wcs ("evt1.fits[EVENTS]", ["Y","X"]);
 %#v-
+%\notes
+% If the intent is to bin the data in the binary table columns, then
+% it is best to specify the columns as \exmp{["Y", "X"]} and not the
+% other way around.  This is because the slang routines that deal with
+% images assumes that the slowest varying index corresponds to the
+% first one, whereas FITS assumes the opposite.
 %\seealso{fitswcs_put_column_wcs, fitswcs_get_img_wcs, fitswcs_get_vector_wcs}
 %!%-
 define fitswcs_get_column_wcs ()

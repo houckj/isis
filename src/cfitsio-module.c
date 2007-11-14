@@ -20,12 +20,16 @@ SLANG_MODULE(cfitsio);
 
 #include "version.h"
 
+/* This is a hack that works for all 32 and 64 bit systems that I know */
 #define SLANG_UINT16_TYPE SLANG_USHORT_TYPE
 #define SLANG_INT16_TYPE SLANG_SHORT_TYPE
+typedef int int16_type;
 #if SIZEOF_INT == 32
 # define SLANG_INT32_TYPE	SLANG_INT_TYPE
 # define SLANG_INT32_TYPE	SLANG_UINT_TYPE
+typedef int int32_type;
 #else
+typedef long int32_type;
 # define SLANG_INT32_TYPE	SLANG_LONG_TYPE
 # define SLANG_UINT32_TYPE	SLANG_LONG_TYPE
 #endif
@@ -53,7 +57,11 @@ static int map_fitsio_type_to_slang (int type, long *repeat, SLtype *stype)
       case TLONG:
 	*stype = SLANG_LONG_TYPE;
 	break;
-	
+#ifdef TLONGLONG
+      case TLONGLONG:
+	*stype = SLANG_LLONG_TYPE:
+	break;
+#endif
       case TSHORT:
 	*stype = SLANG_SHORT_TYPE;
 	break;
@@ -82,28 +90,31 @@ static int map_fitsio_type_to_slang (int type, long *repeat, SLtype *stype)
 	*stype = SLANG_UCHAR_TYPE;
 	break;
       case TBIT:
-	switch ((int)*repeat)
+	/* Make sure these all map to SIGNED types -- not unsigned.  This
+	 * way they will be written out as SIGNED types and avoid the
+	 * bit corruption that takes place when cfitsio adds, e.g., 0x7FFFFFFF
+	 * to push the value into the unsigned range.
+	 */
+	if (*repeat <= 8)
 	  {
-	     /* Make sure these all map to SIGNED types -- not unsigned.  This
-	      * way they will be written out as SIGNED types and avoid the
-	      * bit corruption that takes place when cfitsio adds, e.g., 0x7FFFFFFF
-	      * to push the value into the unsigned range.
-	      */
-	   case 32:
-	     *stype = SLANG_INT_TYPE;
-	     break;
-	   case 16:
-	     *stype = SLANG_SHORT_TYPE;
-	     break;
-	   case 8:
+	     *repeat = 1;
 	     *stype = SLANG_CHAR_TYPE;
 	     break;
-	   default:
-	     SLang_verror (SL_NOT_IMPLEMENTED, "bit type %ldX is not supported", *repeat);
-	     return -1;
 	  }
-	*repeat = 1;
-	break;
+	if (*repeat <= 16)
+	  {
+	     *repeat = 1;
+	     *stype = SLANG_INT16_TYPE;
+	     break;
+	  }
+	if (*repeat <= 32)
+	  {
+	     *repeat = 1;
+	     *stype = SLANG_INT32_TYPE;
+	     break;
+	  }
+	SLang_verror (SL_NOT_IMPLEMENTED, "bit type %ldX is not supported", *repeat);
+	return -1;
 
       case TSTRING:
 	*stype = SLANG_STRING_TYPE;
@@ -426,7 +437,12 @@ static int write_img (FitsFile_Type *ft, SLang_Array_Type *at)
       case SLANG_LONG_TYPE:
 	type = TLONG;
 	break;
-	
+
+#ifdef TLONGLONG	
+      case SLANG_LLONG_TYPE:
+	type = TLONGLONG;
+	break;
+#endif
       case SLANG_UINT_TYPE:
 	type = TUINT;
 	break;
@@ -497,7 +513,14 @@ static int read_img (FitsFile_Type *ft, SLang_Ref_Type *ref)
 	stype = SLANG_ULONG_TYPE;
 	type = TULONG;
 	break;
-	
+
+#ifdef TLONGLONG
+      case LONGLONG_IMG:
+	stype = SLANG_LLONG_TYPE;
+	type = TLONGLONG;
+	break;
+#endif
+
       case DOUBLE_IMG:
 	stype = SLANG_DOUBLE_TYPE;
 	type = TDOUBLE;
@@ -1418,6 +1441,12 @@ static int write_col (FitsFile_Type *ft, int *colnum,
 	type = TLONG;
 	break;
 
+#ifdef TLONGLONG
+      case SLANG_LLONG_TYPE:
+	type = TLONGLONG;
+	break;
+#endif
+
       case SLANG_DOUBLE_TYPE:
 	type = TDOUBLE;
 	break;
@@ -1531,7 +1560,8 @@ static int read_string_column (fitsfile *f, int is_var, long repeat,
 
 static int read_bit_column (fitsfile *f, unsigned int col, unsigned int row,
 			    unsigned int firstelem, unsigned int num_elements,
-			    unsigned char *data, unsigned int bytes_per_elem)
+			    unsigned char *data, unsigned int bytes_per_elem,
+			    unsigned int bits_per_elem)
 {
    int status, anynul;
    unsigned short s;
@@ -1552,15 +1582,37 @@ static int read_bit_column (fitsfile *f, unsigned int col, unsigned int row,
    /* Otherwise, byteswap */
    switch (bytes_per_elem)
      {
+	SLuindex_Type i;
+	int shift;
+	int16_type *data16;
+	int32_type *data32;
+
       case 1:
+	shift = 8*bytes_per_elem - bits_per_elem;
+	if (shift) for (i = 0; i < num_elements; i++)
+	  {
+	     data[i] = (data[i] >> shift);
+	  }
 	break;
 
       case 2:
 	byte_swap16 (data, num_elements);
+	shift = 8*bytes_per_elem - bits_per_elem;
+	data16 = (int16_type *)data;
+	if (shift) for (i = 0; i < num_elements; i++)
+	  {
+	     data16[i] = (data16[i] >> shift);
+	  }
 	break;
 	
       case 4:
 	byte_swap32 (data, num_elements);
+	shift = 8*bytes_per_elem - bits_per_elem;
+	data32 = (int32_type *)data;
+	if (shift) for (i = 0; i < num_elements; i++)
+	  {
+	     data32[i] = (data32[i] >> shift);
+	  }
 	break;
 	
       default:
@@ -1569,6 +1621,7 @@ static int read_bit_column (fitsfile *f, unsigned int col, unsigned int row,
 	return -1;
      }
    
+	
    return 0;
 }
 
@@ -1576,7 +1629,7 @@ static int read_bit_column (fitsfile *f, unsigned int col, unsigned int row,
 			    
 static int read_column_values (fitsfile *f, int type, unsigned char datatype,
 			       unsigned int row, unsigned int col, unsigned int num_rows,
-			       int repeat, SLang_Array_Type **atp)
+			       int repeat, int repeat_orig, SLang_Array_Type **atp)
 {
    int num_elements;
    int status = 0;
@@ -1610,7 +1663,7 @@ static int read_column_values (fitsfile *f, int type, unsigned char datatype,
    if (num_elements)
      {
 	if (type == TBIT)
-	  status = read_bit_column (f, col, row, 1, num_elements, (unsigned char *)at->data, at->sizeof_type);
+	  status = read_bit_column (f, col, row, 1, num_elements, (unsigned char *)at->data, at->sizeof_type, repeat_orig);
 	else
 	  (void) fits_read_col (f, type, col, row, 1, num_elements, NULL, 
 				at->data, &anynul, &status);
@@ -1659,8 +1712,8 @@ static int read_var_column (fitsfile *f, int ftype, SLtype datatype,
 	     SLang_free_array (at);
 	     return status;
 	  }
-	
-	status = read_column_values (f, ftype, datatype, row, col, 1, repeat, ati+i);
+
+	status = read_column_values (f, ftype, datatype, row, col, 1, repeat, repeat, ati+i);
 	if (status)
 	  {
 	     SLang_free_array (at);
@@ -1683,7 +1736,7 @@ static int read_col (FitsFile_Type *ft, int *colnum, int *firstrowp,
    SLtype datatype;
    int num_columns;
    int firstrow;
-   long repeat;
+   long repeat, save_repeat;
    int col;
    
    if (ft->fptr == NULL)
@@ -1724,6 +1777,7 @@ static int read_col (FitsFile_Type *ft, int *colnum, int *firstrowp,
    if (0 != GET_COL_TYPE (ft->fptr, col, &type, &repeat, &width, &status))
      return status;
 
+   save_repeat = repeat;
    if (-1 == map_fitsio_type_to_slang (type, &repeat, &datatype))
      return -1;
    
@@ -1743,7 +1797,7 @@ static int read_col (FitsFile_Type *ft, int *colnum, int *firstrowp,
    else if (type < 0)
      status = read_var_column (ft->fptr, -type, datatype, col, firstrow, num_rows, &at);
    else
-     status = read_column_values (ft->fptr, type, datatype, firstrow, col, num_rows, repeat, &at);
+     status = read_column_values (ft->fptr, type, datatype, firstrow, col, num_rows, repeat, save_repeat, &at);
 
    if (status)
      return status;
@@ -1759,6 +1813,7 @@ typedef struct
 {
    int type;
    long repeat, width;
+   long repeat_orig;		       /* used for tbit columns */
    SLtype datatype;
    unsigned int data_offset;
 }
@@ -1781,7 +1836,7 @@ static int read_var_column_data (fitsfile *f, int ftype, SLtype datatype,
 	if (0 != fits_read_descript (f, col, row, &repeat, &offset, &status))
 	  return status;
 
-	status = read_column_values (f, ftype, datatype, row, col, 1, repeat, at_data+i);
+	status = read_column_values (f, ftype, datatype, row, col, 1, repeat, repeat, at_data+i);
 	if (status)
 	  return status;
      }
@@ -1909,6 +1964,7 @@ static int read_cols (void)
 	if (0 != GET_COL_TYPE (f, col, &type, &repeat, &ci[i].width, &status))
 	  goto free_and_return_status;
 
+	ci[i].repeat_orig = repeat;
 	if (-1 == map_fitsio_type_to_slang (type, &repeat, &datatype))
 	  {
 	     status = -1;
@@ -1924,7 +1980,15 @@ static int read_cols (void)
 	     at = SLang_create_array (SLANG_STRING_TYPE, 0, NULL, &num_rows, 1);
 	  }
 	else if (type < 0)	       /* variable length */
-	  at = SLang_create_array (SLANG_ARRAY_TYPE, 0, NULL, &num_rows, 1);
+	  {
+	     if (-type == TBIT)
+	       {
+		  SLang_verror (SL_NOT_IMPLEMENTED, "Read bit-data from the heap is not supported.  Please report this problem");
+		  status = -1;
+		  goto free_and_return_status;
+	       }
+	     at = SLang_create_array (SLANG_ARRAY_TYPE, 0, NULL, &num_rows, 1);
+	  }
 	else 
 	  {
 	     int dims[2];
@@ -1994,7 +2058,7 @@ static int read_cols (void)
 		  /* int anynul; */
 
 		  if (type == TBIT)
-		    status = read_bit_column (f, col, firstrow, 1, num_elements, data, at->sizeof_type);
+		    status = read_bit_column (f, col, firstrow, 1, num_elements, data, at->sizeof_type, ci[i].repeat_orig);
 		  else
 		    (void) fits_read_col (f, type, col, firstrow, 1, num_elements, NULL,
 					  data, NULL, &status);

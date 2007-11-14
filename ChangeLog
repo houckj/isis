@@ -1,3 +1,17 @@
+2007-10-3  John E. Davis  <davis@space.mit.edu>
+
+	* src/cfitsio-module.c: Started adding support for LONGLONG.
+
+2007-9-18  John E. Davis  <davis@space.mit.edu>
+
+	* src/cfitsio-module.c (map_fitsio_type_to_slang): improved
+	  support for bit columns that are not a multiple of 8.
+
+2007-5-15  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (_fits_sl_version_string): bumped to 0.4.3-1
+	(fits_read_key): call _fits_clear_errmsg if status==_FITS_KEY_NO_EXIST.
+
 2007-4-19  John E. Davis  <davis@space.mit.edu>
 
         * src/fits.sl: (_fits_sl_version_string): bumped to 0.4.2-0

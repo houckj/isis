@@ -22,7 +22,7 @@
 import ("cfitsio");
 
 variable _fits_sl_version = 403;
-variable _fits_sl_version_string = "0.4.3-0";
+variable _fits_sl_version_string = "0.4.3-1";
 
 private variable Verbose = 1;
 % Forward declarations
@@ -905,7 +905,10 @@ define fits_read_key ()
 	variable value, status;
 	status = _fits_read_key (fp, key, &value, NULL);
 	if (status == _FITS_KEY_NO_EXIST)
-	  value = NULL;
+	  {
+	     value = NULL;
+	     _fits_clear_errmsg ();
+	  }
 	else if (status)
 	  do_fits_error (status, key);
 
@@ -918,7 +921,7 @@ define fits_read_key ()
 %!%+
 %\function{fits_read_key_struct}
 %\synopsis{Read one or more keywords from a FITS file}
-%\usage{struct = fits_read_key (file, key1, ...)}
+%\usage{struct = fits_read_key_struct (file, key1, ...)}
 %#v+
 %    Fits_File_Type or String_Type file;
 %    String_Type key1, ...;
@@ -1253,12 +1256,35 @@ define fits_write_binary_table ()
    if (keyfunc != NULL)
      (@keyfunc)(fp, __push_args(keyfunc_args));
 
+#iffalse
    _for (0, ncols-1, 1)
      {
 	i = ();
 	val = get_struct_field (s, ttype[i]);
 	do_fits_error (_fits_write_col (fp, i+1, 1, 1, val));
      }
+#else
+   variable r = 1;
+   variable drows = 10;
+   while (r <= nrows)
+     {
+	variable r1 = r + nrows;
+	if (r1 >= nrows)
+	  r1 = nrows-1;
+	
+	variable k = [r:r1];
+	
+	_for (0, ncols-1, 1)
+	  {
+	     i = ();
+	     val = get_struct_field (s, ttype[i]);
+	     do_fits_error (_fits_write_col (fp, i+1, r, 1, val));
+	  }
+	
+	r = r1 + 1;
+     }
+
+#endif
    
    do_close_file (fp, needs_close);
 }
@@ -1325,7 +1351,7 @@ define fits_update_key ()
 	nargs++;
      }
 
-   do_write_xxx (&_fits_update_key, 4);
+   do_write_xxx (&_fits_update_key, nargs);
 }
 
 %!%+
