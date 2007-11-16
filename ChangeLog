@@ -1,3 +1,7 @@
+2007-11-16  John E. Davis  <davis@space.mit.edu>
+
+	* src/version.h (MODULE_VERSION_NUMBER): Changed to 0.3.9
+
 2007-10-3  John E. Davis  <davis@space.mit.edu>
 
 	* src/cfitsio-module.c: Started adding support for LONGLONG.
