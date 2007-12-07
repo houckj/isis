@@ -59,7 +59,7 @@ static int map_fitsio_type_to_slang (int type, long *repeat, SLtype *stype)
 	break;
 #ifdef TLONGLONG
       case TLONGLONG:
-	*stype = SLANG_LLONG_TYPE:
+	*stype = SLANG_LLONG_TYPE;
 	break;
 #endif
       case TSHORT:

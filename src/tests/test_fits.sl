@@ -101,7 +101,7 @@ private define test_bt (filename)
    data.u32 = uint16s;
    fits_write_binary_table (filename, "FOO", data);
    
-   variable delete = 1;
+   variable delete = 0;
 
    variable table = fits_read_table (filename + "[FOO]");
    if (0 == is_identical (table.u16, data.u16))

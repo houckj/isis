@@ -1,3 +1,9 @@
+2007-12-7  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (fits_write_binary_table): Fixed infinite loop
+	  bug in fits_write_binary_table
+	(_fits_sl_version_string): bumped to 0.4.3-2
+
 2007-11-16  John E. Davis  <davis@space.mit.edu>
 
 	* src/version.h (MODULE_VERSION_NUMBER): Changed to 0.3.9

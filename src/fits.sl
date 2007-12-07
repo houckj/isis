@@ -22,7 +22,7 @@
 import ("cfitsio");
 
 variable _fits_sl_version = 403;
-variable _fits_sl_version_string = "0.4.3-1";
+variable _fits_sl_version_string = "0.4.3-2";
 
 private variable Verbose = 1;
 % Forward declarations
@@ -1264,26 +1264,24 @@ define fits_write_binary_table ()
 	do_fits_error (_fits_write_col (fp, i+1, 1, 1, val));
      }
 #else
-   variable r = 1;
+   variable r = 0;
    variable drows = 10;
-   while (r <= nrows)
+   while (r < nrows)
      {
 	variable r1 = r + nrows;
-	if (r1 >= nrows)
-	  r1 = nrows-1;
+	if (r1 > nrows)
+	  r1 = nrows;
 	
-	variable k = [r:r1];
+	variable k = [r:r1-1];
 	
 	_for (0, ncols-1, 1)
 	  {
 	     i = ();
 	     val = get_struct_field (s, ttype[i]);
-	     do_fits_error (_fits_write_col (fp, i+1, r, 1, val));
+	     do_fits_error (_fits_write_col (fp, i+1, r+1, 1, val[k]));
 	  }
-	
-	r = r1 + 1;
+	r = r1;
      }
-
 #endif
    
    do_close_file (fp, needs_close);
