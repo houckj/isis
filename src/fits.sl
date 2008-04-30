@@ -22,7 +22,7 @@
 import ("cfitsio");
 
 variable _fits_sl_version = 403;
-variable _fits_sl_version_string = "0.4.3-2";
+variable _fits_sl_version_string = "0.4.3-3";
 
 private variable Verbose = 1;
 % Forward declarations
@@ -1114,6 +1114,40 @@ private define add_keys_and_history_func (fp, keys, history)
      }
 }
 
+private define shape_columns_before_write (s, ncols, ttype)
+{
+   variable reshapes_to = Array_Type[ncols];
+   variable ndims, dims;
+
+   _for (0, ncols-1, 1)
+     {
+	variable i = ();
+	variable val = get_struct_field (s, ttype[i]);
+	(dims,ndims,) = array_info (val);
+	if (ndims > 1)
+	  {
+	     variable dim_0 = dims[0];
+	     if (dim_0 != 0)
+	       {
+		  reshape (val, [dim_0, length(val)/dim_0]);
+		  reshapes_to[i] = dims;
+	       }
+	  }
+     }
+   return reshapes_to;
+}
+
+private define unshape_columns_after_write (s, ncols, ttype, reshapes_to)
+{
+   _for (0, ncols-1, 1)
+     {
+	variable i = ();
+	if (reshapes_to[i] == NULL)
+	  continue;
+
+	reshape (get_struct_field (s, ttype[i]), reshapes_to[i]);
+     }
+}	
 
 define fits_write_binary_table ()
 {
@@ -1264,23 +1298,44 @@ define fits_write_binary_table ()
 	do_fits_error (_fits_write_col (fp, i+1, 1, 1, val));
      }
 #else
-   variable r = 0;
-   variable drows = 10;
-   while (r < nrows)
+   
+   variable reshapes_to = shape_columns_before_write (s, ncols, ttype);
+
+# ifeval (_slang_version >= 20000)
+   try
      {
-	variable r1 = r + nrows;
-	if (r1 > nrows)
-	  r1 = nrows;
-	
-	variable k = [r:r1-1];
-	
-	_for (0, ncols-1, 1)
+# else
+	ERROR_BLOCK
 	  {
-	     i = ();
-	     val = get_struct_field (s, ttype[i]);
-	     do_fits_error (_fits_write_col (fp, i+1, r+1, 1, val[k]));
+	     unshape_columns_after_write (s, ncols, ttype, reshapes_to);
 	  }
-	r = r1;
+# endif
+	variable r = 0;
+	variable drows = 10;
+	while (r < nrows)
+	  {
+	     variable r1 = r + nrows;
+	     if (r1 > nrows)
+	       r1 = nrows;
+	
+	     variable k = [r:r1-1];
+	     
+	     _for (0, ncols-1, 1)
+	       {
+		  i = ();
+		  val = get_struct_field (s, ttype[i]);
+		  if (reshapes_to[i] == NULL)
+		    do_fits_error (_fits_write_col (fp, i+1, r+1, 1, val[k]));
+		  else
+		    do_fits_error (_fits_write_col (fp, i+1, r+1, 1, val[k,*]));
+	       }
+	     r = r1;
+	  }
+#ifeval (_slang_version >= 20000)
+     }
+   finally
+     {
+	unshape_columns_after_write (s, ncols, ttype, reshapes_to);
      }
 #endif
    

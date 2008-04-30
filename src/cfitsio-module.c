@@ -378,6 +378,9 @@ static int create_img (FitsFile_Type *ft, int *bitpix,
    unsigned int i, imax;
    int status = 0;
    
+   if (ft->fptr == NULL)
+     return -1;
+
    if (at_naxes->data_type != SLANG_INT_TYPE)
      {
 	SLang_verror (SL_TYPE_MISMATCH,
@@ -1318,6 +1321,9 @@ static int my_fits_get_coltype (fitsfile *fptr, int col, int *type,
    double tscal, tzero;
    double min_val, max_val;
 
+   if (ft->fptr == NULL)
+     return -1;
+
    if (0 != fits_get_coltype (fptr, col, type, repeat, width, &status))
      {
 	*statusp = status;
@@ -1905,7 +1911,11 @@ static int read_cols (void)
 	SLang_free_ref (ref);
 	return -1;
      }
+
+   status = -1;
    f = ft->fptr;
+   if (f == NULL)
+     goto free_and_return_status;
 
    status = 0;
    if ((0 != fits_get_num_cols (f, &num_columns_in_table, &status))
@@ -2224,6 +2234,9 @@ static int get_chksum (FitsFile_Type *f, SLang_Ref_Type *datasum, SLang_Ref_Type
    int status = 0;
    unsigned long dsum, hsum;
 
+   if (f->fptr == NULL)
+     return -1;
+
    if (0 == fits_get_chksum (f->fptr, &dsum, &hsum, &status))
      {
 	if ((-1 == SLang_assign_to_ref (datasum, SLANG_ULONG_TYPE, (VOID_STAR)&dsum))
@@ -2231,6 +2244,26 @@ static int get_chksum (FitsFile_Type *f, SLang_Ref_Type *datasum, SLang_Ref_Type
 	  status = -1;
      }
    return status;
+}
+
+static int set_bscale (FitsFile_Type *f, double *scale, double *zero)
+{
+   int status = 0;
+
+   if (f->fptr == NULL)
+     return -1;
+   
+   return fits_set_bscale (f->fptr, *scale, *zero, &status);
+}
+
+static int set_tscale (FitsFile_Type *f, int *colp, double *scale, double *zero)
+{
+   int status = 0;
+
+   if (f->fptr == NULL)
+     return -1;
+   
+   return fits_set_tscale (f->fptr, *colp, *scale, *zero, &status);
 }
 
 /* DUMMY_FITS_FILE_TYPE is a temporary hack that will be modified to the true
@@ -2245,6 +2278,8 @@ static int get_chksum (FitsFile_Type *f, SLang_Ref_Type *datasum, SLang_Ref_Type
 #define R SLANG_REF_TYPE
 #define A SLANG_ARRAY_TYPE
 #define T SLANG_DATATYPE_TYPE
+#define D SLANG_DOUBLE_TYPE
+
 
 static SLang_Intrin_Fun_Type Fits_Intrinsics [] = 
 {
@@ -2307,6 +2342,8 @@ static SLang_Intrin_Fun_Type Fits_Intrinsics [] =
    MAKE_INTRINSIC_1("_fits_get_keyclass", get_keyclass, I, S),
    
    MAKE_INTRINSIC_0("_fits_read_cols", read_cols, I),
+   MAKE_INTRINSIC_3("_fits_set_bscale", set_bscale, I, F, D, D),
+   MAKE_INTRINSIC_4("_fits_set_tscale", set_tscale, I, F, I, D, D),
 
    /* checksum routines */
    MAKE_INTRINSIC_1("_fits_write_chksum", write_chksum, I, F),

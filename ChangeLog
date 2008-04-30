@@ -1,3 +1,12 @@
+2008-4-29  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (_fits_sl_version_string): Bumped to 0.4.3-3
+
+2008-1-24  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (fits_write_binary_table): Bug fixed when
+	  writing vector columns.
+
 2007-12-7  John E. Davis  <davis@space.mit.edu>
 
 	* src/fits.sl (fits_write_binary_table): Fixed infinite loop
