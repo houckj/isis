@@ -111,10 +111,10 @@ private define test_bt (filename)
      }
    if (0 == is_identical (table.u32, data.u32))
      {
-	warn ("testbt: failed to read/write an unsigned 16 bit column");
+	warn ("testbt: failed to read/write an unsigned 32 bit column");
 	delete = 0;
      }
-   
+
    if (delete) 
      () = remove (filename);
 }

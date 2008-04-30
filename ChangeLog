@@ -1,5 +1,10 @@
 2008-4-29  John E. Davis  <davis@space.mit.edu>
 
+	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.4.1
+
+	* src/cfitsio-module.c (FitsFile_Type): I was using SIZEOF_INT
+	  as bits rather than bytes.  Gr....
+
 	* src/fits.sl (_fits_sl_version_string): Bumped to 0.4.3-3
 
 2008-1-24  John E. Davis  <davis@space.mit.edu>

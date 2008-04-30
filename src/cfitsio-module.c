@@ -24,9 +24,9 @@ SLANG_MODULE(cfitsio);
 #define SLANG_UINT16_TYPE SLANG_USHORT_TYPE
 #define SLANG_INT16_TYPE SLANG_SHORT_TYPE
 typedef int int16_type;
-#if SIZEOF_INT == 32
+#if SIZEOF_INT == 4
 # define SLANG_INT32_TYPE	SLANG_INT_TYPE
-# define SLANG_INT32_TYPE	SLANG_UINT_TYPE
+# define SLANG_UINT32_TYPE	SLANG_UINT_TYPE
 typedef int int32_type;
 #else
 typedef long int32_type;
