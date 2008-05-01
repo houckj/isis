@@ -61,7 +61,7 @@ all: $(MODULES)
 #---------------------------------------------------------------------------
 # Put Rules to create the modules here
 #---------------------------------------------------------------------------
-cfitsio-module.so: cfitsio-module.c
+cfitsio-module.so: cfitsio-module.c version.h
 	$(CC_SHARED) $(INCS) cfitsio-module.c -o cfitsio-module.so $(LIBS)
 #---------------------------------------------------------------------------
 # Regression tests

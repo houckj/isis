@@ -1,3 +1,12 @@
+2008-5-1  John E. Davis  <davis@space.mit.edu>
+
+	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.4.2
+
+	* src/cfitsio-module.c (FitsFile_Type): Made changes to use
+	  the physical integer sizes where possible instead of the
+	  confusing cfitsio types, e.g., INT32_TYPE instead of TLONG.
+	  The changes reduces the memory usage on 64 bit systems.
+
 2008-4-29  John E. Davis  <davis@space.mit.edu>
 
 	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.4.1

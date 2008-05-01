@@ -21,17 +21,33 @@ SLANG_MODULE(cfitsio);
 #include "version.h"
 
 /* This is a hack that works for all 32 and 64 bit systems that I know */
-#define SLANG_UINT16_TYPE SLANG_USHORT_TYPE
-#define SLANG_INT16_TYPE SLANG_SHORT_TYPE
-typedef int int16_type;
+/* The CFITSIO_INT*_TYPE objects must refer to the corresponding C type
+ * and have the approriate length.
+ */
+#if SIZEOF_SHORT == 2
+# define SLANG_UINT16_TYPE SLANG_USHORT_TYPE
+# define SLANG_INT16_TYPE SLANG_SHORT_TYPE
+# define CFITSIO_INT16_TYPE	TSHORT
+# define CFITSIO_UINT16_TYPE	TUSHORT
+typedef short int16_type;
+#endif
+
 #if SIZEOF_INT == 4
 # define SLANG_INT32_TYPE	SLANG_INT_TYPE
 # define SLANG_UINT32_TYPE	SLANG_UINT_TYPE
+# define CFITSIO_INT32_TYPE	TINT
+# define CFITSIO_UINT32_TYPE	TUINT
 typedef int int32_type;
-#else
-typedef long int32_type;
-# define SLANG_INT32_TYPE	SLANG_LONG_TYPE
-# define SLANG_UINT32_TYPE	SLANG_LONG_TYPE
+#endif
+
+#ifdef TLONGLONG
+# if (SIZEOF_LONG == 8)
+#  define SLANG_INT64_TYPE	SLANG_LONG_TYPE
+#  define CFITSIO_INT64_TYPE	TLONG
+# else
+#  define SLANG_INT64_TYPE	SLANG_LLONG_TYPE
+#  define CFITSIO_INT64_TYPE	TLONGLONG
+# endif
 #endif
 
 typedef struct
@@ -42,47 +58,58 @@ FitsFile_Type;
 
 static SLtype Fits_Type_Id = 0;
 
-static int map_fitsio_type_to_slang (int type, long *repeat, SLtype *stype)
+static int map_fitsio_type_to_slang (int *typep, long *repeat, SLtype *stype)
 {
+   int type = *typep;
+   int sgn = (type < 0) ? -1 : 1;
+
    /* Variable length objects have negative type values */
-   if (type < 0)
+   if (sgn == -1)
      type = -type;
 
    switch (type)
      {
+      case TSHORT:		       /* cfitsio 16 bit type */
+	*stype = SLANG_INT16_TYPE;
+	*typep = sgn * CFITSIO_INT16_TYPE;
+	break;
+
+      case TUSHORT:		       /* cfitsio 16 bit type */
+	*stype = SLANG_UINT16_TYPE;
+	*typep = sgn * CFITSIO_UINT16_TYPE;
+	break;
+
       case TINT:
 	*stype = SLANG_INT_TYPE;
 	break;
-	
-      case TLONG:
-	*stype = SLANG_LONG_TYPE;
-	break;
-#ifdef TLONGLONG
-      case TLONGLONG:
-	*stype = SLANG_LLONG_TYPE;
+
+#ifdef TUINT	
+      case TUINT:
+	*stype = SLANG_UINT_TYPE;
 	break;
 #endif
-      case TSHORT:
-	*stype = SLANG_SHORT_TYPE;
+
+      case TLONG:		       /* cfitsio 32 bit value */
+	*stype = SLANG_INT32_TYPE;
+	*typep = sgn * CFITSIO_INT32_TYPE;
 	break;
-	
+
+      case TULONG:
+	*stype = SLANG_UINT32_TYPE;
+	*typep = sgn * CFITSIO_UINT32_TYPE;
+	break;
+
+#ifdef TLONGLONG
+      case TLONGLONG:
+	*stype = SLANG_INT64_TYPE;
+	break;
+#endif
       case TDOUBLE:
 	*stype = SLANG_DOUBLE_TYPE;
 	break;
 	
       case TFLOAT:
 	*stype = SLANG_FLOAT_TYPE;
-	break;
-#ifdef TUINT	
-      case TUINT:
-	*stype = SLANG_UINT_TYPE;
-	break;
-#endif
-      case TUSHORT:
-	*stype = SLANG_USHORT_TYPE;
-	break;
-      case TULONG:
-	*stype = SLANG_ULONG_TYPE;
 	break;
 
       case TLOGICAL:
@@ -423,40 +450,30 @@ static int write_img (FitsFile_Type *ft, SLang_Array_Type *at)
       case SLANG_FLOAT_TYPE:
 	type = TFLOAT;
 	break;
-	
-      case SLANG_SHORT_TYPE:
-	type = TSHORT;
+
+      case SLANG_INT16_TYPE:
+	type = CFITSIO_INT16_TYPE;
 	break;
 	
+      case SLANG_UINT16_TYPE:
+	type = CFITSIO_UINT16_TYPE;
+
+      case SLANG_INT32_TYPE:
+	type = CFITSIO_INT32_TYPE;
+	break;
+	
+      case SLANG_UINT32_TYPE:
+	type = CFITSIO_UINT32_TYPE;
+
       case SLANG_CHAR_TYPE:
       case SLANG_UCHAR_TYPE:
 	type = TBYTE;
 	break;
 
-      case SLANG_INT_TYPE:
-	type = TINT;
-	break;
-
-      case SLANG_LONG_TYPE:
-	type = TLONG;
-	break;
-
-#ifdef TLONGLONG	
-      case SLANG_LLONG_TYPE:
-	type = TLONGLONG;
-	break;
+#ifdef SLANG_INT64_TYPE
+      case SLANG_INT64_TYPE:
+	type = CFITSIO_INT64_TYPE;
 #endif
-      case SLANG_UINT_TYPE:
-	type = TUINT;
-	break;
-	
-      case SLANG_USHORT_TYPE:
-	type = TUSHORT;
-	break;
-	
-      case SLANG_ULONG_TYPE:
-	type = TULONG;
-	break;
 
       default:
 	SLang_verror (SL_NOT_IMPLEMENTED,
@@ -498,29 +515,29 @@ static int read_img (FitsFile_Type *ft, SLang_Ref_Type *ref)
 	break;
 	
       case SHORT_IMG:		       /* 16 bit image */
-	stype = SLANG_SHORT_TYPE;
-	type = TSHORT;		       /* C short */
+	stype = SLANG_INT16_TYPE;
+	type = CFITSIO_INT16_TYPE;
 	break;
 	
-      case USHORT_IMG:
-	stype = SLANG_SHORT_TYPE;
-	type = TUSHORT;
+      case USHORT_IMG:		       /* 16 bit image */
+	stype = SLANG_UINT16_TYPE;
+	type = CFITSIO_UINT16_TYPE;
 	break;
 	
-      case LONG_IMG:
-	stype = SLANG_LONG_TYPE;
-	type = TLONG;
+      case LONG_IMG:		       /* 32 bit image */
+	stype = SLANG_INT32_TYPE;
+	type = CFITSIO_INT32_TYPE;
 	break;
 
-      case ULONG_IMG:
-	stype = SLANG_ULONG_TYPE;
-	type = TULONG;
+      case ULONG_IMG:		       /* 32 bit image */
+	stype = SLANG_UINT32_TYPE;
+	type = CFITSIO_UINT32_TYPE;
 	break;
 
 #ifdef TLONGLONG
-      case LONGLONG_IMG:
-	stype = SLANG_LLONG_TYPE;
-	type = TLONGLONG;
+      case LONGLONG_IMG:	       /* 64 bit image */
+	stype = SLANG_INT64_TYPE;
+	type = CFITSIO_INT64_TYPE;
 	break;
 #endif
 
@@ -1423,33 +1440,21 @@ static int write_col (FitsFile_Type *ft, int *colnum,
 
    switch (at->data_type)
      {
-      case SLANG_USHORT_TYPE:
-	type = TUSHORT;
+      case SLANG_INT16_TYPE:
+	type = CFITSIO_INT16_TYPE;
 	break;
-
-      case SLANG_SHORT_TYPE:
-	type = TSHORT;
+      case SLANG_UINT16_TYPE:
+	type = CFITSIO_UINT16_TYPE;
 	break;
-
-      case SLANG_UINT_TYPE:
-	type = TUINT;
+      case SLANG_INT32_TYPE:
+	type = CFITSIO_INT32_TYPE;
 	break;
-
-      case SLANG_INT_TYPE:
-	type = TINT;
+      case SLANG_UINT32_TYPE:
+	type = CFITSIO_INT32_TYPE;
 	break;
-
-      case SLANG_ULONG_TYPE:
-	type = TULONG;
-	break;
-
-      case SLANG_LONG_TYPE:
-	type = TLONG;
-	break;
-
-#ifdef TLONGLONG
-      case SLANG_LLONG_TYPE:
-	type = TLONGLONG;
+#ifdef CFITSIO_INT64_TYPE
+      case SLANG_INT64_TYPE:
+	type = CFITSIO_INT64_TYPE;
 	break;
 #endif
 
@@ -1633,7 +1638,7 @@ static int read_bit_column (fitsfile *f, unsigned int col, unsigned int row,
 
 			   
 			    
-static int read_column_values (fitsfile *f, int type, unsigned char datatype,
+static int read_column_values (fitsfile *f, int type, SLtype datatype,
 			       unsigned int row, unsigned int col, unsigned int num_rows,
 			       int repeat, int repeat_orig, SLang_Array_Type **atp)
 {
@@ -1784,7 +1789,7 @@ static int read_col (FitsFile_Type *ft, int *colnum, int *firstrowp,
      return status;
 
    save_repeat = repeat;
-   if (-1 == map_fitsio_type_to_slang (type, &repeat, &datatype))
+   if (-1 == map_fitsio_type_to_slang (&type, &repeat, &datatype))
      return -1;
    
    
@@ -1975,7 +1980,7 @@ static int read_cols (void)
 	  goto free_and_return_status;
 
 	ci[i].repeat_orig = repeat;
-	if (-1 == map_fitsio_type_to_slang (type, &repeat, &datatype))
+	if (-1 == map_fitsio_type_to_slang (&type, &repeat, &datatype))
 	  {
 	     status = -1;
 	     goto free_and_return_status;

@@ -99,6 +99,7 @@ private define test_bt (filename)
    variable data = struct {u16, u32};
    data.u16 = uint16s;
    data.u32 = uint16s;
+
    fits_write_binary_table (filename, "FOO", data);
    
    variable delete = 0;
@@ -114,13 +115,12 @@ private define test_bt (filename)
 	warn ("testbt: failed to read/write an unsigned 32 bit column");
 	delete = 0;
      }
-
    if (delete) 
      () = remove (filename);
 }
 
-test_img ("testimg.fit");
 test_bt ("testbt.fit");
+test_img ("testimg.fit");
 
 if (Failed == 0)
   message ("Passed");
