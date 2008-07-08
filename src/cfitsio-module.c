@@ -457,6 +457,7 @@ static int write_img (FitsFile_Type *ft, SLang_Array_Type *at)
 	
       case SLANG_UINT16_TYPE:
 	type = CFITSIO_UINT16_TYPE;
+	break;
 
       case SLANG_INT32_TYPE:
 	type = CFITSIO_INT32_TYPE;
@@ -464,6 +465,7 @@ static int write_img (FitsFile_Type *ft, SLang_Array_Type *at)
 	
       case SLANG_UINT32_TYPE:
 	type = CFITSIO_UINT32_TYPE;
+	break;
 
       case SLANG_CHAR_TYPE:
       case SLANG_UCHAR_TYPE:
@@ -473,6 +475,7 @@ static int write_img (FitsFile_Type *ft, SLang_Array_Type *at)
 #ifdef SLANG_INT64_TYPE
       case SLANG_INT64_TYPE:
 	type = CFITSIO_INT64_TYPE;
+	break;
 #endif
 
       default:
@@ -1450,7 +1453,7 @@ static int write_col (FitsFile_Type *ft, int *colnum,
 	type = CFITSIO_INT32_TYPE;
 	break;
       case SLANG_UINT32_TYPE:
-	type = CFITSIO_INT32_TYPE;
+	type = CFITSIO_UINT32_TYPE;
 	break;
 #ifdef CFITSIO_INT64_TYPE
       case SLANG_INT64_TYPE:

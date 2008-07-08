@@ -1,6 +1,6 @@
 #define MODULE_MAJOR_VERSION	0
 #define MODULE_MINOR_VERSION	4
-#define MODULE_PATCH_LEVEL      2
+#define MODULE_PATCH_LEVEL      3
 #define MKSTR1(x) #x
 #define MKSTR(x) MKSTR1(x)
 static char *Module_Version_String = MKSTR(MODULE_MAJOR_VERSION) "." \

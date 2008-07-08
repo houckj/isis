@@ -1,3 +1,10 @@
+2008-6-12  John E. Davis  <davis@space.mit.edu>
+
+	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.4.3
+
+	* src/cfitsio-module.c (write_col): unsigned ints were getting
+	  written as ints, causing integer overflows.
+
 2008-5-1  John E. Davis  <davis@space.mit.edu>
 
 	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.4.2
