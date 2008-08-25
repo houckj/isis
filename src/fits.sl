@@ -1,4 +1,4 @@
-%    Copyright (C) 1998-2007 Massachusetts Institute of Technology
+%    Copyright (C) 1998-2008 Massachusetts Institute of Technology
 %
 %    Author:  John E. Davis <davis@space.mit.edu>
 %
@@ -21,8 +21,8 @@
 %else
 import ("cfitsio");
 
-variable _fits_sl_version = 403;
-variable _fits_sl_version_string = "0.4.3-3";
+variable _fits_sl_version = 404;
+variable _fits_sl_version_string = "0.4.4-0";
 
 private variable Verbose = 1;
 % Forward declarations
@@ -592,15 +592,15 @@ private define read_cols (fp, columns, first_row, last_row)
      first_row += (1+numrows);
    if (last_row < 0)
      last_row += (1+numrows);
-   
-   if ((first_row <= 0) or (last_row <= 0)
-       or (first_row > numrows) or (last_row > numrows))
-     verror ("Invalid first or last row parameters");
 
+   variable want_num_rows = last_row - first_row + 1;
+   if ((first_row <= 0) or (last_row < 0)
+       or (want_num_rows > numrows) or (want_num_rows < 0))
+     throw FitsError, "Invalid first or last row parameters";
+   
    variable numcols = length (columns);
    variable data_arrays;   
-   numrows = last_row - first_row + 1;
-   do_fits_error (_fits_read_cols (fp, columns, first_row, numrows, &data_arrays));
+   do_fits_error (_fits_read_cols (fp, columns, first_row, want_num_rows, &data_arrays));
    _for (0, numcols-1, 1)
      {
 	variable i = ();

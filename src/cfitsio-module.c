@@ -1900,9 +1900,9 @@ static int read_cols (void)
    int i;
    SLang_Ref_Type *ref;
    Column_Info_Type *ci = NULL;
-   SLang_Array_Type *data_arrays_at;
-   SLang_Array_Type **data_arrays;
-   SLang_Array_Type *columns_at;
+   SLang_Array_Type *data_arrays_at = NULL;
+   SLang_Array_Type **data_arrays = NULL;
+   SLang_Array_Type *columns_at = NULL;
 
    if (-1 == SLang_pop_ref (&ref))
      return -1;
@@ -1930,13 +1930,15 @@ static int read_cols (void)
        || (0 != fits_get_num_rows (f, &num_rows_in_table, &status)))
      goto free_and_return_status;
 
-   if (num_rows <= 0)
+   if (num_rows < 0)
      {
-	SLang_verror (SL_INVALID_PARM, "Number of rows must positive");
+	SLang_verror (SL_INVALID_PARM, "Number of rows must be non-negative");
 	status = -1;
 	goto free_and_return_status;
      }
-   if ((firstrow <= 0) || (firstrow > num_rows_in_table))
+
+   if ((firstrow <= 0) 
+       || ((firstrow > num_rows_in_table) && (num_rows > 0)))
      {
 	SLang_verror (SL_INVALID_PARM, "Row number out of range");
 	return -1;
@@ -1944,7 +1946,6 @@ static int read_cols (void)
 
    if (firstrow + num_rows > num_rows_in_table + 1)
      num_rows = num_rows_in_table - (firstrow - 1);
-
 
    cols = (int *)columns_at->data;
    num_cols = columns_at->num_elements;
