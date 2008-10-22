@@ -1241,6 +1241,7 @@ define fits_write_binary_table ()
 	       verror ("This function does not support %d-d strings", ndims);
 
 	     t = sprintf ("%dA", max (array_map (Int_Type, &strlen, val)));
+	     if (t == "0A") t = "1A";
 	  }
 	  {
 	   case Char_Type or case UChar_Type:
