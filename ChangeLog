@@ -1,3 +1,10 @@
+2008-12-1  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (get_open_hdu_of_type): If an extension was
+	  specified as part of the name, then open the file at that extension.
+	  (Patch provided by Manfred Hanke)
+	(_fits_sl_version_string): bumped to 0.4.4-1
+
 2008-6-12  John E. Davis  <davis@space.mit.edu>
 
 	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.4.3

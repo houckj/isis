@@ -22,7 +22,7 @@
 import ("cfitsio");
 
 variable _fits_sl_version = 404;
-variable _fits_sl_version_string = "0.4.4-0";
+variable _fits_sl_version_string = "0.4.4-1";
 
 private variable Verbose = 1;
 % Forward declarations
@@ -265,9 +265,13 @@ private define get_open_hdu_of_type (f, hdu_type, needs_close, check_naxis)
 	return f;
      }
 
+   variable name_contains_extno
+     = strings_match (f, "\[.+\]$"R) || string_match (f, "+\d+$"R, 1);
+
    f = get_open_fp (f, needs_close);
    
-   if (0 == find_interesting_hdu (f, hdu_type, check_naxis))
+   if (name_contains_extno
+       || (0 == find_interesting_hdu (f, hdu_type, check_naxis)))
      return f;
 
    verror ("Unable to locate %s", type_str);
