@@ -99,6 +99,10 @@ test_install_dir:
 	    exit 1 ; \
 	fi
 
+#
+#  These targets are used by the maintainer
+#
+
 # The symlinks target is for my own private use.  It simply creates the object
 # directory as a symbolic link to a local disk instead of an NFS mounted one.
 symlinks:
@@ -108,16 +112,5 @@ symlinks:
 tags:
 	etags -o TAGS src/*.[ch]
 	
-#
-#  These targets are used by the maintainer
-#
-configure: autoconf/aclocal.m4 autoconf/configure.ac
-	cd autoconf && autoconf && /bin/rm -rf autom4te.cache && mv ./configure ..
-update: autoconf/config.sub autoconf/config.guess
-autoconf/config.guess: /usr/share/misc/config.guess
-	/bin/cp -f /usr/share/misc/config.guess autoconf/config.guess
-autoconf/config.sub: /usr/share/misc/config.sub
-	/bin/cp -f /usr/share/misc/config.sub autoconf/config.sub
-
 snapshot:
 	@src/mkdist.sh /nfs/vex/d2/release/snapshots/isis-`date +%Y%m%d`
