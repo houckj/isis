@@ -1,0 +1,32 @@
+#!/usr/bin/env slsh
+%_traceback = 0;
+require ("fits");
+require ("stats");
+import ("pgplot");
+static define read_and_display_image (file)
+{
+   variable img = fits_read_image (file);
+
+   variable dims; (dims,,) = array_info (img);
+   variable nx = dims[1], ny = dims[0];
+   
+   variable mean_img = mean (img);
+   variable stddev_img = stddev (img);   
+   variable g0 = mean_img - 3*stddev_img;
+   variable g1 = mean_img + 3*stddev_img;
+
+   _pgopen("/xwin");
+   _pgenv(0,nx,0,ny,0,0);
+   _pgpap (0, 1);
+   _pgimag(img,0,ny-1,0,nx-1, g0, g1, [0,1,0,0,0,1]);
+   _pgend();
+}
+
+if (__argc != 2)
+{
+   () = fprintf (stderr, "Usage: %s fits-image-file\n", __argv[0]);
+   exit (1);
+}
+read_and_display_image (__argv[1]);
+exit(0);
+

@@ -1,0 +1,897 @@
+Changes since 1.4.9 (released Nov 2007)
+---------------------------------------
+ 1.  Fixed cfitsio module bug (fits_write_binary_table)
+ 2.  Restored support for mt_calc_model optional arguments
+     contrib_flag and line_list.
+ 3.  Added stub for Tcl_PkgProvide to enable loading xspec12
+     local models; updated interface for _load_xspec_local_models().
+ 4.  Minor changes to support building isis on cygwin.
+ 5.  Fixed edit_par bug that could un-define the current model.
+ 6.  Fixed bug that that prevented saving the S-Lang readline history.
+ 7.  Fixed memory leak in median function.
+ 8.  Xspec module code generator now handles model.dat files that
+     don't end with a blank line.
+ 9.  Updated RMF file input code to support change in OGIP standard;
+     F_CHAN values, previously 2 bytes, may now be 4 bytes.
+10.  Fixed sign error in poisson random generator (src/random.c);
+     constant -0.059 had the wrong sign.
+11.  Fixed plot_quit bug that disabled all subsequent plotting.
+12.  Slang errors now generate one line of traceback by default.
+13.  Fixed bug in model_spectrum interface, presumably broken
+     since the introduction of line modifiers.
+14.  Fixed error handling bug in atomic database input code.
+15.  Update cfitsio module
+16.  Another cfitsio module update; fixed bug in handling of
+     isis_set_par_hook
+17.  load_data was failing when the 2nd parameter was an array of
+     length one.
+18.  Fixed array indexing bug in conf_joint.
+19.  Added NULL pointer check to src/histogram.c:Hist_get_flux_corr_weights
+20.  Added maplib module (contributed by John E. Davis)
+21.  Added support for systematic errors.
+22.  Update cfitsio module to version 0.4.3
+23.  Support linking to pgplot and cfitsio in HEASOFT distribution
+24.  Update default search path definition.
+25.  load_par provides more informative error messages
+26.  automatically install wrapper script on Darwin
+27.  If defined, isis_interactive_hook() will be called when
+     interactive command-line processing begins;  _traceback=0 is
+     the new default for interactive mode.
+28.  Added gainshift kernel.
+29.  configure options --with-pgplot and --with-cfitsio should override
+     --with-headas
+30.  Added set_define_model_hook
+31.  Optimized rmf_file.c:rebin_rmf() for speed.
+32.  Fixed bug in egauss that appeared for sigma < 1.e-6 keV.
+33.  Added get_back_exposure function
+34.  Update cfitsio module to version 0.4.4
+35.  Patch to better support wildcards in parameter lists
+     (contributed by Manfred Hanke)
+36.  Replaced minim fit method with simann, simulated annealing
+37.  Fixed eval_fun bug - tied parameter values were not getting
+     updated.
+38.  Update xspec module to support changes new with xspec-12.5.0.
+39.  New cache_fun() and alias_fun() intrinsics, contributed
+     by Mike Noble, Mike Nowak and Manfred Hanke.
+     cache_fun() enables caching of spectral models, reducing
+     redundant model evaluations during e.g. confidence limit searches.
+     alias_fun() enables renaming spectral models and model
+     parameters and changing parameter defaults.
+40.  Applied patch to retrieve help files using the S-Lang 
+     add_doc_file() intrinsic (from Mike Noble)
+41.  Added support for displaying xspec12 help files, either pdf
+     or html.
+42.  Improved support for xspec12 local models
+43.  At the isis prompt, __argc,__argv now contains the full input
+     command line
+44.  Fix xspec module bug: xspec12 local models implemented in
+     C or C++ were being linked through the wrong interface.
+45.  Support the double-precision fortran interface for xspec 
+     local models
+46.  Fixed confusing interaction between fakeit and grouping
+47.  Fixed malloc bug in xspec module.
+48.  Added support for xspec model init strings.
+49.  Xspec model names are now case-sensitive; some lower-case
+     aliases are provided for back-compatibility.
+50.  New functions, aped_bib, aped_bib_query_string, provide
+     access to APED database literature references.
+51.  New function, aped_fun_details, provides access to
+     individual emission line flux contributions from each 
+     temperature-density component of every spectral model component
+
+Changes since 1.4.8 (released Sept 2007)
+---------------------------------------
+ 1.  If a script contains an isis_main() function, isis will
+     execute that function and exit. If the --force-interactive
+     option is used, isis will prompt for input after executing
+     isis_main().  Executable scripts can now use
+           #! /usr/bin/env isis
+     isis-script is no longer required.
+ 2.  Added support for the S-Lang debugger.  Use the --sldb
+     command-line option to invoke the debugger.
+ 3.  Added support for the S-Lang profiler.  Use the --prof
+     command-line option to invoke the profiler.
+ 4.  create_aped_line_modifier now supports modifiers that
+     take additional user-defined arguments.
+ 5.  xspec table models now load parameter defaults from the
+     table file.
+ 6.  Changed line modifier interface to provide plasma state
+     information.
+ 7.  Changed line profile interface to make it more general
+ 8.  Line profile and line modifier interfaces both support
+     functions that take no parameters.
+ 9.  Changes to support analysis of INTEGRAL data.
+10.  Reorganized xspec module build/install logic
+11.  Added xspec 12 model list to the source code distribution
+     (it's no longer necessary to run the xspec module code
+     generator to use isis with xspec 12.)
+12.  Improved performance of APED spectral models that use a line modifier
+13.  isis-script --sldb foo.sl runs isis_main automatically.
+14.  Fixed assign_rsp bug.  First listed RMF was not re-defining
+     the dataset grid when multiple RMFs were assigned to one dataset.
+15.  All internal pgplot calls now use the pgplot module.
+16.  Removed obsolete gpileup kernel module.
+17.  Updated cfitsio module
+
+Changes since 1.4.7 (released June 2007)
+---------------------------------------
+ 1.  add_abundances handles necessary typecasts
+ 2.  Help hooks now return strings
+ 3.  Fixed potential double-free bug in error handling code
+      hist-cmds.c:set_notice_using_mask, set_notice_using_list
+ 4.  Models for flux-corrected data should not include the
+     instrumental background.
+ 5.  If present, rebin_error_hook manages error propagation
+     associated with the background (see set_rebin_error_hook).
+ 6.  Added support for AREASCAL column in PHA files.
+ 7.  APED spectral models now support user-defined modification
+     of line emissivity functions, with fittable parameters.
+     See the create_aped_fun() documentation for details.
+ 8.  APED spectral models now support user-defined line profiles.
+     See the create_aped_fun() documentation for details.
+
+Changes since 1.4.6 (released May 2007)
+---------------------------------------
+ 1.  Xspec module now provides better access to elemental
+     abundances, photoionization cross-sections and NEI ionization
+     fractions.  (See xspec_elabund, xspec_gphoto, xspec_ionsneqr,
+     xspec_phfit2, xspec_photo)
+
+Changes since 1.4.5 (released Mar 2007)
+---------------------------------------
+ 1.  Updated cfitsio module to version 0.3.5
+ 2.  Added put_model_counts, put_model_flux, put_convolved_model_flux
+ 3.  Added eval_stat_counts, eval_stat_flux
+ 4.  Clearer load_par warning when model string exceeds input buffer size
+ 5.  Prompt text is ignored if it appears as a prefix on the
+     command line in interactive mode.
+ 6.  Fixed bug in application of optional weights in combine_datasets.
+     Weights had been applied to both model and data sums.  Now, the
+     weights are applied only to the data sum.
+ 7.  Added yshift kernel
+ 8.  Expanded documentation for get_combined to clarify how it
+     might be used with spectra in flux units.
+ 9.  Voigt profile norm now includes factor 1/(sqrt(PI)*Doppler_width)
+     (set Isis_Voigt_Is_Normalized=0 to restore the previous behavior)
+10.  Added get_cfun2
+11.  Replaced list_par, save_par, list_data, list_arf, list_rmf with
+     slang implementations that provide more versatile output redirection
+12.  Added get_flux_corr_weights
+13.  Updated cfitsio module to version 0.3.8rc1
+
+Changes since 1.4.4 (released Feb 2007)
+---------------------------------------
+ 1.  Added backtrace capability
+ 2.  Added pha-grouping functions from Mike Nowak
+     (regroup_file, use_file_group, i2x_group, x2i_group)
+     along with new intrinsic variable, Isis_Use_PHA_Grouping.
+ 3.  Updated autoconf support for Fortran.  Fortran compiler
+     and flags are now specified with FC and FCFLAGS instead of
+     F77 and FFLAGS.
+
+Changes since 1.4.3 (released Jan 2007)
+---------------------------------------
+ 1.  Error handling uses S-Lang exceptions more consistently
+ 2.  Installation procedure should be simpler.
+ 3.  fit_flux is independent of the fit-kernel.
+
+Changes since 1.4.2 (released Sep 2006)
+---------------------------------------
+ 1.  Numbering of fake datasets should not cause the dataset
+     list to get out of order.
+ 2.  set_plot_options(get_plot_options()) is a no-op.
+ 3.  flux_corr skips ignored data
+ 4.  xspec.sl is idempotent
+ 5.  Static-linking the xspec module works again.
+ 6.  Added get_outer_viewport, set_outer_viewport.
+     ** Note that in the past, the low-level pgplot function
+        _pgsvp was often used to set the viewport for plots
+        created using isis intrinsic plot functions.  With this
+        change, _pgsvp will no longer have the desired effect
+        on these plots. Use set_outer_viewport instead of _pgsvp.
+ 7.  Changed handling of command-line arguments by isis-script.
+     Scripts no longer intercept command line arguments supported
+     by isis.
+ 8.  Removed -l command-line option.
+
+Changes since 1.4.1 (released Sep 2006)
+---------------------------------------
+ 1.  Ignored data ranges are now omitted from plots
+     rather than being plotted as all zeros.
+ 2.  Loading a parameter file can now over-ride parameter functions
+ 3.  In batch mode, a function named isis_main or slsh_main will
+     be called automatically, unless over-ridden by the '-t'
+     command-line argument.
+ 4.  The configure script includes more thorough checks for
+     compatibility of GNU readline libraries.
+ 5.  Binary packages can now find glob.sl
+
+Changes since 1.3.4 (released Jul 2006)
+---------------------------------------
+ 1.  Added atexit() function.
+ 2.  Added set_prompt() function (from Mike Noble)
+ 3.  set_par() now supports regular expressions (based on
+     code from John E. Davis).
+ 4.  oplot behaves like plot if no plots have been drawn
+     (from Mike Noble)
+ 5.  Extensive rewrite of xspec module; added support for
+     new model interfaces introduced with xspec12.
+ 6.  Added support for reading BACKSCAL, BG_COUNTS and
+     BG_AREA columns from type I and type II PHA files.
+ 7.  Refined computation of background uncertainties
+     under rebinning; dropped the Gehrels approximation for
+     the background uncertainty when the number of background
+     counts is small.
+
+Changes since 1.3.3 (released Apr 2006)
+---------------------------------------
+ 1.  Added eval_fun2() to support evaluating a fit-function
+     on an arbitrary grid without modifying the current
+     fit_fun() definition.
+ 2.  add_slang_function() now supports functions defined by
+     reference.
+ 3.  set_param_default_hook() now supports passing additional
+     arguments to the parameter default hook.
+ 4.  get_fit_method() and get_fit_statistic() now return
+     strings containing the complete, current option settings.
+ 5.  Operator functions should now be invoked as
+      operator(id, operand(k)) instead of
+      operator(operand(k), id)
+     In other words, the integer index should be the first
+     argument.
+ 6.  Fit-functions can now take arbitrary additional parameters.
+     For example, something like this:
+        fit_fun ("foo(1, &bar, array, baz(1))");
+     is now supported.  For details, see the add_slang_function
+     documentation.
+ 7.  Added GNU readline support (based on patches from Mike Noble)
+
+Changes since 1.3.2 (released Jan 2006)
+---------------------------------------
+ 1.  set_rebin_error_hook now takes a reference to a function
+ 2.  updated --with-ciao configure option
+ 3.  Fixed bug in propagation of background uncertainties for
+     rebinned data.
+ 4.  Added Gehrels_Threshold intrinsic variable to provide
+     more control over handling of uncertainties in low-count
+     data.
+
+Changes since 1.3.1 (released Nov 2005)
+---------------------------------------
+ 1.  xspec module now supports xspec12
+ 2.  Added support for fit-constraints (see set_fit_constraint)
+ 3.  cursor returns values which account for log-scale axes
+ 4.  Added get_plot_options/set_plot_options
+
+Changes since 1.3.0 (released Sep 2005)
+---------------------------------------
+ 1.  Modified region_counts/region_flux to handle both emission
+     and absorption features.
+ 2.  Modified internal algorithm for rebinning flux-corrected data
+     allowing rebin_data/group_data to automatically rebin
+     flux-corrected data without running flux_corr again.
+ 3.  Added isis_fit_improved_hook feature (see conf)
+
+Changes since 1.2.9 (released Jun 2005)
+---------------------------------------
+ 1.  Changed the method used to set parameter defaults for
+     S-Lang fit-functions.  See set_param_default_hook().
+ 2.  Added Voigt profile fit-function
+ 3.  Modified internal parameter handling logic to better support
+     re-defining fit-functions.  Tied parameters are now more
+     robust against changes in the fitted model.
+
+Changes since 1.2.8 (released Apr 2005)
+---------------------------------------
+ 1.  Support more intuitive syntax in set_par_fun() 2nd argument.
+     See set_par_fun() help page for details.
+ 2.  Update xspec module to support HEASOFT-6.0
+ 3.  Update to slang2 definition of require/provide
+ 4.  Update to include slang2 help-file support
+ 5.  Prompt namespace is now named "isis"
+ 6.  Added support for backscale vectors defined via _define_bgd
+     and set_data_backscale.
+ 7.  Handling of multiple merged grids should now work as
+     advertised.  Earlier versions used the first merged grid
+     encountered for all subsequent cases.
+
+Changes since 1.2.7 (released Mar 2005)
+---------------------------------------
+ 1.  Update cfitsio module (slcfitsio-0.3.2)
+ 2.  Added rebin_combined()
+ 3.  Added support for slang-2 debugger.
+ 4.  Added fit-method "minim" (alternate simplex algorithm)
+ 5.  Removed internal limit to support reading RMFs from Swift
+
+Changes since 1.2.6 (released Jan 2005)
+---------------------------------------
+ 1.  Added set_dataset_metadata/get_dataset_metadata,
+     load_data_hook, list_data_hook
+ 2.  Fixed bug in rebin_data() associated with handling of rebin
+     masks with zeros at the short wavelength end.
+ 3.  Fixed bug introduced by recent changing in handling of
+     zero-based norm indices in add_slang_function.
+ 4.  Updated --with-ciao option to work with new Ciao release;
+     see the INSTALL.txt file for details.
+ 5.  Added support for comment header in fit-model parameter files
+     (comment lines have long been supported, just not as a
+     header, preceding the model definition line).
+ 6.  pgplot module intrinsics are working again on Mac OS X.
+ 7.  Uncertainties computed for background-subtracted, rebinned,
+     flux-corrected data now properly includes the background
+     contribution.
+ 8.  Fixed obscure bug in fit-parameter lookups when fit-functions
+     are redefined multiple times while in use.
+ 9.  Added isis_start_eval_hook()
+10.  New intrinsic variable Ignore_PHA_Response_Keywords.
+     If non-zero, isis will ignore the ANCRFILE and RESPFILE
+     keywords in PHA file headers.  Default value is zero.
+11.  New intrinsic variable Rmf_OGIP_Compliance.
+     If zero, isis will require less strict adherence to the
+     OGIP standard format for RMFs.
+12.  Update cfitsio module;  new version includes many
+     improvements and greatly expanded documentation.
+13.  Update pgplot module;  the handling of 2D arrays changed.
+14.  rebin_dataset now supports rebinning the background
+
+Changes since 1.2.4 (released Nov 2004)
+---------------------------------------
+ 1.  Updated cfitsio module
+ 2.  Better handling of ylog/yrange transitions in rplot_counts/rplot_flux
+ 3.  Use unit exposure time when fitting flux-corrected data.
+ 4.  Added better Levenberg-Marquardt implementation (lmdif);
+     the previous implementation is still available, in part
+     because it provides certain features not available with lmdif.
+ 5.  add_slang_function now uses zero-based indices to specify
+     norm parameters
+ 6.  Added --with-atomdb configure option to specify path at compile time
+
+Changes since 1.2.2 (released Jul 2004)
+---------------------------------------
+ 1.  Update xspec module to support built-in local models.
+ 2.  Updated install documentation to resolve potential
+     Mac OS X build problems.
+ 3.  Added support for setting plot symbol size independent of
+     character height; see point_size();
+ 4.  Plot color 0 now correctly gives the default background color
+ 5.  Internal changes to support migration to slang-2.0
+ 6.  Support kernel option to control model computation
+     in ignored energy ranges during fitting.
+ 7.  Rebinned RMFs now use threshold=0 to avoid resolution problems.
+
+Changes since 1.2.1 (released Apr 2004)
+---------------------------------------
+ 1.  Fix bug in application of s/n threshold during
+     flux-correction of rebinned data.
+ 2.  Added isis_set_par_hook()
+ 3.  Added functions get_rmf_arf_grid(), get_rmf_data_grid()
+ 4.  Added support for user-defined model evaluation grids,
+     primarily to support extended grids for convolution models.
+     See set_eval_grid_method()
+ 5.  Added isis_prefit_hook().
+ 6.  Added add_abundances() function.
+ 7.  get_abundances() now returns a Struct_Type.
+ 8.  Fixed bug in single-parameter confidence limits computation:
+     When confidence limits were computed for one of only two
+     variable parameters, the remaining free parameter was not
+     varied during the fit.  With the bug-fix, the free parameter
+     is varied correctly.
+ 9.  New function mt_create_from_struct()
+
+Changes since 1.1.8 (released Feb 2004)
+---------------------------------------
+ 1. set_rebin_error_hook(id,NULL) now works as it should
+ 2. Fit parameter names are now parsed on input
+ 3. Added _phabs to xspec-module; _wabs now returns wabs
+    instead of phabs.
+ 4. Resolved ambiguity in definition of model_flux by
+    introducing "convolved_model_flux".  Now, model_flux
+    always means \int dE S(E) -- the physical spectrum model
+    integrated over the bin width.  The convolved_model_flux
+    is this function folded through the RMF, \int dE R(h,E)S(E),
+    and is useful primarily when dealing with flux-corrected
+    data.  Functions have been provided to get, plot and
+    oplot this quantity.
+ 5. Added optimization to improve performance when fitting
+    multiple datasets with overlapping wavelength grids.
+    See set_eval_grid_method().
+ 6. Modified rebin_data to ensure that the mask array includes
+    trailing noticed bins (at the long wavelength end)
+    containing zero counts into the last "good" bin
+
+Changes since 1.1.7 (released Nov 2003)
+----------------------------------------
+ 1. Added frame_time to get_data_info() structure
+ 2. Fixed bug in temp storage allocation logic when combining datasets
+ 3. prand() no longer modifies array arguments
+ 4. Added list_free function to list only free parameters
+ 5. xylabel now works transparently with log axis scales
+ 6. Added support for lheasoft-5.3
+ 7. Corrected cash statistic handling of cases model=0 or data=0
+ 8. New connect_points() option suppresses plotting of points,
+    drawing the line only.
+
+Changes since 1.1.6 (released Sep 2003)
+----------------------------------------
+ 1. flux_corr_model_counts() now populates the model_flux
+    rather than the data_flux.
+ 2. Bugfix - under certain conditions, closing a non-existent plot
+    window and then opening a plot window could cause a segv.
+ 3. interpol() wasn't extrapolating properly.
+
+Changes since 1.1.5 (released Aug 2003)
+----------------------------------------
+ 1. Changed definition of reverse indices for both
+    histogram and histogram2d.  The dimensions of the
+    histogram2d result now match the input grid sizes.
+ 2. seed_random() bugfix.
+ 3. set_arf_info() bugfix.  It was incorrectly modifying
+    the ARF size.
+
+Changes since 1.1.4 (released July 2003)
+----------------------------------------
+ 1. Support optional weight argument for combine_datasets()
+ 2. Add get_combined() function to simplify handling
+    dataset combinations.
+ 3. Added set_post_model_hook ()
+ 4. Fixed obscure isis bug which could cause a segv if
+    flux_corr() were called from inside a fit-function.
+ 5. Enhanced set_par(), assign_arf(), assign_rmf() to
+    handle more combinations of vector parameters.
+ 6. Fixed bug in handling of XMM/EPIC rmfs
+
+Changes since 1.1.3 (released June 2003)
+----------------------------------------
+ 1. Provided specialized FFT option to speed pileup fits
+ 2. Fixed bug in line_info() which caused intermittent
+    problems on some architectures.
+ 3. [*] Changed thermal line profile sigma definition,
+    adding a factor of 0.5 to the vturb^2 term.
+ 4. Added all_arfs() and all_rmfs() functions.
+ 5. rplot_counts()/rplot_flux() is now consistent with the
+    current fit-statistic.  This required a change in the
+    interface for user-defined fit-statistics.
+ 6. list_data and list_arf optionally show data filenames;
+    filenames also available via get_data_info.  Related new
+    intrinsic variable is 'Isis_List_Filenames'.
+ 7. Support listing physical units of fit-function parameters.
+ 8. array_fit() now supports verbose mode.
+
+Changes since 1.1.2 (released May 2003)
+----------------------------------------
+ 1. Added workaround for a known pgplot bug which sometimes
+    incorrectly plots the last histogram bin width.
+ 2. Added factor_rsp() to support factoring an RSP matrix
+    into an ARF and a normalized RMF.
+ 3. Removed unused parameter 'npars' from the interface
+    definition for user-defined fit-statistics.
+    see add_slang_statistic().
+ 4. xspec local model input now handles models not written
+    in Fortran.
+ 5. Fixed bug in plot_elev() - plot paging and character
+    size were not properly updated.
+
+Changes since 1.1.1 (released May 2003)
+----------------------------------------
+ 1. Added plot_linelist() function
+ 2. Updated handling of abundance tables; added new function
+    get_abundances()
+
+Changes since 1.1.0 (released Apr 2003)
+----------------------------------------
+ 1. get/set_arf_info now includes fracexpo
+ 2. improved plot format inheritance logic
+ 3. added add_help_file()
+ 4. added set_fake()
+ 5. Fixed bug in handling of dataset groups.
+ 6. Faster Poisson random generator
+
+Changes since 1.0.50 (released Mar 2003)
+----------------------------------------
+ 1. xspec module now loads via require("xspec")
+ 2. script and module load paths now use slang-1.4.9 intrinsics
+ 3. get_kernel() now returns kernel parameter string.
+ 4. new list_kernels() function
+ 5. new path-searching functionality.
+    Related functions include
+       get_isis_load_path()          get_isis_module_path()
+       set_isis_load_path()          set_isis_module_path()
+       prepend_to_isis_load_path()   prepend_to_isis_module_path()
+       append_to_isis_load_path()    append_to_isis_module_path()
+    The older functions
+       add_to_isis_load_path()
+       add_to_isis_module_path()
+    are now deprecated.
+ 6. Added _orplot_counts(), _orplot_flux()
+ 7. Improved/simplified startup procedures for binary and cdrom
+    distributions
+ 8. Fixed bug in FITS RMF input code that, in very rare cases,
+    could cause a core dump.
+ 9. Updated cfitsio module
+
+Changes since 1.0.48 (released Feb 2003)
+----------------------------------------
+ 1. fixed bug which sometimes allowed fit-function to be
+    evaluated at parameter values outside specified limits.
+ 2. readcol now handles out-of-order columns correctly
+ 3. better plot line width handling
+ 4. update to remove conflict with cumsum function in slang-1.4.9
+
+Changes since 1.0.8 (released April 2002)
+-----------------------------------------
+ 1. pileup model error handling code could segv
+ 2. axes of 2nd page plots weren't always getting labeled
+ 3. added include/exclude functions
+ 4. add_atable_model() now automatically includes a norm parameter
+ 5. new function:  get_fit_fun()
+ 6. updated FITS module
+ 7. new_function:  array_fit()
+ 8. added xspec_abund() and xspec_xsect() functions to XSPEC module
+ 9. Cash statistic matches XSPEC definition and supports conf. limits
+10. Updated handling of EXPTIME, TIMEDEL keywords to compute CCD frame_time
+11. Modified handling of automatic color changes on overplots.
+12. contrib files updated
+13. Added interface version checking for all plugins
+14. plot_bin_density now plots count-rates
+15. Added histogram2d() function
+16. Added make_hi_grid() function
+17. Added plot_image(), plot_image_ctrl(), set_palette(), plot_contour()
+18. Better error messages for RMF input validity checks
+19. Added xspec-module auto-loader
+20. xspec table models now read param names from the FITS file.
+21. Added interpol() function to do linear interpolation
+22. Added interpol_points() and fit_search()
+23. Added array_struct_field()
+24. New 'Use_Memory' options support loading all continua up front
+25. Added get_fun_components().
+26. Added xspec_xset(), xspec_set_cosmo(), xspec_get_cosmo()
+27. Added mt_def_model(), mt_calc_model(), mt_list_model(),
+          mt_save_model(), mt_load_model().
+28. Added create_aped_fun()
+29. Added _bmc() wrapper in xspec-module
+30. Added fit_search_info() and isis_save_par_hook()
+31. xspec [m,e]table models now support a redshift parameter
+32. plot_image and plot_contour now respect [xy]range and
+    can automatically plot images with the correct aspect-ratio.
+33. Updated xspec-module _shock, _nei, _sedov to include Ar abundance.
+34. Tweak create_aped_fun() so renorm works.
+35. New no-semicolons interactive mode (see Isis_Append_Semicolon)
+36. xspec-module can now load XSPEC local models.
+37. get_data_info/set_data_info can modify target name string
+38. fixed bug in allocation of subplex workspace
+39. errorbars() supports plotting every Nth errorbar.
+40. set_frame_line_width/set_line_width functions improve control
+    over plot line widths.
+41. support plots with axes X (Y)-axes increasing leftward (downward)
+42. workaround apparent pgplot bug to properly align low-resolution
+    contour plots
+43. [o]hplot now takes a Struct_Type
+44. _A() enhanced to take a Struct_Type
+45. New functions ignore_list, notice_list
+46. Added flux_corr_model_counts
+47. Port to Mac OS X; moved INSTALL to INSTALL.txt to avoid
+    build problems on the case-insensitive Mac filesystem.
+48. Added seed_random() function to seed the random number generator
+49. Added support for grouping datasets.
+50. Fixed bug in exposure-scaling of instrument background
+    when the ARF is included in the RMF.
+51. Fixed bug in exposure-scaling of numbers read from plot by ifit_fun
+52. Added support for fitting operator models (such as
+    convolution models in xspec).  Updated xspec module to
+    include convolution models.
+53. Read TSTART keyword from spectrum file header.
+54. By default, isis now installs into /usr/local/isis. After
+    installing, the source-code directory can now be deleted.
+55. Added shift, any, howmany
+56. rebin function handles monotonic decreasing grids, etc.
+57. histogram function ignores NaNs.
+58. bugfix: unassign_rmf() wasn't looping over dataset lists
+59. readcol now skips blank lines
+60. conf_map_counts/flux now supports mask function.
+61. Removed the Conf_Map_Fail_Hook and Conf_Map_Save_Hook
+    intrinsic variables.  These hooks should now be provided
+    as struct fields.  See conf_map_counts for details.
+62. conf_map_counts/flux now supports mask function to speed
+    computations by avoiding user-specified regions of parameter space
+63. bugfix - flux_corr was zeroing model_flux
+64. added cumulative sum function, cumsum
+
+#######################################################################
+#######################################################################
+
+Changes to pre-release 1.0:
+--------------------------
+    * improve conf_[o]plot
+    * add support for handling fit-parameters by name
+       (see set_par() and related functions)
+    * add --with-lheasoft config option to support
+      statically linking the xspec module
+    * added --disable-xspec_tables config option
+    * support default parameter values for user-defined
+      functions
+    * add load_dataset() function to simply common
+      sequence of load_data/arf/rmf, assign_arf/rmf
+    * support assign_rmf() to grouped data
+    * fixed minor bug in conf-limits convergence test;
+      should now converge better
+    * better pileup regression test (from John Davis)
+
+(the last pre-1.0 version was 0.9.86)
+
+Changes since 0.9.60
+    * Added ignore_en(), notice_en(), xnotice_en()
+    * Added readcol() and writecol()
+    * Added fconf(), vfconf()
+    * Added set_rebin_error_hook()
+    * Added Conf_Map_Counts_Hook, Conf_Map_Flux_Hook
+    * Added isis_add_help_hook()
+    * Added isis_set_pager(), isis_get_pager();
+    * Wrote a code-generator which automatically generates ISIS
+      bindings for all additive and multiplicative models in XSPEC.
+      To avoid conflicts with the XSPEC names, two ISIS intrinsic
+      fit-function names were changed:
+        __OLD_name___NEW_name___
+          powerlaw   Powerlaw
+           lorentz    Lorentz
+    * Added mpane() function to select plot panes
+    * Changed the way uncertainties are computed for
+      rebinned, flux-corrected data when the counts
+      are available.  Now, isis uses
+            flux_err = flux * stat_err/counts.
+      The previous method of setting flux_err to 1.0 in
+      zero-count bins and adding flux_errs in quadrature
+      over-estimated the uncertainty, particularly for
+      low-count data.
+    * Added set_fit_range_hook()
+    * Included some regression tests in the distribution
+    * documented get_params, set_params functions
+    * get_data_info() now returns an array of structs.
+    * Changed function names for consistency and added
+      documentation (only one was previously documented..)
+        get_hist_exposure  => get_data_exposure
+        get_hist_backscale  => get_data_backscale
+        set_hist_exposure  => set_data_exposure
+        set_hist_backscale  => set_data_backscale
+        copy_hist_keywords => copy_data_keywords
+    * documented rebin_dataset(), rebin_rmf() functions
+    * Added save_input() function
+    * Added support for generating 2D plots of chi-square
+      confidence contours (see conf_map_counts, conf_map_flux,
+      conf_[o]plot, conf_joint)
+    * Added latex2pg() function to support annotating plots
+      with LaTeX-format strings.
+    * Added isis_linelabel_hook() function to generate
+      better formatted emission line labels in spectrum plots
+    * Added egauss() fit-function
+    * More xspec models: mtable, etable
+    * Changed "regrid" => "rebin"
+    * Added Isis_Residual_Plot_Type intrinsic variable to
+      control residual plots (see rplot_counts/rplot_flux)
+    * Added rebin_array() function.
+    * More xspec models: pexrav, pexriv, laor, bknpower
+    * Fit-parameter values may now be defined as functions of
+      other fit-parameters.  See set_par_fun().
+    * User-defined fit-functions may now evaluate differently
+      for different datasets.  See Isis_Active_Dataset.
+    * Added append_model() function
+    * Changed model_spectrum() interface to support selecting
+      lines-only or continuum-only
+    * Added Cash statistic plus alternate forms of Chi-square.
+    * Added support for user-defined fit-statistics written
+      in S-Lang.  See add_slang_statistic()
+    * Removed 'force' option from assign_arf().
+    * Added support for multiple responses per data set
+      (e.g. for LETG multi-order fitting). See assign_rsp().
+    * flux_corr() is now more precise -- see manual.
+    * duplicate line BUG fixed:
+      When both the wavelength tables and line emissivity
+      tables were loaded from the APEC 1.01 database, lines
+      which had an observed wavelength "WAVE_OBS" value
+      were listed twice in the input line list.
+
+Changes since 0.9.51
+    * Added the histogram() function for creating 1-D histograms.
+    * Added the trans() filter for the Spectroscopy database
+    * Added get_iback() function to retrieve the scaled
+      instrumental background
+    * Added eval_fun() to compute the current fit-function
+      on a user-defined grid.
+    * Added optional arg to errorbars() to control length
+      of terminal bars.
+    * Added fakeit() function
+    * Updated FITS i/o module.
+    * Added all_data() utility function.
+    * Added rplot_counts(), rplot_flux() to simplify
+      plotting residuals
+    * Added improved background handling -- See define_bgd()
+      and _define_bgd() functions.
+    * Added --stdin command line option to support
+      reading commands from stdin and bypassing
+      readline.
+    * Added iback_fun () function to support fitting
+      instrumental background.
+    * Added tbabs, tbvabs, tbgrain to xspec module
+
+Changes since 0.9.47
+    * Added define_model() function
+    * Added 'subplex' as alternative to the Levenburg-
+      Marquardt minimization algorithm.
+    * Modified Levenburg-Marquardt algorithm to
+      fall back on Singular Value Decomposition if
+      LU-Decomposition fails (LU decomp. is faster
+      and works most of the time).
+    * Added support for user-defined fit-methods and
+      fit-statistics using code contributed by
+      John Davis <davis@space.mit.edu>
+    * Added define_arf(), get_arf_info(), set_arf_info()
+
+    * Two Important Plotting Changes:
+
+      1) The handling of multi-pane plots has changed.
+      The new implementation automatically shifts the plot
+      focus to the next pane each time a new plot is
+      created.  This simplifies creating postscript
+      files which contain multiple pages of plots.
+      However, it is no longer easy to access plot panes
+      in random order using the 'pane' function.
+      As a result, the 'pane' function has been removed,
+      although similar functionality is available from
+      the low-level PGPLOT function '_pgpanl'.
+
+      2) A new function 'multiplot' has been added to
+      simplify creating plots with multiple panes sharing
+      a common X-axis.
+
+Changes since 0.9.30
+    * Added zgauss, vphabs, mkcflow to xspec-module
+    * Fixed bug in flux_corr -- ignored intervals weren't
+      properly handled since the gpileup kernel was added
+    * Added zwabs, zpowerlaw, diskline to xspec-module
+    * updated XSPEC module to maintain compatibility with
+      lheasoft_v5.1.0/xspec_v11.1.0
+    * Added ignore_bad() function
+    * Added rebin_rmf() from John Davis <davis@space.mit.edu>
+    * Generalized RMF and PHA file handling to support XMM data
+    * Added comptt, smedge to xspec-module.
+    * Added set_data_info function
+    * Added support for non-square, delta-function RMFs [obscure, no?]
+    * Fixed bug in parameter handling - models with duplicate
+      functions weren't handled properly (e.g. gauss(1)+gauss(1)).
+    * Fixed bug in tie() function - order of index arguments was reversed.
+    * Added define_counts/define_flux functions
+
+Changes since 0.9.11:
+
+    * Important Change:
+
+       The following functions now return an error code:
+
+             fit_counts, fit_flux,
+             eval_counts, eval_flux,
+             renorm_counts, renorm_flux
+
+       See the manual for details.
+
+       This was an important change to allow fitting scripts to
+       run more smoothly and is a significant improvement over the
+       earlier implementation.
+
+       However, this change may require you to modify your fitting
+       scripts. Here is one quick way to update your scripts to
+       simply ignore the new return code:
+
+            perl -p -i -e "s|fit_flux|() = fit_flux|" *.sl
+            perl -p -i -e "s|eval_flux|() = eval_flux|" *.sl
+            perl -p -i -e "s|renorm_flux|() = renorm_flux|" *.sl
+            perl -p -i -e "s|fit_counts|() = fit_counts|" *.sl
+            perl -p -i -e "s|eval_counts|() = eval_counts|" *.sl
+            perl -p -i -e "s|renorm_counts|() = renorm_counts|" *.sl
+
+    * Added gpileup kernel from John Davis <davis@space.mit.edu>
+    * Added ISIS_LOAD_PATH env. variable and improved "require"
+      function
+    * Added blackbody function
+    * Added set_frame_time function
+    * Added user-defined plot format defaults (intrinsic structure
+      called _isis_plot)
+    * Removed hard-coded limits on the number of simultaneous
+      fit-functions and fit-parameters.
+    * Tuned hash function to speed line table lookups
+    * Require bin_hi[i] = bin_lo[i+1] on spectrum input
+      (the input spectrum grid can't have holes in it)
+    * Added pgplot-module update from John Davis
+    * Fixed bug in poly function parameter handling
+    * Fixed bug in handling of kernel params with user-defined fit
+      functions (fixed in 0.9.14)
+    * Fixed bug in handling of multiple simultaneous fit-kernels.
+    * Reorganized source code directories, simplified configure scripts
+
+Changes since 0.9.10:
+    * Fixed bug in handling of kernel parameters
+    * Fixed bug in handling of plot line-styles
+    * Added support for /usr/bin/env executable isis scripts
+
+Changes since 0.9.4:
+    * Restored load_rmf/assign_rmf for symmetry with ARF functions
+    * Removed redundant fit_fold() function
+    * Added renorm(), group_data(), randomize() functions.
+    * Much needed update of the manual.
+    * Added fit_counts, fit_flux, fit_fold, etc. alternatives to
+      provide a mode-free interface to data analysis.
+    * Changed get_data_*, put_data_* functions to use structures
+    * Made modifications to support new database file layout.
+    * Removed pfiles interface to spectroscopy database
+    * Environment setup script is now optional.
+    * Fixed a bug preventing generation of multiple plots in a
+      single postscript file.
+    * Added FITS i/o module from John Davis <davis@space.mit.edu>
+    * Added pileup kernel from John Davis <davis@space.mit.edu>
+    * Restructured fit module internals
+    * Removed feature-table prototype code
+    * Moved pgplot-module into isis/src - pgplot functions now
+      available by default.
+
+Changes since 0.8.6:
+    * Changed 'group' to 'lines_in_group'
+    * Added new optional argument to open_plot() to support a new
+      multiplot style, useful for plotting data and residuals
+      on the same page.
+    * Improved line-label formatting options - see plot_group() and
+      line_label_default_style ().
+    * Added support for dynamically linked user-defined RMF functions;
+      [*** functions load_rmf() and delete_rmf() were removed,
+       the assign_rmf() interface was significantly changed, as
+       was the output from list_rmf() and list_data() ***].
+    * New database content list functions list_db() and vlist_db() plus
+      filtering options on plasma() function.
+    * New database access function line_em1() to retrieve emissivities
+      using the tabulated temperature/density grid
+    * New mode-free functions plot_model_counts(), plot_model_flux(),
+      get_model_counts(), put_data_counts(), etc.
+    * New get_param_info() function
+    * New tolerance parameter on conf() and vconf()
+    * Support for database with density sensitivity -- obsolete database
+      format no longer supported.
+    * User-defined functions can now supply default parameter values, etc.
+    * Better handling of interactive automatic plot limits
+    * Simplified linux installation of xspec module
+    * Changed axis labeling on log-scale plots
+    * Models computed using model_spectrum() now have
+      relativistically correct redshifts.
+    * Changed interface for user-defined fit-functions
+    * Changed order of optional arguments to set_par() function
+
+Changes since 0.7.4beta:
+    * New set_arf_exposure() and get_data_info() functions.
+    * Now support fitting internally re-binned data -- no need for grppha.
+    * Command line arguments now available to batch-processed files
+      (see __argc, __argv[])
+    * New Plot_Autoscale intrinsic variable
+    * New .source command
+    * New file option for edit_par() and edit_model()
+    * The .isisrc file is now read before batch files, unless the -f option is used.
+    * New auxiliary fit-kernel option
+    * Fixed some install-script bugs associated with --prefix=
+    * Added support for RMF input and usage including forward folding
+    * Added FFT function wrapper fft1d ()
+    * Fixed list truncation bug in line_em() (which was introduced in 0.7.3beta)
+    * No longer rely on user's XANADU or PGPLOT_DIR environment variables at run-time.
+
+Changes since 0.7.3beta:
+    * Support change in format of APEC continuum emissivity file.
+    * Added regrid() function to support adding +/- orders and adding ARFs.
+
+Changes since 0.7.2beta:
+    * Help system provides ISIS function descriptions.
+    * Added ascii.sl to examples directory -- example of I/O of ascii columns.
+    * User-defined fit functions may now be implemented in S-Lang.
+    * Support change in spectroscopy database format (additional HDU).
+    * Upgraded XSPEC module to support XSPEC_v11.0, added new xspec functions.
+
+Changes since 0.7.1beta:
+    * Help system provides S-Lang function descriptions.
+    * Type I pha file input now supported.
+    * Added rebin_data() function.
+    * Added print() function to simplify printing arrays struct fields.
+
+$Id: Changes.txt,v 1.225 2004/09/10 11:23:53 houck Exp $

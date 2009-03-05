@@ -1,0 +1,38 @@
+README file for ISIS.
+
+ISIS is a programmable, extensible data analysis system
+developed for use in high-resolution X-ray spectroscopy.
+
+It is currently distributed as source code and with
+precompiled binaries for selected operating systems.
+The lastest release is available from
+
+  http://space.mit.edu/cxc/isis/download.html
+
+For installation instructions, read INSTALL.txt
+
+For news on recent changes and new features, read Changes.txt.
+A copy of the manual is included in the 'doc' directory.
+Additional information about ISIS is available from
+
+  http://space.mit.edu/cxc/isis
+  
+A mailing list is also available.  See
+  http://space.mit.edu/cxc/isis/mailing_list.html
+for more information.
+
+
+ Contents:
+
+     doc - ISIS documentation
+     etc - local configuration information, including
+           parameter file(s) describing local 
+           spectroscopy database(s)
+ contrib - User-contributed scripts
+           
+    test - ISIS self-test data and scripts
+     src - ISIS source code
+   share
+ modules - source code for loadable modules (e.g. XSPEC)
+   
+

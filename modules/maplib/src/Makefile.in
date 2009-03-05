@@ -1,0 +1,137 @@
+# -*- sh -*-
+
+#---------------------------------------------------------------------------
+# List of modules and associated .sl files to install
+#---------------------------------------------------------------------------
+MODULES = maplib-module.so
+SL_FILES = maplib.sl wcsfuns.sl
+HLP_FILES = ../doc/help/maplib.hlp
+DOC_FILES = ../COPYRIGHT ../README ../doc/text/maplib.txt
+MODULE_VERSION	= `./mkversion.sh`
+
+#---------------------------------------------------------------------------
+# Installation Directories
+#---------------------------------------------------------------------------
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+datarootdir = @datarootdir@
+MODULE_INSTALL_DIR = @MODULE_INSTALL_DIR@
+SL_FILES_INSTALL_DIR = @SL_FILES_INSTALL_DIR@
+HLP_FILES_INSTALL_DIR = $(SL_FILES_INSTALL_DIR)/help
+DOC_FILES_INSTALL_DIR = $(datarootdir)/doc/slang-maplib
+
+#---------------------------------------------------------------------------
+# C Compiler to create a shared library
+#---------------------------------------------------------------------------
+CC		= @CC@
+CFLAGS		= @CFLAGS@ @SLANG_DLL_CFLAGS@
+LDFLAGS		= @LDFLAGS@
+CC_SHARED 	= @CC_SHARED@
+
+#---------------------------------------------------------------------------
+# Location of the S-Lang library and its include file
+#---------------------------------------------------------------------------
+SLANG_INC	= @SLANG_INC@
+SLANG_LIB	= @SLANG_LIB@ -lslang
+
+#---------------------------------------------------------------------------
+# Additional Libraries required by the module
+#---------------------------------------------------------------------------
+RPATH		= @RPATH@
+MODULE_LIBS	=
+#---------------------------------------------------------------------------
+# Misc Programs required for installation
+#---------------------------------------------------------------------------
+INSTALL		= @INSTALL@
+INSTALL_DATA	= @INSTALL_DATA@
+INSTALL_MODULE	= @INSTALL_MODULE@
+MKINSDIR	= ../autoconf/mkinsdir.sh
+RM		= rm -f
+LN		= ln -s
+
+#---------------------------------------------------------------------------
+# DESTDIR is designed to facilitate making packages.  Normally it is empty
+#---------------------------------------------------------------------------
+DESTDIR =
+DEST_MODULE_INSTALL_DIR = $(DESTDIR)$(MODULE_INSTALL_DIR)
+DEST_SL_FILES_INSTALL_DIR = $(DESTDIR)$(SL_FILES_INSTALL_DIR)
+DEST_HLP_FILES_INSTALL_DIR = $(DESTDIR)$(HLP_FILES_INSTALL_DIR)
+DEST_DOC_FILES_INSTALL_DIR = $(DESTDIR)$(DOC_FILES_INSTALL_DIR)
+
+#---------------------------------------------------------------------------
+LIBS = $(SLANG_LIB) $(MODULE_LIBS) $(RPATH) $(DL_LIB) -lm
+INCS = $(SLANG_INC)
+
+all: $(MODULES)
+
+#---------------------------------------------------------------------------
+# Put Rules to create the modules here
+#---------------------------------------------------------------------------
+maplib-module.so: maplib-module.c
+	$(CC_SHARED) $(INCS) maplib-module.c -o maplib-module.so $(LIBS)
+#---------------------------------------------------------------------------
+# Regression tests
+#---------------------------------------------------------------------------
+test:
+	@for X in tests/test_*.sl; \
+	do \
+		slsh $$X; \
+	done
+#---------------------------------------------------------------------------
+# Installation Rules
+#---------------------------------------------------------------------------
+install_directories:
+	$(MKINSDIR) $(DEST_MODULE_INSTALL_DIR)
+	$(MKINSDIR) $(DEST_SL_FILES_INSTALL_DIR)
+	$(MKINSDIR) $(DEST_HLP_FILES_INSTALL_DIR)
+	$(MKINSDIR) $(DEST_DOC_FILES_INSTALL_DIR)
+
+install_modules:
+	@for X in $(MODULES); \
+	do \
+		Y=$$X.$(MODULE_VERSION); \
+		YDEST=$(DEST_MODULE_INSTALL_DIR)/$$Y; \
+		echo $(INSTALL_MODULE) $$X $$YDEST; \
+		$(INSTALL_MODULE) $$X $$YDEST; \
+		if [ "$$?" != "0" ]; then \
+		  exit 1; \
+		fi; \
+		$(RM) $(DEST_MODULE_INSTALL_DIR)/$$X; \
+		$(LN) $$Y $(DEST_MODULE_INSTALL_DIR)/$$X; \
+	done
+
+install_slfiles:
+	@for X in $(SL_FILES); \
+	do \
+		echo $(INSTALL_DATA) $$X $(DEST_SL_FILES_INSTALL_DIR); \
+		$(INSTALL_DATA) $$X $(DEST_SL_FILES_INSTALL_DIR); \
+		if [ "$$?" != "0" ]; then \
+		  exit 1; \
+		fi; \
+	done
+install_hlpfiles:
+	@for X in $(HLP_FILES); \
+	do \
+		echo $(INSTALL_DATA) $$X $(DEST_HLP_FILES_INSTALL_DIR); \
+		$(INSTALL_DATA) $$X $(DEST_HLP_FILES_INSTALL_DIR); \
+		if [ "$$?" != "0" ]; then \
+		  exit 1; \
+		fi; \
+	done
+install_docfiles:
+	@for X in $(DOC_FILES); \
+	do \
+		echo $(INSTALL_DATA) $$X $(DEST_DOC_FILES_INSTALL_DIR); \
+		$(INSTALL_DATA) $$X $(DEST_DOC_FILES_INSTALL_DIR); \
+		if [ "$$?" != "0" ]; then \
+		  exit 1; \
+		fi; \
+	done
+
+install: all install_directories install_modules install_slfiles \
+ install_hlpfiles install_docfiles
+
+clean:
+	-/bin/rm -f $(MODULES) *~ \#*
+distclean: clean
+	-/bin/rm -f config.h Makefile

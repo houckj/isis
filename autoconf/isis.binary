@@ -1,0 +1,102 @@
+#! /bin/sh
+
+#  ISIS binary distribution auto-run script
+#
+# Usage:
+#
+#  setenv ISIS_SRCDIR /path/to/installed/isis-1.1.0
+#  $ISIS_SRCDIR/isis
+#
+
+if [ ! "$ISIS_SRCDIR" ]; then
+   root=`dirname $0`
+   if [ "`basename $root`"="bin" ]; then
+      root=`dirname $root`
+   fi
+   case "$root" in
+     "." )
+          root=`pwd`
+     ;;
+     ".." )
+          root=`pwd`
+          root=`dirname $root`
+     ;;
+     * )
+     ;;
+   esac
+
+   if [ ! -f "$root/isis-version" ]; then
+     echo "ISIS_SRCDIR environment variable is not set"
+     exit 1
+   else
+     ISIS_SRCDIR=$root
+     export ISIS_SRCDIR
+   fi
+fi
+
+ISIS_LOAD_PATH=$ISIS_SRCDIR/share
+ISIS_MODULE_PATH=$ISIS_SRCDIR/lib/modules
+export ISIS_LOAD_PATH
+export ISIS_MODULE_PATH
+
+if [ ! "$PGPLOT_DIR" ]; then
+   PGPLOT_DIR=$ISIS_SRCDIR/opt/etc
+   export PGPLOT_DIR
+fi
+
+# so pgxwin_server is available
+PATH="${PATH}:${ISIS_SRCDIR}/opt/bin"
+export PATH
+
+# set LD_LIBRARY_PATH
+
+LIB_SO=${ISIS_SRCDIR}/opt/lib
+host_os=`uname -s`
+
+case "$host_os" in
+   *Darwin* )
+     if [ ! "$DYLD_LIBRARY_PATH" ]; then
+        DYLD_LIBRARY_PATH=$LIB_SO
+     else
+        case "$DYLD_LIBRARY_PATH" in
+           *"$LIB_SO"* )
+           ;;
+           * )
+             DYLD_LIBRARY_PATH="${LIB_SO}:${DYLD_LIBRARY_PATH}"
+           ;;
+        esac
+     fi
+     export DYLD_LIBRARY_PATH
+   ;;
+
+   * )
+     if [ ! "$LD_LIBRARY_PATH" ]; then
+        LD_LIBRARY_PATH=$LIB_SO
+     else
+        case "$LD_LIBRARY_PATH" in
+           *"$LIB_SO"* )
+           ;;
+           * )
+              LD_LIBRARY_PATH="${LIB_SO}:${LD_LIBRARY_PATH}"
+           ;;
+        esac
+     fi
+     export LD_LIBRARY_PATH
+   ;;
+esac
+
+# support invocation as isis-script
+# and pass on any command line arguments
+base=`basename $0`
+case "$base" in
+   *"script"* )
+     script_option="--script"
+   ;;
+   * )
+     script_option=""
+   ;;
+esac
+
+exec $ISIS_SRCDIR/bin/isis.exe $script_option ${@+"$@"}
+
+#eof

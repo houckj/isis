@@ -1,0 +1,140 @@
+#! /bin/sh
+
+host_os=@host_os@
+termcap_lib=@termcap_lib@
+with_xspec_version=@with_xspec_version@
+xspec_module_dir=@CONFIG_DIR@/modules/xspec/src
+libdir=@HEADAS_LIBDIR@
+
+case "$host_os" in
+  *darwin*)
+     ext="dylib"
+     ;;
+  *cygwin*)
+     ext="dll"
+     ;;
+  * )
+     ext="so"
+     ;;
+esac
+
+# deal with cfitsio back-compatibility issues
+if [ -f "${libdir}/libcxccfitsio.${ext}" ]; then
+    cfitsiolib="cxccfitsio"
+elif [ -f "${libdir}/libcfitsio.${ext}" ]; then
+    cfitsiolib="cfitsio"
+else
+    cfitsio_libname=`/bin/ls ${libdir}/libcfitsio*.${ext}`
+    cfitsiolib=`basename $cfitsio_libname | sed s/lib// | sed s/\.${ext}//`
+fi
+
+if test x"${cfitsiolib}" != x ; then
+   cfitsiolib="-l${cfitsiolib}"
+fi
+
+Use_Xspec_11() {
+   if [ -f "$HEADAS/headas-init.csh" ]; then
+
+      HAVE_XSPEC_VERSION="HAVE_XSPEC_11"
+
+      # deal with pgplot library name changes
+      if test -f "${libdir}/libpgplot.${ext}" || test -f "${libdir}/libpgplot.a" ; then
+          pgplotlib="pgplot"
+      else
+          pgplot_libname=`/bin/ls ${libdir}/libpgplot*.${ext}`
+          pgplotlib=`basename $pgplot_libname | sed s/lib// | sed s/\.${ext}//`
+      fi
+
+      if test x"${pgplotlib}" != x ; then
+          pgplotlib="-l${pgplotlib}"
+      fi
+
+      xspec_libname=`/bin/ls ${libdir}/libxspec_lfn_*.${ext} 2> /dev/null`
+      if test "x$xspec_libname" != "x" ; then
+        version=`basename $xspec_libname | sed s/libxspec_lfn_// | sed s/.${ext}//`
+      else
+         xspec_libname=`/bin/ls ${libdir}/libxspec_lfn_*.a 2> /dev/null`
+         if test "x$xspec_libname" != "x" ; then
+            version=`basename $xspec_libname | sed s/libxspec_lfn_// | sed s/.a//`
+         else
+            echo ""
+            exit 1
+         fi
+      fi
+
+      # xspec 11:
+      case "$host_os" in
+        *darwin*)
+           XS_LIBS="-L${libdir} -lxspec_${version} -lxanlib_${version} -lwcs_${version} ${cfitsiolib} ${pgplotlib}"
+           ;;
+         * )
+           XS_LIBS="-L${libdir} -lxspec_lfn_${version} -lxspec_${version} -lxanlib_${version} -lwcs_${version} ${cfitsiolib} -lreadline ${termcap_lib} ${pgplotlib}"
+           ;;
+      esac
+     if [ "$LMODDIR"no != "no" ]; then
+          static_lib="$LMODDIR/libxspec_lfn_${version}.a"
+          if [ -f $static_lib ]; then
+                XS_LIBS="$static_lib $XS_LIBS"
+          fi
+     fi
+   else
+      # lheasoft-5.x
+       case "$host_os" in
+         *darwin*)
+            XS_LIBS="-L${libdir} -lxspec -lxanlib -lwcs -lcfitsio"
+            ;;
+          * )
+            XS_LIBS="-L${libdir} -lxspec_lfn -lxspec -lxanlib -lwcs -lcfitsio -lreadline -ltermcap ${pgplotlib}"
+            ;;
+       esac
+      if [ "$LMODDIR"no != "no" ]; then
+           static_lib="$LMODDIR/libxspec_lfn.a"
+           if [ -f $static_lib ]; then
+                 XS_LIBS="$static_lib $XS_LIBS"
+           fi
+      fi
+   fi
+}
+
+Use_Xspec_12() {
+  HAVE_XSPEC_VERSION="HAVE_XSPEC_12"
+
+  # check for presence of libXSModel library introduced with heasoft-6.6
+  if test -f "${libdir}/libXSModel.${ext}" || test -f "${libdir}/libXSModel.${ext}" ; then
+     xsmodel_lib="-lXSModel"
+  else
+     xsmodel_lib=""
+  fi
+
+  # xspec 12:
+  XS_LIBS="-L${libdir} -lXSFunctions -lXSUtil -lXS ${cfitsiolib} -L${xspec_module_dir}/${ARCH}objs -lxstbl"
+  # FIXME -- xspec12 doesn't (yet?) support the old table model interface
+  #sed 's|\#define HAVE_XSPEC_TABLE_MODELS 1|\#undef HAVE_XSPEC_TABLE_MODELS|' ${dir}/config.h > ${dir}/.config.h
+  #/bin/mv ${dir}/.config.h ${dir}/config.h
+   case "$host_os" in
+      *solaris* )
+         XS_LIBS="${XS_LIBS} -lCrun -lCstd"
+         ;;
+      * )
+         ;;
+   esac
+}
+
+case "$with_xspec_version" in
+  *11* )
+       Use_Xspec_11
+       ;;
+  *12* )
+       Use_Xspec_12
+       ;;
+   * )
+       if [ -f "${HEADAS}/bin/xspec11" ]; then
+          Use_Xspec_11
+       else
+          Use_Xspec_12
+       fi
+     ;;
+esac
+
+echo $HAVE_XSPEC_VERSION > config-xspec-version
+echo $XS_LIBS > config-xspec-libs

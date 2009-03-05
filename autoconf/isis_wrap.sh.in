@@ -1,0 +1,29 @@
+#! /bin/sh
+
+HEADAS=@HEADAS_DIR@
+export HEADAS
+
+if [ -f "$HEADAS/headas-init.sh" ] ; then
+   . $HEADAS/headas-init.sh
+fi
+
+if [ ! "$ATOMDB" ]; then
+   ATOMDB=@ATOMDB_DIR@
+   export ATOMDB
+fi
+
+ISIS=@prefix@/bin/isis.exe
+
+# support invocation as isis-script
+# and pass on any command line arguments
+base=`basename $0`
+case "$base" in
+   *"script"* )
+     script_option="--script"
+   ;;
+   * )
+     script_option=""
+   ;;
+esac
+
+exec $ISIS $script_option ${@+"$@"}

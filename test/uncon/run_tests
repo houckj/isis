@@ -1,0 +1,256 @@
+#! /usr/bin/env isis-script
+% -*- mode: SLang; mode: fold -*-
+
+%   This file is part of ISIS, the Interactive Spectral Interpretation System
+%   Copyright (C) 1998-2008 Massachusetts Institute of Technology
+%
+%   This software was developed by the MIT Center for Space Research under
+%   contract SV1-61010 from the Smithsonian Institution.
+%
+%   Author:  John C. Houck  <houck@space.mit.edu>
+%
+%   This program is free software; you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation; either version 2 of the License, or
+%   (at your option) any later version.
+%
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+%
+%   You should have received a copy of the GNU General Public License
+%   along with this program; if not, write to the Free Software
+%   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%
+%--------------------------------------------------------------------
+
+% Purpose:  Compare isis optimizers using the 'uncon'
+%           suite of optimizer tests from netlib.org.
+%           This script generates some tables and plots.
+%
+%  Author:  John C. Houck <houck@space.mit.edu>
+%    Date:  12/2004
+
+require ("uncon");
+
+static variable Fp = stdout;
+
+public define fit_verbose_warn_hook ()
+{
+   % shut off some "minimization failed" messages from marquardt.
+}
+
+static define print_double (x)
+{
+   sprintf ("%11.4e", x);
+}
+
+static define make_value_string (v)
+{
+   return strjoin (array_map (String_Type, &print_double, v), ", ");
+}
+
+define test_fit (f) %{{{
+{
+   variable info, p, p0, u, minf, err, nfeval;
+
+   uncon_setup_fit (f);
+   p0 = array_struct_field(get_params(), "value");
+
+   Fit_Verbose=-1;
+   () = fit_counts (&info);
+
+   minf = info.statistic;
+   nfeval = uncon_num_function_evaluations();
+   p = array_struct_field(get_params(), "value");
+
+   u = uncon_best(f);
+
+   if (abs(u.ftf) > 0.0)
+     err = 1.0 - minf/u.ftf;
+   else err = minf;
+
+   () = fprintf (Fp, "%6s %4d %15.8e %15.8e %15.8e\n",
+             f, nfeval, minf, u.ftf, err);
+#iffalse
+   () = fprintf (Fp, "%6s: %s\n%6s: %s\n%6s: %s\n\n",
+                 "start=", make_value_string(p0),
+                 "x=", make_value_string(p),
+                 "x0=", make_value_string(u.x));
+#endif
+
+   () = fflush (Fp);
+}
+
+%}}}
+
+define test_method (method, options)
+{
+   set_fit_method (sprintf ("%s;%s", method, options));
+   array_map (Void_Type, &test_fit, Uncon_Functions);
+}
+
+define demerit (f, n)
+{
+   variable af = abs(f);
+   af[where(af>1.0)] = 1.0;
+   return n * exp(af);
+}
+
+define make_demerit_plot (name1, name2, r, xy) %{{{
+{
+   variable i=[0:length(r)-1];
+
+   color (1);
+   ylabel (sprintf ("D(%s)/D(%s)", name1, name2));
+
+   pointstyle(-10);
+   connect_points(0);
+
+   plot (i, r);
+
+   connect_points(1);
+   pointstyle(-1);
+
+   oplot ([0, i[-1]], [1, 1]);
+
+   color(blue);
+   xylabel (xy[0], xy[1], sprintf ("%s: %d  %s: %d",
+                     name2, howmany (r > 1.0), name1, howmany (r < 1.0)));
+   color(1);
+}
+
+%}}}
+
+define make_derror_plots (l, m, s) %{{{
+{
+   variable n = length(l);
+
+   title (latex2pg("Fit Error Difference (\\Delta\\epsilon)"));
+
+   connect_points(0);
+   pointstyle (-10);
+
+   ylabel (latex2pg("|\\epsilon(marquardt)| - |\\epsilon(lmdif)|"));
+   plot ([0:n-1], abs(m) - abs(l));
+
+   ylabel (latex2pg("|\\epsilon(subplex)| - |\\epsilon(marquardt)|"));
+   plot ([0:n-1], abs(s) - abs(m));
+
+   connect_points (1);
+   pointstyle (-1);
+}
+
+%}}}
+
+define make_nfeval_plots (nl, nm, ns) %{{{
+{
+   variable n = length(nl);
+
+   title ("Number of Function Evaluations");
+
+   ylabel ("N(marquardt)/N(lmdif)");
+   connect_points(0);
+   pointstyle (-10);
+   plot ([0:n-1], nm/nl);
+
+   connect_points (1);
+   pointstyle (-1);
+   oplot ([0, n-1], [1, 1]);
+
+   color(blue);
+   xylabel (2, 0.1, sprintf ("lmdif: %d  marquardt: %d",
+                             howmany (nl < nm), howmany (nm < nl)));
+   color(1);
+
+   ylabel ("N(subplex)/N(lmdif)");
+   connect_points(0);
+   pointstyle (-10);
+   plot ([0:n-1], ns/nl);
+
+   connect_points (1);
+   pointstyle (-1);
+   oplot ([0, n-1], [1, 1]);
+
+   color(blue);
+   xylabel (2, 0.3, sprintf ("lmdif: %d  subplex: %d  ",
+                             howmany (nl < ns), howmany (ns < nl)));
+   color(1);
+}
+
+%}}}
+
+define make_plots () %{{{
+{
+   variable l, nl, m, nm, s, ns, x, nx, cols = [2, 5];
+   (nl, l) = readcol ("lmdif.out", cols);
+   (nm, m) = readcol ("marquardt.out", cols);
+   (ns, s) = readcol ("subplex.out", cols);  
+   (nx, x) = readcol ("simann.out", cols);
+
+   variable dl = demerit (l, nl);
+   variable dm = demerit (m, nm);
+   variable ds = demerit (s, ns);
+   variable dx = demerit (x, nx);
+   variable r_ml = dm / dl;
+   variable r_sl = ds / dl;
+   variable r_sm = ds / dm;
+   variable r_xl = dx / dl;
+   
+   variable id = plot_open ("tests.ps/vcps");
+
+   multiplot (ones(3));
+
+   title (latex2pg("Figure of Demerit (D = Ne^{\\epsilon})"));
+   xlabel ("Test Number");
+
+   ylog;
+
+   make_demerit_plot ("marquardt", "lmdif", r_ml, [2, 0.1]);
+   make_demerit_plot ("subplex", "marquardt", r_sm, [2, 0.7]);
+   make_demerit_plot ("subplex", "lmdif", r_sl, [2, 0.25]);   
+   make_demerit_plot ("simann", "lmdif", r_xl, [2, 0.25]);
+
+   multiplot (1);
+   make_derror_plots (l, m, s);
+
+   multiplot (ones(2));
+   make_nfeval_plots (nl, nm, ns);
+
+   plot_close(id);
+}
+
+%}}}
+
+define main()
+{
+   variable methods = ["simann", "marquardt", "lmdif", "subplex"];
+   variable options = ["", "", "", ""];
+   variable header =
+"# Test    N       f-calc          f-known          error\n";
+   
+   variable n = length(methods);
+   
+   _for (0, n-1, 1)
+     {
+        variable i = ();
+
+        variable m = methods[i];
+        variable o = options[i];
+
+        Fp = fopen (m+".out", "w");
+        if (Fp == NULL)
+          break;
+        () = fprintf (Fp, header);
+
+        test_method (m, o);
+
+        () = fclose (Fp);
+     }
+
+   make_plots ();
+}
+
+main();
+

@@ -1,0 +1,79 @@
+% -*- slang -*-
+
+Min_Model_Spacing = 0.0;  % Angstroms
+%---------------------------------------------------------------------
+%  Min_Model_Spacing is the minimum grid-spacing used for the 
+%  theoretical source spectrum when fitting with multiple responses
+%  (e.g. for LETG multi-order fitting).
+%
+%  Regardless of the value of Min_Model_Spacing, ISIS will not use a 
+%  grid which is finer than the ARF grid at any point.
+%
+
+Remove_Spectrum_Gaps = 0;
+%----------------------------------------------------------------------
+%  Remove_Spectrum_Gaps controls how ISIS treats input spectrum
+%  grids with holes in them.
+%  If Remove_Spectrum_Gaps = 0, ISIS will refuse to read a spectrum
+%                               grid with a hole in it [default] 
+%  If Remove_Spectrum_Gaps = 1, ISIS will automatically remove the 
+%                               gaps by merging them into the
+%                               neighboring bin.
+
+Ion_Format = FMT_ROMAN;
+%----------------------------------------------------------------------
+%  Ion_Format controls the printing of ion names.
+%  Set = FMT_ROMAN to get ion names like 'Fe XXIV'
+%  Set = FMT_INT_ROMAN to get ion names like 'Fe 24' (meaning Fe XXIV)
+%  Set = FMT_CHARGE to get ion names like 'Fe +23', (meaning ion charge = 23)
+
+
+Use_Memory = 3;
+%----------------------------------------------------------------------
+%  Use_Memory controls run-time memory usage and database input speed
+%   Use_Memory = 0 -> read lines and continua on-demand
+%                1 -> read lines up front, continua on-demand
+%                2 -> read lines on-demand, continua up front
+%                3 -> read lines and continua up front
+%
+% For faster database input, uncompress the datafiles on disk.
+% For fastest model computation, load all the line and continuum
+% data up front (Use_Memory=3) if you have sufficient memory.
+% Choose Use_Memory=0 to minimize run-time memory usage.
+% Those interested mainly in line data might prefer Use_Memory=1.
+%
+
+Incomplete_Line_List = 1;
+%----------------------------------------------------------------------
+% Incomplete_Line_List controls the treatment of line emissivity tables
+% on input.
+% Set  = 1 if the line emissivity tables might contain lines not 
+%          listed in the atomic data tables.  This option is safer, but
+%          a little slower.
+% Set  = 0 otherwise. This option results in faster input, but the 
+%          input will fail if the wavelength tables are incomplete.
+
+
+Label_By_Default = 1;
+%----------------------------------------------------------------------
+% Label_By_Default controls the labeling of spectrum plot axes.
+% Set = 1 to have spectrum plot axes labeled automatically
+% Set = 0 to turn off automatic axis labeling.
+
+
+Fit_Verbose = 0;
+%----------------------------------------------------------------------
+% Fit_Verbose controls the level of information printed during 
+% iterative fitting of models to data.
+% Set  =  1 to see lots of information printed.
+%      =  0 for the default verbose level.
+%      = -1 to fit silently.
+
+Verbose_Fitsio = 0;
+%----------------------------------------------------------------------
+% Verbose_Fitsio controls printing of FITSIO error messages
+% Set  =  1 to see FITSIO error messages
+%      =  0 to avoid seeing FITSIO error messages
+
+
+

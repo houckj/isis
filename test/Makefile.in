@@ -1,0 +1,60 @@
+@SET_MAKE@
+SHELL = /bin/sh
+RM = /bin/rm -f
+
+config_dir = @CONFIG_DIR@
+prefix     = @prefix@
+
+CFLAGS     = @CFLAGS@
+ELF_CC     = @ELF_CC@
+ELF_CFLAGS = @ELF_CFLAGS@ -Dunix $(CFLAGS)
+CC_SHARED  = @CC_SHARED@
+
+FC      = @FC@
+FCFLAGS = @FCFLAGS@
+FCLIBS  = @FCLIBS@
+
+SLSH	= @SLANG_LIBDIR@/../bin/slsh
+
+WITH_HEADAS = @WITH_HEADAS@
+
+SLANG_INC  = @SLANG_INC@
+SLANG_LIB  = @SLANG_LIB@ -lslang
+CFITSIO_INC = @CFITSIO_INC@
+CFITSIO_LIB = @CFITSIO_LIB@
+LIBS_FOR_MODULES = @ISIS_LIB_FOR_MODULES@  @CFITSIO_LIB_FOR_MODULES@ @SLANG_LIB_FOR_MODULES@#
+
+INCS = -I$(config_dir)/src $(SLANG_INC)
+
+check:	rmf_user.so
+	@if test -x "../src/$(ARCH)objs/isis"; then \
+	    TEST_ISIS="../src/$(ARCH)objs/isis"; \
+	    ISIS_SRCDIR=".."; \
+	    export ISIS_SRCDIR ; \
+	 else \
+	    TEST_ISIS="`which isis`" ; \
+	    if test ! -x "$$TEST_ISIS" ; then \
+	        echo "" ; \
+	        echo "*** isis executable not found" ; \
+	        echo "" ; \
+		exit 1 ; \
+	    fi ;            \
+	 fi ; \
+	$(SLSH) $(WITH_HEADAS) ./run_tests.sl $$TEST_ISIS $(prefix)
+	@echo ""
+        
+install-check:	rmf_user.so
+	@$(SLSH) $(WITH_HEADAS) ./run_tests.sl isis $(prefix)
+	@echo ""
+
+rmf_user.so:
+	$(CC_SHARED) -o rmf_user.so $(INCS) rmf_user.c $(LIBS_FOR_MODULES)
+	
+clean:
+	$(RM) .##* *.log *.so *.o
+	cd uncon ; make clean
+
+distclean:
+	$(MAKE) clean
+	$(RM) Makefile config.h
+	cd uncon ; make distclean

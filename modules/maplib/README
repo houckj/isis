@@ -1,0 +1,58 @@
+This distribution contains code for the S-Lang Maplib module.  This
+module may be used to perform various mapping projections between the
+unit sphere and a surface such as a plane or cylinder.  For more
+information, see doc/*.
+
+To build the code, you will need to ensure that you have the S-Lang
+library installed.  It may be obtained from
+http://www.jedsoft.org/slang/.
+
+You must run the configure script before you can compile the module.
+If the slang library is installed in a 
+non-standard locations, then you will need to specify the location of
+the library as arguments to the configure script.  For example,
+suppose libslang.so is located in /home/bill/lib and its include file
+slang.h is located in /home/bill/include. Then one would run the 
+configure script using:
+
+  ./configure --with-slanglib=/home/bill/lib \
+              --with-slanginc=/home/bill/include
+
+or, the shorter form which assumes a common pathname prefix for the
+lib and include directories:
+
+  ./configure --with-slang=/home/bill
+
+You should also specify a location for the modules (*.so) and any associated
+script (*.sl) files created by this package.  The default location for
+the modules is in
+
+   $prefix/lib/slang/modules/
+
+Any .sl files will be installed in
+
+   $exec_prefix/share/slsh/local-packages/
+
+where the values of the variable $prefix defaults to /usr/local, and
+that of $exec_prefix to the value of $prefix.  These values may be
+changed using the --prefix and --exec-prefix configure script
+parameters.  For example, to set the value of $prefix to /home/bill,
+use
+
+   ./configure --prefix=/home/bill ...
+
+For more help using the configure script, run it using 
+
+   ./configure --help
+
+It is also a good idea to read the INSTALL.txt file located in this
+directory.
+
+Once the configure script has been run, you should inspect
+the Makefile that it generated in the src directory.  Then building
+and installing the library should involve nothing more than:
+
+   make 
+   make install
+
+You may have to have root privileges to peform the last step. 

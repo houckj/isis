@@ -1,0 +1,79 @@
+#! /usr/bin/env isis-script
+%--------------------------------------------------------
+% Program:  clear_bits
+%  Author:  John Houck  <houck@space.mit.edu>
+% Purpose:  clear specified status bits in an event file.
+%
+%   WARNING:  THE EVENT FILE IS MODIFIED IN PLACE.
+%             If you want to keep the original file
+%             unmodified, make a copy!
+%
+%  Examples:
+%
+%  1) To clear the afterglow bits, do:
+%
+%       clear_bits event_file.fits afterglow
+%
+%  2) To clear streak bits _and_ afterglow bits, do:
+%
+%       clear_bits event_file.fits afterglow streak
+%
+%--------------------------------------------------------
+
+static variable Mask_Bits = Assoc_Type[];% bits
+Mask_Bits["badpix"]       = 0x3 shl  4;  %  4:5
+Mask_Bits["badbias"]      = 0x7 shl  6;  %  6:8
+Mask_Bits["badoverclock"] = 0x3 shl  9;  %  9:10
+Mask_Bits["badcorner"]    = 0xf shl 11;  % 11:14
+Mask_Bits["streak"]       = 0x1 shl 15;  % 15
+Mask_Bits["afterglow"]    = 0xf shl 16;  % 16:19
+
+static define pgm_usage ()
+{
+   vmessage ("Usage:  clear_bits FILE mask_name [mask_name ...]");
+   exit(0);
+}
+
+if (__argc < 3)
+  pgm_usage ();
+
+static define clear_status_bits (fp, mask)
+{
+   variable col, flags, hs;
+
+   () = _fits_get_colnum (fp, "status", &col);
+   flags = fits_read_col (fp, "status");
+
+   flags &= ~mask;
+
+   () = _fits_write_col (fp, col, 1, 1, flags);
+   hs = sprintf ("clear_bits: mask = %x", mask);
+   () = _fits_write_history (fp, hs);
+}
+
+static define get_mask (args)
+{
+   variable m, mask = 0;
+
+   foreach (args)
+     {
+	m = strlow();
+	mask |= Mask_Bits[m];
+     }
+
+   return mask;
+}
+
+variable file = __argv[1];
+if (0 == is_substr (file, "[")
+    and 0 == is_substr (file, "+"))
+  file += "[1]";
+
+variable fp, mask;
+
+fp = fits_open_file (file, "w");
+mask = get_mask (__argv[[2:]]);
+
+clear_status_bits (fp, mask);
+
+fp = 0;  % close the file

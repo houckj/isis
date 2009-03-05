@@ -1,0 +1,26 @@
+@pgplot.lis
+@configure 0755
+@COPYRIGHT
+@README
+@INSTALL.txt
+
+@autoconf/Makefile.in
+@autoconf/aclocal.m4
+@autoconf/config.guess 0755
+@autoconf/config.sub 0755
+@autoconf/configure.ac
+@autoconf/install-sh 0755
+@autoconf/mkinsdir.sh 0755
+
+@src/config.hin
+@src/Makefile.in
+@src/version.h
+@src/pgplot.sl
+@src/pgplot-module.c
+@src/mkversion.sh 0755
+
+@doc/tm/Makefile
+@doc/tm/fixtex.sl
+@doc/tm/pgplot.tm
+
+@src/tests/test_pgplot.sl

@@ -1,0 +1,8 @@
+/* -*- c -*- */
+
+/* Define this if have stdlib.h */
+#undef HAVE_STDLIB_H
+
+
+
+

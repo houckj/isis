@@ -1,0 +1,10 @@
+
+This directory contains modules which provide optional
+functionality for ISIS.  They are normally compiled as
+dynamically linked modules which may optionally be loaded at
+run-time.  For systems lacking ELF support, these modules may
+additionally support being statically linked to ISIS.
+
+See the individual module directories for installation
+instructions.
+

@@ -1,0 +1,56 @@
+# -*- sh -*-
+
+#This is a UNIX-only makefile.
+
+@SET_MAKE@
+SHELL = /bin/sh
+
+RM = /bin/rm -f
+
+elf:
+	cd src; $(MAKE) all
+
+all:
+	make elf
+
+static:
+	cd src; $(MAKE) static
+	
+clean:
+	cd src; $(MAKE) clean
+	-$(RM) *~ .##*
+
+distclean:
+	cd src; $(MAKE) distclean
+	-$(RM) *~ .##* Makefile config.status config.log config.cache files.pck
+	-$(RM) autoconf/f77test.out
+
+confclean:
+	-$(RM) *~ .##* Makefile config.status config.log config.cache files.pck
+
+install:
+	cd src; $(MAKE) install
+
+install-elf:
+	cd src; $(MAKE) install-elf
+
+check:
+	cd src; $(MAKE) check
+
+new-code:
+	cd src; $(MAKE) new-code
+
+# The symlinks target is for my own private use.  It simply creates the object
+# directory as a symbolic link to a local disk instead of an NFS mounted one.
+symlinks:
+	cd src; $(MAKE) symlinks
+#
+#  These targets are used by the maintainer
+#
+configure: autoconf/aclocal.m4 autoconf/configure.ac
+	cd autoconf && autoconf && /bin/rm -rf autom4te.cache && mv ./configure ..
+update: autoconf/config.sub autoconf/config.guess
+autoconf/config.guess: /usr/share/misc/config.guess
+	/bin/cp -f /usr/share/misc/config.guess autoconf/config.guess
+autoconf/config.sub: /usr/share/misc/config.sub
+	/bin/cp -f /usr/share/misc/config.sub autoconf/config.sub

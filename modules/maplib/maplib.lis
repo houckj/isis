@@ -1,0 +1,25 @@
+@maplib.lis
+@configure 0755
+@COPYRIGHT
+@README
+@INSTALL.txt
+
+@autoconf/Makefile.in
+@autoconf/aclocal.m4
+@autoconf/config.guess 0755
+@autoconf/config.sub 0755
+@autoconf/configure.in
+@autoconf/install-sh 0755
+@autoconf/mkinsdir.sh 0755
+
+@src/config.hin
+@src/Makefile.in
+@src/version.h
+@src/maplib.sl
+@src/maplib-module.c
+
+@doc/tm/Makefile
+@doc/tm/fixtex.sl
+@doc/tm/maplib.tm
+
+@src/tests/test_maplib.sl

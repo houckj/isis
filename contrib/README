@@ -1,0 +1,64 @@
+These scripts were contributed by various users and have
+appeared as examples on the ISIS web page at
+   http://space.mit.edu/cxc/isis/
+
+Note: These scripts are included here in the hope that they may
+      provide useful examples. However, they are not maintained
+      and may even be incompatible with the current version of
+      ISIS.
+
+aped_contin.sl
+        Define an apec model which computes the apec continuum
+	spectrum for 1 temperature component.  Does not support
+	continuua by ion or for variable abundances
+        [** also the ISIS function 'create_aped_fun']
+
+aped_fit_models.sl
+        Define isis user models for aped thermal plasmas.
+        [** also the ISIS function 'create_aped_fun']	
+
+ascii.sl
+        Read and write simple ASCII tables [note that the
+	isis built-in functions readcol/writecol already
+	do this]
+
+bestfit.sl
+        Generate N random initial parameter values to search
+	for the best fit.  Very useful for exploring a complicated
+	chi-square space with numerous local minima.
+
+clear_bits*
+        Clear STATUS bits in an Chandra event file
+
+cspec_summary.sl
+        Generate summary plots for a grating spectrum [counts]
+
+fshift.sl
+        Shift an array by a fractional pixel amount (FFT phase
+	shift)
+
+fspec_summary.sl
+        Generate summary plots for a flux-corrected grating
+	spectrum.
+
+gsmooth.sl
+        Fourier smoothing by a Gaussian kernel.
+
+hanning.sl
+        Hanning filter
+
+marxflux*
+        Generate an input spectrum for a MARX simulation
+
+max_like.sl
+        Maximum Likelihood fit-statistic
+
+monte.sl
+        Monte Carlo search of a model fit-parameter space.
+
+pick_el.sl
+        Takes a line index list (as from "brightest()") and
+	allows you to sub-select elements and ions from it.
+
+splot_data.sl
+        Smoothed data plotting (counts or flux-corrected)

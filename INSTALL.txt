@@ -1,0 +1,676 @@
+     ISIS:  Interactive Spectral Interpretation System
+             http://space.mit.edu/cxc/isis
+
+      Send bug reports, comments and suggestions to
+               isis-users@space.mit.edu
+
+This file describes how to install ISIS on a Unix system.  See
+the ISIS User's Guide for instructions on how to run ISIS.
+
+Contents:
+   I. Binary install
+  II. Installing from source code
+ III. Spectroscopy database setup
+  IV. Installation Suggestions for Specific Architectures
+   V. Troubleshooting
+
+I. BINARY INSTALL
+=================
+
+1. Download the appropriate ISIS binary distribution from
+   http://space.mit.edu/cxc/isis/download.html:
+
+    isis-$version.lin.tar.gz   (source code + Linux binaries)
+    isis-$version.sol.tar.gz   (source code + Solaris binaries)
+
+2. In the directory in which you want to install the software,
+   unpack the file you selected, e.g.
+
+    gunzip -C isis-$version.lin.tar.gz
+
+3. The ISIS binary installation relies on the environment
+   variable ISIS_SRCDIR.  This variable is used to locate
+   the files ISIS needs at run-time.  To run ISIS:
+
+   For C Shell variants (csh, tcsh):
+
+    setenv ISIS_SRCDIR /path/to/unpacked/isis
+    $ISIS_SRCDIR/bin/isis
+
+   For Bourne Shell (sh, ash, ksh, bash):
+
+    ISIS_SRCDIR=/path/to/installed/isis
+    export ISIS_SRCDIR
+    $ISIS_SRCDIR/bin/isis
+
+   Note that, if you wish to use the precompiled XSPEC module,
+   you must also initialize the HEADAS software (which must
+   be downloaded and installed separately).  At the time of
+   this writing, the HEADAS initialization procedure is very
+   similar, e.g. for Csh variants:
+
+    setenv HEADAS  /path/to/installed/headas/$ARCH
+    source $HEADAS/headas-init.csh
+
+4.  See section (III) for instructions on setting up the
+    spectroscopy database.
+
+II. INSTALLING FROM SOURCE CODE
+===============================
+
+Quick Start for Experts:
+------------------------
+
+To build ISIS, the S-Lang, CFITSIO and PGPLOT libraries must be
+installed on your system.  Many ISIS users also make use of the
+XSPEC spectral model library.  If XSPEC is already installed,
+ISIS can use the PGPLOT and CFITSIO libraries included with
+XSPEC.
+
+Assuming that S-Lang has been installed in a standard location
+such as /usr/local, the following commands will compile and
+install ISIS in /usr/local:
+
+    ./configure --with-headas=$HEADAS
+    make
+    make install
+
+HEADAS gives the path to your local HEASOFT installation.
+
+To make use of the APED spectroscopy database installed in
+$ATOMDB, include the configure option:
+
+  --with-atomdb=$ATOMDB
+
+To install ISIS in DIR, include the configure option:
+
+  --prefix=DIR
+
+For help on other configure options, do:
+
+  ./configure --help
+
+For a much more detailed discussion of the installation
+procedure and the various configure options, see below.
+
+Software Requirements:
+----------------------
+
+PGPLOT, CFITSIO and S-Lang must be installed before installing ISIS.  The
+following versions (or newer) are required:
+
+   pgplot_5.2       (with C bindings installed)
+   cfitsio_2.1
+   slang-2.0.0
+
+To obtain the newest versions of these packages see:
+  (pgplot)   http://www.astro.caltech.edu/~tjp/pgplot/install.html
+  (cfitsio)  http://heasarc.gsfc.nasa.gov/docs/software/fitsio/fitsio.html
+  (slang)    http://www.s-lang.org/download.html
+
+IMPORTANT:  Shared libraries are preferred!
+
+  To make full use of importable modules, shared libraries
+  (e.g. libcfitsio.so or libcfitsio.dylib) should be installed
+  whenever possible.  If static libraries are installed (e.g.
+  libcfitsio.a) the module functionality may not work properly
+  on certain platforms (e.g. Mac OS X).
+
+   When building slang, use 'make elf install-elf'.
+   When building cfitsio, use 'make shared'.
+   When building pgplot, use 'make libpgplot.so'.
+
+Unix Installation:
+------------------
+
+0.  The steps below assume that the ISIS tar file was unpacked in
+    isis-$version and that up-to-date versions of PGPLOT, CFITSIO and
+    S-Lang are installed somewhere on your system.
+
+Here's a quick summary of the minimum required installation steps,
+which will install isis into /usr/local/isis by default.
+
+   0.  unsetenv LD_LIBRARY_PATH
+   1.  ./configure [--with-headas=$HEADAS ...]
+   2.  make
+   3.  make check   (Optional: this runs some self-tests)
+   4.  make install
+
+More detailed installation instructions follow. Before starting
+the installation, you might also check section (IV) below to
+see if there are installation suggestions for your particular
+platform, especially if you're building ISIS from source for
+Mac OS X.
+
+First, cd to the ISIS source directory:
+
+    cd isis-$version
+
+0.  Its usually a good idea to unset the LD_LIBRARY_PATH
+    environment variable when building ISIS:
+
+    unsetenv LD_LIBRARY_PATH
+
+    This can prevent run-time problems caused by interaction
+    with other packages that set LD_LIBRARY_PATH.
+
+1.  Choose compilers.
+
+    If you wish to use the default compilers (cc, f77) and they
+    are available in your environment, proceed to step 2.
+
+    If you want to use a different compiler, the simplest way is
+    to specify the compiler using environment variables. For
+    example:
+
+      setenv CC gcc-4.0
+      setenv FC g95-4.0
+
+    Note that if you want to use the XSPEC module, it may
+    be necessary to compile ISIS using the same C compiler
+    that was used to compile XSPEC.  See modules/xspec/README
+    for details.
+
+2.  Locate required packages and determine the configure options:
+
+    If the required libraries are not installed in standard
+    locations, e.g. /usr/lib, their locations must be provided
+    when you run the configure script.
+
+    Find the directories containing the following files from
+    the CFITSIO, PGPLOT and S-Lang distributions:
+
+          CFITSIO include:  fitsio.h
+          CFITSIO library:  libcfitsio.so
+
+           PGPLOT include:  cpgplot.h
+         PGPLOT libraries:  libpgplot.so, libcpgplot.a
+
+           S-Lang include:  slang.h
+           S-Lang library:  libslang.so
+
+    For each package, if the library is in DIR/lib and the
+    include file is in DIR/include, the DIR path can be
+    provided to the configure script using an option like, e.g.
+
+          --with-slang=DIR
+
+    However, if the library is in LIB_DIR and the include file
+    is in INC_DIR, both paths should be provided using options
+    like, e.g.:
+
+          --with-pgplotlib=/usr/local/pgplot
+          --with-pgplotinc=/usr/local/pgplot
+
+    To make use of the XSPEC spectral models, it will be
+    necessary to provide the path to your HEADAS installation
+    using
+          --with-headas=$HEADAS
+
+    where is the path to your local 'headas' installation.
+
+    If you wish to compile the XSPEC module and statically link
+    it with ISIS (instead of loading the module via dynamic
+    linking at ISIS run-time), add the configure option
+    --with-xspec-static=$HEADAS (This option is not recommended.)
+
+    If you wish to specify the location of your spectroscopy
+    database at this time, use the '--with-atomdb' configure
+    option
+            --with-atomdb=$ATOMDB
+
+    where $ATOMDB is the path to the top-level directory, e.g.
+    ATOMDB=/data/atomdb/aped-1.3.1. This configure option is
+    optional, because path may also be specified by setting the
+    ATOMDB environment variable.
+
+3.  Run the configure script.
+
+    Although many alternatives are possible here, the main
+    idea is to specify the required paths from step 2.
+
+    Use the 'prefix' option to specify where isis should be
+    installed:
+
+       ./configure --prefix=DIR --with-headas=$HEADAS
+
+    By default, DIR=/usr/local. By default, the configure
+    script will look for slang, cfitsio and pgplot in their
+    standard install directories and in DIR.
+
+    Alternatively , if slang, cfitsio and pgplot are installed
+    in the *same* non-standard location (e.g. in OTHER_DIR/lib,
+    OTHER_DIR/include, and OTHER_DIR/pgplot), one need specify
+    only the relevant top-level directory where these packages
+    are installed.  For example:
+
+      ./configure --prefix=DIR --with-dep=OTHER_DIR   \
+                  --with-headas=$HEADAS
+
+    More generally, if the required packages are installed in a
+    variety of non-standard locations, one can provide all
+    necessary library paths explicitly, using something like
+    this:
+
+      ./configure --prefix=/soft                        \
+                  --with-cfitsio=/soft/opt              \
+                  --with-slang=/soft/extra              \
+                  --with-pgplotlib=/soft/pgplot         \
+	          --with-pgplotinc=/soft/pgplot         \
+                  --with-headas=/soft/headas/$ARCH      \
+                  --with-atomdb=/soft/atomdb/aped-1.3.1
+
+    If Ciao-4.x has been installed, it may be possible to build
+    isis by linking to the libraries included in Ciao
+    distribution.  To do this, use the --with-ciao configure
+    option:
+
+          ./configure --with-ciao=$ciao_install_dir   \
+                      --with-pgplotlib="$PGPLOT_DIR"  \
+                      --with-pgplotinc="$PGPLOT_DIR"
+
+    Note that because the Ciao distribution does not contain
+    the PGPLOT library, a separate PGPLOT installation is
+    required.
+
+4.  Compile and install ISIS:
+
+    If there are installation suggestions for your platform,
+    they are listed in section IV below.
+
+    To compile isis, type:
+          make
+
+    To run some simple tests, type:
+          make check
+
+    To install isis, type:
+          make install
+
+    If 'configure' was run using --prefix=DIR, isis will be
+    installed in DIR/isis/$version.
+
+    If DIR/bin exists, a symbolic link to the isis executable
+    will be placed there.  Otherwise, the executable may be
+    found in DIR/isis/$version/bin/isis.
+
+    To remove temporary files which are no longer needed type:
+         make clean
+
+    At this point, ISIS installation is complete.
+
+III.  SPECTROSCOPY DATABASE SETUP
+=================================
+
+  It may be sufficient to set the ATOMDB environment variable
+  to point to the location of your spectroscopy database. If
+  specific database filenames have changed, it may be necessary
+  to edit isis-$version/etc/aped.sl so that it matches your
+  spectroscopy database. Spectroscopy database files may be
+  obtained from e.g.
+
+    http://cxc.harvard.edu/atomdb
+
+  Note that the simplest configuration requires the emissivity
+  tables only. See the ISIS manual in isis-$version/doc/manual.pdf
+  or on the web page at http://space.mit.edu/cxc/isis for
+  details on which files are needed and how they should be
+  arranged.
+
+IV. Installation Suggestions for Specific Architectures
+=======================================================
+
+gfortran:
+--------
+
+When mixing code compiled with g77 and gfortran, it may be
+necessary to include additional libraries. If you encounter
+problems with missing symbols like 's_copy', you might try
+using the --with-fclibs configure option to provide the extra
+libraries.  For example:
+
+   ./configure ... --with-fclibs="-lg2c" ...
+
+AIX systems:
+-----------
+
+o The IBM compilers are preferred:  CC=xlc and FC=xlf
+
+Linux systems:
+-------------
+
+o pre-installed versions of S-Lang which are ancient/incompatible
+
+  Some Linux distributions come with an older version of S-Lang
+  pre-installed, usually in /usr/lib and /usr/include.  Because
+  ISIS uses some newer features of S-Lang, compilation of ISIS
+  will fail if the compiler links to this old version of S-Lang
+  instead of the current version.  In particular, even if you
+  installed a new statically linked version of S-Lang
+  (/usr/lib/libslang.a), ISIS compilation can fail with complaints
+  about unresolved S-Lang symbols (e.g. SLang_pop_float()) if the
+  old dynamically linked S-Lang libraries (/usr/lib/libslang.so)
+  are still present.
+
+  To correct this problem, you should install the most recent
+  version of S-Lang including the new dynamically linked libraries
+  (e.g. "make elf" then "make install-elf" then "ldconfig").  If
+  you have properly installed a new version of S-Lang and still
+  cannot compile ISIS under Linux, please send us a bug report
+  describing the details of the problem.
+
+Mac OS X systems:
+-----------------
+
+o Fortran compiler issues
+
+  Both the gfortran and g95 compilers have been reported to
+  work. In order to get a functioning Fortran compiler, you'll
+  probably need to install the Xcode developer tools from
+  Apple.  To obtain a functioning g95 compiler, you'll probably
+  have to compile it from source via Fink,
+     http://www.finkproject.org/.
+
+o Dynamic Linking
+
+  Dynamic linking to shared libraries behaves differently on
+  the Mac than on a real unix system.  To avoid problems, be
+  sure to install shared libraries whenever possible.  In
+  particular, when you install the S-Lang library, be sure to
+  install libslang.dylib via 'make elf install-elf'.
+
+  Its also a good idea to avoid having multiple copies of the
+  same shared library if those copies are in directories that
+  are examined by your compiler when it runs.  For example,
+  problems may arise if /usr/lib/libslang.dylib and
+  /usr/local/lib/libslang.dylib both exist but represent
+  different library versions.
+
+  It may also be necessary to DYLD_LIBRARY_PATH to include
+  paths to all the shared libraries needed at run-time.
+
+o Missing libraries
+
+  If you're using the version of PGPLOT provided by Fink,
+  you probably also need to edit EXTRA_LIB in src/Makefile
+  (in the ISIS distribution) to add
+
+        -framework Foundation -framework AppKit -lpng
+
+  After you're finished editing src/Makefile, build and install
+  ISIS as usual.
+
+V.  TROUBLESHOOTING
+===================
+
+If ISIS didn't compile:
+
+  If compilation fails because of undefined symbols or missing
+  libraries, you may need to provide additional libraries by
+  editing the definition of FLIBS in src/Makefile.  If some
+  necessary header files were missing, you may also need to edit
+  src/Makefile to provide the necessary directory paths.
+  After editing the Makefile(s), repeat step 4 above.
+
+  If your compiler doesn't understand "-Wl," or if your link
+  editor doesn't understand "-R", the RPATH definition in
+  src/Makefile may cause problems.  The purpose of that
+  declaration is to store the path to the dynamically linked SLANG
+  and PGPLOT libraries (libslang.so and libpgplot.so) within the
+  ISIS executable so that they are available at run-time.  If
+  you're using dynamically linked libraries and the RPATH
+  definition, you should try to provide the equivalent declaration
+  for your compiler. Failing that, you can comment out the RPATH
+  definition and provide the necessary run-time paths by editing
+  your LD_LIBRARY_PATH environment variable.
+
+Known Bugs:
+-----------
+
+o Some versions of the Linux rlogin program are buggy.  When using
+  rlogin to connect to a Solaris 2.6 machine from a Linux machine,
+  output from ISIS (and other programs) can intermittently
+  disappear.  The simplest workaround is to use telnet instead of
+  rlogin.  A bug-fix for the Linux rlogin is also available.
+
+o The Solaris version of qsort() has a bug that causes it to read
+  from uninitialized memory. We have so far encountered no
+  problems caused by this, but if it leads to a problem, we will
+  provide a bug-free replacement for qsort() in a future version.
+
+----------------------------------------------------------------------------
+Below, I have attached the generic INSTALL instructions included in the
+autoconf distribution.  These instructions provide more detail on how the
+configure script works and also describe other installation options which
+may be supported by the configure script.
+----------------------------------------------------------------------------
+
+Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002 Free Software
+Foundation, Inc.
+
+   This file is free documentation; the Free Software Foundation gives
+unlimited permission to copy, distribute and modify it.
+
+Basic Installation
+==================
+
+   These are generic installation instructions.
+
+   The `configure' shell script attempts to guess correct values for
+various system-dependent variables used during compilation.  It uses
+those values to create a `Makefile' in each directory of the package.
+It may also create one or more `.h' files containing system-dependent
+definitions.  Finally, it creates a shell script `config.status' that
+you can run in the future to recreate the current configuration, and a
+file `config.log' containing compiler output (useful mainly for
+debugging `configure').
+
+   It can also use an optional file (typically called `config.cache'
+and enabled with `--cache-file=config.cache' or simply `-C') that saves
+the results of its tests to speed up reconfiguring.  (Caching is
+disabled by default to prevent problems with accidental use of stale
+cache files.)
+
+   If you need to do unusual things to compile the package, please try
+to figure out how `configure' could check whether to do them, and mail
+diffs or instructions to the address given in the `README' so they can
+be considered for the next release.  If you are using the cache, and at
+some point `config.cache' contains results you don't want to keep, you
+may remove or edit it.
+
+   The file `configure.ac' (or `configure.in') is used to create
+`configure' by a program called `autoconf'.  You only need
+`configure.ac' if you want to change it or regenerate `configure' using
+a newer version of `autoconf'.
+
+The simplest way to compile this package is:
+
+  1. `cd' to the directory containing the package's source code and type
+     `./configure' to configure the package for your system.  If you're
+     using `csh' on an old version of System V, you might need to type
+     `sh ./configure' instead to prevent `csh' from trying to execute
+     `configure' itself.
+
+     Running `configure' takes awhile.  While running, it prints some
+     messages telling which features it is checking for.
+
+  2. Type `make' to compile the package.
+
+  3. Optionally, type `make check' to run any self-tests that come with
+     the package.
+
+  4. Type `make install' to install the programs and any data files and
+     documentation.
+
+  5. You can remove the program binaries and object files from the
+     source code directory by typing `make clean'.  To also remove the
+     files that `configure' created (so you can compile the package for
+     a different kind of computer), type `make distclean'.  There is
+     also a `make maintainer-clean' target, but that is intended mainly
+     for the package's developers.  If you use it, you may have to get
+     all sorts of other programs in order to regenerate files that came
+     with the distribution.
+
+Compilers and Options
+=====================
+
+   Some systems require unusual options for compilation or linking that
+the `configure' script does not know about.  Run `./configure --help'
+for details on some of the pertinent environment variables.
+
+   You can give `configure' initial values for configuration parameters
+by setting variables in the command line or in the environment.  Here
+is an example:
+
+     ./configure CC=c89 CFLAGS=-O2 LIBS=-lposix
+
+   *Note Defining Variables::, for more details.
+
+Compiling For Multiple Architectures
+====================================
+
+   You can compile the package for more than one kind of computer at the
+same time, by placing the object files for each architecture in their
+own directory.  To do this, you must use a version of `make' that
+supports the `VPATH' variable, such as GNU `make'.  `cd' to the
+directory where you want the object files and executables to go and run
+the `configure' script.  `configure' automatically checks for the
+source code in the directory that `configure' is in and in `..'.
+
+   If you have to use a `make' that does not support the `VPATH'
+variable, you have to compile the package for one architecture at a
+time in the source code directory.  After you have installed the
+package for one architecture, use `make distclean' before reconfiguring
+for another architecture.
+
+Installation Names
+==================
+
+   By default, `make install' will install the package's files in
+`/usr/local/bin', `/usr/local/man', etc.  You can specify an
+installation prefix other than `/usr/local' by giving `configure' the
+option `--prefix=PATH'.
+
+   You can specify separate installation prefixes for
+architecture-specific files and architecture-independent files.  If you
+give `configure' the option `--exec-prefix=PATH', the package will use
+PATH as the prefix for installing programs and libraries.
+Documentation and other data files will still use the regular prefix.
+
+   In addition, if you use an unusual directory layout you can give
+options like `--bindir=PATH' to specify different values for particular
+kinds of files.  Run `configure --help' for a list of the directories
+you can set and what kinds of files go in them.
+
+   If the package supports it, you can cause programs to be installed
+with an extra prefix or suffix on their names by giving `configure' the
+option `--program-prefix=PREFIX' or `--program-suffix=SUFFIX'.
+
+Optional Features
+=================
+
+   Some packages pay attention to `--enable-FEATURE' options to
+`configure', where FEATURE indicates an optional part of the package.
+They may also pay attention to `--with-PACKAGE' options, where PACKAGE
+is something like `gnu-as' or `x' (for the X Window System).  The
+`README' should mention any `--enable-' and `--with-' options that the
+package recognizes.
+
+   For packages that use the X Window System, `configure' can usually
+find the X include and library files automatically, but if it doesn't,
+you can use the `configure' options `--x-includes=DIR' and
+`--x-libraries=DIR' to specify their locations.
+
+Specifying the System Type
+==========================
+
+   There may be some features `configure' cannot figure out
+automatically, but needs to determine by the type of machine the package
+will run on.  Usually, assuming the package is built to be run on the
+_same_ architectures, `configure' can figure that out, but if it prints
+a message saying it cannot guess the machine type, give it the
+`--build=TYPE' option.  TYPE can either be a short name for the system
+type, such as `sun4', or a canonical name which has the form:
+
+     CPU-COMPANY-SYSTEM
+
+where SYSTEM can have one of these forms:
+
+     OS KERNEL-OS
+
+   See the file `config.sub' for the possible values of each field.  If
+`config.sub' isn't included in this package, then this package doesn't
+need to know the machine type.
+
+   If you are _building_ compiler tools for cross-compiling, you should
+use the `--target=TYPE' option to select the type of system they will
+produce code for.
+
+   If you want to _use_ a cross compiler, that generates code for a
+platform different from the build platform, you should specify the
+"host" platform (i.e., that on which the generated programs will
+eventually be run) with `--host=TYPE'.
+
+Sharing Defaults
+================
+
+   If you want to set default values for `configure' scripts to share,
+you can create a site shell script called `config.site' that gives
+default values for variables like `CC', `cache_file', and `prefix'.
+`configure' looks for `PREFIX/share/config.site' if it exists, then
+`PREFIX/etc/config.site' if it exists.  Or, you can set the
+`CONFIG_SITE' environment variable to the location of the site script.
+A warning: not all `configure' scripts look for a site script.
+
+Defining Variables
+==================
+
+   Variables not defined in a site shell script can be set in the
+environment passed to `configure'.  However, some packages may run
+configure again during the build, and the customized values of these
+variables may be lost.  In order to avoid this problem, you should set
+them in the `configure' command line, using `VAR=value'.  For example:
+
+     ./configure CC=/usr/local2/bin/gcc
+
+will cause the specified gcc to be used as the C compiler (unless it is
+overridden in the site shell script).
+
+`configure' Invocation
+======================
+
+   `configure' recognizes the following options to control how it
+operates.
+
+`--help'
+`-h'
+     Print a summary of the options to `configure', and exit.
+
+`--version'
+`-V'
+     Print the version of Autoconf used to generate the `configure'
+     script, and exit.
+
+`--cache-file=FILE'
+     Enable the cache: use and save the results of the tests in FILE,
+     traditionally `config.cache'.  FILE defaults to `/dev/null' to
+     disable caching.
+
+`--config-cache'
+`-C'
+     Alias for `--cache-file=config.cache'.
+
+`--quiet'
+`--silent'
+`-q'
+     Do not print messages saying which checks are being made.  To
+     suppress all normal output, redirect it to `/dev/null' (any error
+     messages will still be shown).
+
+`--srcdir=DIR'
+     Look for the package's source code in directory DIR.  Usually
+     `configure' can determine that directory automatically.
+
+`configure' also accepts some other, not widely useful, options.  Run
+`configure --help' for more details.
+

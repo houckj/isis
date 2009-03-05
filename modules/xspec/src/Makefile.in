@@ -1,0 +1,240 @@
+# -*- sh -*-
+# $Id: Makefile.in,v 1.38 2004/09/01 17:02:03 houck Exp $
+
+# This is a template that is read in by the configure script.  Hopefully
+# you will not need to change anything.  Words enclosed in @ signs
+# are filled in by the configure script.
+
+#-----------------------------------------------------------------------
+#   This file is part of ISIS, the Interactive Spectral Interpretation System
+#   Copyright (C) 1998-2008  Massachusetts Institute of Technology
+#-----------------------------------------------------------------------
+
+CC       = @CC@
+CFLAGS   = @CFLAGS@
+LDFLAGS	 = @LDFLAGS@ @DYNAMIC_LINK_FLAGS@
+DL_LIB   = @DYNAMIC_LINK_LIB@
+RPATH    = @RPATH@
+
+FCLIBS   = @FCLIBS@ @FC_EXTRA_LIBS@
+
+# X Include directory
+X_CFLAGS = @X_CFLAGS@
+
+# X library
+X_LIBS   = @X_LIBS@ -lX11
+
+# Extra libraries needed by X some systems
+X_EXTRA_LIBS = @X_EXTRA_LIBS@
+
+SYS_EXTRA_LIBS = @SYS_EXTRA_LIBS@
+
+#---------------------------------------------------------------------------
+# ELF specific (Linux)
+#---------------------------------------------------------------------------
+ELF_CC 	     = @ELF_CC@
+ELF_CFLAGS   = @ELF_CFLAGS@ $(CFLAGS)
+CC_SHARED    = @CC_SHARED@
+ELF_DEP_LIBS = @ELF_DEP_LIBS@
+
+ELF_FC_FCFLAGS = @ELF_FC_FCFLAGS@
+
+#---------------------------------------------------------------------------
+# Libraries and include files for ISIS, S-Lang and XSPEC:
+#---------------------------------------------------------------------------
+
+config_dir = @CONFIG_DIR@
+
+ISIS_ROOT = $(config_dir)
+LINK_XSPEC_STATIC = @LINK_XSPEC_STATIC@
+HEA = @HEADAS_DIR@
+XSPEC_LIBS = `cat $(config_dir)/modules/xspec/src/config-xspec-libs`
+
+SLANG_LIB = @SLANG_LIB@ -lslang
+SLANG_INC = @SLANG_INC@
+ISISINC  = -I$(ISIS_ROOT)/src
+
+#-----------------------------------------------------------------------------
+# Misc. libraries and defines for Fortran
+#-----------------------------------------------------------------------------
+
+FC      = @FC@
+FCFLAGS = @FCFLAGS@
+FC_DEFS = @FC_DEFS@
+
+#---------------------------------------------------------------------------
+# All libraries and includes
+#---------------------------------------------------------------------------
+LIBS_FOR_MODULES = @ISIS_LIB_FOR_MODULES@ @SLANG_LIB_FOR_MODULES@
+LIBS = $(RPATH) $(LIBS_FOR_MODULES) $(XSPEC_LIBS) $(FCLIBS) $(X_LIBS) $(X_EXTRA_LIBS) $(SYS_EXTRA_LIBS)
+INCS = $(ISISINC) $(SLANG_INC) 
+
+#---------------------------------------------------------------------------
+# Set these values to ABSOLUTE path names
+#---------------------------------------------------------------------------
+SRCDIR = $(config_dir)/modules/xspec/src# Location of sources
+OBJDIR = $(SRCDIR)/$(ARCH)objs# Location of objects
+ELFDIR = $(SRCDIR)/$(ARCH)elfobjs# Location of elf objects
+
+#---------------------------------------------------------------------------
+# Directory where library is going to go when installed
+#---------------------------------------------------------------------------
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+install_lib_dir = @libdir@/modules
+install_share_dir = $(prefix)/share
+
+#---------------------------------------------------------------------------
+# Misc commands (safe to leave these untouched)
+#---------------------------------------------------------------------------
+RANLIB          = @RANLIB@
+INSTALL         = @INSTALL@
+INSTALL_DATA    = @INSTALL_DATA@
+INSTALL_MODULE  = @INSTALL_MODULE@
+MKINSDIR	= ../autoconf/mkinsdir.sh
+RM 		= rm -f
+RM_R		= rm -rf
+AR_CR 		= ar cr
+RMDIR 		= rmdir
+LN 		= /bin/ln -sf
+CP 		= cp
+MKDIR		= mkdir
+@SET_MAKE@
+#---------------------------------------------------------------------------
+# There should be no need to change anything below here.
+#---------------------------------------------------------------------------
+THIS_LIB		= xspec-module#
+OTHERSTUFF 		=#
+THIS_LIB_DEFINES	=#
+
+CONFIG_H		= config.h
+ALL_CFLAGS		= $(CFLAGS) -Dunix $(FC_DEFS) $(X_CFLAGS) $(THIS_LIB_DEFINES) $(INCS)
+ALL_ELF_CFLAGS		= $(ELF_CFLAGS) -Dunix $(FC_DEFS) $(X_CFLAGS) $(THIS_LIB_DEFINES) $(INCS)
+COMPILE_CMD		= $(CC) -c $(ALL_CFLAGS)
+FC_COMPILE_CMD          = $(FC) -c $(FCFLAGS)
+
+ELFCOMPILE_CMD		= $(ELF_CC) -c $(ALL_ELF_CFLAGS)
+FC_ELFCOMPILE_CMD       = $(FC_COMPILE_CMD) $(ELF_FC_FCFLAGS)
+
+NORMAL_LIB = lib$(THIS_LIB).a
+OBJDIR_NORMAL_LIB = $(OBJDIR)/$(NORMAL_LIB)
+
+ELFLIB = $(THIS_LIB).so#
+ELFDIR_ELF_LIB = $(ELFDIR)/$(ELFLIB)#
+
+XSPEC_TABLE_LIB = libxstbl.a
+OBJDIR_XSPEC_TABLE_LIB = $(OBJDIR)/$(XSPEC_TABLE_LIB)
+XSPEC_TABLE_SRC = erebin.f inibin.f tblint.f xsatbl.f xsetbl.f xsmtbl.f
+XSPEC_TABLE_OBJS = erebin.o inibin.o tblint.o xsatbl.o xsetbl.o xsmtbl.o
+
+OFILES = xspec-module.o
+OBJS = $(OBJDIR)/xspec-module.o
+ELFOBJS = $(ELFDIR)/xspec-module.o
+
+EXTRA_FILES = _names_xspec11.dat _names_xspec12.dat config-xspec-version \
+         xspec.sl parse_model_dat.sl
+
+SHELL = /bin/sh
+
+xspec-module_C_FLAGS = -DHEADAS='"$(HEA)"' -D`cat $(config_dir)/modules/xspec/src/config-xspec-version`#
+xspec-module_O_DEP = $(SRCDIR)/_model_externs_xspec11.inc $(SRCDIR)/_model_table_xspec11.inc \
+                     $(SRCDIR)/_model_externs_xspec12.inc $(SRCDIR)/_model_table_xspec12.inc
+xspec_O_DEP = $(SRCDIR)/xspec-compat.inc
+
+#---------------------------------------------------------------------------
+# Rules
+#---------------------------------------------------------------------------
+all:  $(ELFDIR) xspec-version $(CONFIG_H) $(ELFDIR_ELF_LIB)
+static: $(OBJDIR) xspec-version $(CONFIG_H) $(OBJDIR_NORMAL_LIB)
+
+$(OBJDIR_NORMAL_LIB): $(OBJDIR) $(CONFIG_H) $(OBJDIR_XSPEC_TABLE_LIB) $(OBJS)
+	-$(RM) $(OBJDIR_NORMAL_LIB)
+	cd $(OBJDIR); $(AR_CR) $(NORMAL_LIB) $(OFILES)
+	$(RANLIB) $(OBJDIR_NORMAL_LIB)
+	@echo ""
+	@echo $(NORMAL_LIB) created in $(OBJDIR)
+
+$(OBJDIR) :
+	-$(MKDIR) $(OBJDIR)
+
+$(ELFDIR_ELF_LIB): $(ELFDIR) $(CONFIG_H) $(OBJDIR_XSPEC_TABLE_LIB) $(ELFOBJS)
+	-$(RM) $(ELFDIR_ELF_LIB)
+	cd $(ELFDIR); $(CC_SHARED) -o $(ELFLIB) $(OFILES) $(LIBS) $(ELF_DEP_LIBS)
+	@echo ""
+	@echo $(ELFLIB) created in $(ELFDIR).
+
+$(OBJDIR_XSPEC_TABLE_LIB): $(OBJDIR)
+	@for i in $(XSPEC_TABLE_SRC); \
+	do \
+	        cd $(OBJDIR) ; $(FC) -c $(ELF_FC_FCFLAGS) $(FCFLAGS) -I.. $(SRCDIR)/$$i ; \
+	        if [ "$$?" != "0" ]; then \
+	          exit 1; \
+	        fi; \
+	done
+	cd $(OBJDIR) ; $(AR_CR) $(XSPEC_TABLE_LIB) $(XSPEC_TABLE_OBJS)
+	$(RANLIB) $(OBJDIR_XSPEC_TABLE_LIB)
+
+$(ELFDIR) :
+	-$(MKDIR) $(ELFDIR)
+
+xspec-version:
+	HEADAS=$(HEA); export HEADAS; /bin/sh xspec_libs
+
+new-xspec11-code:
+	./code_gen.sl 11 $(HEA)
+
+new-xspec12-code:
+	./code_gen.sl 12 $(HEA)
+
+check:
+	isis -n --batch test.sl
+
+#---------------------------------------------------------------------------
+# Installation rules
+#---------------------------------------------------------------------------
+$(install_lib_dir):
+	$(MKINSDIR) $(install_lib_dir)
+
+install-extra:
+	@echo installing xspec module scripts in $(install_share_dir)
+	@for i in $(EXTRA_FILES); \
+	do \
+		echo installing $(SRCDIR)/$$i in $(install_share_dir); \
+	        $(INSTALL_DATA) $(SRCDIR)/$$i $(install_share_dir); \
+	        if [ "$$?" != "0" ]; then \
+	          exit 1; \
+	        fi; \
+	done
+
+install-static: static $(install_lib_dir) $(OBJDIR_NORMAL_LIB) install-extra
+	@echo installing $(OBJDIR_NORMAL_LIB) in $(install_lib_dir)
+	$(INSTALL_DATA) $(OBJDIR_NORMAL_LIB) $(install_lib_dir)
+	$(RANLIB) $(install_lib_dir)/$(NORMAL_LIB)
+	chmod 644 $(install_lib_dir)/$(NORMAL_LIB)
+
+install: all $(install_lib_dir) $(ELFDIR_ELF_LIB) install-extra
+	@echo installing $(ELFLIB) in $(install_lib_dir)
+	$(INSTALL_MODULE) $(ELFDIR_ELF_LIB) $(install_lib_dir)
+
+#---------------------------------------------------------------------------
+# Housekeeping
+#---------------------------------------------------------------------------
+clean:
+	-$(RM) test.out test.ps $(OBJDIR)/* *~ $(ELFDIR)/*
+distclean: clean
+	-$(RM_R) $(OBJDIR) $(ELFDIR) $(CONFIG_H) Makefile xspec_libs config-xspec-libs config-xspec-version
+
+symlinks:
+	-mkdir -p $(HOME)/sys/$(ARCH)/objs/$(THIS_LIB)
+	-$(RM) $(ELFDIR)
+	ln -s $(HOME)/sys/$(ARCH)/objs/$(THIS_LIB) $(ELFDIR)
+	-mkdir -p $(HOME)/sys/$(ARCH)/elfobjs/$(THIS_LIB)
+	-$(RM) $(ARCH)objs
+	ln -s $(HOME)/sys/$(ARCH)/objs/$(THIS_LIB) $(ARCH)objs
+
+$(OBJDIR)/xspec-module.o : $(SRCDIR)/xspec-module.c $(DOT_O_DEPS) $(xspec-module_O_DEP)
+	cd $(OBJDIR); $(COMPILE_CMD) $(xspec-module_C_FLAGS) $(SRCDIR)/xspec-module.c
+
+$(ELFDIR)/xspec-module.o : $(SRCDIR)/xspec-module.c $(DOT_O_DEPS) $(xspec-module_O_DEP)
+	cd $(ELFDIR); $(ELFCOMPILE_CMD) $(xspec-module_C_FLAGS) $(xspec-module_ELFC_FLAGS) $(SRCDIR)/xspec-module.c

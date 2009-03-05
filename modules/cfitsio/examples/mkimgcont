@@ -1,0 +1,28 @@
+#!/usr/bin/env slsh
+require ("fits");
+import ("pgplot");
+
+static define read_and_display_image (file)
+{
+   variable img = fits_read_image (file);
+   variable dims; (dims,,) = array_info (img);
+   variable nx = dims[1], ny = dims[0];
+   variable z0 = min(img), z1 = max(img);
+
+   variable z = [z0:z1:(z1-z0)/10.0];
+
+   _pgopen("/xwin");
+   _pgenv(0,nx-1,0,ny-1,0,0);
+   _pgpap (0, 1);
+   _pgcont(img,0,ny-1,0,nx-1, z, [0,1,0,0,0,1], 1);
+   _pgend();
+}
+
+if (__argc != 2)
+{
+   () = fprintf (stderr, "Usage: %s fits-image-file\n", __argv[0]);
+   exit (1);
+}
+read_and_display_image (__argv[1]);
+exit(0);
+

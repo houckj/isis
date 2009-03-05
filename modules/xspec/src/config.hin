@@ -1,0 +1,19 @@
+/* -*- c -*- */
+
+/* Define this if have stdlib.h */
+#undef HAVE_STDLIB_H
+
+/* Define this if have unistd.h */
+#undef HAVE_UNISTD_H
+
+#undef HAVE_SYS_TYPES_H
+#undef HAVE_SYS_STAT_H
+
+/* Define this if want xspec table models*/
+#undef HAVE_XSPEC_TABLE_MODELS
+
+/* Define this if want xspec statically linked */
+#undef WITH_XSPEC_STATIC_LINKED
+
+/* Define this for a static build */
+#undef ISIS_STATIC_BUILD

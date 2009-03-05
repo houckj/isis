@@ -1,0 +1,20 @@
+
+To start ISIS, run the 'isis' script.
+If the CD-ROM is mounted as /cdrom, then type
+
+  /cdrom/isis
+
+Contents:
+=========
+       isis - ISIS startup script
+   isis_src - ISIS source code and binaries
+              for Linux (glibc-2.2) and Solaris
+     atomdb - APED spectroscopy database
+   lheasoft - XSPEC binaries for Linux and Solaris
+
+Send comments, suggestions and bug reports to
+  isis-users@space.mit.edu
+
+For more information on ISIS, see
+  http://space.mit.edu/cxc/isis
+

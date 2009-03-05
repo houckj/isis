@@ -1,0 +1,125 @@
+#! /usr/bin/env isis-script
+
+%--------------------------------------------------------
+% Program:  marxflux
+%  Author:  John Davis  <davis@space.mit.edu>
+% Purpose:  Generate an input spectrum for MARX
+%           (see http://space.mit.edu/CXC/MARX)
+%
+%  Note:  Save this script in a file called
+%         'marxflux' and make it executable:
+%                chmod +x marxflux
+%
+%  *** ISIS must be on your command search path. ***
+%
+%  Example:
+%
+%   marxflux powerlaw.p flux.dat '12.3984/[1.0:40:0.005]'
+%      ==> a grid from 1A to 40A in steps of 0.005A
+%         (note the single quotes!)
+%
+%--------------------------------------------------------
+
+static variable Pgm_Name = path_basename (__argv[0]);
+static define usage ()
+{
+   () = fprintf (stderr, "Usage: %s [-l script] isis-par-file output-file [energy-grid-expr]\n", Pgm_Name);
+   () = fprintf (stderr, "\n");
+   () = fprintf (stderr, "   The isis-par-file may be created using save_par in isis.\n");
+   () = fprintf (stderr, "   The optional script may define the model if needed.\n");
+   () = fprintf (stderr, "   If the energy grid is not specified, '[0.03:10:0.001]' will be used.\n");
+   () = fprintf (stderr, "\nExample:\n");
+   () = fprintf (stderr, "%s powerlaw.p flux.dat '12.3984/[1.0:40:0.005]'\n", Pgm_Name);
+   () = fprintf (stderr, "  ==> a grid from 1A to 40A in steps of 0.005A (note also the single quotes!)\n");
+   exit (1);
+}
+
+   
+static variable Par_File, Output_File, Script_File = NULL;
+static variable Energy_Grid = NULL;
+
+switch (__argc)
+{
+ case 6:
+   if (__argv[1] != "-l")
+     usage ();
+   Script_File = __argv[2];
+   Par_File = __argv[3];
+   Output_File = __argv[4];
+   Energy_Grid = __argv[5];
+}
+{
+ case 5:
+   if (__argv[1] != "-l")
+     usage ();
+   Script_File = __argv[2];
+   Par_File = __argv[3];
+   Output_File = __argv[4];
+}
+{
+ case 4:
+   Par_File = __argv[1];
+   Output_File = __argv[2];
+   Energy_Grid = __argv[3];
+}
+{
+ case 3:
+   Par_File = __argv[1];
+   Output_File = __argv[2];
+}
+{
+   % default
+   usage ();
+}
+   
+variable Const_keV_A = 12.3984185734;
+if (Energy_Grid == NULL)
+  Energy_Grid = [0.1:10.0:0.001];
+else
+  Energy_Grid = eval (Energy_Grid);
+
+if (Script_File != NULL)
+  () = evalfile (Script_File);
+
+static define write_ascii (file, x, y)
+{
+   variable fp = fopen (file, "w");
+   if (fp == NULL)
+     {
+	() = fprintf (stderr, "Unable to open %s: %s\n", file, errno_string (errno));
+	exit (1);
+     }
+   variable status = array_map (Int_Type, &fprintf, fp, "%S\t%S\n", x, y);
+   if ((length (where (status == -1)))
+       or (-1 == fclose (fp)))
+     {
+	() = fprintf (stderr, "%s: write error: %s", file, errno_string (errno));
+	exit (1);
+     }
+}
+
+static define _A ()
+{
+   variable n = _NARGS;
+   loop (n)
+     {
+	variable e = ();
+	reverse (Const_keV_A / e);
+	_stk_roll (n);
+     }
+   _stk_reverse (n);
+}
+
+require ("xspec");
+load_par (Par_File);
+
+static variable lo = Energy_Grid [array_sort (Energy_Grid)];
+static variable hi = @lo;
+   
+hi[[0:length(hi)-2]] = lo[[1:]];
+hi[-1] = lo[-1] + 0.001;
+
+static variable s = reverse (eval_fun (_A(lo, hi)))/(hi - lo);
+
+write_ascii (Output_File, lo, s);
+exit (0);

@@ -1,0 +1,120 @@
+# -*- sh -*-
+
+#---------------------------------------------------------------------------
+# List of modules and associated .sl files to install
+#---------------------------------------------------------------------------
+MODULES = pgplot-module.so
+SL_FILES = pgplot.sl 
+MODULE_VERSION	= `./mkversion.sh`
+
+#---------------------------------------------------------------------------
+# Installation Directories
+#---------------------------------------------------------------------------
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+MODULE_INSTALL_DIR = @MODULE_INSTALL_DIR@
+SL_FILES_INSTALL_DIR = @SL_FILES_INSTALL_DIR@
+
+#---------------------------------------------------------------------------
+# C Compiler to create a shared library
+#---------------------------------------------------------------------------
+CC_SHARED 	= @CC_SHARED@
+
+#---------------------------------------------------------------------------
+# Location of the S-Lang library and its include file
+#---------------------------------------------------------------------------
+SLANG_INC	= @SLANG_INC@
+SLANG_LIB	= @SLANG_LIB@ -lslang
+
+#---------------------------------------------------------------------------
+# Fortran compiler and libraries
+#---------------------------------------------------------------------------
+FC		= @FC@
+FCFLAGS		= @FCFLAGS@
+FC_LIBS		= @FCLIBS@
+
+#---------------------------------------------------------------------------
+# Additional Libraries required by the module
+#---------------------------------------------------------------------------
+PGPLOTDIR       = @PGPLOT_LIBDIR@
+PGPLOT_INC	= @PGPLOT_INC@
+PGPLOT_LIB	= @PGPLOT_LIB@
+DRIVER_LIBS	= @OTHER_PGPLOT_LIBS@ #<- Add additional libraries here
+X_LIBS		= @X_LIBS@ -lX11
+X_XTRA_LIBS	= @X_EXTRA_LIBS@
+MODULE_LIBS	= $(PGPLOT_LIB) $(FC_LIBS) $(DRIVER_LIBS) $(X_LIBS) $(X_XTRA_LIBS)
+RPATH		= @RPATH@
+
+#---------------------------------------------------------------------------
+# Misc Programs required for installation
+#---------------------------------------------------------------------------
+INSTALL		= @INSTALL@
+INSTALL_DATA	= @INSTALL_DATA@
+INSTALL_MODULE  = @INSTALL_MODULE@
+MKINSDIR	= ../autoconf/mkinsdir.sh
+RM		= rm -f
+LN		= ln -s
+#---------------------------------------------------------------------------
+# DESTDIR is designed to facilitate making packages.  Normally it is empty
+#---------------------------------------------------------------------------
+DESTDIR =
+DEST_MODULE_INSTALL_DIR = $(DESTDIR)$(MODULE_INSTALL_DIR)
+DEST_SL_FILES_INSTALL_DIR = $(DESTDIR)$(SL_FILES_INSTALL_DIR)
+
+#---------------------------------------------------------------------------
+LIBS = $(SLANG_LIB) $(MODULE_LIBS) $(RPATH) $(DL_LIB) -lm
+INCS = $(PGPLOT_INC) $(SLANG_INC)
+DEPS = -DPGPLOTDIR='"$(PGPLOTDIR)"'
+
+all: $(MODULES)
+
+#---------------------------------------------------------------------------
+# Put Rules to create the modules here
+#---------------------------------------------------------------------------
+pgplot-module.so: pgplot-module.c
+	$(CC_SHARED) $(INCS) $(DEPS) pgplot-module.c -o pgplot-module.so $(LIBS)
+#---------------------------------------------------------------------------
+# Regression tests
+#---------------------------------------------------------------------------
+test:
+	@for X in tests/test_*.sl; \
+	do \
+		slsh $$X; \
+	done
+#---------------------------------------------------------------------------
+# Installation Rules
+#---------------------------------------------------------------------------
+install_directories:
+	$(MKINSDIR) $(DEST_MODULE_INSTALL_DIR)
+	$(MKINSDIR) $(DEST_SL_FILES_INSTALL_DIR)
+
+install_modules:
+	@for X in $(MODULES); \
+	do \
+		Y=$$X.$(MODULE_VERSION); \
+		YDEST=$(DEST_MODULE_INSTALL_DIR)/$$Y; \
+		echo $(INSTALL_MODULE) $$X $$YDEST; \
+		$(INSTALL_MODULE) $$X $$YDEST; \
+		if [ "$$?" != "0" ]; then \
+		  exit 1; \
+		fi; \
+		$(RM) $(DEST_MODULE_INSTALL_DIR)/$$X; \
+		$(LN) $$Y $(DEST_MODULE_INSTALL_DIR)/$$X; \
+	done
+
+install_slfiles:
+	@for X in $(SL_FILES); \
+	do \
+		echo $(INSTALL_DATA) $$X $(DEST_SL_FILES_INSTALL_DIR); \
+		$(INSTALL_DATA) $$X $(DEST_SL_FILES_INSTALL_DIR); \
+		if [ "$$?" != "0" ]; then \
+		  exit 1; \
+		fi; \
+	done
+
+install: all install_directories install_modules install_slfiles
+
+clean:
+	-/bin/rm -f $(MODULES) *~ \#*
+distclean: clean
+	-/bin/rm -f config.h Makefile

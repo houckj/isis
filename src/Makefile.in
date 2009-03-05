@@ -1,0 +1,331 @@
+# -*- sh -*-
+# $Id: Makefile.in,v 1.73 2004/06/07 01:46:11 houck Exp $
+
+# This is a template that is read in by the configure script.  Hopefully
+# you will not need to change anything.  Words enclosed in @ signs
+# are filled in by the configure script.
+
+#-----------------------------------------------------------------------
+#   This file is part of ISIS, the Interactive Spectral Interpretation System
+#   Copyright (C) 1998-2008  Massachusetts Institute of Technology
+#-----------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Compiler information
+#-----------------------------------------------------------------------------
+
+PKG_NAME   = isis
+SHARED_LIB = lib$(PKG_NAME).so
+STATIC_LIB = lib$(PKG_NAME).a
+MODULE     = $(PKG_NAME)-module.so
+
+CC       = @CC@
+CFLAGS   = @CFLAGS@
+LDFLAGS  = @LDFLAGS@ @DYNAMIC_LINK_FLAGS@ @LD_FLAGS_FOR_XSPEC@
+DL_LIB   = @DYNAMIC_LINK_LIB@
+RPATH    = @RPATH@
+
+FC       = @FC@
+FCFLAGS  = @FCFLAGS@
+FCLIBS   = @FCLIBS@ @FC_EXTRA_LIBS@
+FC_DEFS  = @FC_DEFS@
+
+# X Include directory
+X_CFLAGS = @X_CFLAGS@
+
+# X library
+X_LIBS = @X_LIBS@ -lX11
+
+# Extra libraries needed by X some systems
+X_EXTRA_LIBS = @X_EXTRA_LIBS@
+
+SYS_EXTRA_LIBS = @SYS_EXTRA_LIBS@
+
+# for the XSPEC module, if it is statically linked
+ISIS_ROOT = $(config_dir)
+LINK_XSPEC_STATIC = @LINK_XSPEC_STATIC@
+HEA = @HEADAS_DIR@
+XS_LIBS = `cat $(ISIS_ROOT)/modules/xspec/src/config-xspec-libs`
+XSPEC_MODULE_LIBS = @XSPEC_MODULE_LIBS@
+
+host_os = @host_os@
+
+#-----------------------------------------------------------------------------
+# Location where object files are placed (Absolute path)
+#-----------------------------------------------------------------------------
+
+config_dir = @CONFIG_DIR@
+
+SRCDIR = $(config_dir)/src
+OBJDIR = $(config_dir)/src/$(ARCH)objs
+ELFDIR = $(config_dir)/src/$(ARCH)elfobjs
+
+#---------------------------------------------------------------------------
+# Install information
+#---------------------------------------------------------------------------
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+install_prefix = @prefix@
+install_bin_dir = @bindir@
+install_lib_dir = @libdir@
+install_module_dir = @libdir@/modules
+install_include_dir = @includedir@
+install_share_dir = $(prefix)/share
+install_etc_dir = $(prefix)/etc
+install_doc_dir = $(prefix)/doc
+
+subdir = @subdir@
+prefix_input = @prefix_input@
+
+RANLIB = @RANLIB@
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+
+#---------------------------------------------------------------------------
+# ELF specific (Linux)
+#---------------------------------------------------------------------------
+ELF_CC = @ELF_CC@
+ELF_CFLAGS = @ELF_CFLAGS@ $(CFLAGS)
+CC_SHARED = @CC_SHARED@
+
+ELF_FC_FCFLAGS = @ELF_FC_FCFLAGS@
+
+#-----------------------------------------------------------------------------
+# Directories where the various header files and libraries are located.
+#-----------------------------------------------------------------------------
+
+# paths for cfitsio
+CFITSIO_INC = @CFITSIO_INC@
+CFITSIO_LIB = @CFITSIO_LIB@ -lcfitsio
+
+# paths for slang
+SLANG_INC = @SLANG_INC@
+SLANG_LIB = @SLANG_LIB@ -lslang
+SLANG_LIBDIR = @SLANG_LIBDIR@
+
+# path for ATOMDB
+ATOMDBDIR = @ATOMDB_DIR@
+
+# extra paths
+EXTRA_INC = @EXTRA_INC@
+EXTRA_LIB = @EXTRA_LIB@
+
+# Interactive readline interface
+READLINE_LIB    = @READLINE_LIB@
+
+#----------------------------------------------------------------------------
+#--------------------- End of user configuration-----------------------------
+#----------------------------------------------------------------------------
+@SET_MAKE@
+SHELL = /bin/sh
+THIS_LIB          = -L$(OBJDIR) -l$(PKG_NAME)#
+THIS_LIB_INC      = -I$(config_dir)/src#
+THIS_LIB_DEFINES  = -DISIS_SRC#
+OBJDIR_STATIC_LIB = $(OBJDIR)/$(STATIC_LIB)
+ELFDIR_SHARED_LIB = $(ELFDIR)/$(SHARED_LIB)
+PROGRAMS = $(PKG_NAME)
+CONFIG_H = config.h
+
+#---------------------------------------------------------------------------
+# Misc commands (safe to leave these untouched)
+#---------------------------------------------------------------------------
+RM = /bin/rm -f
+CP = /bin/cp
+MV = /bin/mv
+RMDIR = /bin/rmdir
+AR_CR = ar cr
+
+MIN_SLANG_VERSION = 20100        # e.g. 10309 means 1.3.9
+MAX_SLANG_VERSION =
+
+INCS = $(THIS_LIB_INC) $(CFITSIO_INC) $(SLANG_INC) $(EXTRA_INC)
+ALL_CFLAGS = $(CFLAGS) -Dunix $(THIS_LIB_DEFINES) $(INCS) $(X_CFLAGS)
+ALL_ELF_CFLAGS	= $(ELF_CFLAGS) -Dunix $(THIS_LIB_DEFINES) $(INCS)
+
+COMPILE_CMD = $(CC) -c $(ALL_CFLAGS)
+FC_COMPILE_CMD = $(FC) -c $(FCFLAGS)
+
+EXECLIBS = $(RPATH) $(THIS_LIB) $(READLINE_LIB) \
+           $(SLANG_LIB) $(CFITSIO_LIB) \
+           $(XSPEC_MODULE_LIBS) \
+	   $(DL_LIB) $(X_LIBS) $(X_EXTRA_LIBS) $(FCLIBS) $(EXTRA_LIB) -lm $(SYS_EXTRA_LIBS)
+EXECDEPS = $(OBJDIR_STATIC_LIB)
+EXECINC =
+
+ELFDEFINES =#
+ELFCOMPILE_CMD = $(ELF_CC) -c -DMODULE $(ELFDEFINES) $(ALL_ELF_CFLAGS)
+FC_ELFCOMPILE_CMD = $(FC_COMPILE_CMD) $(ELF_FC_FCFLAGS)
+
+ELF_DEP_LIBS = $(RPATH) $(READLINE_LIB) $(SLANG_LIB) $(CFITSIO_LIB) \
+	       $(DL_LIB) $(X_LIBS) $(X_EXTRA_LIBS) $(FCLIBS) $(EXTRA_LIB) -lm $(SYS_EXTRA_LIBS)#
+
+OFILES = @PROGRAM_OFILES_src@ @PROGRAM_FC_OFILES_src@
+OBJS = @PROGRAM_OBJECTS_src@ @PROGRAM_FC_OBJECTS_src@
+ELFOBJS = @PROGRAM_ELFOBJECTS_src@ @PROGRAM_FC_ELFOBJECTS_src@
+
+SHARE_FILES = @PROGRAM_SHAREFILES@
+ETC_FILES = @PROGRAM_ETCFILES@
+DOC_FILES = isis.1 help.txt local_help.txt
+
+ELF_OFILES = $(OFILES)
+ELFDIR_MODULE = $(ELFDIR)/$(MODULE)
+ELFDIR_SHARED_LIB = $(ELFDIR)/$(SHARED_LIB)
+
+isis_C_FLAGS = -DSRCDIR='"$(prefix)"' -DATOMDBDIR='"$(ATOMDBDIR)"'
+miscio_C_FLAGS = -DINSTALL_PREFIX=\"$(install_prefix)\" -DINSTALL_PREFIX_INPUT=\"$(prefix_input)\"
+lmdif_C_FLAGS = $(FC_DEFS) -I$(config_dir)/modules/xspec/src
+simann_C_FLAGS = $(FC_DEFS) -I$(config_dir)/modules/xspec/src
+subplex_C_FLAGS = $(FC_DEFS) -I$(config_dir)/modules/xspec/src
+readline_C_FLAGS = @READLINE_INC@ -DSLANGLIBDIR='"$(SLANG_LIBDIR)"'
+
+#---------------------------------------------------------------------------
+all: isisversion $(OBJDIR) slangversion force_relink \
+       $(OBJDIR_STATIC_LIB) xspec-module $(PROGRAMS)
+
+elf: $(ELFDIR) $(CONFIG_H) $(ELFDIR_SHARED_LIB) $(MODULE)
+
+$(OBJDIR_STATIC_LIB): $(OBJDIR) $(OBJS)
+	$(RM) $(OBJDIR_STATIC_LIB)
+	cd $(OBJDIR); $(AR_CR) $(STATIC_LIB) $(OFILES)
+	$(RANLIB) $(OBJDIR_STATIC_LIB)
+
+xspec-module:
+	@if test "$(LINK_XSPEC_STATIC)" = "yes" ; then \
+	    cd ../modules ; make xspec-static ; \
+	 fi
+
+force_relink:
+	-$(RM) $(OBJDIR)/$(PKG_NAME)
+
+$(MODULE): $(ELFDIR) $(CONFIG_H) $(ELFOBJS) $(ELFDIR)/isis.o
+	-$(RM) $(ELFDIR_MODULE)
+	cd $(ELFDIR); $(CC_SHARED) -o $(MODULE) isis.o $(ELF_OFILES) $(LIBS) $(ELF_DEP_LIBS)
+	@echo ""
+	@echo $(MODULE) created in $(ELFDIR).
+
+$(ELFDIR_SHARED_LIB): $(ELFDIR) $(CONFIG_H) $(ELFOBJS)
+	-$(RM) $(ELFDIR_SHARED_LIB)
+	cd $(ELFDIR); $(CC_SHARED) -o $(SHARED_LIB) $(ELF_OFILES) $(LIBS) $(ELF_DEP_LIBS)
+	@echo ""
+	@echo $(SHARED_LIB) created in $(ELFDIR).
+
+$(OBJDIR):
+	@mkdir $(OBJDIR)
+
+$(ELFDIR) :
+	@mkdir $(ELFDIR)
+
+slangversion: $(OBJDIR)/chkslang
+	if test -r "$(SLANG_LIBDIR)/libslang.so" ; then LD_PRELOAD=$(SLANG_LIBDIR)/libslang.so ; export LD_PRELOAD ; fi;\
+	if $(OBJDIR)/chkslang $(PKG_NAME) $(MIN_SLANG_VERSION) $(MAX_SLANG_VERSION);\
+	then exit 0; else $(RM) $(OBJDIR)/chkslang; exit 1; fi
+
+$(OBJDIR)/chkslang: config.h Makefile chkslang.c
+	$(CC) $(ALL_CFLAGS) $(SLANG_INC) $(SRCDIR)/chkslang.c $(RPATH) $(SLANG_LIB) -o $(OBJDIR)/chkslang
+
+isisversion:
+	grep ' ISIS_VERSION ' isis.h | awk '{print $$3}' > $(config_dir)/isis-version
+
+#---------------------------------------------------------------------------
+# Installation rules
+#---------------------------------------------------------------------------
+install-directories:
+	../autoconf/mkinsdir.sh $(install_bin_dir)
+	../autoconf/mkinsdir.sh $(install_module_dir)
+	../autoconf/mkinsdir.sh $(install_include_dir)
+	../autoconf/mkinsdir.sh $(install_share_dir)
+	../autoconf/mkinsdir.sh $(install_etc_dir)
+	../autoconf/mkinsdir.sh $(install_doc_dir)
+
+install-extra:
+	$(INSTALL_DATA) $(config_dir)/isis-version $(prefix)/isis-version
+	$(INSTALL_DATA) $(config_dir)/src/isis.h $(install_include_dir)/isis.h
+	$(INSTALL) $(config_dir)/share/backtrace.sh $(install_share_dir)/backtrace.sh
+	@for i in $(SHARE_FILES); \
+	do \
+	        echo $(INSTALL_DATA) $(config_dir)/share/$$i $(install_share_dir); \
+	        $(INSTALL_DATA) $(config_dir)/share/$$i $(install_share_dir); \
+	        if [ "$$?" != "0" ]; then \
+	          exit 1; \
+	        fi; \
+	done
+	@for i in $(ETC_FILES); \
+	do \
+	        echo $(INSTALL_DATA) $(config_dir)/etc/$$i $(install_etc_dir); \
+	        $(INSTALL_DATA) $(config_dir)/etc/$$i $(install_etc_dir); \
+	        if [ "$$?" != "0" ]; then \
+	          exit 1; \
+	        fi; \
+	done
+	@for i in $(DOC_FILES); \
+	do \
+	        echo $(INSTALL_DATA) $(config_dir)/doc/$$i $(install_doc_dir); \
+	        $(INSTALL_DATA) $(config_dir)/doc/$$i $(install_doc_dir); \
+	        if [ "$$?" != "0" ]; then \
+	          exit 1; \
+	        fi; \
+	done
+	$(INSTALL_DATA) $(config_dir)/modules/cfitsio/doc/help/cfitsio.hlp $(install_doc_dir)
+	$(INSTALL_DATA) $(config_dir)/modules/maplib/doc/help/maplib.hlp $(install_doc_dir)
+
+install-wrapper-script:
+	@case $(host_os) in \
+	   *darwin* ) \
+	      $(MV) $(install_bin_dir)/isis $(install_bin_dir)/isis.exe ; \
+	      $(config_dir)/config.status --file=$(install_bin_dir)/isis:$(config_dir)/autoconf/isis_wrap.sh.in ; \
+	      chmod +x $(install_bin_dir)/isis ; \
+	   ;; \
+	esac
+
+ASCDS_INSTALL=@ASCDS_INSTALL@
+install-ciao-path:
+	$(RM) $(prefix)/ascds_install_path
+	if test X"$(ASCDS_INSTALL)" != X"no" ; then \
+	   if test -r "$(ASCDS_INSTALL)" ; then \
+	      echo $(ASCDS_INSTALL) > $(prefix)/ascds_install_path ; \
+	   fi ; \
+	fi
+
+install: all install-directories install-extra install-ciao-path
+	@echo installing in $(prefix)
+	-$(RM) $(install_bin_dir)/$(PKG_NAME)
+	$(INSTALL) $(OBJDIR)/$(PKG_NAME) $(install_bin_dir)/$(PKG_NAME)
+	-cd $(install_bin_dir); $(RM) $(PKG_NAME)-script ; ln -s $(PKG_NAME) $(PKG_NAME)-script
+	$(INSTALL_DATA) $(OBJDIR_STATIC_LIB) $(install_lib_dir)
+	$(RANLIB) $(install_lib_dir)/$(STATIC_LIB)
+	# install wrapper script for platforms that need it
+	$(MAKE) install-wrapper-script
+	# Put symlinks in prefix/bin directory
+	bin_dir="$(prefix_input)/bin" ; \
+	if [ -d "$$bin_dir" -a -w "$$bin_dir" ]; then \
+	   cd "$$bin_dir" ; \
+	   $(RM) isis isis-script ; \
+	   ln -s ../isis/$(subdir)/bin/isis . ; \
+	   ln -s isis isis-script ; \
+	fi
+
+install-elf: elf install-directories install-extra
+	@echo installing $(SHARED_LIB) in $(install_lib_dir)
+	$(INSTALL_DATA) $(ELFDIR_SHARED_LIB) $(install_lib_dir)
+	@echo installing $(MODULE) in $(install_module_dir)
+	$(INSTALL_DATA) $(ELFDIR_MODULE) $(install_module_dir)
+
+#---------------------------------------------------------------------------
+# Housekeeping
+#---------------------------------------------------------------------------
+clean:
+	-$(RM) $(OBJDIR)/* *~ $(ELFDIR)/* chkslang*.o ".##*"
+
+distclean: clean
+	-$(RM) -r $(OBJDIR) $(ELFDIR) $(config_dir)/share/*.slc Makefile config.h
+
+symlinks:
+	-$(RM) $(ARCH)objs $(ARCH)elfobjs
+	-mkdir -p $(HOME)/sys/$(ARCH)/objs/$(PKG_NAME)
+	-mkdir -p $(HOME)/sys/$(ARCH)/elfobjs/$(PKG_NAME)
+	ln -s $(HOME)/sys/$(ARCH)/objs/$(PKG_NAME) $(ARCH)objs
+	ln -s $(HOME)/sys/$(ARCH)/elfobjs/$(PKG_NAME) $(ARCH)elfobjs
+
+#---------------------------------------------------------------------------
+# Everything else from configure script
+#---------------------------------------------------------------------------

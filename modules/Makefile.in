@@ -1,0 +1,78 @@
+# -*- sh -*-
+
+# $Id: Makefile.in,v 1.21 2004/09/09 11:31:49 houck Exp $
+
+#-----------------------------------------------------------------------
+#   This file is part of ISIS, the Interactive Spectral Interpretation System
+#   Copyright (C) 1998-2008  Massachusetts Institute of Technology
+#-----------------------------------------------------------------------
+
+@SET_MAKE@
+SHELL = /bin/sh
+RM = /bin/rm -f
+INSTALL      = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+
+MKINSDIR	= ../autoconf/mkinsdir.sh
+
+MODULES = @MODULE_LIST@
+LINK_XSPEC_STATIC = @LINK_XSPEC_STATIC@
+
+all:
+	@for i in $(MODULES) ; \
+	do \
+	   cd $$i; \
+	   $(MAKE) all ; \
+	   cd ..; \
+	done
+
+elf:
+	$(MAKE) all
+
+install:
+	@for i in $(MODULES) ; \
+	do \
+	   cd $$i; \
+	   $(MAKE) install ; \
+	   cd ..; \
+	done
+
+install-elf:
+	$(MAKE) install
+
+install-modules:
+	cd xspec; $(MAKE) install
+
+xspec-static:
+	cd xspec; $(MAKE) static
+
+xspec-elf:
+	cd xspec; $(MAKE) elf
+
+clean:
+	@for i in $(MODULES) ; \
+	do \
+	   cd $$i ; $(MAKE) clean ; cd .. ; \
+	done ; \
+	if test "$(LINK_XSPEC_STATIC)" = "yes" ; then \
+	   cd xspec ; make clean ; cd .. ; \
+	fi
+	-$(RM) *~ .##*
+
+distclean:
+	@for i in $(MODULES) ; \
+	do \
+	   cd $$i ; $(MAKE) distclean ; cd .. ;\
+	done ; \
+	if test "$(LINK_XSPEC_STATIC)" = "yes" ; then \
+	   cd xspec ; make distclean ; cd .. ; \
+	fi
+	-$(RM) .##* *~ Makefile config.status config.log config.cache files.pck autoconf/f77test.out
+
+confclean:
+	-$(RM) .##* *~ Makefile config.status config.log config.cache files.pck
+#
+# The symlinks target is for my own private use.  It simply creates the object
+# directory as a symbolic link to a local disk instead of an NFS mounted one.
+symlinks:
+	cd xspec; $(MAKE) symlinks

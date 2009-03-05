@@ -1,0 +1,9 @@
+The files here constitute a few simple examples of using the pgplot
+module.  Run them with slang's slsh.
+
+   demo.sl : This is more or less a straight port of the cpgdemo program
+             in pgplot.
+
+   viewimg:  This uses pgplot to view a fits image and its contours.
+             The cfitsio module is required.
+

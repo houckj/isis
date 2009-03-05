@@ -1,0 +1,37 @@
+%
+If you're too busy to read the instructions, just type 'make'.
+If you have problems, try reading this file.
+
+These Fortran routines probably require your Fortran compiler
+to use static memory allocation for subroutine calls.
+For g77, use the "-fno-automatic" option.
+
+If you compile without the analogous option, the tests will
+probably crash or produce garbage results. If this happens:
+
+  1. edit the Makefile to provide the -fno-automatic option,
+     (or the analogous option for your compiler)
+  2. make veryclean
+  3. make
+
+The plots compare a "figure of demerit"
+     D = N*exp(error)
+for each minimizer. In this expression, 'error' is a measure of
+the error in the answer and 'N' is a measure of the cost (e.g.
+number of function evaluations).  Perfection would be N=1,
+error=0, giving D=1.  Therefore D>1 is a measure of how bad the
+optimizer is. Read the code for details.
+
+Using this figure of demerit to compare to optimizers, x and y,
+one can examine the ratio R = D(x)/D(y).
+When x is better, R < 1.  When y is better, R > 1.
+
+Of course, there's some degeneracy because even if R=1, one
+solver maybe have taken a bit longer to find a better answer.
+The plots showing differences in the fit errors may be
+used to compare the optimizers on their accuracy alone.
+
+See src/README for documentation on the optimizer test suite.
+
+John C. Houck <houck@space.mit.edu>
+12/2004

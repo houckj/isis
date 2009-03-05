@@ -1,0 +1,84 @@
+       How to generate code for a new XSPEC module
+       ------------------------------------------
+
+   Please send questions, comments and bug-reports to
+          John C. Houck <houck@space.mit.edu>
+
+0. Requirements
+
+  * XSPEC must have been installed by locally compiling from source code.
+  * ISIS must be installed and available on your command search path.
+
+1. Generate new code
+
+   The XSPEC source code must be available -- the code generator 
+   scans the source code to generate a new interface for isis.
+
+   If your local xspec has built-in local models, be sure to
+    set LMODDIR:
+
+      setenv LMODDIR /path/to/your/local_models
+
+   Next, run the code generator, specifying the XSPEC version
+   number (e.g. 11 or 12) and the HEADAS source code directory
+   path on the command-line.
+
+      cd $ISIS_SRCDIR/modules/xspec/src
+      ./code_gen.sl 12 $HEADAS_SOURCE
+
+   If it worked, the script should say how many models
+   of various types were found in the scan. If it didn't
+   work, make sure the HEADAS_SOURCE path is correct.
+
+2. Compile and install
+
+   Then, to compile the dynamically linked module, go to
+   the top-level isis source code directory, isis-$version
+   and type:
+
+      make install-modules
+
+   To compile ISIS with the XSPEC module statically linked
+   (only if the --with-xspec-static configure option was used):
+
+      make clean
+      make all install
+
+   If the latter step fails, it may be necessary to start
+   building isis from the very beginning.  First,
+
+      make distclean
+
+   and follow the instructions in the INSTALL file.
+
+2. Testing [optional]
+
+   To test the module:
+
+      cd $ISIS_SRCDIR/modules/xspec/src
+      make check
+
+   This should generate a postscript file 'test.ps' showing
+   every imported XSPEC module evaluated at its default
+   parameters.  It will also generate a text file 'test.out'
+   containing a list of model names and the integrated output
+   spectrum value for the default normalization and a default
+   spectrum grid.
+
+3. Cleanup
+
+   To remove all temporary files that are no longer needed:
+
+      cd $ISIS_SRCDIR
+      make clean
+
+4. Caveats
+
+   The additive, multiplicative, convolution and table source
+   models are accessible with this code generator.
+   Furthermore, the code generator assumes a particular form
+   for the XSPEC source code library interface interface.  If
+   that interface has changed, this code generator probably
+   won't work at all.
+
+$Id: README.code,v 1.13 2004/09/01 10:38:36 houck Exp $

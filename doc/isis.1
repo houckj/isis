@@ -1,0 +1,87 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" ISIS
+.\" 1
+.\" 
+.TH ISIS 1 "March 30, 2003" MIT/CSR "ISIS Reference Manual"
+.\" 
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+ISIS \- Interactive Spectral Interpretation System
+.SH SYNOPSIS
+.B isis
+[options] [FILE [args....]]
+.SH DESCRIPTION
+This manual page briefly documents the command-line options
+recognized by
+.B ISIS.
+.B ISIS
+is a scriptable, interactive S-Lang based system
+designed for X-ray spectral analysis.  For detailed
+documentation, see the 
+.B ISIS 
+Reference Manual.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics, 
+.\" respectively.
+.SH OPTIONS
+This program follows the usual GNU command line syntax, with long
+options starting with two dashes (`-').
+A summary of options is included below.
+For a complete description, see the manual.
+.TP
+.B \-\-batch FILE
+Process the S-Lang script FILE
+in batch mode, returning to the Unix prompt on completion.
+.TP
+.B \-g
+Compile S-Lang scripts with debugging information
+.TP
+.B \-\-help
+Show summary of options.
+.TP
+.B \-i FILE
+Load FILE at startup instead of $HOME/.isisrc
+.TP
+.B \-l FILE
+Direct all output messages to FILE
+.TP
+.B \-n
+Do not load $HOME/.isisrc at startup
+.TP
+.B \- | \-\-stdin
+Take input from stdin;  this is useful mainly for running
+.B ISIS
+from within an pseudo-terminal such as an emacs shell window.
+.TP
+.B \-q n
+Set verbosity (n < 0 means quieter).
+.TP
+.B \-v
+Show verbose loading messages
+.TP
+.B \-\-version
+Show the 
+.B ISIS
+version number.
+
+.SH BUGS
+None that I know of.  Please notify the author if you find any.
+
+.SH SEE ALSO
+pgplot(3),
+S-Lang,
+cfitsio
+
+.SH AUTHOR
+John Houck <houck@space.mit.edu> is the author of ISIS.

@@ -1,0 +1,67 @@
+/* -*- c -*- */
+
+/* Define this if have stdlib.h */
+#undef HAVE_STDLIB_H
+
+/* Define this if you have unistd.h */
+#undef HAVE_UNISTD_H
+
+/* Define this if 'unsigned long long' is supported */
+#undef HAVE_UNSIGNED_LONG_LONG
+#undef SIZEOF_UNSIGNED_LONG_LONG
+
+/* Define if you have the vsnprintf, snprintf functions and they return
+ *  * EOF upon failure.
+ *  */
+#undef HAVE_VSNPRINTF
+
+/* The following set defines may be necessary to activate long file support */
+#undef _FILE_OFFSET_BITS
+#undef _LARGE_FILES
+#undef _LARGEFILE_SOURCE
+
+/* Define this if you have dlfcn.h */
+#undef HAVE_DLFCN_H
+
+#undef HAVE_SYS_TYPES_H
+#undef HAVE_SYS_WAIT_H
+#undef HAVE_SYS_STAT_H
+
+/* Do we have posix signals? */
+#undef HAVE_SIGACTION
+#undef HAVE_SIGPROCMASK
+#undef HAVE_SIGEMPTYSET
+#undef HAVE_SIGADDSET
+
+#if defined(HAVE_SIGADDSET) && defined(HAVE_SIGEMPTYSET)
+# if defined(HAVE_SIGACTION) && defined(HAVE_SIGPROCMASK)
+#  define HAVE_POSIX_SIGNALS
+# endif
+#endif
+
+/* Define this if you have stat */
+#undef HAVE_STAT
+
+/* Define this if you have isnan */
+#undef HAVE_ISNAN
+
+/* Define this if you have isinf */
+#undef HAVE_ISINF
+
+/* Define this if you have finite */
+#undef HAVE_FINITE
+
+/* Define this if you have ieeefp.h */
+#undef HAVE_IEEEFP_H
+
+/* Define this if want xspec statically linked */
+#undef WITH_XSPEC_STATIC_LINKED
+
+/* If necessary, define this to provide the required symbol */
+#undef FC_DUMMY_MAIN
+
+/* Define this if you have djbfft (a pileup kernel option) */
+#undef HAVE_DJBFFT
+
+/* Define this if you have GNU readline */
+#undef HAVE_GNU_READLINE

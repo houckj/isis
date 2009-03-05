@@ -1,0 +1,123 @@
+# -*- sh -*-
+
+# $Id: Makefile.in,v 1.34 2004/02/09 11:14:12 houck Exp $
+
+#-----------------------------------------------------------------------
+#   This file is part of ISIS, the Interactive Spectral Interpretation System
+#   Copyright (C) 1998-2008  Massachusetts Institute of Technology
+#-----------------------------------------------------------------------
+
+@SET_MAKE@
+SHELL = /bin/sh
+RM = /bin/rm -f
+INSTALL      = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+
+#---------------------------------------------------------------------------
+# Install information
+#---------------------------------------------------------------------------
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+install_lib_dir = @libdir@
+install_include_dir = @includedir@
+BIN_DIR = @bindir@
+
+# for the XSPEC module, if it is statically linked
+LINK_XSPEC_STATIC = @LINK_XSPEC_STATIC@
+HEADAS_DIR = @HEADAS_DIR@
+
+all:
+	cd src; $(MAKE) all
+	cd modules; $(MAKE) all
+	@echo ""
+	@echo "To continue with the installation, type"
+	@echo "   make install"
+	@echo ""
+
+check:
+	cd test; $(MAKE) check
+
+install-check:
+	cd test; $(MAKE) install-check
+
+install:	test_install_dir
+	cd src; $(MAKE) install
+	cd modules; $(MAKE) install
+	@if test "$(LINK_XSPEC_STATIC)" = "yes" ; then \
+	    cd modules/xspec/src ; make install-extra ; \
+	 fi
+	@echo ""
+	@echo "Installation complete."
+	@echo ""	
+	@echo "To delete temporary files which are no longer needed, type"
+	@echo "   make clean"
+	@echo ""
+
+elf:
+	cd src; $(MAKE) elf
+	cd modules; $(MAKE) elf
+
+install-elf:	test_install_dir
+	cd src; $(MAKE) install-elf
+	cd modules; $(MAKE) install-elf
+
+install-modules:	test_install_dir
+	cd modules; $(MAKE) install-modules
+
+custom-xspec-module:
+	cd modules/xspec/src; make clean new-xspec12-code
+custom-xspec11-module:
+	cd modules/xspec/src; make clean new-xspec11-code
+custom-xspec12-module:
+	cd modules/xspec/src; make clean new-xspec12-code
+
+tags-file:
+	-$(RM) tags
+	ctags src/*.[ch] share/*.sl modules/xspec/src/xspec*
+
+clean:
+	cd src; $(MAKE) clean
+	cd modules; $(MAKE) clean
+	cd test; $(MAKE) clean
+	-$(RM) *~ .##* 
+
+distclean:
+	cd src; $(MAKE) distclean
+	cd modules; $(MAKE) distclean
+	cd test; $(MAKE) distclean
+	-$(RM) isis-version
+	$(MAKE) confclean
+
+confclean:
+	-$(RM) Makefile config.status config.log config.cache files.pck autoconf/f77test.out .##* *~
+
+test_install_dir:
+	@if test "$(prefix)" = "`pwd`" ; then \
+	    echo "" ;\
+	    echo "*** Please don't install into the distribution directory" ; \
+	    echo "" ;\
+	    exit 1 ; \
+	fi
+
+# The symlinks target is for my own private use.  It simply creates the object
+# directory as a symbolic link to a local disk instead of an NFS mounted one.
+symlinks:
+	cd src; $(MAKE) symlinks
+	cd modules; $(MAKE) symlinks
+	
+tags:
+	etags -o TAGS src/*.[ch]
+	
+#
+#  These targets are used by the maintainer
+#
+configure: autoconf/aclocal.m4 autoconf/configure.ac
+	cd autoconf && autoconf && /bin/rm -rf autom4te.cache && mv ./configure ..
+update: autoconf/config.sub autoconf/config.guess
+autoconf/config.guess: /usr/share/misc/config.guess
+	/bin/cp -f /usr/share/misc/config.guess autoconf/config.guess
+autoconf/config.sub: /usr/share/misc/config.sub
+	/bin/cp -f /usr/share/misc/config.sub autoconf/config.sub
+
+snapshot:
+	@src/mkdist.sh /nfs/vex/d2/release/snapshots/isis-`date +%Y%m%d`

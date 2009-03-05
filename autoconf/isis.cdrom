@@ -1,0 +1,114 @@
+#! /bin/sh
+
+# ISIS CD auto-run script
+#
+# Since the locations of the spectroscopy database
+# and the lheasoft libraries are known, its easy to
+# run ISIS off the CD:
+
+root=`dirname $0`
+
+case "$root" in
+  "." )
+       root=`pwd`
+  ;;
+  ".." )
+       root=`pwd`
+       root=`dirname $root`
+  ;;
+  * )
+  ;;
+esac
+
+ATOMDB=$root/atomdb
+export ATOMDB
+
+OS=`uname -a | cut -d' ' -f1`
+case "$OS" in
+  "Linux" )
+      HEADAS=$root/headas/i686-pc-linux-gnu-libc2.2.4
+      ARCH=i686
+  ;;
+  "SunOS" )
+      HEADAS=$root/headas/sparc-sun-solaris2.6
+      ARCH=solaris
+  ;;
+  "Darwin" )
+     CPU=`uname -p`
+     case "$CPU" in
+        "powerpc" )
+          HEADAS=$root/headas/powerpc-apple-darwin7.9.0
+          ARCH=darwin_ppc
+        ;;
+        "i386" )
+          HEADAS=$root/headas/i686-apple-darwin8.8.1
+          ARCH=darwin_intel
+        ;;
+         * )
+          echo "*** init failed:  unrecognized CPU type: $CPU"
+          exit 0
+        ;;
+     esac
+  ;;
+  * )
+      echo "*** init failed:  unrecognized OS type: $OS"
+      exit 0
+  ;;
+esac
+export HEADAS
+
+ISIS_SRCDIR="$root/build/$ARCH"
+export ISIS_SRCDIR
+
+ISIS_LOAD_PATH=$ISIS_SRCDIR/share
+ISIS_MODULE_PATH=$ISIS_SRCDIR/lib/modules
+export ISIS_LOAD_PATH
+export ISIS_MODULE_PATH
+
+. $HEADAS/headas-init.sh > /dev/null 2>&1
+
+XANADU=`dirname $HEADAS`
+export XANADU
+
+PGPLOT_DIR="${ISIS_SRCDIR}/opt/lib"
+PGPLOT_FONT="${ISIS_SRCDIR}/opt/etc/grfont.dat"
+export PGPLOT_DIR
+export PGPLOT_FONT
+
+# Make certain LD_LIBRARY_PATH got set.
+
+case "$OS" in
+  "Darwin" )
+      LIB_SO="${ISIS_SRCDIR}/opt/lib:${HEADAS}/lib"
+      if [ ! "$DYLD_LIBRARY_PATH" ]; then
+      DYLD_LIBRARY_PATH=$LIB_SO
+      else
+         case "$DYLD_LIBRARY_PATH" in
+            *"$LIB_SO"* )
+            ;;
+            * )
+               DYLD_LIBRARY_PATH="${LIB_SO}:${DYLD_LIBRARY_PATH}"
+            ;;
+         esac
+      fi
+      export DYLD_LIBRARY_PATH
+   ;;
+   * )
+      LIB_SO="${ISIS_SRCDIR}/opt/lib:${HEADAS}/lib"
+      if [ ! "$LD_LIBRARY_PATH" ]; then
+      LD_LIBRARY_PATH=$LIB_SO
+      else
+         case "$LD_LIBRARY_PATH" in
+            *"$LIB_SO"* )
+            ;;
+            * )
+               LD_LIBRARY_PATH="${LIB_SO}:${LD_LIBRARY_PATH}"
+            ;;
+         esac
+      fi
+      export LD_LIBRARY_PATH
+   ;;
+esac
+
+# pass on all the command line arguments
+$ISIS_SRCDIR/bin/isis ${@+"$@"}

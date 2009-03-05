@@ -1,0 +1,16 @@
+local_function_template
+
+ SYNOPSIS
+   One sentence summary of this function's purpose
+
+ USAGE
+   A sample function invocation, including optional arguments
+
+ DESCRIPTION
+   More detailed discussion of what the function does and how
+   to use it, perhaps with a few usage examples.
+   
+ SEE ALSO
+   List of other related functions
+
+------------------------------------------------------------------------

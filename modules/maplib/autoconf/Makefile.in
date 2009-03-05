@@ -1,0 +1,18 @@
+# -*- sh -*-
+
+@SET_MAKE@
+SHELL = /bin/sh
+
+all:
+	cd src; $(MAKE) all
+clean:
+	cd src; $(MAKE) clean
+	/bin/rm -f *~ \#*
+distclean: clean
+	cd src; $(MAKE) distclean
+	/bin/rm -f config.log config.cache config.status Makefile
+test:
+	cd src; $(MAKE) test
+install:
+	cd src; $(MAKE) install
+

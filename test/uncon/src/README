@@ -1,0 +1,339 @@
+TEST PROBLEMS : UNCONSTRAINED OPTIMIZATION / NONLINEAR LEAST SQUARES
+------------------------------------------------------------------------
+Problems from More, Garbow, and Hillstrom [1981]
+ no. file      n    m    name
+ 1.  ROSE      2    2   Rosenbrock
+ 2.  FROTH     2    2   Freudenstein and Roth
+ 3.  BADSCP    2    2   Powell Badly Scaled
+ 4.  BADSCB    2    3   Brown Badly Scaled
+ 5.  BEALE     2    3   Beale
+ 6.  JENSAM    2   10   Jennrich and Sampson
+ 7.  HELIX     3    3   Helical Valley
+ 8.  BARD      3   15   Bard
+ 9.  GAUSS     3   15   Gaussian
+10.  MEYER     3   16   Meyer
+11.  GULF      3   10   Gulf Research and Development
+12.  BOX       3   10   Box 3-Dimensional
+13.  SING      4    4   Powell Singular
+14.  WOOD      4    6   Wood
+15.  KOWOSB    4   11   Kowalik and Osborne
+16.  BD        4   20   Brown and Dennis
+17.  OSB1      5   33   Osborne 1
+18.  BIGGS     6   13   Biggs EXP6
+19.  OSB2     11   65   Osborne 2
+20.  WATSON  (20)  31   Watson
+21.  ROSEX   (10) (10)  Extended Rosenbrock
+22.  SINGX   (10) (10)  Extended Powell Singular
+23.  PEN1    ( 4) ( 5)  Penalty I
+24.  PEN2    ( 4) ( 8)  Penalty II
+25.  VARDIM  (10) (12)  Variably Dimensioned
+26.  TRIG    (10) (10)  Trigonometric
+27.  ALMOST  (10) (10)  Brown Almost Linear
+28.  BV      (10) (10)  Discrete Boundary Value
+29.  IE      (10) (10)  Discrete Integral Equation
+30.  TRID    (10) (10)  Broyden Tridiagonal
+31.  BAND    (10) (10)  Broyden Banded
+32.  LIN     (10) (20)  Linear --- Full Rank
+33.  LIN1    (10) (20)  Linear --- Rank 1
+34.  LIN0    (10) (20)  Linear --- Rank 1 with Zero Columns and Rows
+35.  CHEB    (10) (10)  Chebyquad
+
+ (The numbers in parentheses mean that the files include parameters
+ for varying the dimension of the problem.
+ An error in problem 11. has been corrected ---
+ see More, Garbow, and Hillstrom [1978].)
+
+# ------------------------------------------------------------------------
+
+# Matrix Square Root Problems (Hammarling)
+
+# 36a.    MSQRT2    4    4   Matrix Square Root 1
+36b.-d. MSQRT3    9    9   Matrix Square Root 2, 3, and 4
+
+# -----------------------------------------------------------------------
+
+# Hanson Test Problems (see Salane [1987])
+
+# 37.  HAN1      2   16   Hanson 1
+38.  HAN2      3   16   Hanson 2
+
+# -----------------------------------------------------------------------
+
+# McKeown Test Problems (see McKeown [1975a] or [1975b])
+
+# 39.  MCK1      2    3   McKeown 1
+40.  MCK2      3    4   McKeown 2
+41.  MCK3      5   10   McKeown 3
+
+# (In these files the asymptotic convergence factor RMU can be varied.
+ An error in the data for problem 40. has been corrected.)
+
+# -----------------------------------------------------------------------
+
+# De Villiers and Glasser Test Problems
+  (see De Villiers and Glasser [1981]; also Salane [1987])
+
+# 42a.-d.  DEVG1     4   24   De Villiers and Glasser 1
+
+#  alternative starting values :
+
+#  a. (1., 8., 4., 4.412)
+ b. (1., 8., 8., 1.   )
+ c. (1., 8., 1., 4.412)
+ d. (1., 8., 4., 1.   )
+
+# 43a.-e. DEVG2     5   16   De Villiers and Glasser 2
+
+#  alternative starting values :
+
+#  a. (45., 2. , 2.5, 1.5 ,  .9)
+ b. (42.,  .8, 1.4, 1.8 , 1. )
+ c. (45., 2. , 2.1, 2.  ,  .9)
+ d. (35., 2.5, 1.7, 1.  , 1. )
+ e. (42.,  .8, 1.8, 3.15, 1. )
+
+# -----------------------------------------------------------------------
+
+# Dennis, Gay, and Vu Test Problems (see Dennis, Gay, and Vu [1985])
+
+# 44a.-e. DGV6      6    6
+a.   Exp. 791129
+    starting value : (.299, -.0273, -.474, .474, -.0892, .0892)
+b.   Exp. 791226
+    starting value : (-.3, .3, -1.2, 2.69, 1.59, -1.5)
+c.   Exp. 0121a
+    starting value : (-.041, .03, -2.565, 2.565, -.754, .754)
+d.   Exp. 0121b
+    starting value : (-.056, .026, -2.991, 2.991, -.568, .568)
+e.   Exp. 0121c
+    starting value : (-.074, .013, -3.632, 3.632, -.289, .289)
+
+# (Variables b and d in Dennis, Gay, and Vu [1985] are eliminated from
+ the linear residuals in order to get this 6-variable formulation of
+ the problem.)
+
+# 45a.-e. DGV8     8    8
+a.      Exp. 791129
+ starting value : (.299, .186, -.0273, .0254, -.474, .474, -.0892, .0892)
+b.      Exp. 791226
+ starting value : (-.3, -.39, .3, -.344, -1.2, 2.69, 1.59, -1.5)
+c.      Exp. 0121a
+ starting value : (-.041, -.775, .03, -.047, -2.565, 2.565, -.754, .754)
+d.      Exp. 0121b
+ starting value : (-.056, -.753, .026, -.047, -2.991, 2.991, -.568, .568)
+e.      Exp. 0121c
+ starting value : (-.074, -.733, .013, -.034, -3.632, 3.632, -.289, .289)
+
+# -----------------------------------------------------------------------
+
+# Bibliography
+
+# J. E. Dennis, D. M. Gay, and P. A. Vu, "A new nonlinear equations test
+   problem", Technical Report 83-16, Mathematical Sciences Department,
+   Rice University (1983 - revised 1985).
+
+# N. de Villiers and D. Glasser, "A continuation method for nonlinear
+   regression", SIAM J. Numer. Anal., Vol. 18 (1981) 1139-1154.
+
+# S. J. Hammarling, private communication to P. E. Gill.
+
+# J. J. McKeown, "Specialized versus general-purpose algorithms for
+   functions that are sums of squared terms", Math. Prog., Vol. 9
+   (1975a) 57-68.
+
+# J. J. McKeown, "On algorithms for sums of squares problems", in
+   Towards Global Optimization, L. C. W. Dixon and G. Szego (eds.),
+   North-Holland (1975b) 229-257.
+
+# J. J. More, B. S. Garbow, and K. E. Hillstrom, "Testing unconstrained
+   optimization software", Technical Report TM-324, Applied Mathematics
+   Division, Argonne National Laboratory (1978)
+
+# J. J. More, B. S. Garbow, and K. E. Hillstrom, "Testing unconstrained
+   optimization software", ACM TOMS, Vol. 7 (1981) 17-41.
+
+# D. E. Salane, "A continuation approach for solving large residual
+   nonlinear least squares problems", SIAM J. Sci. Stat. Comp.,
+   Vol. 8 (1987) 655-671.
+
+# -----------------------------------------------------------------------
+
+# To submit new test problems, report errors, or make suggestions contact
+na.fraley@na-net.ornl.gov.
+
+# C-----------------------------------------------------------------------
+C COMMON blocks :
+C-----------------------------------------------------------------------
+C
+C PROBLM  : for problem and starting value selection.
+C
+C IOUNIT  : unit number for output of identifying information.
+C
+C PARAM1  : contants needed for function and/or derivative calculations.
+C
+C PARAM2  : contants needed for second derivative calculations.
+C
+
+# C
+C Nonlinear least-squares / unconstrained optimization test problems.
+C  Note : some of the test problems use LINPACK subroutines (BLAS).
+C
+C***********************************************************************
+C***********************************************************************
+
+#       SUBROUTINE GETFUN( X, N, F, M, FTF, FJ, LFJ, G, MODE)
+
+# C Returns information concerning problem dimension, function values and
+C derivatives, initial values, and solution for a particular problem.
+
+#       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+
+#       INTEGER            N, M, LFJ, MODE
+
+#       DOUBLE PRECISION   X(N), F(M), FTF, FJ(LFJ,N), G(N)
+
+#       INTEGER            NPROB, NPROBS, NSTART, NSTRTS
+      COMMON /PROBLM/    NPROB, NPROBS, NSTART, NSTRTS
+
+#       INTEGER            NOUT
+      COMMON /IOUNIT/    NOUT
+
+# C-----------------------------------------------------------------------
+C Input :
+C-----------------------------------------------------------------------
+C
+C X(N)   (DOUBLE)  : When MODE > 0, X is the vector at which functions
+C                    and/or gradients are to be evaluated.
+C N      (INTEGER) : The number of variables in the problem.
+C                    Needed as input for some problems unless MODE = -1.
+C M      (INTEGER) : The number of residuals in the problem.
+C                    Needed as input for some problems unless MODE = -1.
+C LFJ    (INTEGER) : Leading dimension of the array FJ which is to
+C                    contain the Jacobian. Must be at least M.
+C MODE   (INTEGER) : Controls input and output of GETFUN.
+C      < -1 GETFUN returns the best-known value for the minimum sum
+C           of squares in FTF, and -- in some cases -- the best-known
+C           solution in the vector X.
+C      = -1 GETFUN sets up initializing information, returns values
+C           for N and M indicating the size of the problem, and
+C           prints a header the output unit specified in
+C           COMMON /IOUNIT/.
+C      =  0 GETFUN returns initial iterate in X.
+C      =  ABCD > 0
+C        A > 0 - The values of the residual functions at X are
+C                returned in the vector F.
+C        B > 0 - The sum of squares at X is returned in FTF.
+C        C > 0 - The Jacobian matrix of the vector of the residual
+C                functions evaluated at X is returned in the array FJ.
+C        D > 0 - The product of the transpose of the FJ and F, both
+C                evaluated at X, is returned in the vector G.
+C
+C NPROB  (INTEGER) : Problem number if there is more than one problem
+C                    in the file. Passed through COMMON /PROBLM/.
+C NSTART (INTEGER) : Number selecting starting value if there is more
+C                    than one. Passed thorugh COMMON /PROBLM/.
+C NOUT   (INTEGER) : Output unit number. Passed through COMMON /IOUNIT/.
+C                    Used with MODE = -1 only; if NOUT is not positive
+C                    then no printing is done.
+C
+C-----------------------------------------------------------------------
+C Output :
+C-----------------------------------------------------------------------
+C
+C X(N)   (DOUBLE)  : Output for MODE < -1 and MODE = 0.
+C                    When MODE < -1, X is the best-known solution to the
+C                    problem (if available).
+C                    When MODE =  0, X is the initial iterate.
+C N      (INTEGER) : Output for MODE = -1.
+C                    The number of variables in the problem.
+C F(M)   (DOUBLE)  : When MODE = ABCD with A > 0, F is the vector of
+C                    residual functions evaluated at X. Space must be
+C                    allocated for the vector F whenever GETFUN is
+C                    called with MODE > 0.
+C M      (INTEGER) : Output for MODE = -1.
+C                    The number of residuals in the problem.
+C FTF    (DOUBLE)  : When MODE = ABCD with B > 0, FTF contains the sum
+C                    of squares of the residuals evaluated at X.
+C                    For MODE < -1, FTF is the smallest known value
+C                    of the sum of squares.
+C FJ(M,N) (DOUBLE) : When MODE = ABCD > 0 with C > 0, FJ contains
+C                    the Jacobian matrix of the vector of residuals
+C                    evaluated at X. Space must be allocated for
+C                    FJ whenever CD > 0.
+C G(N)   (DOUBLE)  : When MODE = ABCD with D > 0, the vector G contains
+C                    the product of the transpose of the matrix FJ
+C                    and the vector F evaluted at X. That is, G is the
+C                    gradient of half the sum of squares evaluated at X.
+C NPROBS (INTEGER) : Number of different problems in the file. Set when
+C                    MODE = -1 and passed through COMMON /PROBLM/.
+C NSTRTS (INTEGER) : Number of different starting values. Set when
+C                    MODE = -1 and passed through COMMON /PROBLM/.
+C
+C***********************************************************************
+C***********************************************************************
+C
+      SUBROUTINE DFJDXK( K, X, N, DFJ, LDFJ, M, NONZRO)
+
+# C  Derivative of the Jacobian of F with respect to the Kth variable.
+C    (CAUTION : this subroutine is not provided for all problems.)
+
+#       IMPLICIT DOUBLE PRECSION (A-H,O-Z)
+
+#       INTEGER            K, N, LDFJ, M, NONZRO(N)
+
+#       DOUBLE PRECSION    X(N), DFJ( LDFJ, N)
+
+# C-----------------------------------------------------------------------
+C Input :
+C-----------------------------------------------------------------------
+C
+C K      (INTEGER) : The index of the variable component with respect to
+C                    which the derivative of the Jacobian is to be taken.
+C X(N)   (DOUBLE)  : The derivative of the Jacobian is evaluated at X.
+C N      (INTEGER) : The number of variables in the problem.
+C LDFJ   (INTEGER) : Leading dimension of array DFJ. Must be at least M.
+C M      (INTEGER) : The number of residuals in the problem.
+C
+C-----------------------------------------------------------------------
+C Output :
+C-----------------------------------------------------------------------
+C
+C DFJ(LDFJ,N)      : Array containing the derivative of the Jacobian
+C        (DOUBLE)    matrix of F (evaluated at X) with respect to
+C                    the Kth variable component.
+C NONZRO(N)        : NONZRO(J) = 0 if the Jth column of DFJ vanishes;
+C        (INTEGER)   NONZRO(J) = 1 otherwise.
+C
+C***********************************************************************
+C***********************************************************************
+C
+      SUBROUTINE DFKDIJ( K, N, X, LHESS, HESS, LINEAR)
+
+# C  Hessian matrix of the Kth residual function.
+
+#       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+
+#       LOGICAL            LINEAR
+
+#       INTEGER            K, N, LHESS
+
+#       DOUBLE PRECISION   X(N), HESS( LHESS, N)
+
+# C-----------------------------------------------------------------------
+C Input :
+C-----------------------------------------------------------------------
+C
+C K      (INTEGER) : The index of the residual component of F for which
+C                    the Hessian matrix is to be given.
+C X(N)   (DOUBLE)  : The Hessian matrix will be evaluated at X.
+C N      (INTEGER) : The number of variables in the problem.
+C LHESS  (INTEGER) : Leading dimension of array HESS. Must be at least N.
+C
+C-----------------------------------------------------------------------
+C Output :
+C-----------------------------------------------------------------------
+C
+C HESS(LHESS,N)    : Array containing the Hessian matrix of the Kth
+C        (DOUBLE)    residual component of F evaluated at X.
+C LINEAR (LOGICAL) : LINEAR =  .TRUE. if the Kth residual is linear;
+C                    LINEAR = .FALSE. otherwise.

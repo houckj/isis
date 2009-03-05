@@ -1,0 +1,66 @@
+#
+#================================================================
+# Fortran compiler and options:
+#
+#   Note that the equivalent of g77's -fno-automatic option
+#   is probably required for these old f77 routines to work.
+#   Edit FCFLAGS below to provide the correct option.
+
+FC      = @FC@
+FCLIBS  = @FCLIBS@
+FCFLAGS = @FCFLAGS@ @ELF_FC_FCFLAGS@ -fno-automatic
+#
+#================================================================
+
+@SET_MAKE@
+SHELL = /bin/sh
+RM = /bin/rm -f
+RMDIR = /bin/rmdir
+
+CFLAGS     = @CFLAGS@
+ELF_CC     = @ELF_CC@
+ELF_CFLAGS = @ELF_CFLAGS@ -Dunix $(CFLAGS)
+CC_SHARED = @CC_SHARED@
+
+SLANG_INC  = @SLANG_INC@
+
+OBJDIR     = $(ARCH)objs
+MODULE_LIB = src/libuncon.so
+
+LIBS = $(SLANG_LIB) $(RPATH) $(DL_LIB) $(FCLIBS) -lm
+INCS = $(SLANG_INC)
+
+all:	uncon-module.so
+	./run_tests
+
+uncon-module.so:	$(MODULE_LIB)
+	$(CC_SHARED) $(INCS) uncon-module.c -o uncon-module.so $(LIBS)
+
+$(MODULE_LIB):	src/$(OBJDIR)
+	@cd src ; for X in `cat modules.lis` ; \
+	do \
+	   echo "compiling src/$$X.F" ; \
+	   $(FC) -c $(FCFLAGS) -o $(OBJDIR)/$$X.o -Dgetfun=$$X -Ddfjdxk=J$$X -Ddfkdij=K$$X $$X.F ; \
+	done
+	@cd src ; for X in `cat blas.lis` ; \
+	do \
+	   echo "compiling src/$$X.f" ; \
+	   $(FC) -c $(FCFLAGS) -o $(OBJDIR)/$$X.o $$X.f; \
+	done
+	@cd src/$(OBJDIR) ; $(CC_SHARED) -o ../libuncon.so *.o $(FCLIBS)
+	@echo "built libuncon.so"
+
+src/$(OBJDIR):
+	mkdir src/$(OBJDIR)
+
+clean:
+	-$(RM) src/$(OBJDIR)/*.o
+
+veryclean:
+	$(MAKE) clean
+	-$(RM) *.out *.ps uncon-module.so $(MODULE_LIB)
+
+distclean:
+	$(MAKE) veryclean
+	-$(RM) Makefile
+	-$(RMDIR) src/$(OBJDIR)
