@@ -1,3 +1,10 @@
+2009-3-6  John E. Davis  <davis@space.mit.edu>
+
+	* src/cfitsio-module.c (read_string_cell): modified to deal
+	  with rAw format strings.
+
+	* src/version.h (MODULE_PATCH_LEVEL): updated to version 0.4.5
+
 2008-12-1  John E. Davis  <davis@space.mit.edu>
 
 	* src/fits.sl (get_open_hdu_of_type): If an extension was

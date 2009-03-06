@@ -266,7 +266,7 @@ private define get_open_hdu_of_type (f, hdu_type, needs_close, check_naxis)
      }
 
    variable name_contains_extno
-     = strings_match (f, "\[.+\]$"R) || string_match (f, "+\d+$"R, 1);
+     = string_match (f, "\[.+\]$"R, 1) || string_match (f, "+\d+$"R, 1);
 
    f = get_open_fp (f, needs_close);
    

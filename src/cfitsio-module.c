@@ -1490,12 +1490,14 @@ static int write_col (FitsFile_Type *ft, int *colnum,
 }
 
 static int read_string_cell (fitsfile *f, unsigned int row, unsigned int col,
-			     unsigned int len, char **sp)
+			     unsigned int len, unsigned int num_substrs, char **sp)
 {
-   char *s;
+   char *s, *ss;
    char *sls;
    int status = 0;
    int anynul;
+   unsigned int i;
+   unsigned int width;
 
    *sp = NULL;
    
@@ -1504,13 +1506,29 @@ static int read_string_cell (fitsfile *f, unsigned int row, unsigned int col,
 
    if (NULL == (s = SLmalloc (len + 1)))
      return -1;
-   
-   /* Note that the number of elements passed to this must be 1 */
-   if (0 != fits_read_col (f, TSTRING, col, row, 1, 1, NULL,
-			   &s, &anynul, &status))
+   memset (s, ' ', len);
+
+   width = len/num_substrs;
+   ss = s;
+   for (i = 0; i < num_substrs; i++)
      {
-	SLfree (s);
-	return status;
+	/* Note that the number of elements passed to this must be 1 */
+	if (0 != fits_read_col (f, TSTRING, col, row, i+1, 1, NULL,
+				&ss, &anynul, &status))
+	  {
+	     SLfree (s);
+	     return status;
+	  }
+	/* If there is more than one substring, append them together.  Only the
+	 * last substring will have trailing whitespace removed.  This is 
+	 * probably ok because fits does not like trailing whitespace.
+	 */
+	if (i + 1 < num_substrs)
+	  {
+	     unsigned int len1 = strlen (ss);
+	     ss[len1] = ' ';
+	  }
+	ss += width;
      }
    sls = SLang_create_slstring (s);
    SLfree (s);
@@ -1521,7 +1539,7 @@ static int read_string_cell (fitsfile *f, unsigned int row, unsigned int col,
    return 0;
 }
 
-static int read_string_column (fitsfile *f, int is_var, long repeat,
+static int read_string_column (fitsfile *f, int is_var, long repeat, unsigned int num_substrs,
 			       int col, unsigned int firstrow, unsigned int numrows,
 			       SLang_Array_Type **atp)
 {
@@ -1558,7 +1576,7 @@ static int read_string_column (fitsfile *f, int is_var, long repeat,
 	       }
 	  }
 	
-	status = read_string_cell (f, row, col, repeat, ats+i);
+	status = read_string_cell (f, row, col, repeat, num_substrs, ats+i);
 	if (status != 0)
 	  {
 	     SLang_free_array (at);
@@ -1798,6 +1816,7 @@ static int read_col (FitsFile_Type *ft, int *colnum, int *firstrowp,
    
    if (datatype == SLANG_STRING_TYPE)
      {
+	unsigned int num_substrs;
 	/* This assumes an ASCII_TBL, which will always have a 
 	 * repeat of 1, and the number of bytes is given by the
 	 * width field.  In contrast, a BINARY_TBL will have
@@ -1805,8 +1824,18 @@ static int read_col (FitsFile_Type *ft, int *colnum, int *firstrowp,
 	 * number of bytes in a substring.
 	 */
 	if ((repeat == 1) && (width != 1))
-	  repeat = width;
-	status = read_string_column (ft->fptr, (type < 0), repeat, col, firstrow, num_rows, &at);
+	  {
+	     num_substrs = 1;
+	     repeat = width;
+	  }
+	else
+	  {
+	     if (width > 0)
+	       num_substrs = width;
+	     else
+	       num_substrs = 0;
+	  }
+	status = read_string_column (ft->fptr, (type < 0), repeat, num_substrs, col, firstrow, num_rows, &at);
      }
    else if (type < 0)
      status = read_var_column (ft->fptr, -type, datatype, col, firstrow, num_rows, &at);
@@ -1857,7 +1886,7 @@ static int read_var_column_data (fitsfile *f, int ftype, SLtype datatype,
    return 0;
 }
 
-static int read_string_column_data (fitsfile *f, int is_var, long repeat, int col,
+static int read_string_column_data (fitsfile *f, int is_var, long repeat, unsigned int num_substrs, int col,
 				    long firstrow, unsigned int num_rows,
 				    char **strs)
 {
@@ -1876,7 +1905,7 @@ static int read_string_column_data (fitsfile *f, int is_var, long repeat, int co
 	       return status;
 	  }
 	
-	status = read_string_cell (f, row, col, repeat, strs + i);
+	status = read_string_cell (f, row, col, repeat, num_substrs, strs + i);
 	if (status != 0)
 	  return status;
      }
@@ -2051,6 +2080,7 @@ static int read_cols (void)
 
 	     if (datatype == SLANG_STRING_TYPE)
 	       {
+		  unsigned int num_substrs;
 		  /* This assumes an ASCII_TBL, which will always have a 
 		   * repeat of 1, and the number of bytes is given by the
 		   * width field.  In contrast, a BINARY_TBL will have
@@ -2058,9 +2088,19 @@ static int read_cols (void)
 		   * number of bytes in a substring.
 		   */
 		  if ((repeat == 1) && (ci[i].width != 1))
-		    repeat = ci[i].width;
+		    {
+		       repeat = ci[i].width;
+		       num_substrs = 1;
+		    }
+		  else
+		    {
+		       if (ci[i].width > 0)
+			 num_substrs = repeat / ci[i].width;
+		       else
+			 num_substrs = 0;
+		    }
 
-		  status = read_string_column_data (f, (type < 0), repeat, col, firstrow, delta_rows, 
+		  status = read_string_column_data (f, (type < 0), repeat, num_substrs, col, firstrow, delta_rows,
 						    (char **)at->data + data_offset);
 		  data_offset += delta_rows;
 	       }
