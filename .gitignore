@@ -1,5 +1,3 @@
-configure
-modules/xspec/configure
 
 doc/figures
 doc/help.txt
