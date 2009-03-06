@@ -1,0 +1,276 @@
+  S-Lang Maplib Module Reference
+  John E. Davis, <davis@space.mit.edu>
+  Mar 5, 2009
+  ____________________________________________________________
+
+                            Table of Contents
+
+  1. Introduction to the Maplib Module
+  2. Usage
+  3. Maplib Module Function Reference
+  3.1. maplib_new
+  3.2. maplib_project
+  3.3. maplib_deproject
+  3.4. maplib_reproject
+
+
+  1.  Introduction to the Maplib Module
+
+  The routines in this module implement various mapping projections from
+  a unit sphere to a surface such as a plane or cylinder.
+
+  In all the projections, points on the sphere are specified using
+  latitude and longitude coordinates expressed in degrees. Values of
+  latitude run from -90 degrees at the south pole to +90 degrees at the
+  north pole.  Longitude values run from -180 to 180 in an "easterly"
+  direction.
+
+  At the moment, the following map mappings are supported by the module:
+
+     Gnomic
+        A perspective projection from the center of a sphere to a plane
+        tangent to some point on the surface of the sphere.  Great
+        circles on the sphere are mapped to straight lines on the plane.
+
+     Orthographic
+        A perspective projection of the unit sphere to a tangent plane
+        on the unit sphere from an infinite distance.
+
+     Stereographic
+        A perspective projection to a tangent plane from the point on
+        the unit sphere that is antipodal to the point of tangency.
+
+     Lambert
+        An azimuthal equal area projection.
+
+     Hammer-Aitoff
+        An equal area projection of the sphere onto an ellipse.
+
+  In addition, the module supports the additional transformations:
+
+     Linear
+        A simple 1-1 mapping from a point on one plane to a point on
+        another.  The mapping may involve translation, scaling, or
+        rotation.
+
+     Sphere
+        A rotation of a sphere onto itself.
+
+  Addition map projections will be added in future versions of the
+  module.
+
+  2.  Usage
+
+  In order to a particular map projection, it must first be created via
+  the maplib_new function.  It takes a single string parameter that
+  specifies the particular mapping and returns a structure that defines
+  the map.  For example, a Gnomic transformation may be allocated using
+
+            p = maplib_new ("gnomic");
+
+  The structure returned by the maplib_new function contains fields that
+  are specified to the mapping.  In the case of the Gnomic transforma-
+  tion, the structure has the fields:
+
+          field-name   default-value             description
+            name          gnomic          The name of the transformation
+            lon0            0             The longitude of the tangent point
+            lat0            90            The latitude of the tangent point
+            x0              0             (x0,y0) are the coordinates of the
+            y0              0               tangent point in the tangent plane
+            xscale          1             Scale factor in the x direction
+            yscale          1             Scale factor in the y direction
+
+  As the table shows, the default location of the tangent plane is at
+  the north pole of the unit sphere.  The location of the tangent plane
+  may be changed to an arbitrary point on the sphere by setting the lon0
+  and lat0 parameters to the desired values.
+
+  The maplib_project function is used to carry out the mapping of a
+  point on the unit sphere.  It takes three arguments: the structure
+  that defines the transformation, and the longitude and latitude of the
+  point to be mapped.  For example,
+
+            (x,y) = maplib_project (p, 10, 70);
+
+  computes the coordinates of point with a longitude of 10 degrees and a
+  latitude of 70 degrees under the mapping specified by p.
+
+  Similarly, the reverse transformation back to the sphere may be
+  carried out using the maplib_deproject function:
+
+           (lon,lat) = maplib_deproject (p, x, y);
+
+  For some purposes one is interested in transformation from one image
+  surface to another.  For example, consider two tangent planes: one at
+  the north pole and one at a longitude of 20 and a latitude of 80
+  degrees.  To transform points from the latter plane to the one at the
+  north pole under the gnomic mapping, it is necessary to first allocate
+  the appropriate transformations:
+
+      A = maplib_new ("gnomic"); A.lon0 = 0; A.lat0 = 90;
+      B = maplib_new ("gnomic"); B.lon0 = 20; B.lat0 = 80;
+
+  One way to transform a point (x_B,y_B) on the plane defined by the
+  transformation B to the plane at the north pole defined by A is via:
+
+           (lon, lat) = maplib_deproject (B, x_B, y_B);
+           (x_A, y_A) = maplib_project (A, lon, lat);
+
+  The problem with this approach is that there may be some loss of accu-
+  racy by computing the intermediate coordinates.  This is because if
+  the coordinates given to either maplib_project or maplib_deproject are
+  single precision values, the functions will return the results as sin-
+  gle precision values.  For this reason, the maplib module includes a
+  function called maplib_reproject that avoids this problem:
+
+           (x_A,y_A) = maplib_reproject (A, B, x_A, x_B);
+
+  3.  Maplib Module Function Reference
+
+  3.1.  maplib_new
+
+      Synopsis
+        Create a new mapping instance
+
+      Usage
+        m = maplib_new (String_Type mapname)
+
+      Description
+        This function creates a new instance of a mapping of the
+        specified name.  If the mapping exists, the function returns a
+        structure whose fields depend upon the specified mapping.
+        Otherwise the function will generate an exception.
+
+        The following mappings are supported:
+
+              mapname          description
+                gnomic           Gnomic
+                ortho            Orthographic
+                stereo           Stereographic
+                lambert          Lambert Azimuthal Equal-Area
+                hammer           Hammer-Aitoff
+                sphere           Rotation of a sphere
+                linear           Linear Transformation
+
+     The fields of the structure returned by the maplib_new function
+     vary with the name of the mapping.  Unless otherwise specified,
+     most of the maps contain the following fields:
+
+             field-name   default-value             description
+               name         <varies>         The name of the transformation
+               lon0            0             The longitude of the map center
+               lat0            90            The latitude of the map center
+               x0              0             (x0,y0) are the coordinates of the
+               y0              0               plane at the map center
+               xscale          1             Scale factor in the x direction
+               yscale          1             Scale factor in the y direction
+
+     For tangent plane projections, (lon0,lat0) specify the position of
+     the tangent plane on the sphere.
+
+     The following transformations return a structure whose fields
+     differ from the above:
+
+        sphere
+
+                field-name   default-value             description
+                  name         sphere         Rotation of the unit sphere
+                  lon0,lat0    (0,90)         The rotation takes the point (lon0,lat0)
+                  lon1,lat1    (0,90)           into the point (lon1,lat1)
+                  beta           0            Additional rotation about (lon1,lat1)
+
+        linear
+
+                field-name   default-value             description
+                  name         linear         A linear transformation
+                  x0,y0        (0,0)            (x',y') = (x1,y1) + A#(x-x0,y-y0)
+                  x1,y1        (0,0)
+                  A           [1,0,0,1]
+
+      Example
+
+              m = maplib_new ("gnomic");
+              m.lon0 = 20;
+              m.lat0 = 35;
+              (x,y) = maplib_project (m, 45, 22);
+
+      See Also
+        ``maplib_project'', ``maplib_deproject'', ``maplib_reproject''
+
+  3.2.  maplib_project
+
+      Synopsis
+        Project
+
+      Usage
+        (x,y) = maplib_project (Struct_Type m, Double_Type lon,
+        Double_Type lat)
+
+      Description
+        This function applies the mapping specified by the first
+        parameter m to the longitude and latitude pairs (lon,lat).  The
+        coordinates of the projected points will be returned.
+
+      Notes
+        For some transformations, the parameters lon and lat need not
+        represent longitude and latitude coordinates.  The "linear"
+        transformtion is one example.
+
+        This function is the inverse of maplib_deproject.
+
+      See Also
+        ``maplib_new'', ``maplib_deproject'', ``maplib_reproject''
+
+  3.3.  maplib_deproject
+
+      Synopsis
+        Project
+
+      Usage
+        (lon,lat) = maplib_project (Struct_Type m, Double_Type x,
+        Double_Type y)
+
+      Description
+        This function applies the inverse of the mapping specified by
+        the first parameter m to the projected coordinates (x,y) and
+        returns the result.
+
+      Notes
+        This function is the inverse of maplib_project.
+
+      See Also
+        ``maplib_new'', ``maplib_project'', ``maplib_reproject''
+
+  3.4.  maplib_reproject
+
+      Synopsis
+        Reproject the coordinates to another projection
+
+      Usage
+        (x1,y1)=maplib_reproject (m_to, m_from, x, y)
+
+             Struct_Type m_to, m_from;
+             Double_Type x, Double_Type y;
+
+      Description
+        The maplib_reproject function reprojects the coordinates (x,y)
+        associated with the mapping m_from to coordinates described by
+        the mapping m_to.  This function is equivalent to
+
+               (lon, lat) = maplib_deproject (m_from, x, y);
+               (x1, y1) = maplib_reproject (m_to, lon, lat);
+
+      Notes
+        It is strongly recommended that this function be used for
+        reprojections rather than the two step process outlined above.
+        The main reason is that if (x,y) are expressed in single
+        precision, then the intermediate coordinates (lon, lat) will be
+        returned as single precision values.  Hence, there could be some
+        loss in precision when using the two step process.  Using
+        maplib_reproject does not have this problem because double
+        precision is used throughout.
+
+      See Also
+        ``maplib_new'', ``maplib_project'', ``maplib_deproject''
+

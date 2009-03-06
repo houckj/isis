@@ -6,8 +6,6 @@ doc/help.txt
 doc/manual.pdf
 doc/manual.ps
 
-test/data
-
 Makefile
 
 config.h

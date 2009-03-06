@@ -3,9 +3,9 @@
 # To create the SGML files, you will need to install the tm-utils
 # package.  See http://www.jedsoft.org/ for more information.
 #
-TMEXPAND = /aluche/d1/web/tm-dist/bin/tmexpand
+TMEXPAND = /nfs/aluche/d1/web/tm-dist/bin/tmexpand
 SL2TM = sl2tm
-MACRODIR = /aluche/d1/web/tm-dist/macros
+MACRODIR = /nfs/aluche/d1/web/tm-dist/macros
 TM2HLP = $(TMEXPAND) -I$(MACRODIR) -Mslhlp
 
 MODULE = maplib
