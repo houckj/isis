@@ -7513,7 +7513,7 @@ See \verb|define_model| for details.
 {create\_aped\_fun} %name
 {Create a custom fit-function using a multi-component APED spectrum} %purpose
 {create\_aped\_fun (name, Struct\_Type [, hook\_ref])} %usage
-{fit\_fun, aped\_fun\_details, create\_aped\_line\_modifier, create\_aped\_line\_profile}
+{plasma, fit\_fun, eval\_fun2, aped\_fun\_details, create\_aped\_line\_modifier, create\_aped\_line\_profile, aped\_line\_modifier\_args, aped\_line\_profile\_args, aped\_hook\_args}
 \index{Fitting a spectrum model}
 \index{model spectrum, Fitting a}
 \index{spectrum model}
@@ -7866,15 +7866,98 @@ simultaneously by providing a comma-separated list of helper
 functions in the model definition.  For example:
 \begin{verbatim}
 fit_fun ("xaped(1, modifier(1), square_profile(1))");
+\end{verbatim}
+
+EXAMPLE 7:
+
+Models created by \verb|create_aped_fun| can also be evaluated
+using the \verb|eval_fun2| interface, without using
+\verb|fit_fun| at all.  When one or more ``helper'' functions
+are used, the \verb|eval_fun2| arguments associated with each
+helper can be obtained by calling the corresponding
+\verb|aped_|\$\{\verb|helper|\}\verb|_args| function.
+
+For example, the model computed using
+\begin{verbatim}
+   fit_fun ("xaped (1, modifier(1))");
+   () = eval_counts;
+   f = get_model_flux(1).value;
+\end{verbatim}
+is identical to the model computed using:
+\begin{verbatim}
+  f = eval_fun2 ("xaped", lo, hi, xaped_pars,
+                 aped_line_modifier_args ("modifier", modifier_pars))
+\end{verbatim}
+assuming matching wavelength grids, \verb|lo|, \verb|hi|, and 
+parameter arrays, \verb|xaped_pars| and \verb|modifier_pars|.
+
+Similarly, when the newly created function uses a ``hook'', as
+described above, e.g.:
+\begin{verbatim}
+   create_aped_fun ("xaped", t, &xaped_hook);
 \end{verbatim} 
+the \verb|eval_fun2| arguments associated with that hook can be
+obtained by calling \verb|aped_hook_args|:
+\begin{verbatim} 
+  f = eval_fun2 ("xaped", lo, hi, xaped_pars,
+                 aped_hook_args (&xaped_hook, xaped_instance));
+\end{verbatim} 
+where \verb|xaped_instance| is the integer argument expected
+by \verb|xaped_hook|.
+
+When multiple helper functions are used, all the associated
+\verb|eval_fun2| arguments are provided in the obvious way. For
+example, the model computed using:
+\begin{verbatim}
+   fit_fun ("xaped (1, modifier(1), square_profile(1))");
+\end{verbatim}
+is identical to the model computed using:
+\begin{verbatim}
+  f = eval_fun2 ("xaped", lo, hi, xaped_pars,
+                 aped_line_modifier_args ("modifier", modifier_pars),
+                 aped_line_profile_args ("square_profile", profile_pars),
+                 aped_hook_args (&xaped_hook, xaped_instance));
+\end{verbatim}
+assuming \verb|xaped| was defined to take a hook argument and
+assuming matching grids and function parameters in each case.
 
 \end{isisfunction}
 
 \begin{isisfunction}
-{create\_aped\_line\_modifier} %name
+{aped\_line\_modifier\_args}% name
+{Return extra arguments needed for {\tt eval\_fun2} call.}%
+{args = aped\_line\_modifier\_args (modifier\_name, modifier\_params[])}%
+{create\_aped\_fun, create\_aped\_line\_modifier, eval\_fun2}
+
+See \verb|create_aped_fun| for details.
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{aped\_line\_profile\_args}% name
+{Return extra arguments needed for {\tt eval\_fun2} call.}
+{args = aped\_line\_profile\_args (profile\_name, profile\_params[])}
+{create\_aped\_fun, create\_aped\_line\_profile, eval\_fun2}
+
+See \verb|create_aped_fun| for details.
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{aped\_hook\_args}% name
+{Return extra arguments needed for {\tt eval\_fun2} call.}
+{args = aped\_hook\_args (Ref\_Type hook, Integer\_Type aped\_fun\_instance)}
+{create\_aped\_fun, eval\_fun2}
+
+See \verb|create_aped_fun| for details.
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{create\_aped\_line\_modifier}%name
 {Register a line-emissivity modifier function as an APED model helper function} %purpose
 {create\_aped\_line\_modifier (name, Ref\_Type [, param\_name\_array [,num\_extra\_args]])} %usage
-{fit\_fun, create\_aped\_line\_profile}
+{aped\_line\_modifier\_args, create\_aped\_line\_profile, fit\_fun, eval\_fun2}
 
 See \verb|create_aped_fun| for details.
 
@@ -7884,7 +7967,7 @@ See \verb|create_aped_fun| for details.
 {create\_aped\_line\_profile} %name
 {Register a line profile function as an APED model helper function} %purpose
 {create\_aped\_line\_profile (name, Line\_Profile\_Type [, param\_name\_array])} %usage
-{fit\_fun, create\_aped\_line\_modifier, load\_line\_profile\_function}
+{load\_line\_profile\_function, aped\_line\_profile\_args, create\_aped\_line\_modifier, fit\_fun, eval\_fun2}
 
 See \verb|create_aped_fun| for details.
 

@@ -6265,10 +6265,109 @@ create_aped_fun
 
     fit_fun ("xaped(1, modifier(1), square_profile(1))");
 
+    EXAMPLE 7:
+
+    Models created by create_aped_fun can also be evaluated using
+    the eval_fun2 interface, without using fit_fun at all.  When
+    one or more "helper" functions are used, the eval_fun2
+    arguments associated with each helper can be obtained by
+    calling the corresponding aped_helper_args function.
+
+    For example, the model computed using
+
+       fit_fun ("xaped (1, modifier(1))");
+       () = eval_counts;
+       f = get_model_flux(1).value;
+
+    is identical to the model computed using:
+
+      f = eval_fun2 ("xaped", lo, hi, xaped_pars,
+                     aped_line_modifier_args ("modifier", modifier_pars))
+
+    assuming matching wavelength grids, lo, hi, and parameter
+    arrays, xaped_pars and modifier_pars.
+
+    Similarly, when the newly created function uses a "hook", as
+    described above, e.g.:
+
+       create_aped_fun ("xaped", t, &xaped_hook);
+
+    the eval_fun2 arguments associated with that hook can be
+    obtained by calling aped_hook_args:
+
+      f = eval_fun2 ("xaped", lo, hi, xaped_pars,
+                     aped_hook_args (&xaped_hook, xaped_instance));
+
+    where xaped_instance is the integer argument expected by
+    xaped_hook.
+
+    When multiple helper functions are used, all the associated
+    eval_fun2 arguments are provided in the obvious way. For
+    example, the model computed using:
+
+       fit_fun ("xaped (1, modifier(1), square_profile(1))");
+
+    is identical to the model computed using:
+
+      f = eval_fun2 ("xaped", lo, hi, xaped_pars,
+                     aped_line_modifier_args ("modifier", modifier_pars),
+                     aped_line_profile_args ("square_profile", profile_pars),
+                     aped_hook_args (&xaped_hook, xaped_instance));
+
+    assuming xaped was defined to take a hook argument and assuming
+    matching grids and function parameters in each case.
 
 
  SEE ALSO
-    fit_fun, aped_fun_details, create_aped_line_modifier, create_aped_line_profile
+    plasma, fit_fun, eval_fun2, aped_fun_details, create_aped_line_modifier, create_aped_line_profile, aped_line_modifier_args, aped_line_profile_args, aped_hook_args
+
+------------------------------------------------------------------------
+aped_line_modifier_args
+
+ SYNOPSIS
+    Return extra arguments needed for eval_fun2 call.
+
+ USAGE
+    args = aped_line_modifier_args (modifier_name, modifier_params[])
+
+ DESCRIPTION
+    See create_aped_fun for details.
+
+
+ SEE ALSO
+    create_aped_fun, create_aped_line_modifier, eval_fun2
+
+------------------------------------------------------------------------
+aped_line_profile_args
+
+ SYNOPSIS
+    Return extra arguments needed for eval_fun2 call.
+
+ USAGE
+    args = aped_line_profile_args (profile_name, profile_params[])
+
+ DESCRIPTION
+    See create_aped_fun for details.
+
+
+ SEE ALSO
+    create_aped_fun, create_aped_line_profile, eval_fun2
+
+------------------------------------------------------------------------
+aped_hook_args
+
+ SYNOPSIS
+    Return extra arguments needed for eval_fun2 call.
+
+ USAGE
+    args = aped_hook_args (Ref_Type hook, Integer_Type aped_fun_instance)
+
+ DESCRIPTION
+    See create_aped_fun for details.
+
+
+ SEE ALSO
+    create_aped_fun, eval_fun2
 
 ------------------------------------------------------------------------
 create_aped_line_modifier
@@ -6284,7 +6383,7 @@ create_aped_line_modifier
 
 
  SEE ALSO
-    fit_fun, create_aped_line_profile
+    aped_line_modifier_args, create_aped_line_profile, fit_fun, eval_fun2
 
 ------------------------------------------------------------------------
 create_aped_line_profile
@@ -6300,7 +6399,7 @@ create_aped_line_profile
 
 
  SEE ALSO
-    fit_fun, create_aped_line_modifier, load_line_profile_function
+    load_line_profile_function, aped_line_profile_args, create_aped_line_modifier, fit_fun, eval_fun2
 
 ------------------------------------------------------------------------
 default_plasma_state

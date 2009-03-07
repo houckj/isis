@@ -490,6 +490,44 @@ private define struct_to_param_array (x) %{{{
 
 %}}}
 
+% Generate line modifier args
+define aped_line_modifier_args () %{{{
+{
+   variable msg = "args = aped_line_modifier_args (name, p [,num_extra_args])";
+   variable name, p, num_extra_args = 0;
+
+   switch (_NARGS)
+     {case 2:  (name, p) = ();}
+     {case 3:  (name, p, num_extra_args) = ();}
+     { usage(msg); }
+
+   variable ref = _Isis_Aped_Line_Modifier_Table[name];
+
+   if (num_extra_args == 0)
+     return 0, ref, p, "aped_line_modifier";
+
+   variable extra_args = __pop_args (num_extra_args);
+   return __push_args (extra_args), num_extra_args, ref, p, "aped_line_modifier";
+}
+
+%}}}
+
+% Generate line profile args
+define aped_line_profile_args (name, p) %{{{
+{
+   return _Isis_Aped_Profile_Table[name], p, "aped_profile";
+}
+
+%}}}
+
+% Generate hook args
+define aped_hook_args (hook_ref, which_aped_fun_instance) %{{{
+{
+   return @hook_ref (which_aped_fun_instance), "aped_hook";
+}
+
+%}}}
+
 define _isis_calc_model_using_template (l,h,p,info) %{{{
 {
    variable
@@ -502,8 +540,8 @@ define _isis_calc_model_using_template (l,h,p,info) %{{{
 
    if (hook_ref != NULL)
      {
-        variable r = @hook_ref(Isis_Active_Function_Id);
-        r, "aped_hook";
+        % leave hook args on the stack.
+        aped_hook_args (hook_ref, Isis_Active_Function_Id);
      }
 
    variable v = mt_calc_model (m, l, h);
@@ -603,7 +641,7 @@ define create_aped_line_profile () %{{{
    variable s;
    % returns id_string, param_array, arg, ...
    s = "define ${profile_name}_fit(l,h,p){"$
-     + "  return _Isis_Aped_Profile_Table[\"${profile_name}\"], p, \"aped_profile\";"$
+     + "  return aped_line_profile_args (\"${profile_name}\", p);"$
      + "}";
    eval(s);
    if (param_names != NULL)
@@ -625,24 +663,13 @@ define create_aped_line_modifier () %{{{
                            &num_extra_args, _NARGS, 2, msg))
      return;
 
-   % returns id_string, param_array, arg, ...
    variable s;
-
-   if (num_extra_args > 0)
-     {
-        s = "define ${modifier_name}_fit(l,h,p){"$
-          + "     variable extra_args = __pop_args(${num_extra_args});"$
-          + "     return __push_args(extra_args), ${num_extra_args}, _Isis_Aped_Line_Modifier_Table[\"${modifier_name}\"], p, \"aped_line_modifier\";"$
-          + "}";
-     }
-   else
-     {
-        s = "define ${modifier_name}_fit(l,h,p){"$
-          + "     return 0, _Isis_Aped_Line_Modifier_Table[\"${modifier_name}\"], p, \"aped_line_modifier\";"$
-          + "}";
-     }
-
+   % returns id_string, param_array, arg, ...
+   s = "define ${modifier_name}_fit(l,h,p){"$
+     + "     return aped_line_modifier_args (\"${modifier_name}\", p, ${num_extra_args});"$
+     + "}";
    eval(s);
+
    if (param_names != NULL)
      add_slang_function (modifier_name, param_names);
    else
@@ -653,7 +680,8 @@ define create_aped_line_modifier () %{{{
 
 %}}}
 
-define aped_fun_details ()
+% Provide access to line emissivities from each (n,T) component
+define aped_fun_details () %{{{
 {
    variable msg = "List_Type = aped_fun_details (\"model(k)\")";
    if (_isis->chk_num_args (_NARGS, 1, msg))
@@ -670,3 +698,5 @@ define aped_fun_details ()
 
    return NULL;
 }
+
+%}}}
