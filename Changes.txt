@@ -76,8 +76,11 @@ Changes since 1.4.9 (released Nov 2007)
 50.  New functions, aped_bib, aped_bib_query_string, provide
      access to APED database literature references.
 51.  New function, aped_fun_details, provides access to
-     individual emission line flux contributions from each 
+     individual emission line flux contributions from each
      temperature-density component of every spectral model component
+52.  New functions, aped_line_modifier_args, aped_line_profile_args,
+     aped_hook_args simplify eval_fun2 evaluation of aped
+     functions
 
 Changes since 1.4.8 (released Sept 2007)
 ---------------------------------------
