@@ -26,7 +26,9 @@ LIBS_FOR_MODULES = @ISIS_LIB_FOR_MODULES@  @CFITSIO_LIB_FOR_MODULES@ @SLANG_LIB_
 
 INCS = -I$(config_dir)/src $(SLANG_INC)
 
-check:	rmf_user.so
+SHARED_LIBRARIES = rmf_user.so example-profile.so
+
+check:	$(SHARED_LIBRARIES)
 	@if test -x "../src/$(ARCH)objs/isis"; then \
 	    TEST_ISIS="../src/$(ARCH)objs/isis"; \
 	    ISIS_SRCDIR=".."; \
@@ -43,12 +45,15 @@ check:	rmf_user.so
 	$(SLSH) $(WITH_HEADAS) ./run_tests.sl $$TEST_ISIS $(prefix)
 	@echo ""
         
-install-check:	rmf_user.so
+install-check:	$(SHARED_LIBRARIES)
 	@$(SLSH) $(WITH_HEADAS) ./run_tests.sl isis $(prefix)
 	@echo ""
 
 rmf_user.so:
 	$(CC_SHARED) -o rmf_user.so $(INCS) rmf_user.c $(LIBS_FOR_MODULES)
+
+example-profile.so:
+	$(CC_SHARED) -o example-profile.so $(INCS) example-profile.c
 	
 clean:
 	$(RM) .##* *.log *.so *.o

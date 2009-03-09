@@ -7,7 +7,7 @@ define slsh_main ()
       "user_grid_eval", "post_model_hook", "backscale",
       "opfun", "param_defaults", "constraint", "flux_corr",
       "confmap", "rebin_dataset", "region_stats", "stat", "yshift",
-      "eval_fun2", "cache"];
+      "eval_fun2", "cache", "aped_models"];
 
 #ifdef WITH_HEADAS
    test_scripts = [test_scripts, "xspec_import"];
