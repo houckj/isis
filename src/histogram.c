@@ -2276,17 +2276,10 @@ static Hist_t *_read_typeI_pha (char * pha_filename, int *have_rmf, int *have_ar
    if (NULL == (fp = cfits_open_file_readonly (pha_filename)))
      return NULL;
 
-   if (-1 == cfits_movabs_hdu (2, fp))
+   if (-1 == cfits_movnam_hdu (fp, "SPECTRUM"))
      {
-        isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__, "hdu=2, %s", pha_filename);
-        goto finish;
-     }
-
-   /* == 0 means keyword is present and has the correct value */
-   if (0 != cfits_test_keyword ("SPECTRUM", "EXTNAME", fp))
-     {
-        isis_vmesg (FAIL, I_INVALID, __FILE__, __LINE__, "EXTNAME[2] != SPECTRUM, %s",
-                    pha_filename);
+        isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__,
+                    "No hdu in %s has EXTNAME=SPECTRUM", pha_filename);
         goto finish;
      }
 
@@ -2617,17 +2610,10 @@ static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *n
    if (NULL == (cfp = cfits_open_file_readonly_silent (filename)))
      return NOT_FITS_FORMAT;
 
-   if (-1 == cfits_movabs_hdu(2, cfp))
+   if (-1 == cfits_movnam_hdu (cfp, "SPECTRUM"))
      {
-        isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__, "hdu=2, %s", filename);
-        goto finish;
-     }
-
-   /* == 0 means keyword is present and has the correct value */
-   if (0 != cfits_test_keyword ("SPECTRUM", "EXTNAME", cfp))
-     {
-        isis_vmesg (FAIL, I_INVALID, __FILE__, __LINE__, "EXTNAME[2] != SPECTRUM, %s",
-                    filename);
+        isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__,
+                    "No hdu in %s has EXTNAME=SPECTRUM", filename);
         goto finish;
      }
 
@@ -2847,16 +2833,10 @@ static int get_pha_type (cfitsfile *fp) /*{{{*/
    if (fp == NULL)
      return -1;
 
-   if (-1 == cfits_movabs_hdu(2, fp))
+   if (-1 == cfits_movnam_hdu (fp, "SPECTRUM"))
      {
-        isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__, "hdu=2");
-        return -1;
-     }
-
-   /* == 0 means keyword is present and has the correct value */
-   if (0 != cfits_test_keyword("SPECTRUM", "EXTNAME", fp))
-     {
-        isis_vmesg (FAIL, I_INVALID, __FILE__, __LINE__, "EXTNAME[2] != SPECTRUM");
+        isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__,
+                    "no hdu has EXTNAME=SPECTRUM");
         return -1;
      }
 

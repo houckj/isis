@@ -83,6 +83,8 @@ Changes since 1.4.9 (released Nov 2007)
      functions
 53.  Updated cfitsio module to get fix for reading vector string
      columns
+54.  PHA file input now looks for the hdu with EXTNAME=SPECTRUM,
+     instead of moving to hdu=2.
 
 Changes since 1.4.8 (released Sept 2007)
 ---------------------------------------
