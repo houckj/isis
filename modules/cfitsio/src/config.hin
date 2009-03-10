@@ -1,0 +1,15 @@
+/* -*- c -*- */
+
+/* Define this if have stdlib.h */
+#undef HAVE_STDLIB_H
+
+/* Define this if you have unistd.h */
+#undef HAVE_UNISTD_H
+
+/* Set these to the appropriate values */
+#undef SIZEOF_SHORT
+#undef SIZEOF_INT
+#undef SIZEOF_LONG
+#undef SIZEOF_FLOAT
+#undef SIZEOF_DOUBLE
+

@@ -1,0 +1,231 @@
+2009-3-6  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (reshape_string_array): new function to reshape
+	  a rAw string column into r/w substrings.
+	(_fits_sl_version_string): bumped to 0.4.5-0
+
+	* src/cfitsio-module.c (read_string_cell): modified to deal
+	  with rAw format strings.
+
+	* src/version.h (MODULE_PATCH_LEVEL): updated to version 0.4.5
+
+2008-12-1  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (get_open_hdu_of_type): If an extension was
+	  specified as part of the name, then open the file at that extension.
+	  (Patch provided by Manfred Hanke)
+	(_fits_sl_version_string): bumped to 0.4.4-1
+
+2008-6-12  John E. Davis  <davis@space.mit.edu>
+
+	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.4.3
+
+	* src/cfitsio-module.c (write_col): unsigned ints were getting
+	  written as ints, causing integer overflows.
+
+2008-5-1  John E. Davis  <davis@space.mit.edu>
+
+	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.4.2
+
+	* src/cfitsio-module.c (FitsFile_Type): Made changes to use
+	  the physical integer sizes where possible instead of the
+	  confusing cfitsio types, e.g., INT32_TYPE instead of TLONG.
+	  The changes reduces the memory usage on 64 bit systems.
+
+2008-4-29  John E. Davis  <davis@space.mit.edu>
+
+	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.4.1
+
+	* src/cfitsio-module.c (FitsFile_Type): I was using SIZEOF_INT
+	  as bits rather than bytes.  Gr....
+
+	* src/fits.sl (_fits_sl_version_string): Bumped to 0.4.3-3
+
+2008-1-24  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (fits_write_binary_table): Bug fixed when
+	  writing vector columns.
+
+2007-12-7  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (fits_write_binary_table): Fixed infinite loop
+	  bug in fits_write_binary_table
+	(_fits_sl_version_string): bumped to 0.4.3-2
+
+2007-11-16  John E. Davis  <davis@space.mit.edu>
+
+	* src/version.h (MODULE_VERSION_NUMBER): Changed to 0.3.9
+
+2007-10-3  John E. Davis  <davis@space.mit.edu>
+
+	* src/cfitsio-module.c: Started adding support for LONGLONG.
+
+2007-9-18  John E. Davis  <davis@space.mit.edu>
+
+	* src/cfitsio-module.c (map_fitsio_type_to_slang): improved
+	  support for bit columns that are not a multiple of 8.
+
+2007-5-15  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (_fits_sl_version_string): bumped to 0.4.3-1
+	(fits_read_key): call _fits_clear_errmsg if status==_FITS_KEY_NO_EXIST.
+
+2007-4-19  John E. Davis  <davis@space.mit.edu>
+
+        * src/fits.sl: (_fits_sl_version_string): bumped to 0.4.2-0
+
+	* src/fits.sl (fits_set_verbose_errors): Used to control the
+	  error message verbosity.
+
+2007-4-18  John E. Davis  <davis@space.mit.edu>
+
+	* src/cfitsio-module.c (clear_errmsg): Made _fits_clear_errmsg
+	  a wrapper around fits_clear_errmsg.
+
+	* src/version.h (MODULE_VERSION_NUMBER): bumped to 0.3.8
+
+2007-4-17  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (do_fits_error): modified to use
+	  _fits_read_errmsg. Also added a FitsError exception and
+	  added a function called fits_get_errmsgs, which returns the
+	  messages from the fits errmsg queue.
+
+	* src/cfitsio-module.c (read_errmsg): Added wrapper for
+	  fits_read_errmsg.
+
+	* src/version.h (MODULE_VERSION_NUMBER): bumped to 0.3.7
+
+	* src/fits.sl (get_open_hdu_of_type): If looking for a binary
+	  table, accept an ascii table.
+
+	* src/cfitsio-module.c (read_col): Support for ascii tables
+	  added.  For string columns, this required a different
+	  interpretation of the TFORM specifier.  Binary tables use,
+	  e.g, 8A for TFORM whereas ASCII tables use A8.  Nice.
+
+2007-4-10  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (_fits_sl_version_string): bumped to 0.4.1-0
+	* src/fits.sl: Added additional information to calls to
+	  do_fits_error in an effort to improve the error messages.
+	
+
+2007-4-6  John E. Davis  <davis@space.mit.edu>
+
+	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.3.6
+
+	* src/cfitsio-module.c (map_fitsio_type_to_slang): bit types
+	  get mapped to SIGNED int values instead of unsigned values.
+	  This avoids the silly unsigned integer convention when such
+	  values get written out as integers.
+
+2007-3-28  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (reverse): made reverse a private function.
+	(_fits_sl_version_string): bumped to 0.4.4-0
+
+	* src/fitswcs.sl (simplify_wcs): work-around what appears to
+	  be a ds9 bug-- if a PC matrix is present, then the CDELT
+	  values must be equal.
+	(_fitswcs_version_string): 0.2.0-1
+
+2007-3-27  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitswcs.sl (_fitswcs_version_string): bumped to 0.2.0-0
+	(fitswcs_linear_transform_wcs): Modified the interface to make
+	  it more intuitive.
+	(fitswcs_bin_wcs): New function
+	(fitswcs_rebin_wcs): Changed the interface so that it works
+	  with images-- not event lists.
+
+2007-3-22  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitswcs.sl (fitswcs_new): typo that initialized cdelt to 0.
+	(_fitswcs_version_string): bumped to 0.1.1-1
+
+2007-3-8  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (make_tdim_string): Use array_reverse instead of
+	  reverse. 
+	(_fits_sl_version_string): bumped to 0.4.3-1
+
+2007-2-21  John E. Davis  <davis@space.mit.edu>
+
+	* src/cfitsio-module.c (open_file): fits_open_file does not
+	  set fptr to NULL upon return if an error occurs as assumed.
+
+	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.3.5
+
+	* src/cfitsio-module.c (check_version): Added a warning
+	  message if the compiled and linked cfitsio versions do not match.
+
+	* src/cfitsio-module.c (read_column_values): change to support
+	  repeat = 0 for variable length arrays left an uninitialized
+	  variable.
+
+2007-2-16  John E. Davis  <davis@space.mit.edu>
+
+	* src/cfitsio-module.c (write_img): added support for unsigned types.
+
+	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.3.4
+
+	* src/fits.sl (fits_write_binary_table): Added support for
+	  unsigned 16 and 32 bit integers.
+	(fits_get_bitpix): modified bitpix values for unsigned types
+	  and Char_Type.
+	(_fits_sl_version_string): version bumped to 0.4.3-0
+
+2007-2-14  John E. Davis  <davis@space.mit.edu>
+
+	* src/version.h (MODULE_PATCH_LEVEL): Bumped to version 0.3-3
+
+	* src/cfitsio-module.c (read_column_values): repeat=0 (a
+	  column with 0 length was not supported).
+
+2006-6-13  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (fits_update_logical): Usage message referred to
+	  fits_update_key.
+	(_fits_sl_version_string): Updated to 0.4.2-4
+
+2006-4-7  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (_fits_sl_version_string): bumped to 0.4.2-3
+	(fits_write_binary_table): allow data struct to be NULL
+
+2006-2-17  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (fits_write_records): The usage string referred
+	  to fits_read+records.
+	(_fits_sl_version_string): version string bumped to 0.4.2-2
+
+2006-1-26  John E. Davis  <davis@space.mit.edu>
+
+	* src/fitswcs.sl (struct): Added radsys and equinox fields to
+	  the the wcs structure.
+
+2005-11-10  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (_fits_sl_version_string): bumped to 0.4.2-1.
+	(read_cols): numrows was not being passed to _fits_read_cols
+	(Ronnie Hoogerwerf ronnieh at head, cfa, harvard, edu)
+
+2005-10-27  John E. Davis  <davis@space.mit.edu>
+
+	* autoconf/configure.in: removed JD_SET_RPATH.
+
+	* src/Makefile.in: changed *HELP_* to *HLP_*
+
+2005-5-18  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (_fits_sl_version_string): Bumped to 0.4.2-0
+
+	* src/fits.sl: Changed static qualifier to private and
+	dropped the public qualifiers.
+
+	* src/fitswcs.sl (_fitswcs_version_string): Bumped to 0.1.1-0
+
+	* src/fitswcs.sl: Changed static qualifier to private and
+	dropped the public qualifiers.
+
