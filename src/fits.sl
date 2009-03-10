@@ -21,8 +21,8 @@
 %else
 import ("cfitsio");
 
-variable _fits_sl_version = 404;
-variable _fits_sl_version_string = "0.4.4-1";
+variable _fits_sl_version = 405;
+variable _fits_sl_version_string = "0.4.5-0";
 
 private variable Verbose = 1;
 % Forward declarations
@@ -533,6 +533,37 @@ private define check_vector_tdim (fp, first_row, col, data)
      }
 }
 
+private define reshape_string_array (fp, col, data)
+{
+   variable tform, repeat, width;
+   do_fits_error (_fits_read_key_string (fp, "TFORM" + string(col), &tform, NULL));
+   % Look for rAw
+   if (2 != sscanf (tform, "%dA%d", &repeat, &width))
+     return data;
+
+   variable num_substrs = repeat/width;
+   if (num_substrs == 1)
+     return data;
+
+   variable len = length (data);
+   variable new_data = String_Type[len, num_substrs];
+   variable i, j;
+   _for i (0, len-1, 1)
+     {
+	variable str = data[i];
+	_for j (0, num_substrs-1, 1)
+	  {
+	     variable new_str = substrbytes (str, 1+j*width, width);
+	     new_str = strtrim_end (new_str, " ");
+	     if ((new_str == "") && width)
+	       new_str = " ";
+	     new_data[i,j] = new_str;
+	  }
+     }
+   return new_data;
+}
+
+
 % FITS column and keyword names can begin with a number or have dashes. 
 % Bad Design.
 private define normalize_names (names)
@@ -617,8 +648,11 @@ private define read_cols (fp, columns, first_row, last_row)
 	     reshape (data, tdim);
 	  }
 	else if (typeof (data) == Array_Type)
-	  check_vector_tdim (fp, first_row, col, data);
-
+	  {
+	     if (_typeof (data) == String_Type)
+	       data = reshape_string_array (fp, col, data);
+	     check_vector_tdim (fp, first_row, col, data);
+	  }
 	data;			       %  leave it on stack
      }
 }

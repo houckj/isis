@@ -1,5 +1,9 @@
 2009-3-6  John E. Davis  <davis@space.mit.edu>
 
+	* src/fits.sl (reshape_string_array): new function to reshape
+	  a rAw string column into r/w substrings.
+	(_fits_sl_version_string): bumped to 0.4.5-0
+
 	* src/cfitsio-module.c (read_string_cell): modified to deal
 	  with rAw format strings.
 
