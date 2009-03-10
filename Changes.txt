@@ -81,6 +81,8 @@ Changes since 1.4.9 (released Nov 2007)
 52.  New functions, aped_line_modifier_args, aped_line_profile_args,
      aped_hook_args simplify eval_fun2 evaluation of aped
      functions
+53.  Updated cfitsio module to get fix for reading vector string
+     columns
 
 Changes since 1.4.8 (released Sept 2007)
 ---------------------------------------
