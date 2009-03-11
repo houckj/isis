@@ -5,6 +5,7 @@ RM = /bin/rm -f
 config_dir = @CONFIG_DIR@
 prefix     = @prefix@
 
+CC         = @CC@
 CFLAGS     = @CFLAGS@
 ELF_CC     = @ELF_CC@
 ELF_CFLAGS = @ELF_CFLAGS@ -Dunix $(CFLAGS)
