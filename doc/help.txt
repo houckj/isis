@@ -2906,6 +2906,11 @@ load_data
     the ANCRFILE and RESPFILE values when loading the PHA file, set
     Ignore_PHA_Response_Keywords=1.
 
+    Similarly, the BACKFILE keyword in the FITS header can be used
+    to specify the name of the file containing the background
+    spectrum.  To ignore this keyword, set
+    Ignore_PHA_Backfile_Keyword=1.
+
     By default, isis ignores the GROUPING column of the input PHA
     file.  To automatically apply the grouping on input, set the
     intrinsic variable Isis_Use_PHA_Grouping to a non-zero value.

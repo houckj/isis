@@ -62,10 +62,11 @@ Hist_t *Hist_Current;
 int Isis_Active_Dataset;
 int Isis_Residual_Plot_Type = ISIS_STAT_RESID;
 int Hist_Ignore_PHA_Response_Keywords;
+int Hist_Ignore_PHA_Backfile_Keyword;
 
 Hist_Stat_Error_Hook_Type *Hist_Stat_Error_Hook;
 
-int Isis_List_Filenames;
+int Isis_List_Filenames = 1;
 double Hist_Min_Stat_Err = -1.0;        /* used only if > 0 */
 double Hist_Min_Model_Spacing = 0.0;
 double Hist_Rmf_Grid_Match_Tol = 1.0e-4;
@@ -77,6 +78,7 @@ static Isis_Rmf_t *matching_identity_rmf (Hist_t *h, Isis_Arf_t *a);
 static int rebin_flux_using_weights (Hist_t *h, double *, double *, double *, double *);
 static int run_stat_error_hook (Hist_t *h);
 static int copy_d_array (double **to, double *from, int nbins);
+static int load_background_from_file (Hist_t *h, char *file);
 
 typedef struct
 {
@@ -2261,7 +2263,7 @@ static int read_fits_bg_counts_column (cfitsfile *fp, int k, Hist_t *h) /*{{{*/
 
 /*}}}*/
 
-static Hist_t *_read_typeI_pha (char * pha_filename, int *have_rmf, int *have_arf) /*{{{*/
+static Hist_t *_read_typeI_pha (char * pha_filename, int *have_rmf, int *have_arf, int *have_back) /*{{{*/
 {
    Keyword_t *keytable = Hist_Keyword_Table;
    Hist_t *h = NULL;
@@ -2319,6 +2321,21 @@ static Hist_t *_read_typeI_pha (char * pha_filename, int *have_rmf, int *have_ar
                  && (0 != isis_strcasecmp (h->ancrfile, "NONE")))
                {
                   *have_arf = 1;
+               }
+          }
+     }
+
+   if (Hist_Ignore_PHA_Backfile_Keyword == 0)
+     {
+        if (have_back != NULL)
+          {
+             char backfile[CFLEN_FILENAME];
+             *have_back = 1;
+             if (-1 == cfits_read_string_keyword (backfile, "BACKFILE", fp)
+                 || (!isis_strcasecmp (backfile, "NONE"))
+                 || (-1 == Hist_set_background_name (h, backfile)))
+               {
+                  *have_back = 0;
                }
           }
      }
@@ -2447,18 +2464,32 @@ static int read_typeI_pha (Hist_t *head, Isis_Arf_t *arf_head, /*{{{*/
 {
    int have_rmf = 0;
    int have_arf = 0;
+   int have_back = 0;
    int id;
    Hist_t *h;
 
    (void) strict;
 
-   if (NULL == (h = _read_typeI_pha (file, &have_rmf, &have_arf)))
+   if (NULL == (h = _read_typeI_pha (file, &have_rmf, &have_arf, &have_back)))
      return -1;
 
    if (have_rmf)
      {
         if (-1 == get_grid_from_rmf (h, rmf_head))
           {
+             free_hist (h);
+             return -1;
+          }
+     }
+
+   if (have_rmf && have_back)
+     {
+        /* try loading the background only if the RMF has defined the grid */
+        if (-1 == load_background_from_file (h, h->bgd_file))
+          {
+             isis_vmesg (WARN, I_ERROR, __FILE__, __LINE__,
+                         "failed loading BACKFILE=%s",
+                         h->bgd_file ? h->bgd_file : "<null");
              free_hist (h);
              return -1;
           }
@@ -2527,7 +2558,7 @@ static int load_background_from_file (Hist_t *h, char *file) /*{{{*/
    else
      {
         cfits_close_file (fp);
-        if (NULL == (b = _read_typeI_pha (file, NULL, NULL)))
+        if (NULL == (b = _read_typeI_pha (file, NULL, NULL, NULL)))
           return -1;
         if (-1 == set_hist_grid_using_rmf (h->a_rsp.rmf, b))
           {

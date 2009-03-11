@@ -100,7 +100,7 @@ private define dataset_string (s, i, width) %{{{
         if (back == NULL) back = s.bgd_file;
         if (back != "")
           {
-             str += sprintf ("\n bgd:  %s", back);
+             str += sprintf ("\nback:  %s", back);
           }
      }
 
