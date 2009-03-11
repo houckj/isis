@@ -532,7 +532,9 @@ private define load_la_refs1 (upper, lower, wave_file) %{{{
      {
         variable i_ref = where (x.upper_lev == upper[j]
                                 and x.lower_lev == lower[j]);
-        if (length(i_ref) != 1)
+        if (length(i_ref) == 0)
+          continue;
+        else if (length(i_ref) != 1)
           {
              warn_dup("LA1", length(i_ref), upper[j], lower[j], wave_file);
           }
@@ -563,7 +565,9 @@ private define load_la_refs2 (upper, lower, wave_file) %{{{
      {
         variable i_ref = where (x.upper_lev == upper[j]
                                 and x.lower_lev == lower[j]);
-        if (length(i_ref) != 1)
+        if (length(i_ref) == 0)
+          continue;
+        else if (length(i_ref) != 1)
           {
              warn_dup ("LA2", length(i_ref), upper[j], lower[j], wave_file);
           }
