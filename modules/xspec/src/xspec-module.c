@@ -1515,6 +1515,11 @@ static SLang_Intrin_Fun_Type Table_Model_Intrinsics [] =
 
 #endif  /* HAVE_XSPEC_TABLE_MODELS */
 
+#ifndef HEADAS
+  #define HEADAS "xxx"
+#endif
+static char *Compiled_Headas_Path = HEADAS ;
+
 #define V SLANG_VOID_TYPE
 #define I SLANG_INT_TYPE
 #define S SLANG_STRING_TYPE
@@ -1554,6 +1559,7 @@ static SLang_Intrin_Fun_Type Private_Intrinsics [] =
 
 static SLang_Intrin_Var_Type Private_Vars [] =
 {
+   MAKE_VARIABLE("Xspec_Compiled_Headas_Path", &Compiled_Headas_Path, S, 1),
    MAKE_VARIABLE("Xspec_Model_Names_File", &Xspec_Model_Names_File, S, 1),
    MAKE_VARIABLE("Xspec_Version", &Xspec_Version, I, 1),
    SLANG_END_INTRIN_VAR_TABLE
@@ -1571,10 +1577,6 @@ static SLang_Intrin_Var_Type Private_Vars [] =
 
 /* init */
 
-#ifndef HEADAS
-  #define HEADAS "xxx"
-#endif
-
 static char *Xanadu_Setenv = NULL;
 static char *Headas_Setenv = NULL;
 
@@ -1589,14 +1591,24 @@ static char *copy_and_set_env (char *env_name, char *env_builtin_value) /*{{{*/
    struct stat st;
    char *env, *env_set;
 
-   if (NULL == (env = getenv (env_name)))
-     env = env_builtin_value;
+   env = getenv (env_name);
 
-   if (-1 == stat (env, &st))
+   if (env != NULL)
      {
-        fprintf (stderr, "Error: %s environment variable not set,\n", env_name);
-        fprintf (stderr, "       built-in value %s=%s gives invalid path\n",
-                 env_name, env_builtin_value);
+        if (-1 == stat (env, &st))
+          {
+             fprintf (stderr, "*** %s environment variable provides an invalid path.\n", env_name);
+             fprintf (stderr, "    Falling back to compiled-in path %s=%s\n",
+                     env_name, env_builtin_value);
+             env = env_builtin_value;
+          }
+     }
+   else env = env_builtin_value;
+
+   if ((env == env_builtin_value)
+       && (-1 == stat (env, &st)))
+     {
+        fprintf (stderr, "*** Invalid path: %s=%s\n", env_name, env);
         return NULL;
      }
 

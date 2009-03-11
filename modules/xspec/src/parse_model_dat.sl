@@ -277,6 +277,27 @@ define parse_function (buf) %{{{
 
 %}}}
 
+private define handle_xspec_object_not_found (object, xspec_version) %{{{
+{
+   variable s = "*** Error:  xspec $object not found."$;
+
+   variable headas = getenv ("HEADAS");
+   if (Xspec_Compiled_Headas_Path != headas)
+     {
+        s += "  This module was compiled for xspec-${xspec_version}\n"$
+          +  "    with HEADAS=$Xspec_Compiled_Headas_Path\n"$
+          +  "     Now HEADAS=$HEADAS"$;
+     }
+   else
+     {
+        s += "\n  Using HEADAS=$headas"$;
+     }
+
+   throw ApplicationError, s;
+}
+
+%}}}
+
 define find_model_srcdir (dir, xspec_version) %{{{
 {
    variable model_srcdirs;
@@ -303,6 +324,8 @@ define find_model_srcdir (dir, xspec_version) %{{{
         if (NULL != stat_file (path_concat (path, "sumdem.f")))
           return path;
      }
+
+   handle_xspec_object_not_found ("source code", xspec_version);
 
    return NULL;
 }
@@ -338,6 +361,8 @@ define find_model_dat_file (dir, xspec_version) %{{{
         if (NULL != stat_file (path))
           return path;
      }
+
+   handle_xspec_object_not_found ("model.dat", xspec_version);
 
    return NULL;
 }
