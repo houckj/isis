@@ -571,9 +571,74 @@ int _Plot_set_line_width (int line_width) /*{{{*/
 
 /*}}}*/
 
+static int push_two_float_arrays (int n, float *a, float *b) /*{{{*/
+{
+   SLang_Array_Type *sl_a=NULL, *sl_b=NULL;
+   int status = -1;
+
+   if (a == NULL || b == NULL)
+     return -1;
+
+   if ((NULL == (sl_a = SLang_create_array (SLANG_FLOAT_TYPE, 0, NULL, &n, 1)))
+       || NULL == (sl_b = SLang_create_array (SLANG_FLOAT_TYPE, 0, NULL, &n, 1)))
+     goto return_status;
+
+   memcpy ((char *)sl_a->data, (char *)a, n * sizeof(float));
+   memcpy ((char *)sl_b->data, (char *)b, n * sizeof(float));
+
+   SLang_push_array (sl_a, 1);
+   SLang_push_array (sl_b, 1);
+
+   status = 0;
+return_status:
+   if (status)
+     {
+        SLang_free_array (sl_a);
+        SLang_free_array (sl_b);
+     }
+
+   return status;
+}
+
+/*}}}*/
+
+static int push_three_float_arrays (int n, float *a, float *b, float *c) /*{{{*/
+{
+   SLang_Array_Type *sl_a=NULL, *sl_b=NULL, *sl_c=NULL;
+   int status = -1;
+
+   if (a == NULL || b == NULL || c == NULL)
+     return -1;
+
+   if ((NULL == (sl_a = SLang_create_array (SLANG_FLOAT_TYPE, 0, NULL, &n, 1)))
+       || NULL == (sl_b = SLang_create_array (SLANG_FLOAT_TYPE, 0, NULL, &n, 1))
+       || NULL == (sl_c = SLang_create_array (SLANG_FLOAT_TYPE, 0, NULL, &n, 1)))
+     goto return_status;
+
+   memcpy ((char *)sl_a->data, (char *)a, n * sizeof(float));
+   memcpy ((char *)sl_b->data, (char *)b, n * sizeof(float));
+   memcpy ((char *)sl_c->data, (char *)c, n * sizeof(float));
+
+   SLang_push_array (sl_a, 1);
+   SLang_push_array (sl_b, 1);
+   SLang_push_array (sl_c, 1);
+
+   status = 0;
+return_status:
+   if (status)
+     {
+        SLang_free_array (sl_a);
+        SLang_free_array (sl_b);
+        SLang_free_array (sl_c);
+     }
+
+   return status;
+}
+
+/*}}}*/
+
 int Plot_line (int n, float *x, float *y) /*{{{*/
 {
-   SLang_Array_Type *ax=NULL, *ay=NULL;
    int status = -1;
 
    if (pli_undefined())
@@ -582,19 +647,11 @@ int Plot_line (int n, float *x, float *y) /*{{{*/
    if (PLI->plot_xy == NULL)
      return -1;
 
-   if ((NULL == (ax = SLang_create_array (SLANG_FLOAT_TYPE, 0, x, &n, 1)))
-       || (NULL == (ay = SLang_create_array (SLANG_FLOAT_TYPE, 0, y, &n, 1))))
-     {
-        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "failed creating slang arrays");
-        return -1;
-     }
-
    SLang_start_arg_list ();
-   SLang_push_array (ax, 0);
-   SLang_push_array (ay, 0);
+   status = push_two_float_arrays (n, x, y);
    SLang_end_arg_list ();
 
-   if (-1 == SLexecute_function (PLI->plot_xy))
+   if ((status < 0) || (-1 == SLexecute_function (PLI->plot_xy)))
      {
         isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "failed plotting line");
         return -1;
@@ -613,7 +670,6 @@ int Plot_line (int n, float *x, float *y) /*{{{*/
 
 int Plot_points (int n, float *x, float *y, int symbol) /*{{{*/
 {
-   SLang_Array_Type *ax=NULL, *ay=NULL;
    int status = -1;
 
    if (pli_undefined())
@@ -626,20 +682,12 @@ int Plot_points (int n, float *x, float *y, int symbol) /*{{{*/
         return -1;
      }
 
-   if ((NULL == (ax = SLang_create_array (SLANG_FLOAT_TYPE, 0, x, &n, 1)))
-       || (NULL == (ay = SLang_create_array (SLANG_FLOAT_TYPE, 0, y, &n, 1))))
-     {
-        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "failed creating slang arrays");
-        return -1;
-     }
-
    SLang_start_arg_list ();
-   SLang_push_array (ax, 0);
-   SLang_push_array (ay, 0);
+   status = push_two_float_arrays (n, x, y);
    SLang_push_integer (symbol);
    SLang_end_arg_list ();
 
-   if (-1 == SLexecute_function (PLI->plot_points))
+   if ((status < 0) || (-1 == SLexecute_function (PLI->plot_points)))
      {
         isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "failed plotting points");
         return -1;
@@ -658,7 +706,7 @@ int Plot_points (int n, float *x, float *y, int symbol) /*{{{*/
 
 int Plot_symbol_points (int n, float *x, float *y, int *symbol) /*{{{*/
 {
-   SLang_Array_Type *ax=NULL, *ay=NULL, *as=NULL;
+   SLang_Array_Type *sl_sym=NULL;
    int status = -1;
 
    if (pli_undefined())
@@ -671,21 +719,16 @@ int Plot_symbol_points (int n, float *x, float *y, int *symbol) /*{{{*/
         return -1;
      }
 
-   if ((NULL == (ax = SLang_create_array (SLANG_FLOAT_TYPE, 0, x, &n, 1)))
-       || (NULL == (ay = SLang_create_array (SLANG_FLOAT_TYPE, 0, y, &n, 1)))
-       || (NULL == (as = SLang_create_array (SLANG_INT_TYPE, 0, symbol, &n, 1))))
-     {
-        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "failed creating slang arrays");
-        return -1;
-     }
+   if (NULL == (sl_sym = SLang_create_array (SLANG_INT_TYPE, 0, NULL, &n, 1)))
+     return -1;
+   memcpy ((char *)sl_sym->data, (char *)symbol, n * sizeof(int));
 
    SLang_start_arg_list ();
-   SLang_push_array (ax, 0);
-   SLang_push_array (ay, 0);
-   SLang_push_array (as, 0);
+   status = push_two_float_arrays (n, x, y);
+   SLang_push_array (sl_sym, 1);
    SLang_end_arg_list ();
 
-   if (-1 == SLexecute_function (PLI->plot_symbol_points))
+   if ((status < 0) || (-1 == SLexecute_function (PLI->plot_symbol_points)))
      {
         isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "failed plotting points");
         return -1;
@@ -736,7 +779,6 @@ int Plot_query_plot_limits (float *xmin, float *xmax, float *ymin, float *ymax) 
 
 int Plot_histogram_data (int n, float *lo, float *hi, float *val) /*{{{*/
 {
-   SLang_Array_Type *alo=NULL, *ahi=NULL, *av=NULL;
    int status = -1;
 
    if (pli_undefined())
@@ -749,21 +791,11 @@ int Plot_histogram_data (int n, float *lo, float *hi, float *val) /*{{{*/
         return -1;
      }
 
-   if ((NULL == (alo = SLang_create_array (SLANG_FLOAT_TYPE, 0, lo, &n, 1)))
-       || (NULL == (ahi = SLang_create_array (SLANG_FLOAT_TYPE, 0, hi, &n, 1)))
-       || (NULL == (av = SLang_create_array (SLANG_FLOAT_TYPE, 0, val, &n, 1))))
-     {
-        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "failed creating slang arrays");
-        return -1;
-     }
-
    SLang_start_arg_list ();
-   SLang_push_array (alo, 0);
-   SLang_push_array (ahi, 0);
-   SLang_push_array (av, 0);
+   status = push_three_float_arrays (n, lo, hi, val);
    SLang_end_arg_list ();
 
-   if (-1 == SLexecute_function (PLI->plot_histogram))
+   if ((status < 0) || (-1 == SLexecute_function (PLI->plot_histogram)))
      {
         isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "failed plotting histogram");
         return -1;
@@ -783,7 +815,6 @@ int Plot_histogram_data (int n, float *lo, float *hi, float *val) /*{{{*/
 int Plot_y_errorbar (int n, float *x, float *top, float *bot, /*{{{*/
                      float terminal_length)
 {
-   SLang_Array_Type *ax=NULL, *atop=NULL, *abot=NULL;
    int status = -1;
 
    if (pli_undefined())
@@ -796,22 +827,12 @@ int Plot_y_errorbar (int n, float *x, float *top, float *bot, /*{{{*/
         return -1;
      }
 
-   if ((NULL == (ax = SLang_create_array (SLANG_FLOAT_TYPE, 0, x, &n, 1)))
-       || (NULL == (atop = SLang_create_array (SLANG_FLOAT_TYPE, 0, top, &n, 1)))
-       || (NULL == (abot = SLang_create_array (SLANG_FLOAT_TYPE, 0, bot, &n, 1))))
-     {
-        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "failed creating slang arrays");
-        return -1;
-     }
-
    SLang_start_arg_list ();
-   SLang_push_array (ax, 0);
-   SLang_push_array (atop, 0);
-   SLang_push_array (abot, 0);
+   status = push_three_float_arrays (n, x, top, bot);
    SLang_push_float (terminal_length);
    SLang_end_arg_list ();
 
-   if (-1 == SLexecute_function (PLI->plot_y_errorbar))
+   if ((status < 0) || (-1 == SLexecute_function (PLI->plot_y_errorbar)))
      {
         isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "failed plotting Y errorbar");
         return -1;
