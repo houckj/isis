@@ -281,6 +281,7 @@ private define handle_xspec_object_not_found (object, xspec_version) %{{{
 {
    variable s = "*** Error:  xspec $object not found."$;
 
+#ifexists Xspec_Compiled_Headas_Path
    variable headas = getenv ("HEADAS");
    if (Xspec_Compiled_Headas_Path != headas)
      {
@@ -292,6 +293,7 @@ private define handle_xspec_object_not_found (object, xspec_version) %{{{
      {
         s += "\n  Using HEADAS=$headas"$;
      }
+#endif
 
    throw ApplicationError, s;
 }
@@ -321,7 +323,7 @@ define find_model_srcdir (dir, xspec_version) %{{{
    for (i = 0 ; i < n; i++)
      {
         variable path = path_concat (dir, model_srcdirs[i]);
-        if (NULL != stat_file (path_concat (path, "sumdem.f")))
+        if (NULL != stat_file (path))
           return path;
      }
 

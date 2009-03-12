@@ -182,10 +182,10 @@ xspec-version:
 	HEADAS=$(HEA); export HEADAS; /bin/sh xspec_libs
 
 new-xspec11-code:
-	./code_gen.sl 11 $(HEA)
+	./code_gen.sl 11 $(HEA)/..
 
 new-xspec12-code:
-	./code_gen.sl 12 $(HEA)
+	./code_gen.sl 12 $(HEA)/..
 
 check:
 	isis -n --batch test.sl
