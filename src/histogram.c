@@ -651,7 +651,7 @@ static int init_rebin (Hist_t *h) /*{{{*/
              h->flux_weights[k] = 1.0;
           }
      }
-   
+
    d_size = h->orig_nbins * sizeof(double);
 
    if (h->sys_err_frac)
@@ -2263,6 +2263,22 @@ static int read_fits_bg_counts_column (cfitsfile *fp, int k, Hist_t *h) /*{{{*/
 
 /*}}}*/
 
+static int is_whitespace (const char *s) /*{{{*/
+{
+   if (s == NULL)
+     return 0;
+
+   for ( ; *s != 0; s++)
+     {
+        if (0 == isspace(*s))
+          return 0;
+     }
+
+   return 1;
+}
+
+/*}}}*/
+
 static Hist_t *_read_typeI_pha (char * pha_filename, int *have_rmf, int *have_arf, int *have_back) /*{{{*/
 {
    Keyword_t *keytable = Hist_Keyword_Table;
@@ -2306,11 +2322,12 @@ static Hist_t *_read_typeI_pha (char * pha_filename, int *have_rmf, int *have_ar
      {
         if (have_rmf != NULL)
           {
-             *have_rmf = 1;
-             if (-1 == cfits_read_string_keyword (h->respfile, "RESPFILE", fp)
-                 || (!isis_strcasecmp (h->respfile, "NONE")))
+             *have_rmf = 0;
+             if (0 == cfits_read_string_keyword (h->respfile, "RESPFILE", fp)
+                 && (0 == is_whitespace (h->respfile))
+                 && (0 != isis_strcasecmp (h->respfile, "NONE")))
                {
-                  *have_rmf = 0;
+                  *have_rmf = 1;
                }
           }
 
@@ -2318,6 +2335,7 @@ static Hist_t *_read_typeI_pha (char * pha_filename, int *have_rmf, int *have_ar
           {
              *have_arf = 0;
              if ((0 == cfits_read_string_keyword (h->ancrfile, "ANCRFILE", fp))
+                 && (0 == is_whitespace (h->ancrfile))
                  && (0 != isis_strcasecmp (h->ancrfile, "NONE")))
                {
                   *have_arf = 1;
@@ -2330,12 +2348,13 @@ static Hist_t *_read_typeI_pha (char * pha_filename, int *have_rmf, int *have_ar
         if (have_back != NULL)
           {
              char backfile[CFLEN_FILENAME];
-             *have_back = 1;
-             if (-1 == cfits_read_string_keyword (backfile, "BACKFILE", fp)
-                 || (!isis_strcasecmp (backfile, "NONE"))
-                 || (-1 == Hist_set_background_name (h, backfile)))
+             *have_back = 0;
+             if (0 == cfits_read_string_keyword (backfile, "BACKFILE", fp)
+                 && (0 == is_whitespace (backfile))
+                 && (0 != isis_strcasecmp (backfile, "NONE"))
+                 && (0 == Hist_set_background_name (h, backfile)))
                {
-                  *have_back = 0;
+                  *have_back = 1;
                }
           }
      }
