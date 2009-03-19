@@ -610,6 +610,9 @@ int Plot_set_outer_viewport (Plot_Node_t *n, float xmin, float xmax, float ymin,
    vp->vp_ymin = ymin;
    vp->vp_ymax = ymax;
 
+   if (n->window_type == PLOT_STD_WINDOW)
+     return 0;
+
    if (NULL == (ysizes = ISIS_MALLOC (t->nypanes * sizeof (int))))
      return -1;
 
