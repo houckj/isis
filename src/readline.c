@@ -233,6 +233,12 @@ static void gnu_rl_sigint_handler (int sig) /*{{{*/
 /*}}}*/
 #endif
 
+/* This hook if a signal occurs while waiting for input. */
+static int getkey_intr_hook (void)
+{
+   return SLang_handle_interrupt ();
+}
+
 static void init_tty (void) /*{{{*/
 {
 #ifdef HAVE_GNU_READLINE
@@ -261,6 +267,9 @@ static void init_tty (void) /*{{{*/
         fprintf (stderr, "Error initializing terminal.");
         exit (EXIT_FAILURE);
      }
+
+   SLang_getkey_intr_hook = getkey_intr_hook;
+
    SLtty_set_suspend_state (1);
    SLsig_unblock_signals ();
 }
@@ -288,8 +297,7 @@ static void reset_tty (void) /*{{{*/
    SLsignal (SIGTSTP, last_sig_sigtstp);
    SLang_reset_tty ();
    SLsig_unblock_signals ();
-   fputc ('\n', stdout);
-   fputc ('\r', stdout);      /* need this with buggy Linux rlogin? */
+   fputs ("\r\n", stdout);   /* need this with buggy Linux rlogin? */
    fflush (stdout);
 }
 
