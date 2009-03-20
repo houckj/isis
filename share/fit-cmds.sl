@@ -2830,3 +2830,31 @@ define set_eval_grid_method () %{{{
 }
 
 %}}}
+
+private define fit_object_eval (s, pars, func_data)
+{
+   (s.status, s.statistic, s.num_vary, s.num_points) =
+     _isis->eval_statistic_using_fit_object_intrin (pars, s.object);
+   return s.statistic;
+}
+
+private define fit_object_close (s)
+{
+   s.object = 0;
+}
+
+define open_fit ()
+{
+   variable s = struct
+     {
+        object, eval, close,
+        status, statistic, num_vary, num_points
+     };
+
+   s.object = _isis->open_fit_object_mmt_intrin ();
+   s.eval = &fit_object_eval;
+   s.close = &fit_object_close;
+
+   return s;
+}
+

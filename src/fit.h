@@ -74,7 +74,7 @@ struct _Fit_Fun_t
    unsigned int fun_type;      /* e.g. Gaussian, Lorentzian, mekal, ... */
    unsigned int fun_version;
    unsigned int nparams;
-   
+
    union
      {
         Isis_Binned_Function_t *c;  /* ptr to C function */
@@ -84,16 +84,16 @@ struct _Fit_Fun_t
    int (*bin_eval_method)(Fit_Fun_t *, Isis_Hist_t *, double *);
 
    int (*diff_eval_method)(Fit_Fun_t *, Isis_User_Grid_t *, double *);
-   
+
    Isis_User_Source_t s;       /* optional function ptrs    */
    Fit_Fun_Name_t *name;       /* = { fcn_name, par_name0, par_name1, ... } */
    Fit_Fun_Name_t *unit;       /* = {           par_unit0, par_unit1, ... } */
-   
+
    int (*set_param_default)(Fit_Fun_t *, Param_Info_t *);
    SLang_Name_Type *slangfun_param_default;
    Isis_Arg_Type *slangfun_param_default_args;
    SLang_Name_Type *slangfun_diff_eval;
-   
+
    void (*destroy_fun)(Fit_Fun_t *);
    void *client_data;
 };
@@ -200,8 +200,6 @@ extern void deinit_fit_engine (void);
 
 /* conf */
 
-extern int (*Unpack)(Param_t *, double *);
-
 typedef struct Isis_Fit_CLC_Type Isis_Fit_CLC_Type;
 typedef struct Fit_Data_t Fit_Data_t;
 typedef struct Search_Info_Type Search_Info_Type;
@@ -210,7 +208,6 @@ typedef struct Fit_Info_Type Fit_Info_Type;
 
 struct Fit_Info_Type
 {
-   Fit_Data_t *d;
    Fit_Param_t *par;
    unsigned int num_pars;
    unsigned int num_vary;
@@ -226,11 +223,46 @@ struct Isis_Fit_CLC_Type
    int verbose;
 };
 
+typedef struct
+{
+   double *data;
+   double *weight;
+   int num;
+   int malloced;
+}
+Fit_Object_Data_Type;
+
+typedef struct
+{
+   Isis_Fit_Type *ft;
+   /* Isis_Fit_Type:  optimizer + statistic + objective function */
+
+   Fit_Info_Type *info;
+   /* Fit_Info_Type:  parameter info */
+
+   int (*unpack)(Param_t *, double *);
+   /* param unpack method */
+
+   Fit_Data_t *d;
+   /* Fit_Data_t: raw data being fit */
+
+   Fit_Object_Data_Type *dt;
+   /* Fit_Object_Data_Type:  pointers to support combining datasets
+    * If no datasets are being combined, Fit_Object_Data_Type contains
+    * copies of the Fit_Data_t pointers.
+    * If datasets are being combined,  Fit_Object_Data_Type contains
+    * pointers to malloced workspace.
+    */
+}
+Fit_Object_Type;
+
 extern Fit_Param_t *new_fit_param_type (unsigned int num);
 extern void free_fit_param_type (Fit_Param_t *p);
 extern Fit_Data_t *get_fit_data (void);
 extern void free_fit_data (Fit_Data_t *d);
-extern int fit_statistic (Fit_Info_Type *info, int best, double *statistic, int *num_data_bins);
+
+extern int fit_object_config (Fit_Object_Type *fo, Param_t *pt, int unpack_variable);
+extern int fit_statistic (Fit_Object_Type *fo, int optimize, double *statistic, int *num_data_bins);
 
 extern void verbose_warn_hook (void *clientdata, const char * fmt, ...);
 extern void init_verbose_hook (void);
@@ -238,8 +270,8 @@ extern void deinit_verbose_hook (void);
 extern void verbose_info_hook (void *clientdata, double chisqr,
                                double *par, unsigned int npars_vary);
 
-extern int get_confidence_limits (Param_t *pt, Isis_Fit_CLC_Type *ctrl, int idx,
-                                  double *pconf_min, double *pconf_max);
+extern int get_confidence_limits (Fit_Object_Type *fo, Param_t *pt, Isis_Fit_CLC_Type *ctrl,
+                                  int idx, double *pconf_min, double *pconf_max);
 
 /* engine */
 
@@ -247,7 +279,7 @@ extern Isis_Fit_Engine_Type *isis_find_fit_engine (char *name);
 extern Isis_Fit_Statistic_Type *isis_find_fit_statistic (char *name);
 extern void isis_fit_close_fit (Isis_Fit_Type *);
 extern Isis_Fit_Type *isis_fit_open_fit
-  (char *method_name, char *statistic_name, Isis_Fit_Fun_Type *f, 
+  (char *method_name, char *statistic_name, Isis_Fit_Fun_Type *f,
    SLang_Name_Type *constraint_fun);
 extern int isis_fit_perform_fit
   (Isis_Fit_Type *f, void *clientdata,

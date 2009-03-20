@@ -57,7 +57,7 @@ extern Hist_t *get_histogram_list_head (void);
 
 /*}}}*/
 
-int (*Unpack)(Param_t *, double *);
+static int (*Unpack)(Param_t *, double *);
 int Fit_Loading_Parameters_From_File = 0;
 
 int Isis_Voigt_Is_Normalized = 1;
@@ -135,7 +135,7 @@ static User_Function_Type User_Function;
 
 static SLang_Name_Type *Array_Fit_Fun;
 
-static int push_kernel (Kernel_Table_t *t, unsigned int hist_index, 
+static int push_kernel (Kernel_Table_t *t, unsigned int hist_index,
                         Isis_Kernel_Def_t *def, char *params);
 static int pop_kernel (Kernel_Table_t *t, unsigned int hist_index, Kernel_Info_t *ki);
 static Cached_Grid_Type *find_cached_grid (Cached_Grid_Type *t, unsigned int type, unsigned int id);
@@ -291,7 +291,7 @@ static int pop_kernel (Kernel_Table_t *t, unsigned int hist_index, Kernel_Info_t
    return 0;
 }
 
-static int push_kernel (Kernel_Table_t *t, unsigned int hist_index, 
+static int push_kernel (Kernel_Table_t *t, unsigned int hist_index,
                         Isis_Kernel_Def_t *def, char *params)
 {
    Kernel_Info_t *p, *saved;
@@ -514,7 +514,7 @@ static void _free_param_info (_Param_Info_Type *pi) /*{{{*/
 
 static int _copy_param_info (_Param_Info_Type *pi, unsigned int idx) /*{{{*/
 {
-   unsigned int name_size = OUT_PARAM_NAME_SIZE;   
+   unsigned int name_size = OUT_PARAM_NAME_SIZE;
    Param_Info_t *p;
    Fit_Fun_t *ff;
 
@@ -847,7 +847,7 @@ static int parse_param_info (char *line, int line_num, char *fname, unsigned int
 
    if (-1 == (fun_par = Fit_get_fun_par (ff, par_name)))
      {
-        isis_vmesg (FAIL, I_READ_FAILED, __FILE__, __LINE__, "unrecognized parameter name `%s'",                    
+        isis_vmesg (FAIL, I_READ_FAILED, __FILE__, __LINE__, "unrecognized parameter name `%s'",
                     par_name);
         return -1;
      }
@@ -934,7 +934,7 @@ static int load_params (char *fname) /*{{{*/
          */
      } while (ret >= 0);
 
-   Fit_Loading_Parameters_From_File = 0;   
+   Fit_Loading_Parameters_From_File = 0;
    fclose(fp);
 
    if (ret == -1)
@@ -986,7 +986,7 @@ static void _tie (int *idx_a, int *idx_b) /*{{{*/
    /* tie (x,x) is a no-op */
    if (*idx_a == *idx_b)
      return;
-   
+
    /* tie (idx, 0) is the same as untie(idx) */
    if (-1 == Fit_tie (Param, *idx_a, *idx_b))
      {
@@ -1110,7 +1110,7 @@ static int push_parameter_value_struct (Fit_Fun_t *ff, unsigned int fun_id) /*{{
        || (NULL == (types = ISIS_MALLOC (n * sizeof(SLtype))))
        || (NULL == (pvalues = ISIS_MALLOC (n * sizeof(double *)))))
      goto finish;
-   
+
    memset ((char *)par, 0, n * sizeof(double));
    ret = Fit_get_fun_params (Param, ff->fun_type, fun_id, par);
 
@@ -1270,8 +1270,8 @@ Mode_Task_Type;
  * corresponding mode.  Context determines the mode.
  *
  * INIT_MODE
- * allocates and initializes space in the parameter table for that 
- * instance of the intrinsic and optionally obtains initial parameter 
+ * allocates and initializes space in the parameter table for that
+ * instance of the intrinsic and optionally obtains initial parameter
  * values by reading cursor coordinates off an interactive plot.
  * e.g. fit_fun ("gauss(1)"); implies (INIT_MODE, fun_type, fun_id)
  *
@@ -1920,10 +1920,10 @@ static int add_instrumental_background (double *cts, Hist_t *h) /*{{{*/
    double *bd;
 
    if (0 == is_flux (Fit_Data_Type))
-     {        
+     {
         if (-1 == pop_instrumental_background (&bgd, h))
           return -1;
-     }   
+     }
 
    if (NULL != Hist_post_model_hook (h))
      {
@@ -2066,10 +2066,10 @@ static int copy_hist_model_hook (Hist_t *h, void *cl) /*{{{*/
      return 0;
 
    if (is_flux(Fit_Data_Type))
-     {        
+     {
         bit_set (model_type, H_FLUX | H_CONVOLVED);
      }
-   
+
    /* Assume the model has already been computed */
    status = Hist_copy_packed_model (h, model_type, *model);
    *model += Hist_num_data_noticed (h);
@@ -2150,7 +2150,7 @@ static int combine_marked_datasets (Fit_Data_t *d, int apply_weights, double *y,
         if (apply_weights)
           {
              (void) Hist_combination_weight (h, &w);
-          }        
+          }
 
         yf = y + d->offsets[i];
         yt = yc + d->offset_for_marked[i];
@@ -3084,51 +3084,172 @@ static int combine_datasets (Fit_Data_t *d, double *y, double *w, int n, /*{{{*/
 
 /*}}}*/
 
-static Isis_Fit_Type *init_fit (Fit_Info_Type *info, int *malloced, double **y, double **w, int *n) /*{{{*/
+static void free_fit_object_data (Fit_Object_Data_Type *dt) /*{{{*/
 {
-   Hist_t *head = get_histogram_list_head ();
-   Isis_Fit_Type *f;
-   Fit_Data_t *d;
+   if (dt == NULL)
+     return;
 
-   d = info->d;
-
-   if (0 == Hist_any_noticed_dataset_combinations (head))
+   if (dt->malloced)
      {
-        *malloced = 0;
-        *n = d->nbins;
-        *y = d->data;
-        *w = d->weight;
+        ISIS_FREE(dt->data);
+        ISIS_FREE(dt->weight);
+     }
+}
+
+/*}}}*/
+
+static Fit_Object_Data_Type *setup_fit_object_data (Fit_Data_t *d) /*{{{*/
+{
+   Fit_Object_Data_Type *dt = NULL;
+
+   if (d == NULL)
+     return NULL;
+
+   if (NULL == (dt = ISIS_MALLOC (sizeof *dt)))
+     return NULL;
+
+   if (0 == Hist_any_noticed_dataset_combinations (get_histogram_list_head ()))
+     {
+        dt->malloced = 0;
+        dt->num = d->nbins;
+        dt->data = d->data;
+        dt->weight = d->weight;
      }
    else
      {
-        *malloced = 1;
-        *n = d->nbins_after_datasets_combined;
+        dt->malloced = 1;
+        dt->num = d->nbins_after_datasets_combined;
 
-        if ((NULL == (*y = ISIS_MALLOC ((*n) * sizeof(double))))
-            || (NULL == (*w = ISIS_MALLOC ((*n) * sizeof(double)))))
-          return NULL;
-
-        if (-1 == combine_datasets (d, d->data, d->weight, d->nbins, *y, *w))
+        if ((NULL == (dt->data = ISIS_MALLOC (dt->num * sizeof(double))))
+            || (NULL == (dt->weight = ISIS_MALLOC (dt->num * sizeof(double))))
+            || (-1 == combine_datasets (d, d->data, d->weight, d->nbins,
+                                        dt->data, dt->weight)))
           {
-             ISIS_FREE(*y);
-             ISIS_FREE(*w);
+             free_fit_object_data (dt);
+             ISIS_FREE(dt);
              return NULL;
           }
      }
 
-   if (NULL == (f = isis_fit_open_fit (Fit_Method, Fit_Statistic, _fitfun,
-                                       Fit_Constraint)))
+   return dt;
+}
+
+/*}}}*/
+
+static void fit_object_close (Fit_Object_Type *fo) /*{{{*/
+{
+   if (fo == NULL)
+     return;
+
+   deinit_verbose_hook ();
+   (void) map_datasets (post_fit, NULL);
+
+   Current_Fit_Data_Info = NULL;
+   isis_fit_close_fit (fo->ft);
+   free_fit_data (fo->d);
+   free_fit_object_data (fo->dt);
+   if (fo->info) free_fit_param_type (fo->info->par);
+   ISIS_FREE (fo->dt);
+   ISIS_FREE (fo->info);
+   ISIS_FREE (fo);
+}
+
+/*}}}*/
+
+int fit_object_config (Fit_Object_Type *fo, Param_t *pt, int unpack_variable) /*{{{*/
+{
+   int (*pack)(Param_t *, Fit_Param_t *);
+   Fit_Info_Type *info;
+
+   if ((fo == NULL) || (fo->info == NULL))
+     return -1;
+
+   info = fo->info;
+
+   if (unpack_variable)
      {
-        ISIS_FREE (*y);
-        ISIS_FREE (*w);
-        return NULL;
+        pack = Fit_pack_variable_params;
+        Unpack = Fit_unpack_variable_params;
+     }
+   else
+     {
+        pack = Fit_pack_all_params;
+        Unpack = Fit_unpack_all_params;
      }
 
-   isis_fit_set_verbose_level (f, info->verbose);
-   isis_fit_set_ranges (f, info->par->par_min, info->par->par_max);
-   set_fit_method_hooks (f);
+   fo->unpack = Unpack;
 
-   return f;
+   if (-1 == (*pack)(pt, info->par))
+     return -1;
+
+   isis_fit_set_verbose_level (fo->ft, info->verbose);
+   isis_fit_set_ranges (fo->ft, info->par->par_min, info->par->par_max);
+
+   return 0;
+}
+
+/*}}}*/
+
+static int fit_object_keep_params (Fit_Object_Type *fo, Param_t *pt) /*{{{*/
+{
+   if (fo == NULL)
+     return -1;
+
+   if (fo->unpack == NULL)
+     return -1;
+
+   if (fo->info == NULL || fo->info->par == NULL)
+     return -1;
+
+   return fo->unpack (pt, fo->info->par->par);
+}
+
+/*}}}*/
+
+static Fit_Object_Type *fit_object_open (void) /*{{{*/
+{
+   Fit_Object_Type *fo = NULL;
+   Fit_Info_Type *info;
+
+   (void) map_datasets (pre_fit, NULL);
+   init_verbose_hook ();
+
+   SLang_run_hooks ("isis_prefit_hook", 0);
+
+   if (NULL == (fo = ISIS_MALLOC (sizeof *fo)))
+     return NULL;
+   memset ((char *)fo, 0, sizeof *fo);
+
+   if (NULL == (fo->info = ISIS_MALLOC (sizeof (Fit_Info_Type))))
+     goto return_error;
+   memset ((char *)fo->info, 0, sizeof (Fit_Info_Type));
+   info = fo->info;
+
+   if (-1 == Fit_count_params (Param, &info->num_pars, &info->num_vary))
+     goto return_error;
+
+   if (NULL == (info->par = new_fit_param_type (info->num_pars)))
+     goto return_error;
+
+   info->verbose = Fit_Verbose;
+   info->cl_verbose = NULL;
+
+   if (NULL == (fo->d = get_fit_data ()))
+     goto return_error;
+   Current_Fit_Data_Info = fo->d;
+
+   if (NULL == (fo->dt = setup_fit_object_data (fo->d)))
+     goto return_error;
+
+   if (NULL == (fo->ft = isis_fit_open_fit (Fit_Method, Fit_Statistic, _fitfun, Fit_Constraint)))
+     goto return_error;
+
+   set_fit_method_hooks (fo->ft);
+
+   return fo;
+return_error:
+   fit_object_close (fo);
+   return NULL;
 }
 
 /*}}}*/
@@ -3172,49 +3293,47 @@ static int eval_fit_stat (Isis_Fit_Statistic_Type *s,  /*{{{*/
 
 /*}}}*/
 
-int fit_statistic (Fit_Info_Type *info, int best, double *stat, int *num_bins) /*{{{*/
+int fit_statistic (Fit_Object_Type *fo, int optimize, double *stat, int *num_bins) /*{{{*/
 {
-   Isis_Fit_Type *f = NULL;
-   Fit_Param_t *par;
-   double *y, *w, *fx;
-   int n, malloced, say_results;
+   Isis_Fit_Type *ft = NULL;
+   Fit_Info_Type *info = NULL;
+   Fit_Object_Data_Type *dt = NULL;
+   Fit_Param_t *par = NULL;
+   int say_results;
    int status = -1;
    int fit_ret = 0;
 
-   if ((NULL == stat)
-       || (NULL == info) || (NULL == info->d) || (NULL == info->par))
+   if ((NULL == fo) || (stat == NULL))
      return -1;
 
    *stat = 0.0;
    if (num_bins)
      *num_bins = 0;
 
-   Current_Fit_Data_Info = info->d;
+   info = fo->info;
+   dt = fo->dt;
+   ft = fo->ft;
+
    par = info->par;
 
-   y = w = fx = NULL;
-
-   if (NULL == (f = init_fit (info, &malloced, &y, &w, &n)))
-     goto return_error;
-
-   if (best)
+   if (optimize)
      {
         /* disable model copying during the fit */
         Fit_Store_Model = 0;
-        fit_ret = isis_fit_perform_fit (f, par->idx, NULL,
-                                        y, w, n, par->par, par->npars, stat);
+        fit_ret = isis_fit_perform_fit (ft, par->idx, NULL, dt->data, dt->weight, dt->num,
+                                        par->par, par->npars, stat);
         if ((fit_ret != 0)
             && (Looking_For_Confidence_Limits == 0))
           {
              verbose_warn_hook (NULL, "warning: minimization failed\n");
-          }        
+          }
      }
 
-   if (-1 == eval_fit_stat (f->stat, y, w, n, par->par, par->npars, stat))
+   if (-1 == eval_fit_stat (ft->stat, dt->data, dt->weight, dt->num, par->par, par->npars, stat))
      goto return_error;
 
    if (num_bins)
-     *num_bins = n;
+     *num_bins = dt->num;
 
    say_results = ((Fit_Verbose >= 0) && (Isis_Verbose >= WARN)
                   && (Looking_For_Confidence_Limits == 0));
@@ -3222,21 +3341,12 @@ int fit_statistic (Fit_Info_Type *info, int best, double *stat, int *num_bins) /
    if (say_results)
      {
         fprintf (stdout, " Parameters[Variable] = %d[%d]\n", Num_Params, info->num_vary);
-        fprintf (stdout, "            Data bins = %d\n", n);
-        isis_fit_report_statistic (f, stdout, *stat, n, info->num_vary);
+        fprintf (stdout, "            Data bins = %d\n", dt->num);
+        isis_fit_report_statistic (ft, stdout, *stat, dt->num, info->num_vary);
      }
 
    status = 0;
    return_error:
-
-   Current_Fit_Data_Info = NULL;
-   isis_fit_close_fit (f);
-
-   if (malloced)
-     {
-        ISIS_FREE (y);
-        ISIS_FREE (w);
-     }
 
    if (status < 0)
      return -1;
@@ -3436,109 +3546,133 @@ Fit_Param_t *new_fit_param_type (unsigned int num) /*{{{*/
 
 /*}}}*/
 
-static void free_fit_info (Fit_Info_Type *info) /*{{{*/
+typedef struct
 {
-   if (info == NULL)
-     return;
+   Fit_Object_Type *fo;
+}
+Fit_Object_MMT_Type;
+static int Fit_Object_MMT_Type_Id = -1;
 
-   free_fit_data (info->d);
-   free_fit_param_type (info->par);
+static void destroy_fit_object_mmt_type (SLtype type, VOID_STAR f) /*{{{*/
+{
+   Fit_Object_MMT_Type *mt = (Fit_Object_MMT_Type *) f;
+   (void) type;
+   if (mt != NULL)
+     fit_object_close (mt->fo);
+   SLfree (f);
 }
 
 /*}}}*/
 
-static int alloc_fit_info (Fit_Info_Type *info) /*{{{*/
+static SLang_MMT_Type *create_fit_object_mmt_type (Fit_Object_Type *fo) /*{{{*/
 {
-   if (info == NULL)
-     return -1;
+   SLang_MMT_Type *mmt;
+   Fit_Object_MMT_Type *mt;
 
-   if (NULL == (info->d = get_fit_data ()))
-     return -1;
+   if (fo == NULL)
+     return NULL;
 
-   if (-1 == Fit_count_params (Param, &info->num_pars, &info->num_vary))
-     return -1;
+   if (NULL == (mt = (Fit_Object_MMT_Type *)SLmalloc (sizeof *mt)))
+     return NULL;
 
-   if (NULL == (info->par = new_fit_param_type (info->num_pars)))
+   mt->fo = fo;
+
+   mmt = SLang_create_mmt (Fit_Object_MMT_Type_Id, (VOID_STAR) mt);
+   if (NULL == mmt)
      {
-        free_fit_info (info);
-        return -1;
+        SLfree ((char *)mt);
+        return NULL;
      }
 
-   return 0;
+   return mmt;
 }
 
 /*}}}*/
 
-static int init_fit_info (Fit_Info_Type *info, int best) /*{{{*/
+static void open_fit_object_mmt_intrin (void) /*{{{*/
 {
-   int (*pack)(Param_t *, Fit_Param_t *);
+   SLang_MMT_Type *mmt = NULL;
+   Fit_Object_Type *fo = NULL;
 
-   if (info == NULL)
-     return -1;
-
-   if (best)
+   if (NULL == (fo = fit_object_open ()))
      {
-        pack = Fit_pack_variable_params;
-        Unpack = Fit_unpack_variable_params;
-     }
-   else
-     {
-        pack = Fit_pack_all_params;
-        Unpack = Fit_unpack_all_params;
+        isis_throw_exception (Isis_Error);
+        return;
      }
 
-   if (-1 == (*pack)(Param, info->par))
-     return -1;
+   if (-1 == fit_object_config (fo, Param, 1))
+     {
+        isis_throw_exception (Isis_Error);
+        fit_object_close (fo);
+        return;
+     }
 
-   info->verbose = Fit_Verbose;
-   info->cl_verbose = NULL;
+   if (NULL == (mmt = create_fit_object_mmt_type (fo)))
+     {
+        isis_throw_exception (Isis_Error);
+        return;
+     }
 
-   return 0;
+   if (-1 == SLang_push_mmt (mmt))
+     SLang_free_mmt (mmt);
 }
 
 /*}}}*/
 
-static void push_fit_info (Fit_Info_Type *info, int err, /*{{{*/
-                           double stat, int num_bins)
+static void eval_statistic_using_fit_object_intrin (Fit_Object_MMT_Type *mmt) /*{{{*/
 {
-   if (info == NULL)
-     return;
+   Fit_Object_Type *fo = mmt->fo;
+   Fit_Info_Type *info = fo->info;
+   Isis_Fit_Type *ft = fo->ft;
+   Fit_Object_Data_Type *dt = fo->dt;
+   Fit_Param_t *par = info->par;
+   SLang_Array_Type *sl_pars = NULL;
+   double stat = 0.0;
+   int status = -1;
 
-   SLang_push_integer (err ? -1 : 0);
+   if ((-1 == SLang_pop_array_of_type (&sl_pars, SLANG_DOUBLE_TYPE))
+       || (sl_pars == NULL))
+     {
+        isis_throw_exception (Isis_Error);
+        goto return_error;
+     }
+
+   memcpy ((char *)par->par, (char *)sl_pars->data, par->npars * sizeof(double));
+
+   status = eval_fit_stat (ft->stat, dt->data, dt->weight, dt->num, par->par, par->npars, &stat);
+
+return_error:
+   SLang_push_integer (status ? -1 : 0);
    SLang_push_double (stat);
    SLang_push_integer ((int) info->num_vary);
-   SLang_push_integer (num_bins);
+   SLang_push_integer (dt->num);
 }
 
 /*}}}*/
 
-static void iterate_fit_fun (int best) /*{{{*/
+static void iterate_fit_fun (int optimize) /*{{{*/
 {
-   Fit_Info_Type info;
+   Fit_Object_Type *fo = NULL;
    double stat = 0.0;
    int num_bins = 0;
    int err = -1;
 
-   (void) map_datasets (pre_fit, NULL);
-   init_verbose_hook ();
-
-   SLang_run_hooks ("isis_prefit_hook", 0);
-
-   /* lets avoid a segv if any errors crop up */
-   memset ((char *)&info, 0, sizeof(info));
-
-   if ((0 == alloc_fit_info (&info))
-       && (0 == init_fit_info (&info, best)))
+   if ((NULL != (fo = fit_object_open ()))
+       && (0 == fit_object_config (fo, Param, optimize)))
      {
-        err = fit_statistic (&info, best, &stat, &num_bins);
-        (*Unpack) (Param, info.par->par);
+        err = fit_statistic (fo, optimize, &stat, &num_bins);
+        fit_object_keep_params (fo, Param);
      }
 
-   deinit_verbose_hook ();
-   (void) map_datasets (post_fit, NULL);
+   if (fo->info != NULL)
+     {
+        SLang_push_integer (err ? -1 : 0);
+        SLang_push_double (stat);
+        SLang_push_integer ((int) fo->info->num_vary);
+        SLang_push_integer (num_bins);
+     }
 
-   push_fit_info (&info, err, stat, num_bins);
-   free_fit_info (&info);
+   fit_object_close (fo);
 }
 
 /*}}}*/
@@ -3593,6 +3727,7 @@ static void _set_conf_limit_search (int *flag) /*{{{*/
 
 static void confidence_limits (int *idx, double *delta_chisqr, int *verbose, double *tolerance) /*{{{*/
 {
+   Fit_Object_Type *fo = NULL;
    Param_Info_t *p;
    Isis_Fit_CLC_Type c;
    double conf_min, conf_max;
@@ -3620,9 +3755,17 @@ static void confidence_limits (int *idx, double *delta_chisqr, int *verbose, dou
    c.tol = *tolerance;
    c.verbose = *verbose;
 
+   if (NULL == (fo = fit_object_open ()))
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "initializing fit engine");
+        return;
+     }
+
    Looking_For_Confidence_Limits = 1;
-   (void) get_confidence_limits (Param, &c, *idx, &conf_min, &conf_max);
+   (void) get_confidence_limits (fo, Param, &c, *idx, &conf_min, &conf_max);
    Looking_For_Confidence_Limits = 0;
+
+   fit_object_close (fo);
 
    SLang_push_double (conf_min);
    SLang_push_double (conf_max);
@@ -3759,7 +3902,7 @@ static void eval_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
 
    if (sl_par->num_elements != ff->nparams)
      {
-        isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__, 
+        isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__,
                     "%s requires %d parameters but %d were provided",
                     ff->name[0], ff->nparams, sl_par->num_elements);
         SLang_free_array (sl_par);
@@ -4173,6 +4316,8 @@ static void set_eval_grid_method (int *method, int *cache_model_values) /*{{{*/
   */
 #define DUMMY_FITFUN_MMT_TYPE   255
 #define MT DUMMY_FITFUN_MMT_TYPE
+#define DUMMY_FITOBJ_MMT_TYPE   254
+#define MTO DUMMY_FITOBJ_MMT_TYPE
 #define V SLANG_VOID_TYPE
 #define I SLANG_INT_TYPE
 #define UI SLANG_UINT_TYPE
@@ -4199,7 +4344,7 @@ static SLang_Intrin_Var_Type Fit_Intrin_Vars [] =
    /* FIXME:  In isis-2 the Voigt profile will be unit-normalized.
     *         This is also the new default.  This global switch is
     *         a temporary hack to provide back-compatibility in isis-1
-    */ 
+    */
    SLANG_END_INTRIN_VAR_TABLE
 };
 
@@ -4283,6 +4428,8 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
    MAKE_INTRINSIC_1("eval_diff_fitfun_using_handle_intrin", eval_diff_fitfun_using_handle_intrin, V, MT),
    MAKE_INTRINSIC_1("get_fitfun_handle_intrin", push_mmt_fitfun_type_intrin, V, S),
    MAKE_INTRINSIC_1("get_fitfun_info", Fit_get_fun_info, V, S),
+   MAKE_INTRINSIC("open_fit_object_mmt_intrin", open_fit_object_mmt_intrin, V, 0),
+   MAKE_INTRINSIC_1("eval_statistic_using_fit_object_intrin", eval_statistic_using_fit_object_intrin, V, MTO),
    SLANG_END_INTRIN_FUN_TABLE
 };
 
@@ -4292,6 +4439,7 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
 #undef D
 #undef S
 #undef MT
+#undef MTO
 
 /*}}}*/
 
@@ -4346,7 +4494,7 @@ int init_fit_module_internals (void) /*{{{*/
 
 /*}}}*/
 
-static void patchup_intrinsic_table (void) /*{{{*/
+static void patchup_intrinsic_table (unsigned int dummy_id, unsigned int assigned_id) /*{{{*/
 {
    SLang_Intrin_Fun_Type *f;
 
@@ -4360,13 +4508,13 @@ static void patchup_intrinsic_table (void) /*{{{*/
         args = f->arg_types;
         for (i = 0; i < nargs; i++)
           {
-             if (args[i] == DUMMY_FITFUN_MMT_TYPE)
-               args[i] = Fit_Fun_Type_Id;
+             if (args[i] == dummy_id)
+               args[i] = assigned_id;
           }
 
         /* For completeness */
-        if (f->return_type == DUMMY_FITFUN_MMT_TYPE)
-          f->return_type = Fit_Fun_Type_Id;
+        if (f->return_type == dummy_id)
+          f->return_type = assigned_id;
 
         f++;
      }
@@ -4410,7 +4558,24 @@ int init_fit_module_ns (char *ns_name) /*{{{*/
           return isis_trace_return(-1);
 
         Fit_Fun_Type_Id = SLclass_get_class_id (cl);
-        patchup_intrinsic_table ();
+        patchup_intrinsic_table (DUMMY_FITFUN_MMT_TYPE, Fit_Fun_Type_Id);
+     }
+
+   if (Fit_Object_MMT_Type_Id == -1)
+     {
+        if (NULL == (cl = SLclass_allocate_class ("Fit_Object_Type")))
+          return isis_trace_return(-1);
+        (void) SLclass_set_destroy_function (cl, destroy_fit_object_mmt_type);
+
+        /* By registering as SLANG_VOID_TYPE,
+         * slang will dynamically allocate a type
+         */
+        if (-1 == SLclass_register_class (cl, SLANG_VOID_TYPE, sizeof (Fit_Object_MMT_Type),
+                                          SLANG_CLASS_TYPE_MMT))
+          return isis_trace_return(-1);
+
+        Fit_Object_MMT_Type_Id = SLclass_get_class_id (cl);
+        patchup_intrinsic_table (DUMMY_FITOBJ_MMT_TYPE, Fit_Object_MMT_Type_Id);
      }
 
    if ((-1 == SLns_add_intrin_fun_table (ns, Fit_Intrinsics, NULL))

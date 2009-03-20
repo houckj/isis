@@ -77,25 +77,26 @@ static int run_fit_improved_hook (void) /*{{{*/
 {
    static char hook_name[] = "isis_fit_improved_hook";
    int status = -1;
-   
+
    if (2 != SLang_is_defined (hook_name))
      return 0;
-   
+
    SLang_execute_function (hook_name);
-   
+
    if (-1 == SLang_pop_integer (&status))
      {
         isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__, "getting return value from isis_fit_improved_hook");
      }
-   
+
    return status;
 }
 
 /*}}}*/
 
 static int examine_fit_statistic (Param_t *pt, unsigned int idx, double p, double *chisqr,  /*{{{*/
-                                  Search_Info_Type *sinfo, Fit_Info_Type *info)
+                                  Search_Info_Type *sinfo, Fit_Object_Type *fo)
 {
+   Fit_Info_Type *info = fo->info;
    /* should have
     *  examine_fit_statistic:improve_tol <= find_limit:accept_tol
     */
@@ -109,7 +110,9 @@ static int examine_fit_statistic (Param_t *pt, unsigned int idx, double p, doubl
    Fit_set_param_value (pt, idx, p);
    if (run_fit_improved_hook ())
      return EVAL_IMPROVED;
-   if (-1 == fit_statistic (info, sinfo->find_best, chisqr, NULL))
+
+   if ((-1 == fit_object_config (fo, pt, 1))
+       || (-1 == fit_statistic (fo, sinfo->find_best, chisqr, NULL)))
      return EVAL_FAILED;
    dchisqr = *chisqr - sinfo->min_chisqr;
 
@@ -178,10 +181,11 @@ static int interp_par (int mode, Sample_Type *a, Sample_Type *b, /*{{{*/
 static int bracket_target (Param_t *pt, int idx, double *conf_limit, /*{{{*/
                            double pbest, double ptest, double prange,
                            Sample_Type *a, Sample_Type *b,
-                           Search_Info_Type *sinfo, Fit_Info_Type *info)
+                           Search_Info_Type *sinfo, Fit_Object_Type *fo)
 {
-   double chisqr, target_chisqr;
+   Fit_Info_Type *info = fo->info;
    Fit_Param_t *par = info->par;
+   double chisqr, target_chisqr;
    int i, k, status;
 
    /* 'b' starts at the minimum chisqr.
@@ -195,7 +199,7 @@ static int bracket_target (Param_t *pt, int idx, double *conf_limit, /*{{{*/
    for (i = 0; i < par->npars; i++)
      b->par[i] = par->par[i];
 
-   status = examine_fit_statistic (pt, idx, ptest, &chisqr, sinfo, info);
+   status = examine_fit_statistic (pt, idx, ptest, &chisqr, sinfo, fo);
    if (status != EVAL_OK)
      {
         *conf_limit = ptest;
@@ -223,7 +227,7 @@ static int bracket_target (Param_t *pt, int idx, double *conf_limit, /*{{{*/
 
         /* Try to avoid the endpoint if possible */
         ptest = 0.5 * (prange + ptest);
-        status = examine_fit_statistic (pt, idx, ptest, &chisqr, sinfo, info);
+        status = examine_fit_statistic (pt, idx, ptest, &chisqr, sinfo, fo);
         if (status != EVAL_OK)
           {
              *conf_limit = ptest;
@@ -249,9 +253,10 @@ static int bracket_target (Param_t *pt, int idx, double *conf_limit, /*{{{*/
 
 static int find_limit (double *conf_limit, unsigned int idx, /*{{{*/
                        double ptest, double prange, double pbest,
-                       Search_Info_Type *sinfo, Fit_Info_Type *info,
+                       Search_Info_Type *sinfo, Fit_Object_Type *fo,
                        Param_t *pt, char *which)
 {
+   Fit_Info_Type *info = fo->info;
    double test, chisqr, target_chisqr, accept_tol;
    int i, k, count, status, verbose;
    Sample_Type a, b;
@@ -269,7 +274,7 @@ static int find_limit (double *conf_limit, unsigned int idx, /*{{{*/
 
    *conf_limit = prange;
 
-   if (info->d == NULL || info->par == NULL)
+   if (info->par == NULL)
      {
         status = EVAL_ERROR;
         goto finish;
@@ -288,7 +293,7 @@ static int find_limit (double *conf_limit, unsigned int idx, /*{{{*/
         goto finish;
      }
 
-   status = bracket_target (pt, idx, conf_limit, pbest, ptest, prange, &a, &b, sinfo, info);
+   status = bracket_target (pt, idx, conf_limit, pbest, ptest, prange, &a, &b, sinfo, fo);
    if (status != EVAL_OK)
      goto finish;
 
@@ -298,7 +303,7 @@ static int find_limit (double *conf_limit, unsigned int idx, /*{{{*/
     *
     * Note that should have
     *  examine_fit_statistic:improve_tol <= find_limit:accept_tol
-    * 
+    *
     * Also, while testing convergence of the fit-parameter would
     * be nice, its difficult to do since we don't know anything
     * about the scale size of the parameter.  Parameters for which
@@ -330,7 +335,7 @@ static int find_limit (double *conf_limit, unsigned int idx, /*{{{*/
           }
 
         mode = interp_par (mode, &a, &b, sinfo->min_chisqr, target_chisqr, &ptest, par);
-        status = examine_fit_statistic (pt, idx, ptest, &chisqr, sinfo, info);
+        status = examine_fit_statistic (pt, idx, ptest, &chisqr, sinfo, fo);
         if (status != EVAL_OK)
           {
              *conf_limit = ptest;
@@ -414,8 +419,7 @@ static Param_Info_t *get_valid_param_info (Param_t *pt, int idx) /*{{{*/
 {
    Param_Info_t *p;
 
-   p = Fit_param_info (pt, idx);
-   if (p == NULL)
+   if (NULL == (p = Fit_param_info (pt, idx)))
      {
         isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__, "invalid param index = %d", idx);
         return NULL;
@@ -429,7 +433,7 @@ static Param_Info_t *get_valid_param_info (Param_t *pt, int idx) /*{{{*/
           isis_vmesg (INTR, I_WARNING, __FILE__, __LINE__, "parameter %d is tied to parameter %d",
                       idx, tie_info->idx);
         else
-          isis_vmesg (INTR, I_WARNING, __FILE__, __LINE__, 
+          isis_vmesg (INTR, I_WARNING, __FILE__, __LINE__,
                       "parameter %d is tied to a nonexistent parameter(!)", idx);
         return NULL;
      }
@@ -445,14 +449,12 @@ static Param_Info_t *get_valid_param_info (Param_t *pt, int idx) /*{{{*/
 
 /*}}}*/
 
-static int init_conf_limit_search (Param_t *pt, Isis_Fit_CLC_Type *ctrl, int idx, /*{{{*/
-                                   Param_Info_t **par_info, Fit_Param_t **pars,
-                                   Fit_Info_Type *info)
+static int init_conf_limit_search (Param_t *pt, int idx, /*{{{*/
+                                   Param_Info_t **par_info, Fit_Param_t **pars)
 {
    unsigned int num_all, num_vary;
 
-   *par_info = get_valid_param_info (pt, idx);
-   if (*par_info == NULL)
+   if (NULL == (*par_info = get_valid_param_info (pt, idx)))
      return -1;
 
    if (-1 == Fit_count_params (pt, &num_all, &num_vary))
@@ -461,30 +463,9 @@ static int init_conf_limit_search (Param_t *pt, Isis_Fit_CLC_Type *ctrl, int idx
         return -1;
      }
 
-   *pars = new_fit_param_type (num_all);
-   if (*pars == NULL)
+   if (NULL == (*pars = new_fit_param_type (num_all)))
      {
         isis_throw_exception (Isis_Error);
-        return -1;
-     }
-
-   info->verbose = ctrl->verbose;
-   info->cl_verbose = NULL;
-
-   info->d = get_fit_data ();
-   if (info->d == NULL)
-     {
-        isis_throw_exception (Isis_Error);
-        free_fit_param_type (*pars);
-        return -1;
-     }
-
-   info->par = new_fit_param_type (num_all);
-   if (info->par == NULL)
-     {
-        isis_throw_exception (Isis_Error);
-        free_fit_param_type (*pars);
-        free_fit_data (info->d);
         return -1;
      }
 
@@ -493,10 +474,10 @@ static int init_conf_limit_search (Param_t *pt, Isis_Fit_CLC_Type *ctrl, int idx
 
 /*}}}*/
 
-int get_confidence_limits (Param_t *pt, Isis_Fit_CLC_Type *ctrl, int idx, /*{{{*/
-                           double *pconf_min, double *pconf_max)
+int get_confidence_limits (Fit_Object_Type *fo, Param_t *pt, Isis_Fit_CLC_Type *ctrl,  /*{{{*/
+                           int idx, double *pconf_min, double *pconf_max)
 {
-   Fit_Info_Type info;
+   Fit_Info_Type *info = NULL;
    Search_Info_Type sinfo;
    Param_Info_t *par_info = NULL;
    Fit_Param_t *initial_pars = NULL;
@@ -504,7 +485,7 @@ int get_confidence_limits (Param_t *pt, Isis_Fit_CLC_Type *ctrl, int idx, /*{{{*
    unsigned int initial_state;
    int ret = 0;
 
-   if ((ctrl == NULL) || (pconf_min == NULL) || (pconf_max == NULL))
+   if ((fo == NULL) || (ctrl == NULL) || (pconf_min == NULL) || (pconf_max == NULL))
      return -1;
 
    *pconf_min = conf_min = 0.0;
@@ -516,7 +497,11 @@ int get_confidence_limits (Param_t *pt, Isis_Fit_CLC_Type *ctrl, int idx, /*{{{*
 
    init_verbose_hook ();
 
-   if (-1 == init_conf_limit_search (pt, ctrl, idx, &par_info, &initial_pars, &info))
+   if (-1 == fit_object_config (fo, pt, 0))
+     goto free_and_return;
+   info = fo->info;
+
+   if (-1 == init_conf_limit_search (pt, idx, &par_info, &initial_pars))
      return -1;
 
    /* Unless the confidence limit search turns up a better fit,
@@ -537,12 +522,11 @@ int get_confidence_limits (Param_t *pt, Isis_Fit_CLC_Type *ctrl, int idx, /*{{{*
    Fit_set_freeze (pt, idx, 1);
    Fit_get_param_value (pt, idx, &pbest);
 
-   Unpack = Fit_unpack_variable_params;
-   if (-1 == Fit_pack_variable_params (pt, info.par))
+   if (-1 == fit_object_config (fo, pt, 1))
      goto restore_old_params;
 
    /* Evaluate the current fit-statistic */
-   if (-1 == fit_statistic (&info, 0, &sinfo.min_chisqr, NULL))
+   if (-1 == fit_statistic (fo, 0, &sinfo.min_chisqr, NULL))
      goto restore_old_params;
 
    if (ctrl->verbose > 0)
@@ -552,7 +536,7 @@ int get_confidence_limits (Param_t *pt, Isis_Fit_CLC_Type *ctrl, int idx, /*{{{*
    /* Search for the lower limit */
    pstart = 0.5 * (pbest + par_info->min);
 
-   ret = find_limit (&conf_min, idx, pstart, par_info->min, pbest, &sinfo, &info, pt, "Lower");
+   ret = find_limit (&conf_min, idx, pstart, par_info->min, pbest, &sinfo, fo, pt, "Lower");
    if (ret == EVAL_ERROR || ret == EVAL_FAILED)
      goto restore_old_params;
    else if (ret == EVAL_IMPROVED)
@@ -563,7 +547,8 @@ int get_confidence_limits (Param_t *pt, Isis_Fit_CLC_Type *ctrl, int idx, /*{{{*
 
    /* Got the lower one -- reset to the initial params */
    Fit_unpack_all_params (pt, initial_pars->par);
-   if (-1 == Fit_pack_variable_params (pt, info.par))
+
+   if (-1 == fit_object_config (fo, pt, 1))
      goto restore_old_params;
 
    /* Search for the upper limit */
@@ -571,7 +556,7 @@ int get_confidence_limits (Param_t *pt, Isis_Fit_CLC_Type *ctrl, int idx, /*{{{*
    if (pstart >= par_info->max)
      pstart = 0.5 * (pbest + par_info->max);
 
-   ret = find_limit (&conf_max, idx, pstart, par_info->max, pbest, &sinfo, &info, pt, "Upper");
+   ret = find_limit (&conf_max, idx, pstart, par_info->max, pbest, &sinfo, fo, pt, "Upper");
    if (ret == EVAL_ERROR || ret == EVAL_FAILED)
      goto restore_old_params;
    else if (ret == EVAL_IMPROVED)
@@ -587,21 +572,17 @@ int get_confidence_limits (Param_t *pt, Isis_Fit_CLC_Type *ctrl, int idx, /*{{{*
 
    immediate_return:
    if (par_info) Fit_set_freeze (pt, idx, initial_state);
-   
-   {
-      /* Evaluate the model once more to leave it consistent
-       * with the restored parameter values */
-      if (0 == Fit_pack_variable_params (pt, info.par))
-        {
-           double dummy;
-           (void) fit_statistic (&info, 0, &dummy, NULL);
-        }
-   }
+
+   /* Evaluate the model once more to leave it consistent
+    * with the restored parameter values */
+   if (0 == fit_object_config (fo, pt, 1))
+     {
+        double not_used;
+        (void) fit_statistic (fo, 0, &not_used, NULL);
+     }
 
    free_and_return:
    deinit_verbose_hook ();
-   free_fit_data (info.d);
-   free_fit_param_type (info.par);
    free_fit_param_type (initial_pars);
 
    *pconf_min = conf_min;

@@ -929,7 +929,7 @@ static int unpack (Param_Info_t *p, void *cl) /*{{{*/
 }
 /*}}}*/
 
-int Fit_unpack_variable_params (Param_t *pt, double * par) /*{{{*/
+int Fit_unpack_variable_params (Param_t *pt, double *par) /*{{{*/
 {
    Pack_Type x;
 
@@ -947,7 +947,7 @@ int Fit_unpack_variable_params (Param_t *pt, double * par) /*{{{*/
 
 /*}}}*/
 
-int Fit_unpack_all_params (Param_t *pt, double * par) /*{{{*/
+int Fit_unpack_all_params (Param_t *pt, double *par) /*{{{*/
 {
    Pack_Type x;
 
