@@ -3637,6 +3637,14 @@ static void eval_statistic_using_fit_object_intrin (Fit_Object_MMT_Type *mmt) /*
         goto return_error;
      }
 
+   if (sl_pars->num_elements != par->npars)
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "expecting %d parameter values, got %d",
+                   par->npars, sl_pars->num_elements);
+        isis_throw_exception (Isis_Error);
+        goto return_error;
+     }
+
    memcpy ((char *)par->par, (char *)sl_pars->data, par->npars * sizeof(double));
 
    status = eval_fit_stat (ft->stat, dt->data, dt->weight, dt->num, par->par, par->npars, &stat);
