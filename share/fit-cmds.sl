@@ -2831,8 +2831,10 @@ define set_eval_grid_method () %{{{
 
 %}}}
 
-private define fit_object_eval (s, pars, func_data)
+private define fit_object_eval_statistic (s, pars, func_data)
 {
+   _isis->_set_fit_type (s.response_type, s.data_type);
+
    (s.status, s.statistic, s.num_vary, s.num_points) =
      _isis->eval_statistic_using_fit_object_intrin (pars, s.object);
    return s.statistic;
@@ -2847,13 +2849,25 @@ define open_fit ()
 {
    variable s = struct
      {
-        object, eval, close,
-        status, statistic, num_vary, num_points
+        object, close, eval_statistic,
+        status, statistic, num_vary, num_points,
+        response_type, data_type
      };
 
-   s.object = _isis->open_fit_object_mmt_intrin ();
-   s.eval = &fit_object_eval;
+   s.data_type = qualifier_exists ("flux");
+   % (data_type == 0) ? counts : flux
+
+   s.response_type = qualifier ("response", Assigned_ARFRMF);
+   % response = Ideal_ARF
+   % response = Ideal_RMF
+   % response = Ideal_ARF | Ideal_RMF
+   % response = Ideal_ARFRMF
+
    s.close = &fit_object_close;
+   s.eval_statistic = &fit_object_eval_statistic;
+
+   _isis->_set_fit_type (s.response_type, s.data_type);
+   s.object = _isis->open_fit_object_mmt_intrin ();
 
    return s;
 }
