@@ -3254,7 +3254,7 @@ return_error:
 
 /*}}}*/
 
-static int eval_fit_stat (Isis_Fit_Statistic_Type *s,  /*{{{*/
+static int eval_fit_stat (Isis_Fit_Statistic_Type *s,  int enable_copying, /*{{{*/
                           double *y, double *w, int n,
                           double *par, int npars, double *stat)
 {
@@ -3272,8 +3272,7 @@ static int eval_fit_stat (Isis_Fit_Statistic_Type *s,  /*{{{*/
         return -1;
      }
 
-   /* enable model copying */
-   Fit_Store_Model = 1;
+   Fit_Store_Model = enable_copying;
 
    if (-1 == _fitfun (NULL, NULL, n, par, npars, fx))
      {
@@ -3329,7 +3328,7 @@ int fit_statistic (Fit_Object_Type *fo, int optimize, double *stat, int *num_bin
           }
      }
 
-   if (-1 == eval_fit_stat (ft->stat, dt->data, dt->weight, dt->num, par->par, par->npars, stat))
+   if (-1 == eval_fit_stat (ft->stat, 1, dt->data, dt->weight, dt->num, par->par, par->npars, stat))
      goto return_error;
 
    if (num_bins)
@@ -3619,7 +3618,7 @@ static void open_fit_object_mmt_intrin (void) /*{{{*/
 
 /*}}}*/
 
-static void eval_statistic_using_fit_object_intrin (Fit_Object_MMT_Type *mmt) /*{{{*/
+static void eval_statistic_using_fit_object_intrin (Fit_Object_MMT_Type *mmt, int *enable_copying) /*{{{*/
 {
    Fit_Object_Type *fo = mmt->fo;
    Fit_Info_Type *info = fo->info;
@@ -3637,7 +3636,7 @@ static void eval_statistic_using_fit_object_intrin (Fit_Object_MMT_Type *mmt) /*
         goto return_error;
      }
 
-   if (sl_pars->num_elements != par->npars)
+   if (sl_pars->num_elements != (unsigned int) par->npars)
      {
         isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "expecting %d parameter values, got %d",
                    par->npars, sl_pars->num_elements);
@@ -3647,7 +3646,7 @@ static void eval_statistic_using_fit_object_intrin (Fit_Object_MMT_Type *mmt) /*
 
    memcpy ((char *)par->par, (char *)sl_pars->data, par->npars * sizeof(double));
 
-   status = eval_fit_stat (ft->stat, dt->data, dt->weight, dt->num, par->par, par->npars, &stat);
+   status = eval_fit_stat (ft->stat, *enable_copying, dt->data, dt->weight, dt->num, par->par, par->npars, &stat);
 
 return_error:
    SLang_push_integer (status ? -1 : 0);
@@ -4437,7 +4436,7 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
    MAKE_INTRINSIC_1("get_fitfun_handle_intrin", push_mmt_fitfun_type_intrin, V, S),
    MAKE_INTRINSIC_1("get_fitfun_info", Fit_get_fun_info, V, S),
    MAKE_INTRINSIC("open_fit_object_mmt_intrin", open_fit_object_mmt_intrin, V, 0),
-   MAKE_INTRINSIC_1("eval_statistic_using_fit_object_intrin", eval_statistic_using_fit_object_intrin, V, MTO),
+   MAKE_INTRINSIC_2("eval_statistic_using_fit_object_intrin", eval_statistic_using_fit_object_intrin, V, MTO, I),
    SLANG_END_INTRIN_FUN_TABLE
 };
 

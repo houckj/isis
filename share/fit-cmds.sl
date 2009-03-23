@@ -2833,10 +2833,14 @@ define set_eval_grid_method () %{{{
 
 private define fit_object_eval_statistic (s, pars) %{{{
 {
+   variable enable_copying = 1;
+   if (qualifier_exists ("nocopy"))
+     enable_copying = 0;
+
    _isis->_set_fit_type (s.response_type, s.data_type);
 
    (s.status, s.statistic, s.num_vary, s.num_points) =
-     _isis->eval_statistic_using_fit_object_intrin (pars, s.object);
+     _isis->eval_statistic_using_fit_object_intrin (pars, s.object, enable_copying);
    return s.statistic;
 }
 
