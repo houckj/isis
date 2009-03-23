@@ -2831,7 +2831,7 @@ define set_eval_grid_method () %{{{
 
 %}}}
 
-private define fit_object_eval_statistic (s, pars, func_data)
+private define fit_object_eval_statistic (s, pars) %{{{
 {
    _isis->_set_fit_type (s.response_type, s.data_type);
 
@@ -2840,12 +2840,16 @@ private define fit_object_eval_statistic (s, pars, func_data)
    return s.statistic;
 }
 
-private define fit_object_close (s)
+%}}}
+
+private define fit_object_close (s) %{{{
 {
    s.object = 0;
 }
 
-define open_fit ()
+%}}}
+
+define open_fit () %{{{
 {
    variable s = struct
      {
@@ -2871,4 +2875,6 @@ define open_fit ()
 
    return s;
 }
+
+%}}}
 
