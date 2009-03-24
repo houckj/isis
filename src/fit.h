@@ -288,6 +288,9 @@ extern int isis_fit_perform_fit
 extern int isis_fit_report_statistic
   (Isis_Fit_Type *f, FILE *fp, double statistic, unsigned int npts, unsigned int nvpars);
 
+extern void set_slopt_fit_object (SLang_MMT_Type *mmt);
+extern int is_slang_optimizer (Isis_Fit_Type *f);
+
 extern int isis_fit_set_ranges (Isis_Fit_Type *f, double *par_min, double *par_max);
 extern int isis_fit_set_warn_hook (Isis_Fit_Type *f, Isis_Fit_Warning_Hook_Type *v);
 extern int isis_fit_set_verbose_hook (Isis_Fit_Type *f, Isis_Fit_Verbose_Hook_Type *v);
@@ -298,6 +301,7 @@ extern int isis_delta_stat_is_chisqr_distrib (Isis_Fit_Type *f);
 extern int isis_fit_load_statistic (char *file, char *name);
 extern int isis_fit_load_fit_routine (char *file, char *name, char *sname);
 
+extern void add_slang_fit_engine_intrin (char *eng_name, char *stat_name);
 extern int isis_fit_add_engine (char *name, char *sname, Isis_Fit_Engine_Init_Type *init);
 extern int isis_fit_add_statistic (char *name, Isis_Fit_Statistic_Init_Type *x);
 

@@ -2831,6 +2831,34 @@ define set_eval_grid_method () %{{{
 
 %}}}
 
+% Support using optimization methods implemented in S-Lang
+
+define __eval_stat () %{{{
+{
+   variable msg = "s = __eval_stat (obj, params);";
+   if (_isis->chk_num_args (_NARGS, 2, msg))
+     return;
+
+   variable enable_copying = 1;
+   if (qualifier_exists ("nocopy"))
+     enable_copying = 0;
+
+   variable obj, params;
+   (obj, params) = ();
+
+   % I don't think it's necessary to set response_type and
+   % data_type at this point, but if so, this is how:
+   % _isis->_set_fit_type (response_type, data_type);
+
+   variable err, stat;
+   (err, stat,,) = _isis->eval_statistic_using_fit_object_intrin
+     (params, obj, enable_copying);
+
+   return stat;
+}
+
+%}}}
+
 private define fit_object_eval_statistic (s, pars) %{{{
 {
    variable enable_copying = 1;
@@ -2878,6 +2906,24 @@ define open_fit () %{{{
    s.object = _isis->open_fit_object_mmt_intrin ();
 
    return s;
+}
+
+%}}}
+
+define register_slang_optimizer () %{{{
+{
+   variable msg = "register_slang_optimizer (name, &method [;qualifiers])\n"
+                + "   qual:  set_options=&ref, stat_name=name";
+
+   if (_isis->chk_num_args (_NARGS, 2, msg))
+     return;
+
+   variable name, method, set_options, stat_name;
+   (name, method) = ();
+   set_options = qualifier ("set_options", NULL);
+   stat_name = qualifier ("stat_name", "chisqr");
+
+   _isis->_add_slang_optimizer (set_options, method, name, stat_name);
 }
 
 %}}}

@@ -3292,6 +3292,8 @@ static int eval_fit_stat (Isis_Fit_Statistic_Type *s,  int enable_copying, /*{{{
 
 /*}}}*/
 
+static SLang_MMT_Type *create_fit_object_mmt_type (Fit_Object_Type *fo);
+
 int fit_statistic (Fit_Object_Type *fo, int optimize, double *stat, int *num_bins) /*{{{*/
 {
    Isis_Fit_Type *ft = NULL;
@@ -3317,10 +3319,19 @@ int fit_statistic (Fit_Object_Type *fo, int optimize, double *stat, int *num_bin
 
    if (optimize)
      {
+        /* FIXME!!! this is an ugly hack... */
+        int slang_optimizer = is_slang_optimizer (ft);
+        if (slang_optimizer)
+          set_slopt_fit_object (create_fit_object_mmt_type (fo));
+
         /* disable model copying during the fit */
         Fit_Store_Model = 0;
         fit_ret = isis_fit_perform_fit (ft, par->idx, NULL, dt->data, dt->weight, dt->num,
                                         par->par, par->npars, stat);
+
+        if (slang_optimizer)
+          set_slopt_fit_object (NULL);
+
         if ((fit_ret != 0)
             && (Looking_For_Confidence_Limits == 0))
           {
@@ -3647,6 +3658,7 @@ static void eval_statistic_using_fit_object_intrin (Fit_Object_MMT_Type *mmt, in
    memcpy ((char *)par->par, (char *)sl_pars->data, par->npars * sizeof(double));
 
    status = eval_fit_stat (ft->stat, *enable_copying, dt->data, dt->weight, dt->num, par->par, par->npars, &stat);
+   ft->statistic = stat;
 
 return_error:
    SLang_push_integer (status ? -1 : 0);
@@ -4426,6 +4438,7 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
    MAKE_INTRINSIC_I("_print_kernel", _print_kernel, V),
    MAKE_INTRINSIC("_list_kernels", _list_kernels, V, 0),
    MAKE_INTRINSIC_1("_add_slang_statistic", _add_slang_statistic, V, S),
+   MAKE_INTRINSIC_2("_add_slang_optimizer", add_slang_fit_engine_intrin, V, S, S),
    MAKE_INTRINSIC("list_statistics_and_engines", list_statistics_and_engines, V, 0),
    MAKE_INTRINSIC("_define_hist_combination", mark_dataset_combination, I, 0),
    MAKE_INTRINSIC_1("_undefine_hist_combination", break_dataset_combination, V, UI),

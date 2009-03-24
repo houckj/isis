@@ -664,3 +664,49 @@ define put_string (dest, fname, s) %{{{
 
 % Supports spectral model caching (cache_fun)
 variable Model_Cache = Assoc_Type[];
+
+private define array_to_struct (fields) %{{{
+{
+   eval (sprintf ("define __atos__(){return struct {%s};}",
+                  strjoin (fields, ",")));
+   return eval ("__atos__()");
+}
+%}}}
+
+% Supports passing options to slang optimizers
+define options_to_struct (options) %{{{
+{
+   % options is an array of strings of the form 'name=value'
+   variable n = length(options);
+
+   if (n == 0)
+     return 0;
+
+   variable i, names = String_Type[n];
+   _for i (0, n-1, 1)
+     {
+        names[i] = strtok(options[i], "=")[0];
+     }
+   variable s = array_to_struct (names);
+
+   _for i (0, n-1, 1)
+     {
+        variable t = strtok (options[i], "=");
+        if (length(t) < 2)
+          continue;
+        variable v = t[1];
+        switch (__is_datatype_numeric(_slang_guess_type (v)))
+          { case 0:             }
+          { case 1: v = atoi(v);}
+          { case 2: v = atof(v);}
+          {
+             % default:
+             throw ApplicationError, "Unsupported numeric type in option";
+          }
+        set_struct_field (s, names[i], v);
+     }
+
+   return s;
+}
+
+%}}}
