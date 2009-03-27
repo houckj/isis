@@ -3683,7 +3683,7 @@ static void iterate_fit_fun (int optimize) /*{{{*/
         fit_object_keep_params (fo, Param);
      }
 
-   if (fo->info != NULL)
+   if (fo != NULL && fo->info != NULL)
      {
         SLang_push_integer (err ? -1 : 0);
         SLang_push_double (stat);
