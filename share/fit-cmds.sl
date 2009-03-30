@@ -2846,10 +2846,6 @@ define __eval_stat () %{{{
    variable obj, params;
    (obj, params) = ();
 
-   % I don't think it's necessary to set response_type and
-   % data_type at this point, but if so, this is how:
-   % _isis->_set_fit_type (response_type, data_type);
-
    variable err, stat;
    (err, stat,,) = _isis->eval_statistic_using_fit_object_intrin
      (params, obj, enable_copying);
@@ -2864,8 +2860,6 @@ private define fit_object_eval_statistic (s, pars) %{{{
    variable enable_copying = 1;
    if (qualifier_exists ("nocopy"))
      enable_copying = 0;
-
-   _isis->_set_fit_type (s.response_type, s.data_type);
 
    (s.status, s.statistic, s.num_vary, s.num_points) =
      _isis->eval_statistic_using_fit_object_intrin (pars, s.object, enable_copying);
