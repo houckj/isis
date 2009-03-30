@@ -666,6 +666,26 @@ void isis_fit_close_fit (Isis_Fit_Type *f) /*{{{*/
 
 /* perform fits, evaluate statistics */
 
+int isis_invalid_params (Isis_Fit_Engine_Type *e, double *pars, unsigned int npars) /*{{{*/
+{
+   unsigned int i;
+
+   /* validate returned parameter values */
+   for (i = 0; i < npars; i++)
+     {
+        if ((0 == isfinite (pars[i]))
+            || (pars[i] < e->par_min[i])
+            || (e->par_max[i] < pars[i]))
+          {
+             return 1;
+          }
+     }
+
+   return 0;
+}
+
+/*}}}*/
+
 int isis_fit_perform_fit (Isis_Fit_Type *f, void *clientdata, /*{{{*/
                           double *x, double *y, double *weights, unsigned int npts,
                           double *pars, unsigned int npars, double *statistic)
@@ -688,16 +708,11 @@ int isis_fit_perform_fit (Isis_Fit_Type *f, void *clientdata, /*{{{*/
    *statistic = f->statistic;
 
    /* validate returned parameter values */
-   for (i = 0; i < npars; i++)
+   if (isis_invalid_params (e, pars, npars))
      {
-        if ((0 == isfinite (pars[i]))
-            || (pars[i] < e->par_min[i])
-            || (e->par_max[i] < pars[i]))
-          {
-             memcpy ((char *)pars, (char *)save_pars, npars * sizeof(double));
-             *statistic = DBL_MAX;
-             status = -1;
-          }
+        memcpy ((char *)pars, (char *)save_pars, npars * sizeof(double));
+        *statistic = DBL_MAX;
+        status = -1;
      }
 
    ISIS_FREE(save_pars);

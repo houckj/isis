@@ -3637,7 +3637,7 @@ static void eval_statistic_using_fit_object_intrin (Fit_Object_MMT_Type *mmt, in
    Fit_Object_Data_Type *dt = fo->dt;
    Fit_Param_t *par = info->par;
    SLang_Array_Type *sl_pars = NULL;
-   double stat = 0.0;
+   double stat = DBL_MAX;
    int status = -1;
 
    if ((-1 == SLang_pop_array_of_type (&sl_pars, SLANG_DOUBLE_TYPE))
@@ -3651,6 +3651,12 @@ static void eval_statistic_using_fit_object_intrin (Fit_Object_MMT_Type *mmt, in
      {
         isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "expecting %d parameter values, got %d",
                    par->npars, sl_pars->num_elements);
+        isis_throw_exception (Isis_Error);
+        goto return_error;
+     }
+
+   if (isis_invalid_params (ft->engine, (double *)sl_pars->data, par->npars))
+     {
         isis_throw_exception (Isis_Error);
         goto return_error;
      }

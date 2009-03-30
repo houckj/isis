@@ -287,6 +287,8 @@ extern int isis_fit_perform_fit
    double *pars, unsigned int npars, double *statistic);
 extern int isis_fit_report_statistic
   (Isis_Fit_Type *f, FILE *fp, double statistic, unsigned int npts, unsigned int nvpars);
+extern int isis_invalid_params (Isis_Fit_Engine_Type *e,
+                                double *pars, unsigned int npars);
 
 extern void set_slopt_fit_object (SLang_MMT_Type *mmt);
 extern int is_slang_optimizer (Isis_Fit_Type *f);
