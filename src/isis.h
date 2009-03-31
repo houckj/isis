@@ -33,9 +33,9 @@ extern "C" {
 }
 #endif
 
-#define ISIS_VERSION          10409
-#define ISIS_VERSION_STRING  "1.4.9-55"
-#define ISIS_VERSION_PREFIX   1.4.9-55
+#define ISIS_VERSION          10500
+#define ISIS_VERSION_STRING  "1.5.0"
+#define ISIS_VERSION_PREFIX   1.5.0
 
 #define ISIS_API_VERSION 3
 

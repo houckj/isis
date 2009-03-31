@@ -88,6 +88,8 @@ Changes since 1.4.9 (released Nov 2007)
 55.  Support BACKFILE keyword in Type I pha files.  To ignore
      this keyword, set Ignore_PHA_Backfile_Keyword=1.
      Also, Isis_List_Filenames now defaults to 1.
+56.  Added support for optimization methods implemented in slang.
+     See new intrinsics register_slang_optimizer and open_fit.
 
 Changes since 1.4.8 (released Sept 2007)
 ---------------------------------------
