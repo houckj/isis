@@ -10668,7 +10668,7 @@ load_fit_method
     The return value is (0/-1) to indicate success/failure.
 
  SEE ALSO
-    set_fit_method, add_to_isis_module_path
+    register_slang_optimizer, set_fit_method, add_to_isis_module_path
 
 ------------------------------------------------------------------------
 load_fit_statistic
@@ -10940,6 +10940,81 @@ notice_list
     notice, ignore_list, xnotice, exclude, include
 
 ------------------------------------------------------------------------
+open_fit
+
+ SYNOPSIS
+    Open fit object
+
+ USAGE
+    Struct_Type = open_fit ([qualifiers])
+
+ DESCRIPTION
+    This function is primarily useful for implementing optimization
+    methods in S-Lang.  It returns a structure of the form
+
+         s = struct
+         {
+            object, close, eval_statistic,
+            status, statistic, num_vary, num_points,
+            response_type, data_type
+         };
+
+    Two qualifiers are recognized.  If present, the `flux'
+    qualifier indicates that the fit statistic should be computed
+    for flux-corrected data, otherwise the statistic will be
+    computed for counts data.  The `response' qualifier may be used
+    to control which instrument response is applied to the spectral
+    model; valid values are:
+
+       response=Ideal_ARF
+                Ideal_RMF
+                Ideal_ARF | Ideal_RMF
+                Ideal_ARFRMF
+                Assigned_ARFRMF
+
+    The values of the `flux' and `response' qualifiers are stored
+    in the data_type and response_type fields of the fit object
+    structure.
+
+    The object field of this structure is an opaque Fit_Object_Type
+    pointer to an internal data structure that represents the
+    current state of the fit engine, including the current
+    fit-function and all noticed datasets.  To generate this opaque
+    object pointer, isis performs all the initialization normally
+    associated with each call to eval_counts or eval_flux.
+
+    The eval_statistic field provides a function that may be used
+    to compute the current fit statistic for a given vector of free
+    parameters.  For example:
+
+        s = open_fit ();
+        stat = s.eval_statistic (pars);
+
+    Performing this statistic computation using the fit object is
+    more efficient than performing the same computation using
+    eval_counts or eval_flux because the initialization associated
+    with the Fit_Object_Type pointer in the object field has
+    already been performed. If the eval_statistic method is called
+    with the nocopy qualifier, some internal copying of computed
+    model values will be omitted.  While skipping this internal
+    copying provides a useful optimization during the intermediate
+    steps of a fit, the final statistic computation should be
+    performed without the qualifier so that the final computed
+    model spectra are saved internally.
+
+    The remaining fields of the fit object structure are scalar
+    values containing results of the fit statistic computation. The
+    statistic field contains the value of the fit statistic. The
+    num_vary field contains the number of variable fit parameters.
+    The num_points field contains the number of data points
+    involved in the statistic computation.  The status field is
+    negative if any error occurred, and zero otherwise.
+
+
+ SEE ALSO
+    register_slang_optimizer, fit_fun, load_data, set_par, set_kernel
+
+------------------------------------------------------------------------
 pileup
 
  SYNOPSIS
@@ -11151,6 +11226,59 @@ randomize
 
  SEE ALSO
     set_par, get_par, fit_counts, fit_flux, fit_search
+
+------------------------------------------------------------------------
+register_slang_optimizer
+
+ SYNOPSIS
+    Register an optimization method implemented in S-Lang
+
+ USAGE
+    register_slang_optimizer (name, &method [;qualifiers])
+
+ DESCRIPTION
+    Use this function to register an optimization method
+    implemented in S-Lang.  For example:
+
+      private variable Qualfiers;
+      define set_options (options)
+      {
+         Qualfiers = options;
+         return 0;
+      }
+
+      define some_function (obj, params, params_min, params_max)
+      {
+         %... search for optimal parameters...
+              statistic = __eval_stat (obj, pars);
+         %...
+         return new_params;
+      }
+
+      register_slang_optimizer ("name", &some_function;
+                                         set_options=&set_options);
+
+      set_fit_method ("name; option1; option2=2.4;  option3=astring");
+
+    The first argument to register_slang_optimizer provides a name
+    for the optimization method.  The second argument provides a
+    reference to the S-Lang function implementing the method.
+
+    Two qualifiers are supported.  The `stat_name' qualifier gives
+    the name of the fit statistic that will be used by default. If
+    not specified, the default fit-statistic is chisqr.
+
+    If present, the `set_options' qualifier should provide a
+    reference to a function that takes one argument, which is a
+    Struct_Type containing options from the set_fit_method call.
+    In the above example, the options struct will have the form
+
+       options = struct {option1, option2=2.4, option3="astring"};
+
+
+
+ SEE ALSO
+    load_fit_method
 
 ------------------------------------------------------------------------
 renorm_counts
@@ -11420,7 +11548,7 @@ set_fit_method
 
 
  SEE ALSO
-    load_fit_method, set_fit_statistic, set_fit_constraint, randomize, lmdif, marquardt, minim, subplex
+    load_fit_method, register_slang_optimizer, set_fit_statistic, set_fit_constraint, randomize, lmdif, marquardt, minim, subplex
 
 ------------------------------------------------------------------------
 set_fit_range_hook

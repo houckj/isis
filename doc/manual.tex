@@ -11826,7 +11826,7 @@ See \verb|conf_map_counts| for details.
 {load\_fit\_method} %name
 {load a user-defined fit-method} %purpose
 {status = load\_fit\_method ("library.so", "name")} %usage
-{set\_fit\_method, add\_to\_isis\_module\_path}
+{register\_slang\_optimizer, set\_fit\_method, add\_to\_isis\_module\_path}
 \index{User-defined!minimization algorithm}
 
 See \verb|math/marq.c| in the \isisx distribution for an
@@ -12054,6 +12054,79 @@ See \verb|notice| for details.
 
 \end{isisfunction}
 
+\begin{isisfunction}
+{open\_fit} %name
+{Open fit object} %purpose
+{Struct\_Type = open\_fit ([qualifiers])} %usage
+{register\_slang\_optimizer, fit\_fun, load\_data, set\_par, set\_kernel}
+
+This function is primarily useful for implementing optimization
+methods in \slang.  It returns a structure of the form
+\begin{verbatim} 
+     s = struct
+     {
+        object, close, eval_statistic,
+        status, statistic, num_vary, num_points,
+        response_type, data_type
+     };
+\end{verbatim}
+Two qualifiers are recognized.  If present, the `\verb|flux|'
+qualifier indicates that the fit statistic should be computed
+for flux-corrected data, otherwise the statistic will be computed
+for counts data.  The `\verb|response|' qualifier may be used
+to control which instrument response is applied to the spectral
+model;  valid values are:
+\begin{verbatim}
+   response=Ideal_ARF
+            Ideal_RMF
+            Ideal_ARF | Ideal_RMF
+            Ideal_ARFRMF
+            Assigned_ARFRMF
+\end{verbatim}
+The values of the `\verb|flux|' and `\verb|response|' qualifiers
+are stored in the \verb|data_type| and \verb|response_type|
+fields of the fit object structure.
+
+The \verb|object| field of this structure is an opaque
+\verb|Fit_Object_Type| pointer to an internal data structure
+that represents the current state of the fit engine, including
+the current fit-function and all noticed datasets.  To generate
+this opaque object pointer, isis performs all the
+initialization normally associated with each call to
+\verb|eval_counts| or \verb|eval_flux|.
+
+The \verb|eval_statistic| field provides a function that may be
+used to compute the current fit statistic for a given vector of
+free parameters.  For example:
+\begin{verbatim}
+    s = open_fit ();
+    stat = s.eval_statistic (pars);
+\end{verbatim}
+Performing this statistic computation using the fit object is
+more efficient than performing the same computation using
+\verb|eval_counts| or \verb|eval_flux| because the
+initialization associated with the \verb|Fit_Object_Type|
+pointer in the \verb|object| field has already been performed.
+If the \verb|eval_statistic| method is called with the
+\verb|nocopy| qualifier, some internal copying of computed
+model values will be omitted.  While skipping this internal
+copying provides a useful optimization during the intermediate
+steps of a fit, the final statistic computation should be
+performed without the qualifier so that the final computed
+model spectra are saved internally.
+
+The remaining fields of the fit object structure are scalar
+values containing results of the fit statistic computation. The
+\verb|statistic| field contains the value of the fit statistic.
+The \verb|num_vary| field contains the number of variable fit
+parameters.  The \verb|num_points| field contains the number of
+data points involved in the statistic computation.  The
+\verb|status| field is negative if any error occurred, and zero
+otherwise.
+
+\end{isisfunction}
+
+
 \label{pileup-help}
 \begin{isisfunction}
 {pileup} %name
@@ -12238,6 +12311,56 @@ within the range $(-\infty,+\infty)$ -- this is probably not
 what you want.
 
 \end{isisfunction}
+
+\begin{isisfunction}
+{register\_slang\_optimizer} %name
+{Register an optimization method implemented in S-Lang} %purpose
+{register\_slang\_optimizer (name, \&method [;qualifiers])} %usage
+{load\_fit\_method}
+
+Use this function to register an optimization method implemented
+in S-Lang.  For example:
+\begin{verbatim}
+  private variable Qualfiers;
+  define set_options (options)
+  {
+     Qualfiers = options;
+     return 0;
+  }
+
+  define some_function (obj, params, params_min, params_max)
+  {
+     %... search for optimal parameters...
+          statistic = __eval_stat (obj, pars);
+     %...
+     return new_params;
+  }
+
+  register_slang_optimizer ("name", &some_function;
+                                     set_options=&set_options);
+                                     
+  set_fit_method ("name; option1; option2=2.4;  option3=astring");
+\end{verbatim}
+
+The first argument to \verb|register_slang_optimizer| provides
+a name for the optimization method.  The second argument provides
+a reference to the S-Lang function implementing the method.
+
+Two qualifiers are supported.  The `\verb|stat_name|' qualifier
+gives the name of the fit statistic that will be used by default.
+If not specified, the default fit-statistic is \verb|chisqr|.
+
+If present, the `\verb|set_options|' qualifier should provide a
+reference to a function that takes one argument, which is a 
+\verb|Struct_Type| containing options from the
+\verb|set_fit_method| call.  In the above example, the options
+struct will have the form
+\begin{verbatim}
+   options = struct {option1, option2=2.4, option3="astring"};
+\end{verbatim}
+
+\end{isisfunction}
+
 
 \begin{isisfunction}
 {renorm\_counts} %name
@@ -12432,7 +12555,7 @@ To remove the fit-constraint use
 {set\_fit\_method} %name
 {select a fit-method} %purpose
 {set\_fit\_method ("name[;options]")} %usage
-{load\_fit\_method, set\_fit\_statistic, set\_fit\_constraint, randomize, lmdif, marquardt, minim, subplex}
+{load\_fit\_method, register\_slang\_optimizer, set\_fit\_statistic, set\_fit\_constraint, randomize, lmdif, marquardt, minim, subplex}
 
 The \isisx distribution includes four fit methods, {\tt lmdif},
 {\tt marquardt}, {\tt minim} and {\tt subplex}.  Control
