@@ -2162,14 +2162,164 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
 
 %}}}
 
+require ("fork_xpa");
+
+#ifexists fork_slave
+
+private define server_send (paramlist) %{{{
+{
+   return pack ("i", getpid());
+}
+
+%}}}
+
+private define server_recv (paramlist, buf) %{{{
+{
+   variable
+     slave_pid = atoi(paramlist),
+     s = slave_lookup (slave_pid);
+
+   variable dims = unpack ("i2", buf);
+   variable a, n = dims[0]*dims[1];
+   (,a) = unpack ("i2d$n"$, buf);
+
+   s.slave_info.subarray = _reshape (a, dims);
+
+   return 0;
+}
+
+%}}}
+
+private define slave_process (ip1, p1, ip2, p2, info) %{{{
+{
+   variable e, r, names, msgs;
+   variable pid = getpid();
+
+   try (e)
+     {
+        variable map = map_chisqr (ip1, p1, ip2, p2, info);
+
+     }
+   catch AnyError:
+     {
+        pid_vmessage ("Caught exception calling map_chisqr!!!");
+        print(e);
+        exit(1);
+     }
+
+   variable dims = array_shape (map);
+   variable len = dims[0] * dims[1];
+   variable results =
+     pack (sprintf ("i2d%d", len), dims, _reshape(map, len));
+
+   variable xpa = XPAOpen (NULL);
+
+   try (e)
+     {
+        (names, msgs) = XPASet (xpa, server_name(), "$pid"$, 1,
+                                bstring_to_array(results));
+     }
+   catch AnyError:
+     {
+        pid_vmessage ("Caught exception calling xpaset!!!");
+        print(e);
+        exit(1);
+     }
+
+   XPAClose (xpa);
+   exit (0);
+}
+
+%}}}
+
+private define partition_indices (xnum, ynum, num_slaves) %{{{
+{
+   variable i,
+     xsub = Array_Type[num_slaves],
+     ysub = Array_Type[num_slaves];
+
+   variable
+     num_tasks = xnum,
+     num_per_slave = num_tasks / num_slaves,
+     num_left = num_tasks - num_per_slave * num_slaves;
+
+   variable mn = 0;
+
+   _for i (0, num_slaves-1, 1)
+     {
+        variable mx = mn + num_per_slave;
+        if (num_left > 0)
+          {
+             mx += 1;
+             num_left--;
+          }
+        xsub[i] = [mn:mx-1];
+        ysub[i] = [0:ynum-1];
+        mn = mx;
+     }
+
+   return xsub, ysub;
+}
+
+%}}}
+
+private define parallel_map_chisqr (num_slaves, px, py, %{{{
+                                    ix, pxs, iy, pys, info)
+{
+   variable xsub, ysub;
+   (xsub, ysub) = partition_indices (px.num, py.num, num_slaves);
+   variable i, s, slaves = init_slaves ();
+
+   _for i (0, num_slaves-1, 1)
+     {
+        s = fork_slave (&slave_process,
+                        ix, pxs[xsub[i]], iy, pys[ysub[i]], info);
+        s.slave_info = struct {xsub=xsub[i], ysub=ysub[i], subarray};
+        list_append (slaves, s);
+     }
+
+   if (-1 == start_server (&server_send, &server_recv))
+     return NULL;
+
+   wait_for_slaves (slaves);
+
+   variable map = Double_Type[py.num, px.num];
+   foreach s (slaves)
+     {
+        variable d = s.slave_info;
+        map[d.ysub, d.xsub] = d.subarray;
+     }
+
+   return map;
+}
+
+
+%}}}
+
+#endif
+
 private define generate_contours (px, py, info) %{{{
 {
-   variable pxs, pys;
-   pxs = generate_grid (px.min, px.max, px.num);
-   pys = generate_grid (py.min, py.max, py.num);
+   variable
+     pxs = generate_grid (px.min, px.max, px.num),
+     pys = generate_grid (py.min, py.max, py.num);
 
-   return map_chisqr (_get_index(px.index), pxs,
-		      _get_index(py.index), pys, info);
+   variable
+     ix = _get_index(px.index),
+     iy = _get_index(py.index);
+
+#ifexists fork_slave
+   variable serial = qualifier_exists ("serial");
+   variable num_slaves = qualifier ("num_slaves", guess_num_slaves());
+   if (serial == 0 && num_slaves > 1)
+     {
+        return parallel_map_chisqr (num_slaves, px, py,
+                                   ix, pxs, iy, pys, info);
+     }
+#endif
+
+   return map_chisqr (ix, pxs, iy, pys, info);
+
 }
 
 %}}}
@@ -2205,7 +2355,7 @@ private define _conf_map (px, py, info) %{{{
    s.px = @px;
    s.py = @py;
 
-   s.chisqr = generate_contours (px, py, info);
+   s.chisqr = generate_contours (px, py, info ;; __qualifiers);
    s.chisqr -= s.best;
 
    set_params (best_pars);
@@ -2268,7 +2418,7 @@ define conf_map_counts () %{{{
    info.eval_ref = &eval_counts;
    merge_user_info_struct (info, user_info);
 
-   return _conf_map (px, py, info);
+   return _conf_map (px, py, info ;; __qualifiers);
 }
 
 %}}}
@@ -2293,7 +2443,7 @@ define conf_map_flux () %{{{
    info.eval_ref = &eval_flux;
    merge_user_info_struct (info, user_info);
 
-   return _conf_map (px, py, info);
+   return _conf_map (px, py, info ;; __qualifiers);
 }
 
 %}}}

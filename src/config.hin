@@ -65,3 +65,9 @@
 
 /* Define this if you have GNU readline */
 #undef HAVE_GNU_READLINE
+
+/* Define this if you have isis extras */
+#undef HAVE_ISIS_EXTRAS
+
+/* Define this if you have the slxpa module */
+#undef HAVE_SLXPA_MODULE

@@ -22,6 +22,7 @@ install_lib_dir = @libdir@
 install_include_dir = @includedir@
 BIN_DIR = @bindir@
 
+BUILD_ISIS_EXTRAS=@BUILD_ISIS_EXTRAS@
 # for the XSPEC module, if it is statically linked
 LINK_XSPEC_STATIC = @LINK_XSPEC_STATIC@
 HEADAS_DIR = @HEADAS_DIR@
@@ -29,6 +30,9 @@ HEADAS_DIR = @HEADAS_DIR@
 all:
 	cd src; $(MAKE) all
 	cd modules; $(MAKE) all
+	@if test "$(BUILD_ISIS_EXTRAS)" = "yes" ; then \
+	    cd extras ; $(MAKE) all ; \
+	 fi
 	@echo ""
 	@echo "To continue with the installation, type"
 	@echo "   make install"
@@ -44,11 +48,14 @@ install:	test_install_dir
 	cd src; $(MAKE) install
 	cd modules; $(MAKE) install
 	@if test "$(LINK_XSPEC_STATIC)" = "yes" ; then \
-	    cd modules/xspec/src ; make install-extra ; \
+	    cd modules/xspec/src ; $(MAKE) install-extra ; \
+	 fi
+	@if test "$(BUILD_ISIS_EXTRAS)" = "yes" ; then \
+	    cd extras ; $(MAKE) install ; \
 	 fi
 	@echo ""
 	@echo "Installation complete."
-	@echo ""	
+	@echo ""
 	@echo "To delete temporary files which are no longer needed, type"
 	@echo "   make clean"
 	@echo ""
@@ -65,11 +72,11 @@ install-modules:	test_install_dir
 	cd modules; $(MAKE) install-modules
 
 custom-xspec-module:
-	cd modules/xspec/src; make clean new-xspec12-code
+	cd modules/xspec/src; $(MAKE) clean new-xspec12-code
 custom-xspec11-module:
-	cd modules/xspec/src; make clean new-xspec11-code
+	cd modules/xspec/src; $(MAKE) clean new-xspec11-code
 custom-xspec12-module:
-	cd modules/xspec/src; make clean new-xspec12-code
+	cd modules/xspec/src; $(MAKE) clean new-xspec12-code
 
 tags-file:
 	-$(RM) tags
@@ -79,7 +86,10 @@ clean:
 	cd src; $(MAKE) clean
 	cd modules; $(MAKE) clean
 	cd test; $(MAKE) clean
-	-$(RM) *~ .##* 
+	-$(RM) *~ .##*
+	@if test "$(BUILD_ISIS_EXTRAS)" = "yes" ; then \
+	    cd extras ; $(MAKE) clean ; \
+	 fi
 
 distclean:
 	cd src; $(MAKE) distclean
@@ -87,6 +97,9 @@ distclean:
 	cd test; $(MAKE) distclean
 	-$(RM) isis-version
 	$(MAKE) confclean
+	@if test "$(BUILD_ISIS_EXTRAS)" = "yes" ; then \
+	    cd extras ; $(MAKE) distclean ; \
+	 fi
 
 confclean:
 	-$(RM) Makefile config.status config.log config.cache files.pck autoconf/f77test.out .##* *~
@@ -108,9 +121,9 @@ test_install_dir:
 symlinks:
 	cd src; $(MAKE) symlinks
 	cd modules; $(MAKE) symlinks
-	
+
 tags:
 	etags -o TAGS src/*.[ch]
-	
+
 snapshot:
 	@src/mkdist.sh /nfs/vex/d2/release/snapshots/isis-`date +%Y%m%d`
