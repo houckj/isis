@@ -692,7 +692,6 @@ int isis_fit_perform_fit (Isis_Fit_Type *f, void *clientdata, /*{{{*/
 {
    Isis_Fit_Engine_Type *e;
    double *save_pars = NULL;
-   unsigned int i;
    int status;
 
    if (f == NULL)
