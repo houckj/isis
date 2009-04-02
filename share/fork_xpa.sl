@@ -5,12 +5,17 @@
 # stop
 # endif
 $1 = path_dirname (__FILE__);
-if (NULL == stat_file (path_concat ($1, "extras.sl")))
+if (NULL != stat_file (path_concat ($1, "extras.sl")))
+  require ("extras");
+else
 {
-   prepend_to_isis_load_path ("../extras:../extras/slxpa/src");
-   prepend_to_isis_module_path ("../extras/slxpa/src");
+   foreach (["../extras/slxpa/src", "../extras"])
+     {
+        $2 = ();
+        prepend_to_isis_load_path (path_concat ($1, $2));
+        prepend_to_isis_module_path (path_concat ($1, $2));
+     }
 }
-require ("extras");
 #endif   % __HAVE_SLXPA_MODULE__
 
 require ("xpa");
