@@ -2273,15 +2273,15 @@ private define parallel_map_chisqr (num_slaves, px, py, %{{{
    _for i (0, num_slaves-1, 1)
      {
         s = fork_slave (&slave_process,
-                        ix, pxs[xsub[i]], iy, pys[ysub[i]], info);
+                        ix, pxs[xsub[i]], iy, pys[ysub[i]], info ;; __qualifiers);
         s.slave_info = struct {xsub=xsub[i], ysub=ysub[i], subarray};
         list_append (slaves, s);
      }
 
-   if (-1 == start_server (&server_send, &server_recv))
+   if (-1 == start_server (&server_send, &server_recv ;; __qualifiers))
      return NULL;
 
-   wait_for_slaves (slaves);
+   wait_for_slaves (slaves ;; __qualifiers);
 
    variable map = Double_Type[py.num, px.num];
    foreach s (slaves)
@@ -2314,7 +2314,7 @@ private define generate_contours (px, py, info) %{{{
    if (serial == 0 && num_slaves > 1)
      {
         return parallel_map_chisqr (num_slaves, px, py,
-                                   ix, pxs, iy, pys, info);
+                                    ix, pxs, iy, pys, info ;; __qualifiers);
      }
 #endif
 

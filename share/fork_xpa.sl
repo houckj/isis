@@ -116,6 +116,7 @@ define fork_slave () %{{{
 
    ref = ();
 
+   variable verbose = qualifier_exists ("verbose");
    variable s = process_struct ();
 
    s.pid = fork();
@@ -126,6 +127,8 @@ define fork_slave () %{{{
      return s;
 
    % child (s.pid == 0)
+   if (verbose)
+     pid_vmessage ("child started");
 
    % slave should exit when master gets keyboard interrupt.
    sigprocmask (SIG_BLOCK, SIGINT);
@@ -186,9 +189,9 @@ private define perform_wait (slaves) %{{{
                continue;
 
              if (w.exited && verbose)
-               pid_vmessage ("child pid=%d exited, status = %d", w.pid, w.exit_status);
+               vmessage ("child pid=%d exited, status = %d", w.pid, w.exit_status);
              else if (w.signal)
-               pid_vmessage ("child pid=%d killed by signal %d", w.pid, w.signal);
+               vmessage ("child pid=%d killed by signal %d", w.pid, w.signal);
 
              if (w.exited || w.signal)
                {
