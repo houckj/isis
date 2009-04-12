@@ -127,7 +127,8 @@ static define filter_text () %{{{
    replace ("``", "\"");
    replace ("''", "\"");
    replace ("\\AA", "A");
-   replace ("\\S", "*section*");
+   replace ("\\S\\", "*section*");
+   replace ("\\S ", "*section* ");
    replace ("\\", "");
    
    strip_bol_comments ("%");

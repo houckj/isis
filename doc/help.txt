@@ -1939,8 +1939,8 @@ flux_corr
     levels of pileup, the flux-corrected spectrum may also yield a
     good estimate of the incident spectrum.  For CCD resolution
     spectra which are unaffected by photon pileup, the flux
-    estimate may be reasonably good for energies above *section*im
-    1 keV and may be useful for visualization purposes.  But for E
+    estimate may be reasonably good for energies above sim 1 keV
+    and may be useful for visualization purposes.  But for E
     lesssim 1 keV, the CCD RMF becomes rather broad and the
     resulting estimate bar S(h) may differ significantly from the
     incident spectrum s(E).
@@ -3370,8 +3370,7 @@ put_data_counts
     bin_lo < bin_hi) and 3) the uncertainty values must be
     positive. Any non-positive input values of uncertainty are
     reset (e.g. according to counting statistics for counts = N,
-    uncertainty = *section*qrtN) and a message is printed to warn
-    the user.
+    uncertainty = sqrtN) and a message is printed to warn the user.
 
     Example:
           c = get_data_counts (1);
@@ -5355,11 +5354,11 @@ unblended
     A line with wavelength lambda_k is defined to be "unblended" if
     the flux from the line of interest dominates the total flux
     from nearby contaminating lines.  More precisely, the criterion
-    is that *section*um_j neq k F(lambda_j) < frac x F(lambda_k)
-    where the summation extends over all contaminating lines with
-    wavelength lambda_j within pm wl_seplambda_k of the line of
-    interest (lambda_k). The blend type allowed_type specifies
-    which lines are to be considered contaminants.
+    is that sum_j neq k F(lambda_j) < frac x F(lambda_k) where the
+    summation extends over all contaminating lines with wavelength
+    lambda_j within pm wl_seplambda_k of the line of interest
+    (lambda_k). The blend type allowed_type specifies which lines
+    are to be considered contaminants.
 
      allowed_type = 0 indicates that wavelength spacing is the only
      determining factor; any other line falling within the stated
@@ -8423,10 +8422,10 @@ add_slang_statistic
     where data and model and arrays of equal length containing the
     data and model values and where weights is an array of the same
     size containing the statistical weight of each data point.  If
-    *section*igma is the uncertainty in the i^th data point, the
-    weight is usually 1/*section*igma^2. The function returns the
-    value of the fit-statistic, stat, as well as a vector, (vec),
-    containing the contribution to the statistic from each bin.
+    sigma is the uncertainty in the i^th data point, the weight is
+    usually 1/sigma^2. The function returns the value of the
+    fit-statistic, stat, as well as a vector, (vec), containing the
+    contribution to the statistic from each bin.
 
     The function which prints the fit-statistic named "stat" should
     be named stat_report and should have the interface
@@ -9191,7 +9190,7 @@ egauss
            \exp\left[-{ (E-E_0)^2 \over 2\sigma^2} \right]
 
     where A is the total area (e.g. photons/s/cm^2) under the
-    Gaussian centered at E_0 with width *section*igma.
+    Gaussian centered at E_0 with width sigma.
 
  SEE ALSO
     gauss
@@ -9892,7 +9891,7 @@ gauss
            \exp\left[-{ (\lambda-\lambda_0)^2 \over 2\sigma^2} \right]
 
     where A is the total area (e.g. photons/s/cm^2) under the
-    Gaussian centered at lambda_0 with width *section*igma.
+    Gaussian centered at lambda_0 with width sigma.
 
  SEE ALSO
     Lorentz, voigt, poly, delta, bin_width, bin_center
@@ -10517,8 +10516,7 @@ list_functions
     Powerlaw        blackbody       gauss           poly
     isis>
 
-    See *section*) for information on accessing XSPEC source
-    models.
+    See S) for information on accessing XSPEC source models.
 
  SEE ALSO
     add_compiled_function, add_slang_function, del_function
@@ -11202,7 +11200,7 @@ print_kernel
     pileup-kernel does have a number of parameters. User-defined
     fit kernels may provide this functionality as well -- see
     src/pileup_kernel.c in the ISIS distribution for an
-    implementation example.  See also *section*.
+    implementation example.  See also S.
 
  SEE ALSO
     load_kernel, set_kernel
@@ -11637,13 +11635,12 @@ set_fit_statistic
 
       set_fit_statistic ("chisqr;sigma=gehrels");
 
-    Given data values C_i pm *section*igma_i and model values M_i,
-    the chi-square statistic is defined to be
+    Given data values C_i pm sigma_i and model values M_i, the
+    chi-square statistic is defined to be
 
        \chi^2 = \sum (C_i - M_i)^2 / \sigma_i^2
 
-    where the definition of *section*igma_i is one of the
-    following:
+    where the definition of sigma_i is one of the following:
 
         data    \sigma_i [default]
      gehrels    1 + \sqrt(C_i + 0.75)
@@ -11699,7 +11696,7 @@ set_kernel
     unavailable, the response defaults to an identity matrix. The
     pileup kernel, which includes the effects due to event pileup
     within a single CCD frame-time and described in detail in Davis
-    (2001), is called "pileup" (See also *section*).
+    (2001), is called "pileup" (See also S).
 
     The first argument, hist_index_list, is a list of data set
     indices which should use this kernel. The second argument,
