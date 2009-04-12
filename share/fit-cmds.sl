@@ -2162,38 +2162,51 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
 
 %}}}
 
-require ("fork_xpa");
+require ("fork_socket");
 
 #ifexists fork_slave
 
-private define server_send (paramlist) %{{{
+private define slave_has_result (s)
 {
-   return pack ("i", getpid());
-}
+   variable d = s.data;
 
-%}}}
-
-private define server_recv (paramlist, buf) %{{{
-{
    variable
-     slave_pid = atoi(paramlist),
-     s = slave_lookup (slave_pid);
+     nx = length(d.xsub),
+     ny = length(d.ysub),
+     len = nx * ny;
 
-   variable dims = unpack ("i2", buf);
-   variable a, n = dims[0]*dims[1];
-   (,a) = unpack ("i2d$n"$, buf);
+   variable n, subarray, mask;
+   sigprocmask (SIG_BLOCK, SIGCHLD, &mask);
+   n = fread (&subarray, Float_Type, len, s.fp);
+   sigprocmask (SIG_SETMASK, mask);
 
-   s.slave_info.subarray = _reshape (a, dims);
+   variable err_msg;
+   if (n != len)
+     {
+        err_msg = sprintf ("*** master fread failed (%s) n = %d, expected %d",
+                           errno_string(), n, len);
+        throw ApplicationError, err_msg;
+     }
 
-   return 0;
+   s.data.subarray = _reshape (subarray, [ny, nx]);
 }
 
-%}}}
-
-private define slave_process (ip1, p1, ip2, p2, info) %{{{
+private define message_handler (s, msg)
 {
-   variable e, r, names, msgs;
-   variable pid = getpid();
+   switch (msg.type)
+     {
+      case SLAVE_RESULT:
+        slave_has_result (s);
+     }
+     {
+        print(msg);
+        throw ApplicationError, "Unsupported message type";
+     }
+}
+
+private define slave_process (s, ip1, p1, ip2, p2, info) %{{{
+{
+   variable e;
 
    try (e)
      {
@@ -2207,27 +2220,18 @@ private define slave_process (ip1, p1, ip2, p2, info) %{{{
         exit(1);
      }
 
-   variable dims = array_shape (map);
-   variable len = dims[0] * dims[1];
-   variable results =
-     pack (sprintf ("i2d%d", len), dims, _reshape(map, len));
+   variable
+     dims = array_shape (map),
+     len = dims[0] * dims[1];
 
-   variable xpa = XPAOpen (NULL);
+   send_msg (s.fp, SLAVE_RESULT);
+   variable n = fwrite (map, s.fp);
+   if (n != len)
+     throw ApplicationError, "*** slave: fwrite failed";
+   if (0 != fflush (s.fp))
+     throw ApplicationError, "*** slave: fflush failed";
 
-   try (e)
-     {
-        (names, msgs) = XPASet (xpa, server_name(), "$pid"$, 1,
-                                bstring_to_array(results));
-     }
-   catch AnyError:
-     {
-        pid_vmessage ("Caught exception calling xpaset!!!");
-        print(e);
-        exit(1);
-     }
-
-   XPAClose (xpa);
-   exit (0);
+   return 0;
 }
 
 %}}}
@@ -2268,31 +2272,29 @@ private define parallel_map_chisqr (num_slaves, px, py, %{{{
 {
    variable xsub, ysub;
    (xsub, ysub) = partition_indices (px.num, py.num, num_slaves);
-   variable i, s, slaves = init_slaves ();
 
+   variable slaves = new_slave_list ();
+
+   variable i, s;
    _for i (0, num_slaves-1, 1)
      {
         s = fork_slave (&slave_process,
                         ix, pxs[xsub[i]], iy, pys[ysub[i]], info ;; __qualifiers);
-        s.slave_info = struct {xsub=xsub[i], ysub=ysub[i], subarray};
-        list_append (slaves, s);
+        s.data = struct {xsub=xsub[i], ysub=ysub[i], subarray};
+        append_slave (slaves, s);
      }
 
-   if (-1 == start_server (&server_send, &server_recv ;; __qualifiers))
-     return NULL;
+   manage_slaves (slaves, &message_handler ;; __qualifiers);
 
-   wait_for_slaves (slaves ;; __qualifiers);
-
-   variable map = Double_Type[py.num, px.num];
+   variable map = Float_Type[py.num, px.num];
    foreach s (slaves)
      {
-        variable d = s.slave_info;
+        variable d = s.data;
         map[d.ysub, d.xsub] = d.subarray;
      }
 
    return map;
 }
-
 
 %}}}
 

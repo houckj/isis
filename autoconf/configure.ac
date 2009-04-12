@@ -130,23 +130,15 @@ then
    AC_DEFINE(HAVE_DJBFFT)
 fi
 
-AC_ARG_WITH(slxpa,
-  [  --with-slxpa           slxpa module is available],
-  [ jh_have_slxpa=$withval ], [jh_have_slxpa=no])
 AC_ARG_ENABLE(extras,
   [  --disable-extras        Don't install extras ],
   [ jh_extras_enable=$enableval ], [jh_extras_enable=yes])
 BUILD_ISIS_EXTRAS=no
-if test "x$jh_have_slxpa" != "xno" ; then
-   AC_DEFINE(HAVE_SLXPA_MODULE)
-   jh_extras_enable=no
-fi
 if test X"$jh_extras_enable" = X"yes" ; then
    if test -d extras ; then
      BUILD_ISIS_EXTRAS=yes
      AC_DEFINE(HAVE_ISIS_EXTRAS)
-     ac_configure_args="$ac_configure_args --with-slanginc=$jd_slang_include_dir --with-slanglib=$jd_slang_library_dir --with-xpainc=$CONFIG_DIR/extras/xpa --with-xpalib=$CONFIG_DIR/extras/xpa"
-     AC_CONFIG_SUBDIRS([extras/xpa extras/slxpa])
+     ac_configure_args="$ac_configure_args --with-slanginc=$jd_slang_include_dir --with-slanglib=$jd_slang_library_dir"
      AC_CONFIG_COMMANDS_POST([test -d extras && ./config.status --file=extras/Makefile:extras/Makefile.in])
    else
      echo 'No extras directory - ok.'

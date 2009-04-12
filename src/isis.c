@@ -502,10 +502,6 @@ static int initialize (int argc, char **argv) /*{{{*/
    (void) SLdefine_for_ifdef ("__APPLE__");
 #endif
 
-#ifdef HAVE_SLXPA_MODULE
-   (void) SLdefine_for_ifdef ("__HAVE_SLXPA_MODULE__");
-#endif
-
 #ifdef HAVE_ISIS_EXTRAS
    (void) SLdefine_for_ifdef ("__HAVE_ISIS_EXTRAS__");
 #endif
