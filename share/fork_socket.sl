@@ -157,13 +157,13 @@ define read_n_array_vals (fp, n, type)
           {
              if (errno == EINTR)
                continue;
-             throw IOError;
+             throw IOError, errno_string();
           }
         array = [array, darray];
         n -= num_read;
      }
    if (n > 0)
-     throw IOError;
+     throw IOError, errno_string();
    return array;
 }
 
@@ -177,12 +177,12 @@ define write_array (fp, array)
           {
              if (errno == EINTR)
                continue;
-             throw IOError;
+             throw IOError, errno_string();
           }
         n -= num_written;
      }
    if (n > 0)
-     throw IOError;
+     throw IOError, errno_string();
    return fflush (fp);
 }
 
@@ -203,11 +203,7 @@ define recv_msg (fp)
 define send_msg (fp, type)
 {
    if (write_array (fp, [getpid(), type]))
-     {
-        variable err_msg = sprintf ("%s: write failed %s",
-                                    _function_name, errno_string());
-        throw IOError, err_msg;
-     }
+     throw IOError;
 }
 
 private define handle_message (s, msg)
@@ -374,7 +370,6 @@ private define sigchld_handler (sig)
 define manage_slaves (slaves, mesg_handler)
 {
    Verbose = qualifier_exists ("verbose");
-
    User_Message_Handler = mesg_handler;
 
    try
@@ -391,6 +386,8 @@ define manage_slaves (slaves, mesg_handler)
      }
    finally
      {
+        signal (SIGCHLD, SIG_DFL);
+
         variable s;
         foreach s (slaves)
           {
@@ -400,7 +397,6 @@ define manage_slaves (slaves, mesg_handler)
                     call_waitpid_for_slave (s);
                }
           }
-        signal (SIGCHLD, SIG_DFL);
      }
 }
 
@@ -468,11 +464,7 @@ define slave_is_ready (s)
 {
    %vmessage ("slave %d is ready", s.pid);
    if (write_array (s.fp, urand(2)))
-     {
-        variable err_msg = sprintf ("%s: write failed %s",
-                                    _function_name, errno_string());
-        throw IOError, err_msg;
-     }
+     throw IOError;
 }
 
 define slave_has_result (s)
