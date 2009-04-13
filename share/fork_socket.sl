@@ -148,11 +148,12 @@ private define call_waitpid_for_slave (s)
 
 define read_n_array_vals (fp, n, type)
 {
-   variable array = type[0];
-   while (n > 0)
+   variable array = type[0], max_tries = 100;
+   while (n > 0 && max_tries > 0)
      {
         variable darray;
         variable num_read = fread (&darray, type, n, fp);
+        max_tries--;
         if (num_read == 0 || num_read == -1)
           {
              if (errno == EINTR)
@@ -169,10 +170,11 @@ define read_n_array_vals (fp, n, type)
 
 define write_array (fp, array)
 {
-   variable n = length(array);
-   while (n > 0)
+   variable n = length(array), max_tries = 100;
+   while (n > 0 && max_tries > 0)
      {
         variable num_written = fwrite (array, fp);
+        max_tries--;
         if (num_written == 0 || num_written == -1)
           {
              if (errno == EINTR)
@@ -464,7 +466,7 @@ define guess_num_slaves ()
 
 #ifdef FORK_SOCKET_TEST %{{{
 
-define task (s, num_loops)
+define task (s, which, num_loops)
 {
    pid_vmessage ("started");
    seed_random (_time - getpid());
@@ -528,7 +530,7 @@ define isis_main()
    slaves = new_slave_list();
    _for i (0, num_slaves-1, 1)
      {
-        s = fork_slave (&task, args[i]);
+        s = fork_slave (&task, i, args[i]);
         append_slave (slaves, s);
      }
 
