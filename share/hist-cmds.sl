@@ -94,7 +94,8 @@ private define dataset_string (s, i, width) %{{{
 
    if (Isis_List_Filenames)
      {
-        str += sprintf ("\nfile:  %s", s.file);
+        if (s.file != NULL)
+          str += sprintf ("\nfile:  %s", s.file);
 
         variable back = _isis->_get_instrumental_background_hook_name(i);
         if (back == NULL) back = s.bgd_file;
@@ -174,7 +175,8 @@ private define arf_string (i) %{{{
 
    if (Isis_List_Filenames)
      {
-        str += sprintf ("\nfile:  %s", a.file);
+        if (a.file != NULL)
+          str += sprintf ("\nfile:  %s", a.file);
      }
 
    return str;
