@@ -149,10 +149,8 @@ define recv_msg (fp)
    if (feof(fp))
      return NULL;
 
-   variable n, msg, mask;
-   sigprocmask (SIG_BLOCK, SIGCHLD, &mask);
+   variable n, msg;
    n = fread (&msg, Int_Type, 2, fp);
-   sigprocmask (SIG_SETMASK, mask);
 
    variable err_msg;
    if (n < 0)
@@ -176,10 +174,7 @@ define recv_msg (fp)
 
 define send_msg (fp, type)
 {
-   variable n, mask;
-   sigprocmask (SIG_BLOCK, SIGCHLD, &mask);
-   n = fwrite ([getpid(), type], fp);
-   sigprocmask (SIG_SETMASK, mask);
+   variable n = fwrite ([getpid(), type], fp);
 
    variable err_msg;
    if (n != 2)
@@ -295,7 +290,7 @@ define fork_slave ()
         else
           status = (@func_ref)(p);
         send_msg (p.fp, SLAVE_EXITING);
-        exit (status);
+        _exit (status);
      }
 
    % parent
@@ -375,6 +370,15 @@ define manage_slaves (slaves, mesg_handler)
      }
    finally
      {
+        variable s;
+        foreach s (slaves)
+          {
+             if (kill (s.pid, 0) == 0)
+               {
+                  if (kill (s.pid, SIGTERM) == 0)
+                    call_waitpid_for_slave (s);
+               }
+          }
         signal (SIGCHLD, SIG_DFL);
      }
 }
@@ -448,10 +452,7 @@ define task (s, num_loops)
 define slave_is_ready (s)
 {
    %vmessage ("slave %d is ready", s.pid);
-   variable n, mask;
-   sigprocmask (SIG_BLOCK, SIGCHLD, &mask);
-   n = fwrite (urand(2), s.fp);
-   sigprocmask (SIG_SETMASK, mask);
+   variable n = fwrite (urand(2), s.fp);
 
    variable err_msg;
    if (n != 2)
@@ -471,10 +472,8 @@ define slave_is_ready (s)
 define slave_has_result (s)
 {
    %vmessage ("slave %d has result", s.pid);
-   variable n, x, mask;
-   sigprocmask (SIG_BLOCK, SIGCHLD, &mask);
+   variable n, x;
    n = fread (&x, Double_Type, 10000, s.fp);
-   sigprocmask (SIG_SETMASK, mask);
 
    if (n != 10000)
      throw ApplicationError, "*** master: fread failed";
