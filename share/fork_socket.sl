@@ -367,6 +367,39 @@ private define sigchld_handler (sig)
    signal (SIGCHLD, &sigchld_handler);
 }
 
+private define master_sigint_handler (sig)
+{
+   throw UserBreakError;
+}
+
+private define kill_any_remaining_slaves (slaves)
+{
+   variable mask;
+
+   try
+     {
+        sigprocmask (SIG_BLOCK, SIGINT, &mask);
+        signal (SIGINT, SIG_IGN);
+        sigprocmask (SIG_UNBLOCK, SIGINT);
+
+        variable s;
+        foreach s (slaves)
+          {
+             if (kill (s.pid, 0) == 0)
+               {
+                  if (kill (s.pid, SIGTERM) == 0)
+                    call_waitpid_for_slave (s);
+               }
+          }
+     }
+   finally
+     {
+        sigprocmask (SIG_BLOCK, SIGINT);
+        signal (SIGINT, &master_sigint_handler);
+        sigprocmask (SIG_SETMASK, mask);
+     }
+}
+
 define manage_slaves (slaves, mesg_handler)
 {
    Verbose = qualifier_exists ("verbose");
@@ -387,16 +420,7 @@ define manage_slaves (slaves, mesg_handler)
    finally
      {
         signal (SIGCHLD, SIG_DFL);
-
-        variable s;
-        foreach s (slaves)
-          {
-             if (kill (s.pid, 0) == 0)
-               {
-                  if (kill (s.pid, SIGTERM) == 0)
-                    call_waitpid_for_slave (s);
-               }
-          }
+        kill_any_remaining_slaves (slaves);
      }
 }
 
