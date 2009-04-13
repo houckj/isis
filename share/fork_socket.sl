@@ -50,6 +50,8 @@ require ("select");
 %     manage_slaves (slaves, &message_handler);
 %     send_msg (fp, type)
 %     msg = recv_msg (fp)
+%     array = read_n_array_vals (fp, n, type);
+%     status = write_array (fp, array);
 %     pid_vmessage (...)
 
 private variable User_Message_Handler;
@@ -144,26 +146,52 @@ private define call_waitpid_for_slave (s)
      }
 }
 
+define read_n_array_vals (fp, n, type)
+{
+   variable array = type[0];
+   while (n > 0)
+     {
+        variable darray;
+        variable num_read = fread (&darray, type, n, fp);
+        if (num_read == 0 || num_read == -1)
+          {
+             if (errno == EINTR)
+               continue;
+             throw IOError;
+          }
+        array = [array, darray];
+        n -= num_read;
+     }
+   if (n > 0)
+     throw IOError;
+   return array;
+}
+
+define write_array (fp, array)
+{
+   variable n = length(array);
+   while (n > 0)
+     {
+        variable num_written = fwrite (array, fp);
+        if (num_written == 0 || num_written == -1)
+          {
+             if (errno == EINTR)
+               continue;
+             throw IOError;
+          }
+        n -= num_written;
+     }
+   if (n > 0)
+     throw IOError;
+   return fflush (fp);
+}
+
 define recv_msg (fp)
 {
    if (feof(fp))
      return NULL;
 
-   variable n, msg;
-   n = fread (&msg, Int_Type, 2, fp);
-
-   variable err_msg;
-   if (n < 0)
-     {
-        err_msg = sprintf ("%s: read failed: (%s)", _function_name, errno_string());
-        throw ApplicationError, err_msg;
-     }
-   else if (n != 2)
-     {
-        err_msg = sprintf ("%s: invalid message buffer (fread returned %d) %s",
-                           _function_name, n, errno_string());
-        throw ApplicationError, err_msg;
-     }
+   variable msg = read_n_array_vals (fp, 2, Int_Type);
 
    variable s = struct {from_pid, type};
    s.from_pid = msg[0];
@@ -174,18 +202,11 @@ define recv_msg (fp)
 
 define send_msg (fp, type)
 {
-   variable n = fwrite ([getpid(), type], fp);
-
-   variable err_msg;
-   if (n != 2)
+   if (write_array (fp, [getpid(), type]))
      {
-        err_msg = sprintf ("%s: fwrite failed %s", _function_name, errno_string());
-        throw ApplicationError, err_msg;
-     }
-   if (0 != fflush (fp))
-     {
-        err_msg = sprintf ("%s: fflush failed %s", _function_name, errno_string());
-        throw ApplicationError, err_msg;
+        variable err_msg = sprintf ("%s: write failed %s",
+                                    _function_name, errno_string());
+        throw IOError, err_msg;
      }
 }
 
@@ -243,7 +264,7 @@ private define messages_pending (slaves)
 
    variable ss = select (socks.fd, NULL, NULL, -1);
    if (ss == NULL)
-     throw ApplicationError, "messages_pending:  error on socket";
+     throw IOError, "messages_pending:  error on socket";
 
    if (ss.nready == 0)
      return NULL;
@@ -432,18 +453,12 @@ define task (s, num_loops)
    _for i (0, num_loops-1, 1)
      {
         send_msg (s.fp, SLAVE_READY);
-        variable x, n;
-        n = fread (&x, Double_Type, 2, s.fp);
-        if (n != 2)
-          {
-             vmessage ("task:  read failed");
-             throw ApplicationError;
-          }
+        variable x = read_n_array_vals (s.fp, 2, Double_Type);
+
         send_msg (s.fp, SLAVE_RESULT);
 
-        n = fwrite (urand(100,100), s.fp);
-        if (n != 10000)
-          throw ApplicationError, "*** slave: fwrite failed";
+        if (write_array (s.fp, urand(100,100)))
+          throw IOError, "*** slave: write failed";
      }
 
    return 0;
@@ -452,33 +467,18 @@ define task (s, num_loops)
 define slave_is_ready (s)
 {
    %vmessage ("slave %d is ready", s.pid);
-   variable n = fwrite (urand(2), s.fp);
-
-   variable err_msg;
-   if (n != 2)
+   if (write_array (s.fp, urand(2)))
      {
-        err_msg = sprintf ("%s: fwrite failed %s",
-                           _function_name, errno_string());
-        throw ApplicationError, err_msg;
-     }
-   if (0 != fflush (s.fp))
-     {
-        err_msg = sprintf ("%s: fflush failed %s",
-                           _function_name, errno_string());
-        throw ApplicationError, err_msg;
+        variable err_msg = sprintf ("%s: write failed %s",
+                                    _function_name, errno_string());
+        throw IOError, err_msg;
      }
 }
 
 define slave_has_result (s)
 {
    %vmessage ("slave %d has result", s.pid);
-   variable n, x;
-   n = fread (&x, Double_Type, 10000, s.fp);
-
-   if (n != 10000)
-     throw ApplicationError, "*** master: fread failed";
-
-   s.data = x;
+   s.data = read_n_array_vals (s.fp, 10000, Double_Type);
 }
 
 define message_handler (s, msg)

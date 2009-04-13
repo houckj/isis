@@ -2175,18 +2175,7 @@ private define slave_has_result (s)
      ny = length(d.ysub),
      len = nx * ny;
 
-   variable n, subarray, mask;
-   sigprocmask (SIG_BLOCK, SIGCHLD, &mask);
-   n = fread (&subarray, Float_Type, len, s.fp);
-   sigprocmask (SIG_SETMASK, mask);
-
-   variable err_msg;
-   if (n != len)
-     {
-        err_msg = sprintf ("*** master fread failed (%s) n = %d, expected %d",
-                           errno_string(), n, len);
-        throw ApplicationError, err_msg;
-     }
+   variable subarray = read_n_array_vals (s.fp, len, Float_Type);
 
    s.data.subarray = _reshape (subarray, [ny, nx]);
 }
@@ -2225,11 +2214,8 @@ private define slave_process (s, ip1, p1, ip2, p2, info) %{{{
      len = dims[0] * dims[1];
 
    send_msg (s.fp, SLAVE_RESULT);
-   variable n = fwrite (map, s.fp);
-   if (n != len)
-     throw ApplicationError, "*** slave: fwrite failed";
-   if (0 != fflush (s.fp))
-     throw ApplicationError, "*** slave: fflush failed";
+   if (write_array (s.fp, map))
+     throw IOError, "*** slave: write failed";
 
    return 0;
 }
