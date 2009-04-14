@@ -67,6 +67,7 @@ extern double Hist_Gehrels_Threshold;
 extern double Hist_Min_Model_Spacing;
 extern int Hist_Ignore_PHA_Response_Keywords;
 extern int Hist_Ignore_PHA_Backfile_Keyword;
+extern int Hist_Allow_Multiple_Arf_Factors;
 
 typedef int Hist_Stat_Error_Hook_Type (void *, double *, double *, int *, int,
                                        double *, int);

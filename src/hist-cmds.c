@@ -2822,6 +2822,7 @@ static SLang_Intrin_Var_Type Hist_Intrin_Vars [] =
    MAKE_VARIABLE("Isis_List_Filenames", &Isis_List_Filenames, I, 0),
    MAKE_VARIABLE("Ignore_PHA_Response_Keywords", &Hist_Ignore_PHA_Response_Keywords, I, 0),
    MAKE_VARIABLE("Ignore_PHA_Backfile_Keyword", &Hist_Ignore_PHA_Backfile_Keyword, I, 0),
+   MAKE_VARIABLE("Allow_Multiple_Arf_Factors", &Hist_Allow_Multiple_Arf_Factors, I, 0),
    MAKE_VARIABLE("Rmf_Grid_Tol", &Hist_Rmf_Grid_Match_Tol, D, 0),
    MAKE_VARIABLE("Rmf_OGIP_Compliance", &Isis_Rmf_OGIP_Compliance, I, 0),
    MAKE_VARIABLE("Minimum_Stat_Err", &Hist_Min_Stat_Err, D, 0),

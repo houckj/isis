@@ -1295,6 +1295,15 @@ assign_arf
             assign_arf (2, [3:6]);         % Spectra 3, 4, 5 and 6 should
                                            % use ARF 2
 
+    When a dataset has been assigned an RMF that includes an ARF
+    factor, assigning another ARF will generate a warning message,
+    but the ARF will be assigned anyway.  To prevent assigning such
+    additional ARF factors, set the intrinsic variable
+    Allow_Multiple_Arf_Factors to a negative value. To allow
+    additional ARF factors to be assigned without complaint, set
+    Allow_Multiple_Arf_Factors=1.  The default behavior corresponds
+    to Allow_Multiple_Arf_Factors=0.
+
 
  SEE ALSO
     load_arf,  list_arf, unassign_arf, flux_corr, assign_rsp

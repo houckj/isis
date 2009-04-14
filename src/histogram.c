@@ -63,6 +63,7 @@ int Isis_Active_Dataset;
 int Isis_Residual_Plot_Type = ISIS_STAT_RESID;
 int Hist_Ignore_PHA_Response_Keywords;
 int Hist_Ignore_PHA_Backfile_Keyword;
+int Hist_Allow_Multiple_Arf_Factors;
 
 Hist_Stat_Error_Hook_Type *Hist_Stat_Error_Hook;
 
@@ -6078,8 +6079,17 @@ static int assign_matching_rsp (Hist_t *h, Isis_Rmf_t **rmf, Isis_Arf_t **arf) /
    if ((0 != Rmf_includes_effective_area (*rmf))
        && (0 == Arf_is_identity (*arf)))
      {
-        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "RMF already includes effective area; ARF not assigned");
-        return -1;
+        if (Hist_Allow_Multiple_Arf_Factors < 0)
+          {
+             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "RMF already includes effective area; ARF not assigned");
+             isis_vmesg (WARN, I_INFO, __FILE__, __LINE__,
+                         "To force the ARF assignment, set Allow_Multiple_Arf_Factors=0 or 1");
+             return -1;
+          }
+        else if (Hist_Allow_Multiple_Arf_Factors == 0)
+          {
+             isis_vmesg (WARN, I_WARNING, __FILE__, __LINE__, "RMF already includes effective area; assigning ARF anyway");
+          }
      }
 
    if ((adjust = match_rsp (h, &rsp)) < 0)
