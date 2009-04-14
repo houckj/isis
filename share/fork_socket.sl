@@ -56,7 +56,7 @@ require ("select");
 
 private variable User_Message_Handler;
 private variable Slaves_Running;
-private variable Sigchld_Received = 0;
+private variable Sigchld_Received;
 private variable Verbose = 0;
 
 variable
@@ -88,11 +88,16 @@ private define process_struct (pid, sock)
    return s;
 }
 
+private define sigchld_handler (sig);
+private define sigchld_handler (sig)
+{
+   Sigchld_Received++;
+   signal (SIGCHLD, &sigchld_handler);
+}
+
 private define cleanup_slave (s)
 {
-   Sigchld_Received--;
    Slaves_Running--;
-
    s.status = SLAVE_EXITED;
 
    if ((s.sock != NULL)
@@ -114,7 +119,8 @@ private define find_slave (slaves, pid)
           return s;
      }
 
-   return NULL;
+   throw ApplicationError, "slave pid=$pid not found!"$;
+   %return NULL;
 }
 
 private define call_waitpid_for_slave (s)
@@ -148,43 +154,41 @@ private define call_waitpid_for_slave (s)
 
 define read_n_array_vals (fp, n, type)
 {
-   variable array = type[0], max_tries = 100;
-   while (n > 0 && max_tries > 0)
+   variable array = type[0];
+   while (n > 0)
      {
         variable darray;
         variable num_read = fread (&darray, type, n, fp);
-        max_tries--;
-        if (num_read == 0 || num_read == -1)
+        if (num_read <= 0)
           {
              if (errno == EINTR)
                continue;
-             throw IOError, errno_string();
+             throw IOError, sprintf ("-%d- %s:  %s", getpid(), _function_name, errno_string());
           }
         array = [array, darray];
         n -= num_read;
      }
    if (n > 0)
-     throw IOError, errno_string();
+     throw IOError, sprintf ("-%d- %s:  %s", getpid(), _function_name, errno_string());
    return array;
 }
 
 define write_array (fp, array)
 {
-   variable n = length(array), max_tries = 100;
-   while (n > 0 && max_tries > 0)
+   variable n = length(array);
+   while (n > 0)
      {
         variable num_written = fwrite (array, fp);
-        max_tries--;
-        if (num_written == 0 || num_written == -1)
+        if (num_written <= 0)
           {
              if (errno == EINTR)
                continue;
-             throw IOError, errno_string();
+             throw IOError, sprintf ("-%d- %s:  %s", getpid(), _function_name, errno_string());
           }
         n -= num_written;
      }
    if (n > 0)
-     throw IOError, errno_string();
+     throw IOError, sprintf ("-%d- %s:  %s", getpid(), _function_name, errno_string());
    return fflush (fp);
 }
 
@@ -213,6 +217,9 @@ private define handle_message (s, msg)
    switch (msg.type)
      {
       case SLAVE_EXITING:
+        % handshake to avoid race condition -- we don't want the
+        % slave to exit before we've finished reading its results
+        send_msg (s.fp, SLAVE_EXITING);
         call_waitpid_for_slave (s);
      }
      {
@@ -289,6 +296,8 @@ define fork_slave ()
         return NULL;
      }
 
+   signal (SIGCHLD, &sigchld_handler);
+
    variable pid = fork ();
    if (pid < 0)
      {
@@ -308,11 +317,15 @@ define fork_slave ()
           status = (@func_ref)(p, __push_args(args));
         else
           status = (@func_ref)(p);
+        % handshake to avoid race condition -- we don't want the
+        % slave to exit before we've finished reading its results.
         send_msg (p.fp, SLAVE_EXITING);
+        () = recv_msg (p.fp);
         _exit (status);
      }
 
    % parent
+   Slaves_Running++;
    if (close (s2) != 0)
      throw IOError, errno_string();
    return process_struct (pid, s1);
@@ -337,9 +350,6 @@ private define random_indices (n)
 
 private define round_robin (slaves, fp_set)
 {
-   % The fp_set must be updated whenever the number of slaves
-   % changes (e.g. when one or more slaves exit).
-
    % visit the slaves in random order.
    variable
      o = random_indices (length(fp_set)),
@@ -359,14 +369,10 @@ private define round_robin (slaves, fp_set)
           num_slaves_changed = 1;
      }
 
-   return num_slaves_changed;
-}
+   % The fp_set must be updated whenever the number of slaves
+   % changes (e.g. when one or more slaves exit).
 
-private define sigchld_handler (sig);
-private define sigchld_handler (sig)
-{
-   Sigchld_Received++;
-   signal (SIGCHLD, &sigchld_handler);
+   return num_slaves_changed;
 }
 
 private define master_sigint_handler (sig)
@@ -374,10 +380,11 @@ private define master_sigint_handler (sig)
    throw UserBreakError;
 }
 
-private define kill_any_remaining_slaves (slaves)
+private define kill_any_zombies (slaves)
 {
-   variable mask;
+   signal (SIGCHLD, SIG_DFL);
 
+   variable mask;
    try
      {
         sigprocmask (SIG_BLOCK, SIGINT, &mask);
@@ -407,11 +414,22 @@ define manage_slaves (slaves, mesg_handler)
    Verbose = qualifier_exists ("verbose");
    User_Message_Handler = mesg_handler;
 
-   try
+   if (length(slaves) != Slaves_Running)
      {
-        Sigchld_Received = 0;
-        signal (SIGCHLD, &sigchld_handler);
+        throw ApplicationError,
+          "manage_slaves:  slave list doesn't match number of running slaves";
+     }
 
+   if (Sigchld_Received)
+     {
+        kill_any_zombies (slaves);
+        throw ApplicationError,
+          "*** At least $Sigchld_Received slaves exited before manager could start!"$;
+     }
+
+   variable e;
+   try (e)
+     {
         while (Slaves_Running)
           {
              variable fp_set = messages_pending (slaves);
@@ -419,22 +437,26 @@ define manage_slaves (slaves, mesg_handler)
                {}
           }
      }
+   catch AnyError:
+     {
+        vmessage ("*** manage_slaves: caught exception!");
+        print(e);
+     }
    finally
      {
-        signal (SIGCHLD, SIG_DFL);
-        kill_any_remaining_slaves (slaves);
+        kill_any_zombies (slaves);
      }
 }
 
 define new_slave_list ()
 {
+   Sigchld_Received = 0;
    Slaves_Running = 0;
    return list_new();
 }
 
 define append_slave (slaves, s)
 {
-   Slaves_Running++;
    list_append (slaves, s);
 }
 
@@ -466,22 +488,27 @@ define guess_num_slaves ()
 
 #ifdef FORK_SOCKET_TEST %{{{
 
+private variable M = 2;
+
 define task (s, which, num_loops)
 {
-   pid_vmessage ("started");
+   %pid_vmessage ("started");
    seed_random (_time - getpid());
 
    variable i;
    _for i (0, num_loops-1, 1)
      {
+        %pid_vmessage ("ready");
         send_msg (s.fp, SLAVE_READY);
         variable x = read_n_array_vals (s.fp, 2, Double_Type);
 
         send_msg (s.fp, SLAVE_RESULT);
 
-        if (write_array (s.fp, urand(100,100)))
+        if (write_array (s.fp, urand(M,M)))
           throw IOError, "*** slave: write failed";
      }
+
+   %pid_vmessage ("finished");
 
    return 0;
 }
@@ -496,7 +523,7 @@ define slave_is_ready (s)
 define slave_has_result (s)
 {
    %vmessage ("slave %d has result", s.pid);
-   s.data = read_n_array_vals (s.fp, 10000, Double_Type);
+   s.data = read_n_array_vals (s.fp, M*M, Double_Type);
 }
 
 define message_handler (s, msg)
@@ -527,19 +554,22 @@ define isis_main()
 
    args[*] = 100;
 
-   slaves = new_slave_list();
-   _for i (0, num_slaves-1, 1)
+   loop (5)
      {
-        s = fork_slave (&task, i, args[i]);
-        append_slave (slaves, s);
-     }
+        slaves = new_slave_list();
+        _for i (0, num_slaves-1, 1)
+          {
+             s = fork_slave (&task, i, args[i]);
+             append_slave (slaves, s);
+          }
 
-   manage_slaves (slaves, &message_handler);
+        manage_slaves (slaves, &message_handler; verbose);
 
-   foreach s (slaves)
-     {
-        vmessage ("pid=%d sum_result=%g",
-                  s.pid, sum(s.data));
+        foreach s (slaves)
+          {
+             vmessage ("pid=%d sum_result=%g",
+                       s.pid, sum(s.data));
+          }
      }
 }
 %}}}
