@@ -309,6 +309,7 @@ define fork_slave ()
      {
         % child
         signal (SIGINT, SIG_DFL);
+        signal (SIGCHLD, SIG_DFL);
         if (close (s1) != 0)
           throw IOError, errno_string();
         variable p = process_struct (0, s2);
