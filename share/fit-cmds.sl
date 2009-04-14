@@ -2299,7 +2299,7 @@ private define generate_contours (px, py, info) %{{{
 #ifexists fork_slave
    variable serial = qualifier_exists ("serial");
    variable num_slaves = qualifier ("num_slaves", guess_num_slaves());
-   if (serial == 0 && num_slaves > 1)
+   if ((serial == 0) && (num_slaves > 1) && (num_slaves < length(pxs)))
      {
         return parallel_map_chisqr (num_slaves, px, py,
                                     ix, pxs, iy, pys, info ;; __qualifiers);
