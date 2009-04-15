@@ -175,10 +175,10 @@ define read_n_array_vals (fp, n, type)
 
 define write_array (fp, array)
 {
-   variable n = length(array);
+   variable i = 0, n = length(array);
    while (n > 0)
      {
-        variable num_written = fwrite (array, fp);
+        variable num_written = fwrite (array[[i:]], fp);
         if (num_written <= 0)
           {
              if (errno == EINTR)
@@ -186,6 +186,7 @@ define write_array (fp, array)
              throw IOError, sprintf ("-%d- %s:  %s", getpid(), _function_name, errno_string());
           }
         n -= num_written;
+        i += num_written;
      }
    if (n > 0)
      throw IOError, sprintf ("-%d- %s:  %s", getpid(), _function_name, errno_string());
