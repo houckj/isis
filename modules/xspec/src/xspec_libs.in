@@ -124,16 +124,9 @@ case "$with_xspec_version" in
   *11* )
        Use_Xspec_11
        ;;
-  *12* )
+  * )
        Use_Xspec_12
        ;;
-   * )
-       if [ -f "${HEADAS}/bin/xspec11" ]; then
-          Use_Xspec_11
-       else
-          Use_Xspec_12
-       fi
-     ;;
 esac
 
 echo $HAVE_XSPEC_VERSION > config-xspec-version
