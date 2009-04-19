@@ -433,8 +433,21 @@ extern void deinit_emis_module (void);
 extern void deinit_fit_module (void);
 extern void deinit_model_module (void);
 
+static int Called_Quit_Isis = 0;
+
 void quit_isis (int reset) /*{{{*/
 {
+   /* If a signal arrives while we're exiting, it's possible
+    * that this routine could be called again, before it has
+    * finished.  Set a global variable to prevent that.
+    */
+   if (reset == 0)
+     {
+        if (Called_Quit_Isis)
+          return;
+        Called_Quit_Isis = 1;
+     }
+
    deinit_miscio_module ();
    deinit_math_module ();
    deinit_plot_module ();

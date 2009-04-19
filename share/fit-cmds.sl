@@ -1025,28 +1025,28 @@ define fit_counts ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "s = fit_counts ([response_type][, &info_struct])";
-   _do_eval_fit (&_isis->_fit, 0, msg, _NARGS);
+   return _do_eval_fit (&_isis->_fit, 0, msg, _NARGS);
 }
 
 define fit_flux ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "s = fit_flux ([response_type][, &info_struct])";
-   _do_eval_fit (&_isis->_fit, 1, msg, _NARGS);
+   return _do_eval_fit (&_isis->_fit, 1, msg, _NARGS);
 }
 
 define eval_counts ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "s = eval_counts ([response_type][, &info_struct])";
-   _do_eval_fit (&_isis->_eval_model, 0, msg, _NARGS);
+   return _do_eval_fit (&_isis->_eval_model, 0, msg, _NARGS);
 }
 
 define eval_flux ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "s = eval_flux ([response_type][, &info_struct])";
-   _do_eval_fit (&_isis->_eval_model, 1, msg, _NARGS);
+   return _do_eval_fit (&_isis->_eval_model, 1, msg, _NARGS);
 }
 
 private define eval_statistic (data_type)
@@ -2200,7 +2200,6 @@ private define slave_process (s, ip1, p1, ip2, p2, info) %{{{
    try (e)
      {
         variable map = map_chisqr (ip1, p1, ip2, p2, info);
-
      }
    catch AnyError:
      {
@@ -2259,7 +2258,7 @@ private define parallel_map_chisqr (num_slaves, px, py, %{{{
    variable xsub, ysub;
    (xsub, ysub) = partition_indices (px.num, py.num, num_slaves);
 
-   variable slaves = new_slave_list ();
+   variable slaves = new_slave_list (;; __qualifiers);
 
    variable i, s;
    _for i (0, num_slaves-1, 1)

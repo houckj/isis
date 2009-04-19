@@ -2807,11 +2807,18 @@ void set_hook_from_stack (SLang_Name_Type **hook) /*{{{*/
    SLang_free_function (*hook);
 
    if (SLANG_REF_TYPE == SLang_peek_at_stack ())
-     *hook = SLang_pop_function ();
+     {
+        *hook = SLang_pop_function ();
+     }
+   else if (SLANG_NULL_TYPE == SLang_peek_at_stack ())
+     {
+        (void) SLang_pop_null();
+        *hook = NULL;
+     }
    else
      {
-        SLdo_pop();
-        *hook = NULL;
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "expected a function reference or NULL");
+        isis_throw_exception (Isis_Error);
      }
 }
 

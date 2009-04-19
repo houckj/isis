@@ -44,10 +44,10 @@ require ("select");
 #endif
 
 %  Public functions:
-%     slaves = new_slave_list ();
-%     s = fork_slave (&task [,args])
+%     slaves = new_slave_list ( [; qualifiers]);
+%     s = fork_slave (&task [,args [; qualifiers]])
 %     append_slave (slaves, s);
-%     manage_slaves (slaves, &message_handler);
+%     manage_slaves (slaves, &message_handler [; qualifiers]);
 %     send_msg (fp, type)
 %     msg = recv_msg (fp)
 %     array = read_n_array_vals (fp, n, type);
@@ -95,13 +95,37 @@ private define sigchld_handler (sig)
    signal (SIGCHLD, &sigchld_handler);
 }
 
+define do_close (fd)
+{
+   variable status;
+   do
+     {
+        status = close (fd);
+     }
+   while (status < 0 && errno == EINTR);
+
+   return status;
+}
+
+define do_fflush (fp)
+{
+   variable status;
+   do
+     {
+        status = fflush (fp);
+     }
+   while (status < 0 && errno == EINTR);
+
+   return status;
+}
+
 private define cleanup_slave (s)
 {
    Slaves_Running--;
    s.status = SLAVE_EXITED;
 
    if ((s.sock != NULL)
-       && (close (s.sock) != 0))
+       && (do_close (s.sock) != 0))
      {
         variable msg = sprintf ("%s:  close failed (%s)", _function_name, errno_string());
         throw IOError, msg;
@@ -190,7 +214,8 @@ define write_array (fp, array)
      }
    if (n > 0)
      throw IOError, sprintf ("-%d- %s:  %s", getpid(), _function_name, errno_string());
-   return fflush (fp);
+
+   return do_fflush (fp);
 }
 
 define recv_msg (fp)
@@ -278,6 +303,19 @@ private define messages_pending (slaves)
    return socks.fp[ss.iread];
 }
 
+private variable Do_Sigtest = 0;
+private variable Num_Sigusr1 = 0;
+private define sigusr1_handler (sig)
+{
+   Num_Sigusr1++;
+}
+private define catch_sigusr1()
+{
+   sigprocmask (SIG_BLOCK, SIGUSR1);
+   signal (SIGUSR1, &sigusr1_handler);
+   sigprocmask (SIG_UNBLOCK, SIGUSR1);
+}
+
 define fork_slave ()
 {
    variable args = NULL;
@@ -309,9 +347,10 @@ define fork_slave ()
    if (pid == 0)
      {
         % child
+        if (Do_Sigtest) catch_sigusr1();
         signal (SIGINT, SIG_DFL);
         signal (SIGCHLD, SIG_DFL);
-        if (close (s1) != 0)
+        if (do_close (s1) != 0)
           throw IOError, errno_string();
         variable p = process_struct (0, s2);
         variable status;
@@ -328,7 +367,7 @@ define fork_slave ()
 
    % parent
    Slaves_Running++;
-   if (close (s2) != 0)
+   if (do_close (s2) != 0)
      throw IOError, errno_string();
    return process_struct (pid, s1);
 }
@@ -350,7 +389,7 @@ private define random_indices (n)
    return o;
 }
 
-private define round_robin (slaves, fp_set)
+private define handle_pending_messages (slaves, fp_set)
 {
    % visit the slaves in random order.
    variable
@@ -382,7 +421,7 @@ private define master_sigint_handler (sig)
    throw UserBreakError;
 }
 
-private define kill_any_zombies (slaves)
+private define kill_slaves (slaves)
 {
    signal (SIGCHLD, SIG_DFL);
 
@@ -411,6 +450,46 @@ private define kill_any_zombies (slaves)
      }
 }
 
+define sigtest_slave (s, pids)
+{
+   variable n = length(pids), slaves_are_running;
+   do
+     {
+        variable i;
+        slaves_are_running = 0;
+        _for i (0, n-1, 1)
+          {
+             variable pid = pids[i];
+             if (pid < 0)
+               continue;
+             if (kill (pid, 0) != 0)
+               {
+                  pids[i] = -1;
+                  continue;
+               }
+             slaves_are_running++;
+             () = kill (pid, SIGUSR1);
+          }
+     }
+   while (slaves_are_running);
+
+   return 0;
+}
+
+define append_slave (slaves, s);
+
+private define start_sigtest_slave (slaves)
+{
+   vmessage ("###### RUNNING SIGTEST ######");
+   variable s, n=0, pids = Integer_Type[length(slaves)];
+   foreach s (slaves)
+     {
+        pids[n] = s.pid;
+        n++;
+     }
+   append_slave (slaves, fork_slave (&sigtest_slave, pids));
+}
+
 define manage_slaves (slaves, mesg_handler)
 {
    Verbose = qualifier_exists ("verbose");
@@ -424,10 +503,12 @@ define manage_slaves (slaves, mesg_handler)
 
    if (Sigchld_Received)
      {
-        kill_any_zombies (slaves);
+        kill_slaves (slaves);
         throw ApplicationError,
           "*** At least $Sigchld_Received slaves exited before manager could start!"$;
      }
+
+   if (Do_Sigtest) start_sigtest_slave (slaves);
 
    variable e;
    try (e)
@@ -435,8 +516,12 @@ define manage_slaves (slaves, mesg_handler)
         while (Slaves_Running)
           {
              variable fp_set = messages_pending (slaves);
-             while (round_robin (slaves, fp_set) == 0)
-               {}
+             variable num_slaves_changed;
+             do
+               {
+                  num_slaves_changed = handle_pending_messages (slaves, fp_set);
+               }
+             while (num_slaves_changed == 0);
           }
      }
    catch AnyError:
@@ -446,7 +531,8 @@ define manage_slaves (slaves, mesg_handler)
      }
    finally
      {
-        kill_any_zombies (slaves);
+        kill_slaves (slaves);
+        if (Do_Sigtest) () = list_pop (slaves, -1);
      }
 }
 
@@ -454,6 +540,7 @@ define new_slave_list ()
 {
    Sigchld_Received = 0;
    Slaves_Running = 0;
+   Do_Sigtest = qualifier_exists ("sigtest");
    return list_new();
 }
 
