@@ -347,22 +347,33 @@ define fork_slave ()
    if (pid == 0)
      {
         % child
-        if (Do_Sigtest) catch_sigusr1();
         signal (SIGINT, SIG_DFL);
         signal (SIGCHLD, SIG_DFL);
-        if (do_close (s1) != 0)
-          throw IOError, errno_string();
-        variable p = process_struct (0, s2);
-        variable status;
-        if (args != NULL)
-          status = (@func_ref)(p, __push_args(args));
-        else
-          status = (@func_ref)(p);
-        % handshake to avoid race condition -- we don't want the
-        % slave to exit before we've finished reading its results.
-        send_msg (p.fp, SLAVE_EXITING);
-        () = recv_msg (p.fp);
-        _exit (status);
+        if (Do_Sigtest) catch_sigusr1();
+        variable status = 1;
+        try (e)
+          {
+             if (do_close (s1) != 0)
+               throw IOError, errno_string();
+             variable p = process_struct (0, s2);
+             if (args != NULL)
+               status = (@func_ref)(p, __push_args(args));
+             else
+               status = (@func_ref)(p);
+          }
+        catch AnyError:
+          {
+             vmessage ("*** caught exception from slave process pid=%d", getpid());
+             print(e);
+          }
+        finally
+          {
+             % handshake to avoid race condition -- we don't want the
+             % slave to exit before we've finished reading its results.
+             send_msg (p.fp, SLAVE_EXITING);
+             () = recv_msg (p.fp);
+             _exit (status);
+          }
      }
 
    % parent
