@@ -976,14 +976,14 @@ define xspec_help () %{{{
      {
 	_pop_n (_NARGS);
 	usage ("xspec_help (\"model\")");
-        return 0;
+        return NULL;
      }
 
    variable model = ();
 
    variable headas = getenv ("HEADAS");
    if (headas == NULL)
-     return 0;
+     return NULL;
 
    variable help_env = getenv ("XSPEC_MODULE_HELP");
    if (help_env != NULL)
@@ -1010,12 +1010,13 @@ define xspec_help () %{{{
 
    variable path = path_concat (dir, file);
    if (NULL == stat_file (path))
-     return 0;
+     return NULL;
 
    if (0 != system (sprintf (cmd, path)))
      {
         vmessage ("*** Unable to display help file '$file'"$);
         vmessage ("    See the documentation for 'xspec_help' for details");
+        return NULL;
      }
 
    return 0;
