@@ -351,7 +351,7 @@ ISIS_USER_SOURCE_MODULE(Lorentz,p,options) /*{{{*/
    static char *units[] = {"photons/s/cm^2", "A", "A", NULL};
    static double default_max []= {0.0, 0.0, 1.0};
    static double default_value []= {1.0, 12.0, 0.025};
-   static double default_min []= {0.0, 0.0, 0.0};
+   static double default_min []= {0.0, 0.0, 1.e-6};
    static unsigned int norm_indexes[] = {0};
 
    (void) options;
@@ -489,7 +489,7 @@ ISIS_USER_SOURCE_MODULE(gauss,p,options) /*{{{*/
    static char *units[] = {"photons/s/cm^2", "A", "A", NULL};
    static double default_max []= {0.0, 0.0, 1.0};
    static double default_value []= {1.0, 12.0, 0.025};
-   static double default_min []= {0.0, 0.0, 0.0};
+   static double default_min []= {0.0, 0.0, 1.e-6};
    static unsigned int norm_indexes[] = {0};
 
    (void) options;
@@ -584,7 +584,7 @@ ISIS_USER_SOURCE_MODULE(egauss,p,options) /*{{{*/
    static char *units[] = {"photons/s/cm^2", "keV", "keV", NULL};
    static double default_max[]   = {0.0, 0.0, 1.0};
    static double default_value[] = {1.0, 1.0, 0.002};
-   static double default_min[]   = {0.0, 0.0, 0.0};
+   static double default_min[]   = {0.0, 0.0, 1.e-6};
    static unsigned int norm_indexes[] = {0};
 
    (void) options;
