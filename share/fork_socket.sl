@@ -287,7 +287,7 @@ private define slave_sockets (slaves)
    return ss;
 }
 
-private define messages_pending (slaves)
+private define pending_messages (slaves)
 {
    variable socks = slave_sockets (slaves);
    if (socks == NULL)
@@ -295,7 +295,7 @@ private define messages_pending (slaves)
 
    variable ss = select (socks.fd, NULL, NULL, -1);
    if (ss == NULL)
-     throw IOError, "messages_pending:  error on socket";
+     throw IOError, "pending_messages:  error on socket";
 
    if (ss.nready == 0)
      return NULL;
@@ -383,48 +383,45 @@ define fork_slave ()
    return process_struct (pid, s1);
 }
 
-private define random_indices (n)
+private define shuffle (array)
 {
-   variable i, o = [0:n-1];
-
-   _for i (0, n-1, 1)
+   % Fisher-Yates-Durstenfeld in-place shuffle
+   variable n = length(array);
+   while (n > 1)
      {
-        if (urand() < 0.5)
-          {
-             variable tmp = o[n-i-1];
-             o[n-i-1] = o[i];
-             o[i] = tmp;
-          }
+        variable k = int(n * urand());
+        n--;
+        variable tmp = array[n];
+        array[n] = array[k];
+        array[k] = tmp;
      }
-
-   return o;
 }
 
-private define handle_pending_messages (slaves, fp_set)
+private define handle_pending_messages (slaves)
 {
-   % visit the slaves in random order.
-   variable
-     o = random_indices (length(fp_set)),
-     num_slaves_changed = 0;
-
-   variable fp, s, msg;
-
-   foreach fp (fp_set[o])
-     {
-        msg = recv_msg (fp);
-        if (msg == NULL)
-          continue;
-
-        s = find_slave (slaves, msg.from_pid);
-
-        if (handle_message (s, msg))
-          num_slaves_changed = 1;
-     }
-
+   variable fp_set = pending_messages (slaves);
    % The fp_set must be updated whenever the number of slaves
    % changes (e.g. when one or more slaves exit).
 
-   return num_slaves_changed;
+   variable fp, num_slaves_changed = 0;
+
+   do
+     {
+        foreach fp (fp_set)
+          {
+             variable msg = recv_msg (fp);
+             if (msg == NULL)
+               continue;
+
+             variable s = find_slave (slaves, msg.from_pid);
+
+             if (handle_message (s, msg))
+               num_slaves_changed = 1;
+          }
+
+        shuffle (fp_set);
+     }
+   while (num_slaves_changed == 0);
 }
 
 private define master_sigint_handler (sig)
@@ -526,13 +523,7 @@ define manage_slaves (slaves, mesg_handler)
      {
         while (Slaves_Running)
           {
-             variable fp_set = messages_pending (slaves);
-             variable num_slaves_changed;
-             do
-               {
-                  num_slaves_changed = handle_pending_messages (slaves, fp_set);
-               }
-             while (num_slaves_changed == 0);
+             handle_pending_messages (slaves);
           }
      }
    catch AnyError:
