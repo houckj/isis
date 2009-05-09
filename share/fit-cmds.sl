@@ -2286,8 +2286,8 @@ private define parallel_map_chisqr (num_slaves, px, py, %{{{
                                     ix, pxs, iy, pys, info)
 {
    variable num_xsub, num_ysub;
-   num_xsub = qualifier ("num_xsub", num_slaves);
-   num_ysub = qualifier ("num_ysub", 1);
+   num_xsub = qualifier ("num_xsub", 1);
+   num_ysub = qualifier ("num_ysub", num_slaves);
 
    Parallel_Map_Info = struct
      {
