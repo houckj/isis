@@ -61,11 +61,11 @@ private variable Verbose = 0;
 
 variable
    SLAVE_EXITED  = -101,
+   SLAVE_EXITING = -100,
    SLAVE_STARTED =  100,
    SLAVE_RUNNING =  101,
    SLAVE_READY   =  102,
-   SLAVE_RESULT  =  103,
-   SLAVE_EXITING =  104;
+   SLAVE_RESULT  =  103;
 
 private define slave_is_active (s)
 {
@@ -102,7 +102,7 @@ define do_close (fd)
      {
         status = close (fd);
      }
-   while (status < 0 && errno == EINTR);
+   while (status != 0 && errno == EINTR);
 
    return status;
 }
@@ -114,7 +114,7 @@ define do_fflush (fp)
      {
         status = fflush (fp);
      }
-   while (status < 0 && errno == EINTR);
+   while (status != 0 && errno == EINTR);
 
    return status;
 }
@@ -418,8 +418,7 @@ private define handle_pending_messages (slaves)
              if (handle_message (s, msg))
                num_slaves_changed = 1;
           }
-
-        shuffle (fp_set);
+        %shuffle (fp_set);
      }
    while (num_slaves_changed == 0);
 }

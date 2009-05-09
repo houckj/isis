@@ -2166,26 +2166,54 @@ require ("fork_socket");
 
 #ifexists fork_slave
 
-private define slave_has_result (s)
+private variable Parallel_Map_Info;
+
+private define send_next_task (s) %{{{
 {
-   variable d = s.data;
-
-   variable
-     nx = length(d.xsub),
-     ny = length(d.ysub),
-     len = nx * ny;
-
-   variable subarray = read_n_array_vals (s.fp, len, Float_Type);
-
-   s.data.subarray = _reshape (subarray, [ny, nx]);
+   if (write_array (s.fp, Parallel_Map_Info.next_task))
+     throw IOError, "*** master:  write failed";
+   Parallel_Map_Info.next_task++;
 }
 
-private define message_handler (s, msg)
+%}}}
+
+private define subarray_indices (task) %{{{
+{
+   variable q = Parallel_Map_Info;
+
+   variable
+     ix = task / q.num_ysub,
+     iy = task mod q.num_ysub;
+
+   return q.xsub[ix], q.ysub[iy];
+}
+
+%}}}
+
+private define slave_has_result (s) %{{{
+{
+   variable task = read_n_array_vals (s.fp, 1, Int_Type)[0];
+
+   variable xsub, ysub;
+   (xsub, ysub) = subarray_indices (task);
+
+   variable
+     nx = length(xsub),
+     ny = length(ysub);
+
+   variable subarray = read_n_array_vals (s.fp, nx * ny, Float_Type);
+   Parallel_Map_Info.map[ysub, xsub] = _reshape (subarray, [ny, nx]);
+}
+
+%}}}
+
+private define message_handler (s, msg) %{{{
 {
    switch (msg.type)
      {
       case SLAVE_RESULT:
         slave_has_result (s);
+        send_next_task (s);
      }
      {
         print(msg);
@@ -2193,61 +2221,63 @@ private define message_handler (s, msg)
      }
 }
 
-private define slave_process (s, ip1, p1, ip2, p2, info) %{{{
+%}}}
+
+private define slave_process (s, task, ip1, pxs, ip2, pys, info) %{{{
 {
-   variable e;
-
-   try (e)
+   while (task < Parallel_Map_Info.num_tasks)
      {
-        variable map = map_chisqr (ip1, p1, ip2, p2, info);
-     }
-   catch AnyError:
-     {
-        pid_vmessage ("Caught exception calling map_chisqr!!!");
-        print(e);
-        exit(1);
-     }
+        variable xsub, ysub;
+        (xsub, ysub) = subarray_indices (task);
 
-   variable
-     dims = array_shape (map),
-     len = dims[0] * dims[1];
+        variable e;
+        try (e)
+          {
+             variable map = map_chisqr (ip1, pxs[xsub], ip2, pys[ysub], info);
+          }
+        catch AnyError:
+          {
+             pid_vmessage ("Caught exception calling map_chisqr!!!");
+             print(e);
+             _exit(1);
+          }
 
-   send_msg (s.fp, SLAVE_RESULT);
-   if (write_array (s.fp, map))
-     throw IOError, "*** slave: write failed";
+        send_msg (s.fp, SLAVE_RESULT);
+        if (0 != write_array (s.fp, task)
+            or 0 != write_array (s.fp, map))
+          throw IOError, "*** slave: write failed";
+
+        task = read_n_array_vals (s.fp, 1, Int_Type)[0];
+     }
 
    return 0;
 }
 
 %}}}
 
-private define partition_indices (xnum, ynum, num_slaves) %{{{
+private define partition_indices (num, num_sub) %{{{
 {
-   variable i,
-     xsub = Array_Type[num_slaves],
-     ysub = Array_Type[num_slaves];
-
    variable
-     num_tasks = xnum,
-     num_per_slave = num_tasks / num_slaves,
-     num_left = num_tasks - num_per_slave * num_slaves;
+     sub = Array_Type[num_sub],
+     block = num / num_sub,
+     num_left = num - block * num_sub;
 
-   variable mn = 0;
+   variable i, mx, mn = 0;
 
-   _for i (0, num_slaves-1, 1)
+   _for i (0, num_sub-1, 1)
      {
-        variable mx = mn + num_per_slave;
+        mx = mn + block;
         if (num_left > 0)
           {
              mx += 1;
              num_left--;
           }
-        xsub[i] = [mn:mx-1];
-        ysub[i] = [0:ynum-1];
+
+        sub[i] = [mn:mx-1];
         mn = mx;
      }
 
-   return xsub, ysub;
+   return sub;
 }
 
 %}}}
@@ -2255,30 +2285,35 @@ private define partition_indices (xnum, ynum, num_slaves) %{{{
 private define parallel_map_chisqr (num_slaves, px, py, %{{{
                                     ix, pxs, iy, pys, info)
 {
-   variable xsub, ysub;
-   (xsub, ysub) = partition_indices (px.num, py.num, num_slaves);
+   variable num_xsub, num_ysub;
+   num_xsub = qualifier ("num_xsub", num_slaves);
+   num_ysub = qualifier ("num_ysub", 1);
+
+   Parallel_Map_Info = struct
+     {
+        num_ysub = num_ysub,
+        num_xsub = num_xsub,
+        num_tasks = num_xsub * num_ysub,
+        next_task = 0,
+        xsub = partition_indices (px.num, num_xsub),
+        ysub = partition_indices (py.num, num_ysub),
+        map = Float_Type[py.num, px.num],
+     };
 
    variable slaves = new_slave_list (;; __qualifiers);
 
    variable i, s;
    _for i (0, num_slaves-1, 1)
      {
-        s = fork_slave (&slave_process,
-                        ix, pxs[xsub[i]], iy, pys[ysub[i]], info ;; __qualifiers);
-        s.data = struct {xsub=xsub[i], ysub=ysub[i], subarray};
+        variable task = Parallel_Map_Info.next_task;
+        s = fork_slave (&slave_process, task, ix, pxs, iy, pys, info ;; __qualifiers);
         append_slave (slaves, s);
+        Parallel_Map_Info.next_task++;
      }
 
    manage_slaves (slaves, &message_handler ;; __qualifiers);
 
-   variable map = Float_Type[py.num, px.num];
-   foreach s (slaves)
-     {
-        variable d = s.data;
-        map[d.ysub, d.xsub] = d.subarray;
-     }
-
-   return map;
+   return Parallel_Map_Info.map;
 }
 
 %}}}
@@ -2298,7 +2333,7 @@ private define generate_contours (px, py, info) %{{{
 #ifexists fork_slave
    variable serial = qualifier_exists ("serial");
    variable num_slaves = qualifier ("num_slaves", guess_num_slaves());
-   if ((serial == 0) && (num_slaves > 1) && (num_slaves <= length(pxs)))
+   if ((serial == 0) && (num_slaves > 1))
      {
         return parallel_map_chisqr (num_slaves, px, py,
                                     ix, pxs, iy, pys, info ;; __qualifiers);
