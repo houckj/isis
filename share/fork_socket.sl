@@ -293,6 +293,13 @@ private define pending_messages (slaves)
    if (socks == NULL)
      return NULL;
 
+   % First handle any descriptors with unread data,
+   variable i,
+     status = array_map (Int_Type, &feof, socks.fp);
+   i = where (status == 0);
+   if (length(i) > 0)
+     return socks.fp[i];
+
    variable ss = select (socks.fd, NULL, NULL, -1);
    if (ss == NULL)
      throw IOError, "pending_messages:  error on socket";
