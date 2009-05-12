@@ -2192,7 +2192,7 @@ private define subarray_indices (task) %{{{
 
 private define slave_has_result (s) %{{{
 {
-   variable task = read_n_array_vals (s.fp, 1, Int_Type)[0];
+   variable task = read_array (s.fp, 1, Int_Type)[0];
 
    variable xsub, ysub;
    (xsub, ysub) = subarray_indices (task);
@@ -2201,7 +2201,7 @@ private define slave_has_result (s) %{{{
      nx = length(xsub),
      ny = length(ysub);
 
-   variable subarray = read_n_array_vals (s.fp, nx * ny, Float_Type);
+   variable subarray = read_array (s.fp, nx * ny, Float_Type);
    Parallel_Map_Info.map[ysub, xsub] = _reshape (subarray, [ny, nx]);
 }
 
@@ -2247,7 +2247,7 @@ private define slave_process (s, task, ip1, pxs, ip2, pys, info) %{{{
             or 0 != write_array (s.fp, map))
           throw IOError, "*** slave: write failed";
 
-        task = read_n_array_vals (s.fp, 1, Int_Type)[0];
+        task = read_array (s.fp, 1, Int_Type)[0];
      }
 
    return 0;

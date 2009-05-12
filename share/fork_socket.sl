@@ -50,7 +50,7 @@ require ("select");
 %     manage_slaves (slaves, &message_handler [; qualifiers]);
 %     send_msg (fp, type)
 %     msg = recv_msg (fp)
-%     array = read_n_array_vals (fp, n, type);
+%     array = read_array (fp, n, type);
 %     status = write_array (fp, array);
 %     pid_vmessage (...)
 
@@ -176,7 +176,7 @@ private define call_waitpid_for_slave (s)
      }
 }
 
-define read_n_array_vals (fp, n, type)
+define read_array (fp, n, type)
 {
    variable array = type[0];
    while (n > 0)
@@ -223,7 +223,7 @@ define recv_msg (fp)
    if (feof(fp))
      return NULL;
 
-   variable msg = read_n_array_vals (fp, 2, Int_Type);
+   variable msg = read_array (fp, 2, Int_Type);
 
    variable s = struct {from_pid, type};
    s.from_pid = msg[0];
@@ -597,7 +597,7 @@ define task (s, which, num_loops)
      {
         %pid_vmessage ("ready");
         send_msg (s.fp, SLAVE_READY);
-        variable x = read_n_array_vals (s.fp, 2, Double_Type);
+        variable x = read_array (s.fp, 2, Double_Type);
 
         send_msg (s.fp, SLAVE_RESULT);
 
@@ -620,7 +620,7 @@ define slave_is_ready (s)
 define slave_has_result (s)
 {
    %vmessage ("slave %d has result", s.pid);
-   s.data = read_n_array_vals (s.fp, M*M, Double_Type);
+   s.data = read_array (s.fp, M*M, Double_Type);
 }
 
 define message_handler (s, msg)
