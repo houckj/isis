@@ -1538,9 +1538,11 @@ AC_DEFUN(JH_WITH_READLINE, dnl#{{{
 [
 dnl # Establish readline support: GNU or S-Lang?
   AC_ARG_WITH(readline,
-[  --with-readline[[=arg]]  arg=DIR means use GNU readline
-                                (from DIR/lib and DIR/include)
-                         arg=slang means use S-Lang readline only],
+[  --with-readline[[=arg]]  arg=gnu means use GNU readline
+                         arg=DIR means use GNU readline
+                             (from DIR/lib and DIR/include)
+                         arg=slang means use S-Lang readline only
+                         ],
      [ with_readline_arg=$withval ], [with_readline_arg=""])
   AC_MSG_CHECKING(type of readline support)
   READLINE_DIR=""

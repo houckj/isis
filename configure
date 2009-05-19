@@ -1364,9 +1364,11 @@ Optional Packages:
   --with-atomdb=DIR      location of spectroscopy database (ATOMDB)
   --with-djbfft=DIR      Use djbfft for pileup FFTs
                                 (from DIR/lib and DIR/include)
-  --with-readline[=arg]  arg=DIR means use GNU readline
-                                (from DIR/lib and DIR/include)
+  --with-readline[=arg]  arg=gnu means use GNU readline
+                         arg=DIR means use GNU readline
+                             (from DIR/lib and DIR/include)
                          arg=slang means use S-Lang readline only
+
 
 Some influential environment variables:
   FC          Fortran compiler command
