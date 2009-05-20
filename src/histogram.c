@@ -67,6 +67,10 @@ int Hist_Allow_Multiple_Arf_Factors;
 
 Hist_Stat_Error_Hook_Type *Hist_Stat_Error_Hook;
 
+/* array must be NULL terminated */
+static char *Spectrum_Hdu_Names[] = {"SPECTRUM", NULL};
+static char *Spectrum_Hdu_Names_Hook = "_nonstandard_spectrum_hdu_names";
+
 int Isis_List_Filenames = 1;
 double Hist_Min_Stat_Err = -1.0;        /* used only if > 0 */
 double Hist_Min_Model_Spacing = 0.0;
@@ -2295,10 +2299,10 @@ static Hist_t *_read_typeI_pha (char * pha_filename, int *have_rmf, int *have_ar
    if (NULL == (fp = cfits_open_file_readonly (pha_filename)))
      return NULL;
 
-   if (-1 == cfits_movnam_hdu (fp, "SPECTRUM"))
+   if (-1 == cfits_move_to_matching_hdu (fp, Spectrum_Hdu_Names, Spectrum_Hdu_Names_Hook, NULL))
      {
         isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__,
-                    "No hdu in %s has EXTNAME=SPECTRUM", pha_filename);
+                    "No recognized spectrum HDU found in %s", pha_filename);
         goto finish;
      }
 
@@ -2661,10 +2665,10 @@ static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *n
    if (NULL == (cfp = cfits_open_file_readonly_silent (filename)))
      return NOT_FITS_FORMAT;
 
-   if (-1 == cfits_movnam_hdu (cfp, "SPECTRUM"))
+   if (-1 == cfits_move_to_matching_hdu (cfp, Spectrum_Hdu_Names, Spectrum_Hdu_Names_Hook, NULL))
      {
         isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__,
-                    "No hdu in %s has EXTNAME=SPECTRUM", filename);
+                    "No recognized spectrum HDU found in %s", filename);
         goto finish;
      }
 
@@ -2884,10 +2888,10 @@ static int get_pha_type (cfitsfile *fp) /*{{{*/
    if (fp == NULL)
      return -1;
 
-   if (-1 == cfits_movnam_hdu (fp, "SPECTRUM"))
+   if (-1 == cfits_move_to_matching_hdu (fp, Spectrum_Hdu_Names, Spectrum_Hdu_Names_Hook, NULL))
      {
         isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__,
-                    "no hdu has EXTNAME=SPECTRUM");
+                    "File contains no recognized spectrum HDU");
         return -1;
      }
 

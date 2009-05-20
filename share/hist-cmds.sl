@@ -26,10 +26,10 @@
 % $Id: hist-cmds.sl,v 1.34 2004/06/06 22:23:16 houck Exp $
 require ("structfuns");
 
-private variable _V = struct 
+private variable _V = struct
 {
-   data_counts, 
-   data_flux, 
+   data_counts,
+   data_flux,
    model_counts,
    model_flux,
    convolved_model_flux
@@ -190,7 +190,7 @@ private define list_arf_string () %{{{
    if (ids == NULL)
      return NULL;
    variable title = "Current ARF List:";
-   variable colheads = 
+   variable colheads =
      " id grating detector   m prt src   nbins  exp(ksec)  target";
    variable s = array_map (String_Type, &arf_string, ids);
    return strjoin ([title, colheads, s], "\n");
@@ -258,6 +258,19 @@ define list_rmf () %{{{
 
 % data/arf/rmf input
 
+variable Nonstandard_Extnames = struct
+{
+   arf         = ["ISGR-ARF.-RSP", "JMX1-AXIS-ARF", "JMX2-AXIS-ARF"],
+   rmf_matrix  = ["ISGR-RMF.-RSP", "JMX1-RMF.-RSP", "JMX2-RMF.-RSP", "SPI.-RMF.-RSP"],
+   rmf_ebounds = ["ISGR-EBDS-MOD", "JMX1-FBDS-MOD", "JMX2-FBDS-MOD", "SPI.-EBDS-SET"],
+   spectrum    = ["ISGR-PHA1-SPE", "JMX1-PHA1-SPE", "JMX2-PHA1-SPE", "SGI.-PHA1-SPE"],
+};
+
+define _nonstandard_arf_hdu_names (){return Nonstandard_Extnames.arf;}
+define _nonstandard_rmf_matrix_hdu_names (){return Nonstandard_Extnames.rmf_matrix;}
+define _nonstandard_rmf_ebounds_hdu_names (){return Nonstandard_Extnames.rmf_ebounds;}
+define _nonstandard_spectrum_hdu_names () {return Nonstandard_Extnames.spectrum;}
+
 private define load_data_file (load, num, msg) %{{{
 {
    variable file;
@@ -271,7 +284,7 @@ private define load_data_file (load, num, msg) %{{{
 
 %}}}
 
-% For maximum consistency with previous behavior, 
+% For maximum consistency with previous behavior,
 % turn this off by default:
 variable Isis_Use_PHA_Grouping = 0;
 
@@ -307,14 +320,14 @@ define load_data () %{{{
              id[k] = _isis->_load_data (file, row[k]);
           }
      }
-   
+
    variable hook = "load_data_hook";
    if (2 == is_defined(hook))
      {
         % is there a cleaner way to do this?
-        file, id;  
+        file, id;
         eval (hook);
-     }   
+     }
 
    return id;
 }
@@ -380,7 +393,7 @@ define get_data_backscale () %{{{
      return;
 
    index = ();
-   
+
    variable b = _isis->_get_data_region_area (index);
    if (length(b) == 1)
      return b[0];
@@ -486,8 +499,8 @@ define all_rmfs () %{{{
 typedef struct
 {
    spec_num, order, part, srcid, exclude, combo_id, combo_weight, target,
-     instrument, grating, 
-     tstart, frame_time, 
+     instrument, grating,
+     tstart, frame_time,
      arfs, rmfs,
      notice, notice_list, rebin,
      file, bgd_file
@@ -516,11 +529,11 @@ private define _get_data_info_struct (id, data_type) %{{{
    variable s = @Isis_Data_Info_Type;
    variable info, status;
 
-   (info, s.target, s.instrument, s.grating, s.arfs, s.rmfs, status) 
+   (info, s.target, s.instrument, s.grating, s.arfs, s.rmfs, status)
      = _isis->_get_hist_info (id);
    if (status < 0)
      return NULL;
-   
+
    s.frame_time = _isis->_get_hist_frame_time (id);
 
    _copy_struct_fields (s, info);
@@ -589,7 +602,7 @@ define set_data_info () %{{{
 
    _copy_struct_fields (info, s);
    _isis->_set_hist_info (info, index);
-   
+
    _isis->_set_hist_frame_time (index, s.frame_time);
 
    if (NULL != get_struct_field (s, "target"))
@@ -613,7 +626,7 @@ define assign_arf () %{{{
 
    if (length(arf_index) == 1)
      arf_index = ones(length(arf_index))*arf_index;
-   
+
    array_map (Void_Type, &_isis->_assign_arf_to_hist, arf_index, hist_index);
 }
 
@@ -644,7 +657,7 @@ define load_rmf () %{{{
      return;
 
    arg = strtrans(arg, " ", "");
-   
+
    if (is_substr (arg, ".so:"))
      method = _isis->RMF_USER;
    else
@@ -653,20 +666,20 @@ define load_rmf () %{{{
    if (method == _isis->RMF_USER)
      {
 	variable n, libname, libpath;
-	
+
 	n = is_substr (arg, ":");
 	libname = arg[[0:n-2]];
-	
+
 	libpath = find_library_name (libname);
 	if (libpath == NULL)
 	  {
 	     vmessage ("File not found:  %s", libname);
 	     return -1;
 	  }
-	
+
 	(arg, ) = strreplace (arg, libname, libpath, 1);
      }
-   
+
    return _isis->_load_rmf (arg, method);
 }
 
@@ -710,10 +723,10 @@ define assign_rmf () %{{{
      return;
 
    (rmf_index, hist_index) = ();
-   
+
    if (length(rmf_index) == 1)
      rmf_index = ones(length(rmf_index))*rmf_index;
-   
+
    array_map (Void_Type, &do_rmf_assign, rmf_index, hist_index);
 }
 
@@ -763,11 +776,11 @@ define assign_rsp () %{{{
 
 	return;
      }
-   
+
    foreach (hist_index)
      {
 	i = ();
-        
+
         variable is_grouped = _isis->_is_grouped_data (i);
         variable di = NULL;
 
@@ -799,10 +812,10 @@ private define _delete_list_members (delete_fun, num, msg) %{{{
    if (a == NULL)
      return;
 
-   foreach (a) 
+   foreach (a)
      {
 	(@delete_fun) ();
-     }   
+     }
 }
 
 %}}}
@@ -841,7 +854,7 @@ define load_dataset () %{{{
 
    a = NULL;
    r = NULL;
-   
+
    if (_isis->get_varargs (&p, &r, &a, _NARGS, 1, msg))
      return;
 
@@ -880,10 +893,10 @@ define set_rebin_error_hook () %{{{
      return;
 
    (id, hook) = ();
-   
+
    if (typeof(hook) == String_Type)
      hook = __get_reference (hook);
-   
+
    _isis->_set_stat_error_hook (hook, id);
 }
 
@@ -1041,13 +1054,13 @@ define interpol () %{{{
      return;
 
    (newx, oldx, oldy) = ();
-   
+
    variable newy = _isis->_array_interp (newx, oldx, oldy);
-   
+
    if (length(newy) == 1)
      newy = newy[0];
-   
-   return newy;   
+
+   return newy;
 }
 
 %}}}
@@ -1063,10 +1076,10 @@ define interpol_points () %{{{
    (newx, oldx, oldy) = ();
 
    variable newy = _isis->_array_interp_points (newx, oldx, oldy);
-   
+
    if (length(newy) == 1)
      newy = newy[0];
-   
+
    return newy;
 }
 
@@ -1114,9 +1127,9 @@ define factor_rsp () %{{{
      return;
 
    rmf_id = ();
-   
+
    arf_id = array_map (Int_Type, &_isis->_factor_rsp, rmf_id);
-   
+
    if (length(arf_id) == 1)
      return arf_id[0];
    else
@@ -1591,7 +1604,7 @@ define put_convolved_model_flux () %{{{
 
 define get_rmf_data_grid () %{{{
 {
-   variable msg = "Struct_Type = get_rmf_data_grid (index)";   
+   variable msg = "Struct_Type = get_rmf_data_grid (index)";
    if (_isis->chk_num_args (_NARGS, 1, msg))
      return;
    variable g = _isis->_get_rmf_data_grid ();
@@ -1604,7 +1617,7 @@ define get_rmf_data_grid () %{{{
 
 define get_rmf_arf_grid () %{{{
 {
-   variable msg = "Struct_Type = get_rmf_arf_grid (index)";   
+   variable msg = "Struct_Type = get_rmf_arf_grid (index)";
    if (_isis->chk_num_args (_NARGS, 1, msg))
      return;
    variable g = _isis->_get_rmf_arf_grid ();
@@ -1807,9 +1820,9 @@ define set_rmf_info () %{{{
 
 define get_flux_corr_weights () %{{{
 {
-   variable msg = "wt[] = get_flux_corr_weights (hist_index)";   
+   variable msg = "wt[] = get_flux_corr_weights (hist_index)";
    variable id;
-   
+
    if (_isis->chk_num_args (_NARGS, 1, msg))
      return;
 
@@ -2288,7 +2301,7 @@ define rplot_counts () %{{{
    variable id = __get_index_to_plot (_NARGS, msg);
    if (id == -1)
      return;
-   
+
    ERROR_BLOCK
      {
 	multiplot (1);
@@ -2349,7 +2362,7 @@ define rplot_flux () %{{{
      {
 	multiplot (1);
      }
-   
+
    multiplot ([3,1]);
 
    variable ebar_state = _isis->_errorbar_state();
@@ -2451,10 +2464,10 @@ define set_fake () %{{{
 {
    variable msg = "set_fake (id, 0|1)";
    variable id, value;
-   
+
    if (_isis->get_varargs (&id, &value, _NARGS, 2, msg))
      return;
-   
+
    () = _isis->_set_fake (id, value);
 }
 

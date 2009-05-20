@@ -49,6 +49,10 @@
 
 /* Effective area curves (ARFs) */
 
+/* array must be NULL terminated */
+static char *Arf_Hdu_Names[] = {"SPECRESP", NULL};
+static char *Arf_Hdu_Names_Hook = "_nonstandard_arf_hdu_names";
+
 /*{{{ new/free */
 
 void Arf_free_arf (Isis_Arf_t *a) /*{{{*/
@@ -405,16 +409,10 @@ int Arf_read_arf (Isis_Arf_t *head, char *filename) /*{{{*/
         return -1;
      }
 
-   if (-1 == cfits_movabs_hdu(2, fp))
+   if (-1 == cfits_move_to_matching_hdu (fp, Arf_Hdu_Names, Arf_Hdu_Names_Hook, NULL))
      {
-        isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__, "hdu=2, %s", filename);
-        goto finish;
-     }
-
-   /* == 0 means keyword is present and has the correct value */
-   if (0 != cfits_test_keyword("SPECRESP", "EXTNAME", fp))
-     {
-        isis_vmesg (FAIL, I_INVALID, __FILE__, __LINE__, "EXTNAME[2] != SPECRESP");
+        isis_vmesg (FAIL, I_INVALID, __FILE__, __LINE__,
+                    "No recognized response HDU found in %s", filename);
         goto finish;
      }
 

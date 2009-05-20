@@ -199,15 +199,16 @@ static Rmf_File_t *open_rmf_file (char *file, Rmf_Client_Data_t *cd) /*{{{*/
      {
         "ENERG_LO", "ENERG_HI", "N_GRP", "F_CHAN", "N_CHAN", "MATRIX"
      };
-   static char *ext_list [2] =
+   static char *ext_list [] =
      {
-        "SPECRESP MATRIX", "MATRIX"
+        "SPECRESP MATRIX", "MATRIX", NULL
      };
    cfitsfile *ft = NULL;
    int columns[6];
    long allow_as_keyword [6];
    Rmf_File_t *rft = NULL;
    unsigned int i;
+   int arf_status;
 
    if (NULL == (rft = ISIS_MALLOC (sizeof (*rft))))
      return NULL;
@@ -225,25 +226,32 @@ static Rmf_File_t *open_rmf_file (char *file, Rmf_Client_Data_t *cd) /*{{{*/
              goto return_error;
           }
      }
-   else if (-1 == cfits_locate_vextension (ft, 2, ext_list,
-                                      (cd->strict ? check_rmf_extension : NULL)))
+   else if (-1 == cfits_move_to_matching_hdu (ft, ext_list, "_nonstandard_rmf_matrix_hdu_names",
+                                              (cd->strict ? check_rmf_extension : NULL)))
      {
         isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__, "RMF Matrix");
         if (cd->strict)
           {
-             isis_vmesg (FAIL, I_INFO, __FILE__, __LINE__, "==> You might try specifying: \"%s;strict=0\".", file);
-             isis_vmesg (FAIL, I_INFO, __FILE__, __LINE__, "    Alternatively, set Rmf_OGIP_Compliance=0.", file);
+             isis_vmesg (FAIL, I_INFO, __FILE__, __LINE__, "==> You might try loading: \"%s;strict=0\".", file);
+             isis_vmesg (FAIL, I_INFO, __FILE__, __LINE__, "    or set Rmf_OGIP_Compliance=0.", file);
           }
         (void) print_options_help (cd);
         goto return_error;
      }
 
-   if (3 == check_rmf_extension (ft))
+   arf_status = check_rmf_extension (ft);
+   if (arf_status == 3)
      {
         isis_vmesg (WARN, I_INFO, __FILE__, __LINE__, "RMF includes the effective area");
         rft->includes_effective_area = 1;
         if (cd->strict != 2)
           goto return_error;
+     }
+   else if (arf_status < 0)
+     {
+        if (cd->strict)
+          isis_vmesg (WARN, I_INFO, __FILE__, __LINE__,
+                      "**** WARNING:  RMF has non-standard format -- important information is missing.");
      }
 
    if (-1 == cfits_read_long_keyword (&rft->num_rows, "NAXIS2", ft))
@@ -451,10 +459,11 @@ static int read_rmf_vector (Rmf_File_t *rft, int row, Rmf_Vector_t *v, /*{{{*/
 /*}}}*/
 
 /* returns energy grid [keV] sorted in increasing order */
-static int read_rmf_ebounds (cfitsfile *rmf_fp, int chan_range[2], Isis_Rmf_Grid_Type **gp, int *energy_ordered_ebounds, int *swap_channels, /*{{{*/
+static int read_rmf_ebounds (cfitsfile *rmf_fp, int chan_range[2], Isis_Rmf_Grid_Type **gp, /*{{{*/
+                             int *energy_ordered_ebounds, int *swap_channels,
                              int *min_chan, Rmf_Client_Data_t *cd)
 {
-   static char *ext_names[1] = {"EBOUNDS"};
+   static char *ext_names[] = {"EBOUNDS", NULL};
    int num_channels, max_chan;
    int *channel = NULL;
    Isis_Rmf_Grid_Type *g = NULL;
@@ -472,9 +481,10 @@ static int read_rmf_ebounds (cfitsfile *rmf_fp, int chan_range[2], Isis_Rmf_Grid
              return -1;
           }
      }
-   else if (-1 == cfits_locate_vextension (rmf_fp, 1, ext_names, NULL))
+   else if (-1 == cfits_move_to_matching_hdu (rmf_fp, ext_names, "_nonstandard_rmf_ebounds_hdu_names", NULL))
      {
-        isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__, "EBOUNDS");
+        isis_vmesg (FAIL, I_INVALID, __FILE__, __LINE__,
+                    "RMF file contains no recognized ebounds HDU");
         (void) print_options_help (cd);
         return -1;
      }

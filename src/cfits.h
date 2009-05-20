@@ -55,6 +55,8 @@ extern int cfits_close_file (cfitsfile *fptr);
 extern int cfits_movabs_hdu (int hdu_num, cfitsfile *fptr);
 extern int cfits_movrel_hdu (int nmove, cfitsfile *fptr);
 extern int cfits_movnam_hdu (cfitsfile *fptr, char *extname);
+extern int cfits_move_to_matching_hdu (cfitsfile *fptr, char *std_extnames[],
+                                       char *nonstd_names_hook, int (*check_hdu)(cfitsfile *));
 
 extern int cfits_col_exist (char *col_name, cfitsfile *fptr);
 
