@@ -263,7 +263,7 @@ variable Nonstandard_Extnames = struct
    arf         = ["ISGR-ARF.-RSP", "JMX1-AXIS-ARF", "JMX2-AXIS-ARF"],
    rmf_matrix  = ["ISGR-RMF.-RSP", "JMX1-RMF.-RSP", "JMX2-RMF.-RSP", "SPI.-RMF.-RSP"],
    rmf_ebounds = ["ISGR-EBDS-MOD", "JMX1-FBDS-MOD", "JMX2-FBDS-MOD", "SPI.-EBDS-SET"],
-   spectrum    = ["ISGR-PHA1-SPE", "JMX1-PHA1-SPE", "JMX2-PHA1-SPE", "SGI.-PHA1-SPE"],
+   spectrum    = ["ISGR-PHA1-SPE", "JMX1-PHA1-SPE", "JMX2-PHA1-SPE", "SPI.-PHA1-SPE"],
 };
 
 define _nonstandard_arf_hdu_names (){return Nonstandard_Extnames.arf;}

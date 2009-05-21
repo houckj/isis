@@ -194,10 +194,12 @@ static int move_to_hook_matched_hdu (cfitsfile *fptr, char *hook_name)
         if (-1 == SLang_get_array_element (as, &i, &s))
           goto return_error;
         if (0 == cfits_movnam_hdu (fptr, s))
-          break;
+          {
+             status = 0;
+             break;
+          }
      }
 
-   status = 0;
 return_error:
    SLang_free_array (as);
    return status;
