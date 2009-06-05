@@ -21,27 +21,10 @@
 %    along with this program; if not, write to the Free Software
 %    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 %
-#ifndef __HAVE_ISIS_EXTRAS__
-#stop
-#endif
-
-$1 = path_dirname (__FILE__);
-if (NULL != stat_file (path_concat ($1, "extras.sl")))
-  require ("extras");
-else
-{
-   $2 = "../extras";
-   prepend_to_isis_load_path (path_concat ($1, $2));
-   prepend_to_isis_module_path (path_concat ($1, $2));
-}
 
 require ("fork");
 require ("socket");
 require ("select");
-
-#ifnexists socketpair
-#stop
-#endif
 
 %  Public functions:
 %     slaves = new_slave_list ( [; qualifiers]);
@@ -95,37 +78,13 @@ private define sigchld_handler (sig)
    signal (SIGCHLD, &sigchld_handler);
 }
 
-define do_close (fd)
-{
-   variable status;
-   do
-     {
-        status = close (fd);
-     }
-   while (status != 0 && errno == EINTR);
-
-   return status;
-}
-
-define do_fflush (fp)
-{
-   variable status;
-   do
-     {
-        status = fflush (fp);
-     }
-   while (status != 0 && errno == EINTR);
-
-   return status;
-}
-
 private define cleanup_slave (s)
 {
    Slaves_Running--;
    s.status = SLAVE_EXITED;
 
    if ((s.sock != NULL)
-       && (do_close (s.sock) != 0))
+       && (close (s.sock) != 0))
      {
         variable msg = sprintf ("%s:  close failed (%s)", _function_name, errno_string());
         throw IOError, msg;
@@ -178,44 +137,17 @@ private define call_waitpid_for_slave (s)
 
 define read_array (fp, n, type)
 {
-   variable array = type[0];
-   while (n > 0)
-     {
-        variable darray;
-        variable num_read = fread (&darray, type, n, fp);
-        if (num_read <= 0)
-          {
-             if (errno == EINTR)
-               continue;
-             throw IOError, sprintf ("-%d- %s:  %s", getpid(), _function_name, errno_string());
-          }
-        array = [array, darray];
-        n -= num_read;
-     }
-   if (n > 0)
+   variable array;
+   if (fread (&array, type, n, fp) < 0)
      throw IOError, sprintf ("-%d- %s:  %s", getpid(), _function_name, errno_string());
    return array;
 }
 
 define write_array (fp, array)
 {
-   variable i = 0, n = length(array);
-   while (n > 0)
-     {
-        variable num_written = fwrite (array[[i:]], fp);
-        if (num_written <= 0)
-          {
-             if (errno == EINTR)
-               continue;
-             throw IOError, sprintf ("-%d- %s:  %s", getpid(), _function_name, errno_string());
-          }
-        n -= num_written;
-        i += num_written;
-     }
-   if (n > 0)
+   if (fwrite (array, fp) != length(array))
      throw IOError, sprintf ("-%d- %s:  %s", getpid(), _function_name, errno_string());
-
-   return do_fflush (fp);
+   return fflush (fp);
 }
 
 define recv_msg (fp)
@@ -247,6 +179,10 @@ private define handle_message (s, msg)
         % slave to exit before we've finished reading its results
         send_msg (s.fp, SLAVE_EXITING);
         call_waitpid_for_slave (s);
+     }
+     {
+      case SLAVE_RUNNING:
+        %vmessage ("%d is running", s.pid);
      }
      {
         % default:
@@ -360,7 +296,7 @@ define fork_slave ()
         variable status = 1;
         try (e)
           {
-             if (do_close (s1) != 0)
+             if (close (s1) != 0)
                throw IOError, errno_string();
              variable p = process_struct (0, s2);
              if (args != NULL)
@@ -377,6 +313,7 @@ define fork_slave ()
           {
              % handshake to avoid race condition -- we don't want the
              % slave to exit before we've finished reading its results.
+             if (Do_Sigtest) vmessage ("%d: Num_Sigusr1 = %d", getpid(), Num_Sigusr1);
              send_msg (p.fp, SLAVE_EXITING);
              () = recv_msg (p.fp);
              _exit (status);
@@ -385,7 +322,7 @@ define fork_slave ()
 
    % parent
    Slaves_Running++;
-   if (do_close (s2) != 0)
+   if (close (s2) != 0)
      throw IOError, errno_string();
    return process_struct (pid, s1);
 }
@@ -469,9 +406,11 @@ define sigtest_slave (s, pids)
    variable n = length(pids), slaves_are_running;
    do
      {
+        send_msg (s.fp, SLAVE_RUNNING);
         variable i;
         slaves_are_running = 0;
-        _for i (0, n-1, 1)
+        loop (10000){
+           _for i (0, n-1, 1)
           {
              variable pid = pids[i];
              if (pid < 0)
@@ -484,6 +423,7 @@ define sigtest_slave (s, pids)
              slaves_are_running++;
              () = kill (pid, SIGUSR1);
           }
+        }
      }
    while (slaves_are_running);
 

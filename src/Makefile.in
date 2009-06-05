@@ -135,7 +135,7 @@ MV = /bin/mv
 RMDIR = /bin/rmdir
 AR_CR = ar cr
 
-MIN_SLANG_VERSION = 20100        # e.g. 10309 means 1.3.9
+MIN_SLANG_VERSION = 20200        # e.g. 10309 means 1.3.9
 MAX_SLANG_VERSION =
 
 INCS = $(THIS_LIB_INC) $(CFITSIO_INC) $(SLANG_INC) $(EXTRA_INC)
