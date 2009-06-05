@@ -2533,14 +2533,18 @@ private define apply_notice (val, lo, hi, datasets) %{{{
 
 private define set_notice_list (nargs, value, msg) %{{{
 {
-   variable id, list;
+   variable datasets, list;
 
    if (_isis->chk_num_args (nargs, 2, msg))
      return;
 
-   (id, list) = ();
+   (datasets, list) = ();
 
-   _isis->_set_notice_using_list (list, id, value);
+   variable id;
+   foreach id (datasets)
+     {
+        _isis->_set_notice_using_list (list, id, value);
+     }
 }
 
 %}}}
@@ -2548,7 +2552,7 @@ private define set_notice_list (nargs, value, msg) %{{{
 define notice_list () %{{{
 {
    _isis->error_if_fit_in_progress (_function_name);
-   set_notice_list (_NARGS, 1, "notice_list (id, where)");
+   set_notice_list (_NARGS, 1, "notice_list (id[], where)");
 }
 
 %}}}
@@ -2556,7 +2560,7 @@ define notice_list () %{{{
 define ignore_list () %{{{
 {
    _isis->error_if_fit_in_progress (_function_name);
-   set_notice_list (_NARGS, 0, "ignore_list (id, where)");
+   set_notice_list (_NARGS, 0, "ignore_list (id[], where)");
 }
 
 %}}}
