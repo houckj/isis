@@ -608,7 +608,7 @@ private variable Types =
    Integer_Type, UInteger_Type, Long_Type, ULong_Type,
    Float_Type, Double_Type,
    String_Type, BString_Type,
-   Struct_Type, Assoc_Type, List_Type
+   Null_Type, Struct_Type, Assoc_Type, List_Type
 };
 
 private define __datatype (i)
@@ -660,6 +660,9 @@ private define recv_string (fp)
         s[i] = typecast (array_to_bstring(u) , String_Type);
      }
 
+   if (num == 1)
+     return s[0];
+
    return s;
 }
 
@@ -704,6 +707,22 @@ private define send_string (fp, s)
    return 0;
 }
 
+private define recv_null (fp)
+{
+   variable num = read_array (fp, 1, Integer_Type)[0];
+   if (num == 1)
+     return NULL;
+   return Null_Type[num];
+}
+
+private define send_null (fp, s)
+{
+   variable num = length(s);
+   if (write_array (fp, num) < 0)
+     return -1;
+   return 0;
+}
+
 private define recv_struct();
 private define recv_assoc();
 private define recv_list();
@@ -720,10 +739,13 @@ private define recv_item (fp)
      {case Assoc_Type:   item = recv_assoc (fp);}
      {case List_Type:    item = recv_list (fp);}
      {case String_Type:  item = recv_string (fp);}
+     {case Null_Type:    item = recv_null (fp);}
      {
       case Array_Type:
         if (_typeof(item) == String_Type)
           item = recv_string (fp);
+        else if (_typeof(item) == Null_Type)
+          item = recv_null (fp);
         else
           item = recv_basic (fp);
      }
@@ -753,10 +775,13 @@ private define send_item (fp, item)
      {case Assoc_Type:   status = send_assoc (fp, item);}
      {case List_Type:    status = send_list (fp, item);}
      {case String_Type:  status = send_string (fp, item);}
+     {case Null_Type:    status = send_null (fp, item);}
      {
       case Array_Type:
         if (_typeof(item) == String_Type)
           status = send_string (fp, item);
+        else if (_typeof(item) == Null_Type)
+          status = send_null (fp, item);
         else
           status = send_basic (fp, item);
      }

@@ -10,16 +10,18 @@ private define test_items()
      longs = [0L:5L],
      floats = typecast (urand(5), Float_Type),
      doubles = urand(5),
-     strings = ["this", "is", "an", "array", "of", "strings"];
+     strings = ["this", "is", "an", "array", "of", "strings"],
+     nulls = [NULL, NULL, NULL];
 
    variable _struct = struct
      {
-        cc = chars, ii = ints, ll = longs, ff = floats, dd = doubles, ss = strings
+        cc = chars, ii = ints, ll = longs, ff = floats, dd = doubles, ss = strings,
+        nulls = nulls
      };
 
    variable _list =
      {
-        chars, ints, longs, floats, doubles, strings
+        chars, ints, longs, floats, doubles, strings, nulls
      };
 
    variable _assoc = Assoc_Type[];
@@ -29,6 +31,7 @@ private define test_items()
    _assoc["floats"] = floats;
    _assoc["doubles"] = doubles;
    _assoc["strings"] = strings;
+   _assoc["nulls"] = nulls;
 
    return _list, _struct, _assoc;
 }
