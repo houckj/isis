@@ -523,6 +523,421 @@ define guess_num_slaves ()
    return num_slaves;
 }
 
+% Communications interface:
+%
+%   fs_initsend();
+%   fs_pack (item [, item, ..]);
+%   x = fs_unpack ([num]);
+%   fs_send_buffer (fp);
+%   fs_recv_buffer (fp);
+%
+%  TODO:
+%    - add support for multi-dimensional arrays,
+%      Ref_Types (for linked lists, etc),
+
+private variable Comm_Buffer;
+% FIFO buffer used by both master and slave
+% (Is one enough, or should there be one buffer per slave?)
+
+define fs_initsend ()
+{
+   Comm_Buffer = list_new();
+}
+
+private define do_pack (item)
+{
+   if (typeof(item) == Array_Type)
+     {
+        variable t = _typeof(item);
+        if (t == List_Type || t == Assoc_Type || t == Struct_Type)
+          {
+             foreach (item)
+               {
+                  variable x = ();
+                  list_append (Comm_Buffer, x);
+               }
+             return;
+          }
+        % fall-through
+     }
+   list_append (Comm_Buffer, item);
+}
+
+define fs_pack ()
+{
+   variable msg = "fs_pack (item [, item, ...])";
+
+   if (_NARGS == 0) usage(msg);
+
+   variable item, args = __pop_args (_NARGS);
+
+   foreach item (args)
+     {
+        do_pack (item.value);
+     }
+}
+
+define fs_unpack ()
+{
+   variable msg = "x = fs_unpack ([num])";
+   variable num = 1;
+
+   if (_isis->get_varargs (&num, _NARGS, 0, msg))
+     return;
+
+   ifnot (__is_initialized (&Comm_Buffer))
+     return NULL;
+
+   if (num == 1)
+     return list_pop (Comm_Buffer);
+
+   variable x = list_new();
+
+   while (num > 0)
+     {
+        list_append (x, list_pop (Comm_Buffer));
+        num--;
+     }
+
+   return x;
+}
+
+private variable Types =
+{
+   Char_Type, UChar_Type,
+   Integer_Type, UInteger_Type, Long_Type, ULong_Type,
+   Float_Type, Double_Type,
+   String_Type, BString_Type,
+   Struct_Type, Assoc_Type, List_Type
+};
+
+private define __datatype (i)
+{
+   return Types[i];
+}
+
+private define __datatype_int (object)
+{
+   variable i, n = length(Types);
+
+   _for i (0, n-1, 1)
+     {
+        if (_typeof (object) == Types[i])
+          return i;
+     }
+
+   return NULL;
+}
+
+private define recv_basic (fp, type)
+{
+   variable num = read_array (fp, 1, Integer_Type)[0];
+   return read_array (fp, num, type);
+}
+
+private define send_basic (fp, x)
+{
+   if (write_array (fp, length(x)) < 0)
+     return -1;
+   if (write_array (fp, x) < 0)
+     return -1;
+
+   return 0;
+}
+
+private define recv_string (fp)
+{
+   variable num = read_array (fp, 1, Integer_Type)[0];
+
+   variable s = String_Type[num],
+     len = read_array (fp, num, Integer_Type);
+
+   variable i;
+
+   _for i (0, num-1, 1)
+     {
+        variable u = read_array (fp, len[i], UChar_Type);
+        s[i] = typecast (array_to_bstring(u) , String_Type);
+     }
+
+   return s;
+}
+
+private define write_string (fp, s)
+{
+   variable n = strlen(s) + 1;
+   variable b = pack ("s$n"$, s);
+   return write_array (fp, bstring_to_array (b));
+}
+
+private define send_string (fp, s)
+{
+   variable num = length(s);
+
+   if (write_array (fp, num) < 0)
+     return -1;
+
+   variable i, len = Integer_Type[num];
+
+   if (typeof(s) == String_Type)
+     {
+        len[0] = strlen(s) + 1;
+        if (write_array (fp, len) < 0)
+          return -1;
+        return write_string (fp, s);
+     }
+
+   _for i (0, num-1, 1)
+     {
+        len[i] = strlen(s[i]) + 1;
+     }
+
+   if (write_array (fp, len) < 0)
+     return -1;
+
+   _for i (0, num-1, 1)
+     {
+        if (write_string (fp, s[i])<0)
+          return -1;
+     }
+
+   return 0;
+}
+
+private define recv_struct();
+private define recv_assoc();
+private define recv_list();
+
+private define recv_item (fp)
+{
+   variable type_int, type, item;
+
+   type_int = read_array (fp, 1, Integer_Type)[0];
+   type = __datatype(type_int);
+
+   switch (type)
+     {case Struct_Type:  item = recv_struct (fp);}
+     {case Assoc_Type:   item = recv_assoc (fp);}
+     {case List_Type:    item = recv_list (fp);}
+     {case String_Type:  item = recv_string (fp);}
+     {
+      case Array_Type:
+        if (_typeof(item) == String_Type)
+          item = recv_string (fp);
+        else
+          item = recv_basic (fp);
+     }
+     {
+        % default
+        item = recv_basic (fp, type);
+     }
+
+   return item;
+}
+
+private define send_struct();
+private define send_assoc();
+private define send_list();
+
+private define send_item (fp, item)
+{
+   variable type_int = __datatype_int (item);
+
+   if (write_array (fp, type_int) < 0)
+     return -1;
+
+   variable status;
+
+   switch (typeof(item))
+     {case Struct_Type:  status = send_struct (fp, item);}
+     {case Assoc_Type:   status = send_assoc (fp, item);}
+     {case List_Type:    status = send_list (fp, item);}
+     {case String_Type:  status = send_string (fp, item);}
+     {
+      case Array_Type:
+        if (_typeof(item) == String_Type)
+          status = send_string (fp, item);
+        else
+          status = send_basic (fp, item);
+     }
+     {
+        % default
+        status = send_basic (fp, item);
+     }
+
+   return status;
+}
+
+private define array_to_struct (fields)
+{
+   eval (sprintf ("define __atos__(){return struct {%s};}",
+                  strjoin (fields, ",")));
+   return eval ("__atos__()");
+}
+
+private define recv_struct (fp)
+{
+   variable names = recv_string (fp);
+   variable s = array_to_struct (names);
+
+   variable i, n = length(names);
+   _for i (0, n-1, 1)
+     {
+        variable value = recv_item (fp);
+        set_struct_field (s, names[i], value);
+     }
+
+   return s;
+}
+
+private define send_struct (fp, s)
+{
+   variable names = get_struct_field_names (s);
+
+   if (-1 == send_string (fp, names))
+     return -1;
+
+   variable i, n = length(names);
+   _for i (0, n-1, 1)
+     {
+        variable v = get_struct_field (s, names[i]);
+        if (-1 == send_item (fp, v))
+          return -1;
+     }
+
+   return 0;
+}
+
+private define recv_assoc (fp)
+{
+   variable keys = recv_string (fp);
+   variable a = Assoc_Type[];
+
+   variable i, n = length(keys);
+   _for i (0, n-1, 1)
+     {
+        variable value = recv_item (fp);
+        a[keys[i]] = value;
+     }
+
+   return a;
+}
+
+private define send_assoc (fp, a)
+{
+   variable keys = assoc_get_keys (a);
+
+   if (-1 == send_string (fp, keys))
+     return -1;
+
+   variable k;
+
+   foreach k (keys)
+     {
+        if (-1 == send_item (fp, a[k]))
+          return -1;
+     }
+
+   return 0;
+}
+
+private define recv_list (fp)
+{
+   variable num = read_array (fp, 1, Integer_Type)[0];
+
+   variable x = list_new();
+
+   while (num > 0)
+     {
+        variable value = recv_item (fp);
+        list_append (x, value);
+        num--;
+     }
+
+   return x;
+}
+
+private define send_list (fp, list)
+{
+   if (write_array (fp, length(list)) < 0)
+     return -1;
+
+   variable x;
+   foreach x (list)
+     {
+        if (-1 == send_item (fp, x))
+          return -1;
+     }
+
+   return 0;
+}
+
+private variable
+  BUFFER_START = 201,
+  BUFFER_END   = 202;
+
+define fs_recv_buffer ()
+{
+   variable umsg = "fs_recv_buffer (File_Type)";
+
+   if (_isis->chk_num_args (_NARGS, 1, umsg))
+     return;
+
+   variable fp = ();
+
+   variable msg = recv_msg (fp);
+   if (msg.type != BUFFER_START)
+     throw ApplicationError, "expected BUFFER_START message";
+
+   variable num_objects = read_array (fp, 1, Integer_Type)[0];
+   variable buf = list_new();
+
+   loop (num_objects)
+     {
+        variable item = recv_item (fp);
+        list_append (buf, item);
+     }
+
+   msg = recv_msg (fp);
+   if (msg.type != BUFFER_END)
+     throw ApplicationError, "expected BUFFER_END message";
+
+   % tell the sender the buffer was received.
+   send_msg (fp, BUFFER_END);
+
+   Comm_Buffer = buf;
+}
+
+define fs_send_buffer ()
+{
+   variable umsg = "fs_recv_buffer (File_Type)";
+
+   if (_isis->chk_num_args (_NARGS, 1, umsg))
+     return;
+
+   variable fp = ();
+
+   send_msg (fp, BUFFER_START);
+   if (write_array (fp, length(Comm_Buffer)) < 0)
+     return -1;
+
+   variable item;
+   foreach item (Comm_Buffer)
+     {
+        if (send_item (fp, item) < 0)
+          return -1;
+     }
+
+   send_msg (fp, BUFFER_END);
+
+   % wait for the receiver to acknowledge
+   variable msg = recv_msg (fp);
+   if (msg.type != BUFFER_END)
+     return -1;
+
+   return 0;
+}
+
 #ifdef FORK_SOCKET_TEST %{{{
 
 private variable M = 2;
