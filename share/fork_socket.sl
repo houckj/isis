@@ -68,6 +68,15 @@ private define process_struct (pid, sock)
         vmessage ("%s: fdopen failed (%s)", _function_name, errno_string());
         return NULL;
      }
+   % With the default stdio buffering, deadlocks sometimes occur
+   % when signals interrupt fflush (the sigtest deadlock disappears
+   % when delivery of SIGUSR1 is blocked during the fflush call).
+   % Using unbuffered streams seems to solve this problem.
+   if (unbuffer_stream (s.fp) != 0)
+     {
+        vmessage ("%s: unable to turn off stream buffering! (%s)",
+                  _function_name, errno_string());
+     }
    return s;
 }
 
@@ -145,8 +154,25 @@ define read_array (fp, n, type)
 
 define write_array (fp, array)
 {
-   if (fwrite (array, fp) != length(array))
-     throw IOError, sprintf ("-%d- %s:  %s", getpid(), _function_name, errno_string());
+   variable i = 0, n = length(array);
+   while (n > 0)
+     {
+        variable num_written = fwrite (array[[i:]], fp);
+        if (num_written <= 0)
+          {
+             if (errno == EINTR || errno == 0)
+               continue;
+             throw IOError, sprintf ("-%d- %s:  errno=%d (%s)",
+                                     getpid(), _function_name,
+                                     errno, errno_string());
+          }
+        n -= num_written;
+        i += num_written;
+     }
+   if (n > 0)
+     throw IOError, sprintf ("-%d- %s:  %s",
+                             getpid(), _function_name, errno_string());
+
    return fflush (fp);
 }
 
@@ -344,27 +370,18 @@ private define shuffle (array)
 private define handle_pending_messages (slaves)
 {
    variable fp_set = pending_messages (slaves);
-   % The fp_set must be updated whenever the number of slaves
-   % changes (e.g. when one or more slaves exit).
 
-   variable fp, num_slaves_changed = 0;
-
-   do
+   variable fp;
+   foreach fp (fp_set)
      {
-        foreach fp (fp_set)
-          {
-             variable msg = recv_msg (fp);
-             if (msg == NULL)
-               continue;
+        variable msg = recv_msg (fp);
+        if (msg == NULL)
+          continue;
 
-             variable s = find_slave (slaves, msg.from_pid);
+        variable s = find_slave (slaves, msg.from_pid);
 
-             if (handle_message (s, msg))
-               num_slaves_changed = 1;
-          }
-        %shuffle (fp_set);
+        () = handle_message (s, msg);
      }
-   while (num_slaves_changed == 0);
 }
 
 private define master_sigint_handler (sig)
@@ -406,6 +423,12 @@ define sigtest_slave (s, pids)
    variable n = length(pids), slaves_are_running;
    do
      {
+        % FIXME?
+        % The master ends up reading from this slave because
+        % feof returns 0 from its descriptor even if the slave
+        % has written nothing to the descriptor.  Since the
+        % master insists on reading something, we have to send
+        % something once in a while to prevent a block.
         send_msg (s.fp, SLAVE_RUNNING);
         variable i;
         slaves_are_running = 0;
@@ -530,6 +553,8 @@ define guess_num_slaves ()
 %   x = fs_unpack ([num]);
 %   fs_send_buffer (fp);
 %   fs_recv_buffer (fp);
+%   fs_send_objs (fp, obj [, obj, ...]);
+%   List_Type = fs_recv_objs (fp [, num]);
 %
 %  TODO:
 %    - add support for multi-dimensional arrays,
@@ -582,11 +607,18 @@ define fs_unpack ()
    variable msg = "x = fs_unpack ([num])";
    variable num = 1;
 
-   if (_isis->get_varargs (&num, _NARGS, 0, msg))
-     return;
+   if (_NARGS == 1)
+     num = ();
+   else if (_NARGS > 1)
+     usage (msg);
 
    ifnot (__is_initialized (&Comm_Buffer))
      return NULL;
+
+   if (num < 0)
+     {
+        num = length(Comm_Buffer);
+     }
 
    if (num == 1)
      return list_pop (Comm_Buffer);
@@ -905,8 +937,8 @@ define fs_recv_buffer ()
 {
    variable umsg = "fs_recv_buffer (File_Type)";
 
-   if (_isis->chk_num_args (_NARGS, 1, umsg))
-     return;
+   if (_NARGS != 1)
+     usage(umsg);
 
    variable fp = ();
 
@@ -937,8 +969,8 @@ define fs_send_buffer ()
 {
    variable umsg = "fs_recv_buffer (File_Type)";
 
-   if (_isis->chk_num_args (_NARGS, 1, umsg))
-     return;
+   if (_NARGS != 1)
+     usage(umsg);
 
    variable fp = ();
 
@@ -961,6 +993,38 @@ define fs_send_buffer ()
      return -1;
 
    return 0;
+}
+
+define fs_send_objs ()
+{
+   variable msg = "fs_send_objs (File_Type, obj [, obj, ...])";
+   variable fp, args = NULL;
+
+   if (_NARGS < 2)
+     usage (msg);
+
+   args = __pop_list (_NARGS-1);
+   fp = ();
+
+   fs_initsend ();
+   variable x;
+   foreach x (args)
+     {
+        fs_pack (x);
+     }
+   fs_send_buffer (fp);
+}
+
+define fs_recv_objs ()
+{
+   variable msg = "List_Type = fs_recv_objs (File_Type [, num])";
+   variable fp, num = -1;
+
+   if (_NARGS > 1) num = ();
+   fp = ();
+
+   fs_recv_buffer (fp);
+   return fs_unpack (num);
 }
 
 #ifdef FORK_SOCKET_TEST %{{{

@@ -1597,6 +1597,21 @@ static int safe_popen (char *cmd, char *mode) /*{{{*/
 
 /*}}}*/
 
+/* FIXME - remove this when S-Lang provides a setvbuf function */
+static int unbuffer_stream_intrin (void)
+{
+   SLang_MMT_Type *mt = NULL;
+   FILE *fp = NULL;
+
+   if (-1 == SLang_pop_fileptr (&mt, &fp))
+     return -1;
+
+   if (fp == NULL)
+     return -1;
+
+   return setvbuf (fp, NULL, _IONBF, 0);
+}
+
 /*{{{ SLang intrinsics */
 
 static SLang_Intrin_Var_Type Misc_Intrin_Vars [] =
@@ -1631,6 +1646,7 @@ static SLang_Intrin_Fun_Type Readline_Intrinsics[] =
    MAKE_INTRINSIC_0("set_prompt", set_prompt_intrin, V),
    MAKE_INTRINSIC_0("get_prompt", get_prompt_intrin, V),
    MAKE_INTRINSIC_1("atexit", at_exit, VOID_TYPE, SLANG_REF_TYPE),
+   MAKE_INTRINSIC_0("unbuffer_stream", unbuffer_stream_intrin, INT_TYPE),
    /* readline intrinsic is used mainly by the slang debugger */
    MAKE_INTRINSIC_S("slsh_readline_init", init_readline_intrinsic, VOID_TYPE),
    MAKE_INTRINSIC_S("slsh_readline_new", new_slrline_intrinsic, VOID_TYPE),
