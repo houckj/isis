@@ -72,7 +72,7 @@ private define process_struct (pid, sock)
    % when signals interrupt fflush (the sigtest deadlock disappears
    % when delivery of SIGUSR1 is blocked during the fflush call).
    % Using unbuffered streams seems to solve this problem.
-   if (unbuffer_stream (s.fp) != 0)
+   if (setvbuf (s.fp, _IONBF, 0) != 0)
      {
         vmessage ("%s: unable to turn off stream buffering! (%s)",
                   _function_name, errno_string());
@@ -342,6 +342,7 @@ define fork_slave ()
              if (Do_Sigtest) vmessage ("%d: Num_Sigusr1 = %d", getpid(), Num_Sigusr1);
              send_msg (p.fp, SLAVE_EXITING);
              () = recv_msg (p.fp);
+             () = close (s2);
              _exit (status);
           }
      }
