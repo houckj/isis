@@ -326,9 +326,9 @@ define fork_slave ()
                throw IOError, errno_string();
              variable p = process_struct (0, s2);
              if (args != NULL)
-               status = (@func_ref)(p, __push_args(args));
+               status = (@func_ref)(p, __push_args(args) ;; __qualifiers);
              else
-               status = (@func_ref)(p);
+               status = (@func_ref)(p ;; __qualifiers);
           }
         catch AnyError:
           {
@@ -549,28 +549,24 @@ define guess_num_slaves ()
 
 % Communications interface:
 %
-%   fs_initsend();
-%   fs_pack (item [, item, ..]);
-%   x = fs_unpack ([num]);
-%   fs_send_buffer (fp);
-%   fs_recv_buffer (fp);
 %   fs_send_objs (fp, obj [, obj, ...]);
 %   List_Type = fs_recv_objs (fp [, num]);
+%   buf = __fs_initsend();
+%   __fs_pack (buf, item [, item, ..]);
+%   x = __fs_unpack (buf [, num]);
+%   __fs_send_buffer (fp, buf);
+%   buf = __fs_recv_buffer (fp);
 %
 %  TODO:
 %    - add support for multi-dimensional arrays,
 %      Ref_Types (for linked lists, etc),
 
-private variable Comm_Buffer;
-% FIFO buffer used by both master and slave
-% (Is one enough, or should there be one buffer per slave?)
-
-define fs_initsend ()
+define __fs_initsend ()
 {
-   Comm_Buffer = list_new();
+   return list_new();
 }
 
-private define do_pack (item)
+private define do_pack (buf, item)
 {
    if (typeof(item) == Array_Type)
      {
@@ -580,55 +576,59 @@ private define do_pack (item)
              foreach (item)
                {
                   variable x = ();
-                  list_append (Comm_Buffer, x);
+                  list_append (buf, x);
                }
              return;
           }
         % fall-through
      }
-   list_append (Comm_Buffer, item);
+   list_append (buf, item);
 }
 
-define fs_pack ()
+define __fs_pack ()
 {
-   variable msg = "fs_pack (item [, item, ...])";
+   variable msg = "__fs_pack (buf, item [, item, ...])";
 
-   if (_NARGS == 0) usage(msg);
+   if (_NARGS < 2) usage(msg);
 
-   variable item, args = __pop_args (_NARGS);
+   variable item,
+     args = __pop_args (_NARGS-1),
+     buf = ();
 
    foreach item (args)
      {
-        do_pack (item.value);
+        do_pack (buf, item.value);
      }
 }
 
-define fs_unpack ()
+define __fs_unpack ()
 {
-   variable msg = "x = fs_unpack ([num])";
-   variable num = 1;
+   variable msg = "x = __fs_unpack (buf [, num])";
+   variable buf, num = 1;
 
-   if (_NARGS == 1)
-     num = ();
-   else if (_NARGS > 1)
-     usage (msg);
+   switch (_NARGS)
+     {case 1: buf = ();}
+     {case 2: (buf, num) = ();}
+     {
+        usage (msg);
+     }
 
-   ifnot (__is_initialized (&Comm_Buffer))
+   ifnot (__is_initialized (&buf))
      return NULL;
 
    if (num < 0)
      {
-        num = length(Comm_Buffer);
+        num = length(buf);
      }
 
    if (num == 1)
-     return list_pop (Comm_Buffer);
+     return list_pop (buf);
 
    variable x = list_new();
 
    while (num > 0)
      {
-        list_append (x, list_pop (Comm_Buffer));
+        list_append (x, list_pop (buf));
         num--;
      }
 
@@ -934,9 +934,9 @@ private variable
   BUFFER_START = 201,
   BUFFER_END   = 202;
 
-define fs_recv_buffer ()
+define __fs_recv_buffer ()
 {
-   variable umsg = "fs_recv_buffer (File_Type)";
+   variable umsg = "List_Type = __fs_recv_buffer (File_Type)";
 
    if (_NARGS != 1)
      usage(umsg);
@@ -963,24 +963,28 @@ define fs_recv_buffer ()
    % tell the sender the buffer was received.
    send_msg (fp, BUFFER_END);
 
-   Comm_Buffer = buf;
+   return buf;
 }
 
-define fs_send_buffer ()
+define __fs_send_buffer ()
 {
-   variable umsg = "fs_recv_buffer (File_Type)";
+   variable umsg = "__fs_send_buffer (File_Type, buf)";
 
-   if (_NARGS != 1)
+   if (_NARGS != 2)
      usage(umsg);
 
-   variable fp = ();
+   variable fp, buf;
+   (fp, buf) = ();
+
+   if (buf == NULL)
+     throw ApplicationError, "invalid buffer";
 
    send_msg (fp, BUFFER_START);
-   if (write_array (fp, length(Comm_Buffer)) < 0)
+   if (write_array (fp, length(buf)) < 0)
      return -1;
 
    variable item;
-   foreach item (Comm_Buffer)
+   foreach item (buf)
      {
         if (send_item (fp, item) < 0)
           return -1;
@@ -1007,13 +1011,12 @@ define fs_send_objs ()
    args = __pop_list (_NARGS-1);
    fp = ();
 
-   fs_initsend ();
-   variable x;
+   variable x, buf = __fs_initsend ();
    foreach x (args)
      {
-        fs_pack (x);
+        __fs_pack (buf, x);
      }
-   fs_send_buffer (fp);
+   __fs_send_buffer (fp, buf);
 }
 
 define fs_recv_objs ()
@@ -1024,8 +1027,8 @@ define fs_recv_objs ()
    if (_NARGS > 1) num = ();
    fp = ();
 
-   fs_recv_buffer (fp);
-   return fs_unpack (num);
+   variable buf = __fs_recv_buffer (fp);
+   return __fs_unpack (buf, num);
 }
 
 #ifdef FORK_SOCKET_TEST %{{{

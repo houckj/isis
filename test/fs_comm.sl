@@ -45,32 +45,32 @@ private define send_test_items (s)
 {
    send_msg (s.fp, TEST_ITEMS);
 
-   fs_initsend ();
+   variable buf = __fs_initsend ();
    variable x;
    foreach x (_list)
      {
-        fs_pack (x);
+        __fs_pack (buf, x);
      }
-   fs_pack (_list);
-   fs_pack (_struct);
-   fs_pack (_assoc);
+   __fs_pack (buf, _list);
+   __fs_pack (buf, _struct);
+   __fs_pack (buf, _assoc);
 
-   fs_pack ({_list, _struct, _assoc});
-   fs_pack (struct {_list=_list, _struct=_struct, _assoc=_assoc});
+   __fs_pack (buf, {_list, _struct, _assoc});
+   __fs_pack (buf, struct {_list=_list, _struct=_struct, _assoc=_assoc});
 
    variable aa = Assoc_Type[];
    aa["_list"] = _list;
    aa["_struct"] = _struct;
    aa["_assoc"] = _assoc;
-   fs_pack (aa);
+   __fs_pack (buf, aa);
 
-   fs_pack ([_struct, _struct, _struct]);
-   fs_pack ([_list, _list, _list]);
-   fs_pack ([_assoc, _assoc, _assoc]);
+   __fs_pack (buf, [_struct, _struct, _struct]);
+   __fs_pack (buf, [_list, _list, _list]);
+   __fs_pack (buf, [_assoc, _assoc, _assoc]);
 
-   fs_pack (_list, _struct, _assoc);
+   __fs_pack (buf, _list, _struct, _assoc);
 
-   fs_send_buffer (s.fp);
+   __fs_send_buffer (s.fp, buf);
 }
 
 private define sender (s)
@@ -115,62 +115,63 @@ private define check_assoc (_a)
 
 private define handler (s, msg)
 {
+   variable buf;
 
    switch (msg.type)
      {
       case TEST_ITEMS:
-        fs_recv_buffer (s.fp);
+        buf = __fs_recv_buffer (s.fp);
         variable l, x;
         foreach l (_list)
           {
-             x = fs_unpack ();
+             x = __fs_unpack (buf);
              if (any (x != l))
                throw ApplicationError;
           }
 
-        variable _l = fs_unpack ();
+        variable _l = __fs_unpack (buf);
         check_list (_l);
 
-        variable _s = fs_unpack ();
+        variable _s = __fs_unpack (buf);
         check_struct(_s);
 
-        variable _a = fs_unpack ();
+        variable _a = __fs_unpack (buf);
         check_assoc (_a);
 
-        variable ll = fs_unpack ();
+        variable ll = __fs_unpack (buf);
         check_list (ll[0]);
         check_struct (ll[1]);
         check_assoc (ll[2]);
 
-        variable ss = fs_unpack ();
+        variable ss = __fs_unpack (buf);
         check_list (ss._list);
         check_struct (ss._struct);
         check_assoc (ss._assoc);
 
-        variable aa = fs_unpack ();
+        variable aa = __fs_unpack (buf);
         check_list (aa["_list"]);
         check_struct (aa["_struct"]);
         check_assoc (aa["_assoc"]);
 
-        variable a_s = fs_unpack (3);
+        variable a_s = __fs_unpack (buf, 3);
         foreach x (a_s)
           {
              check_struct (x);
           }
 
-        variable a_l = fs_unpack (3);
+        variable a_l = __fs_unpack (buf, 3);
         foreach x (a_l)
           {
              check_list (x);
           }
 
-        variable a_a = fs_unpack (3);
+        variable a_a = __fs_unpack (buf, 3);
         foreach x (a_a)
           {
              check_assoc (x);
           }
 
-        ll = fs_unpack (3);
+        ll = __fs_unpack (buf, 3);
         check_list (ll[0]);
         check_struct (ll[1]);
         check_assoc (ll[2]);
