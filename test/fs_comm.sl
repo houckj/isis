@@ -153,7 +153,7 @@ private define handler (s, msg)
         check_struct (aa["_struct"]);
         check_assoc (aa["_assoc"]);
 
-        variable a_s = __fs_unpack (buf, 3);
+        variable a_s = __fs_unpack (buf);
         foreach x (a_s)
           {
              check_struct (x);

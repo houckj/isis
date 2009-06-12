@@ -333,7 +333,10 @@ define fork_slave ()
         catch AnyError:
           {
              vmessage ("*** caught exception from slave process pid=%d", getpid());
+             variable traceback = e.traceback;
+             e.traceback = NULL;
              print(e);
+             message (traceback);
           }
         finally
           {
@@ -499,7 +502,10 @@ define manage_slaves (slaves, mesg_handler)
    catch AnyError:
      {
         vmessage ("*** manage_slaves: caught exception!");
+        variable traceback = e.traceback;
+        e.traceback = NULL;
         print(e);
+        message (traceback);
      }
    finally
      {
@@ -571,7 +577,7 @@ private define do_pack (buf, item)
    if (typeof(item) == Array_Type)
      {
         variable t = _typeof(item);
-        if (t == List_Type || t == Assoc_Type || t == Struct_Type)
+        if (t == List_Type || t == Assoc_Type)
           {
              foreach (item)
                {
@@ -775,12 +781,13 @@ private define recv_item (fp)
      {case Null_Type:    item = recv_null (fp);}
      {
       case Array_Type:
-        if (_typeof(item) == String_Type)
-          item = recv_string (fp);
-        else if (_typeof(item) == Null_Type)
-          item = recv_null (fp);
-        else
-          item = recv_basic (fp);
+        switch (_typeof(item))
+          {case Struct_Type:  item = recv_struct (fp);}
+          {case String_Type:  item = recv_string (fp);}
+          {case Null_Type:    item = recv_null (fp);}
+          {
+             item = recv_basic (fp);
+          }
      }
      {
         % default
@@ -811,12 +818,13 @@ private define send_item (fp, item)
      {case Null_Type:    status = send_null (fp, item);}
      {
       case Array_Type:
-        if (_typeof(item) == String_Type)
-          status = send_string (fp, item);
-        else if (_typeof(item) == Null_Type)
-          status = send_null (fp, item);
-        else
-          status = send_basic (fp, item);
+        switch (_typeof(item))
+          {case Struct_Type:   status = send_struct (fp, item);}
+          {case String_Type:   status = send_string (fp, item);}
+          {case Null_Type:     status = send_null (fp, item);}
+          {
+             status = send_basic (fp, item);
+          }
      }
      {
         % default
@@ -833,7 +841,7 @@ private define array_to_struct (fields)
    return eval ("__atos__()");
 }
 
-private define recv_struct (fp)
+private define recv_one_struct (fp)
 {
    variable names = recv_string (fp);
    variable s = array_to_struct (names);
@@ -848,7 +856,7 @@ private define recv_struct (fp)
    return s;
 }
 
-private define send_struct (fp, s)
+private define send_one_struct (fp, s)
 {
    variable names = get_struct_field_names (s);
 
@@ -860,6 +868,43 @@ private define send_struct (fp, s)
      {
         variable v = get_struct_field (s, names[i]);
         if (-1 == send_item (fp, v))
+          return -1;
+     }
+
+   return 0;
+}
+
+private define recv_struct (fp)
+{
+   variable num = read_array (fp, 1, Integer_Type)[0];
+   variable s = Struct_Type[num];
+
+   if (num == 0)
+     return s;
+
+   variable i;
+   _for i (0, num-1, 1)
+     {
+        s[i] = recv_one_struct (fp);
+     }
+
+   if (length(s) == 1)
+     s = s[0];
+
+   return s;
+}
+
+private define send_struct (fp, array)
+{
+   variable num = length (array);
+
+   if (write_array (fp, num) < 0)
+     return -1;
+
+   variable i;
+   _for i (0, num-1, 1)
+     {
+        if (send_one_struct (fp, array[i]) < 0)
           return -1;
      }
 
