@@ -22,7 +22,6 @@
 %    along with this program; if not, write to the Free Software
 %    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 %
-
 % $Id: fit-cmds.sl,v 1.35 2004/09/09 17:50:51 houck Exp $
 
 %{{{ verbose hook
@@ -515,7 +514,7 @@ define get_par () %{{{
 
 define get_fit_fun ()
 {
-   _isis->_get_fit_fun();
+   return _isis->_get_fit_fun();
 }
 
 define get_fun_info () %{{{
@@ -1479,28 +1478,28 @@ define conf ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "(low, high) = conf (param_index [, level [, tolerance]])";
-   _conf (_NARGS, msg, 0);         % quiet
+   return _conf (_NARGS, msg, 0);         % quiet
 }
 
 define vconf ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "(low, high) = vconf (param_index [, level [, tolerance]])";
-   _conf (_NARGS, msg, 1);         % verbose
+   return _conf (_NARGS, msg, 1);         % verbose
 }
 
 define fconf ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "(low, high) = fconf (param_index [, dchisqr [, tolerance]])";
-   _fconf (_NARGS, msg, 0);         % quiet
+   return _fconf (_NARGS, msg, 0);         % quiet
 }
 
 define vfconf ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "(low, high) = vfconf (param_index [, dchisqr [, tolerance]])";
-   _fconf (_NARGS, msg, 1);         % verbose
+   return _fconf (_NARGS, msg, 1);         % verbose
 }
 
 %}}}
