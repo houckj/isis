@@ -584,7 +584,7 @@ define guess_num_slaves ()
 %   buf = __fs_initsend();
 %   __fs_pack (buf, item [, item, ..]);
 %   x = __fs_unpack (buf [, num]);
-%   __fs_send_buffer (fp, buf);
+%   status = __fs_send_buffer (fp, buf);
 %   buf = __fs_recv_buffer (fp);
 %
 %  TODO:
@@ -1037,7 +1037,7 @@ define __fs_recv_buffer ()
 
 define __fs_send_buffer ()
 {
-   variable umsg = "__fs_send_buffer (File_Type, buf)";
+   variable umsg = "status = __fs_send_buffer (File_Type, buf)";
 
    if (_NARGS != 2)
      usage(umsg);
@@ -1050,13 +1050,19 @@ define __fs_send_buffer ()
 
    send_msg (fp, BUFFER_START);
    if (write_array (fp, length(buf)) < 0)
-     return -1;
+     {
+        vmessage ("failed writing buffer length");
+        return -1;
+     }
 
    variable item;
    foreach item (buf)
      {
         if (send_item (fp, item) < 0)
-          return -1;
+          {
+             vmessage ("failed writing item of type %S", typeof(item));
+             return -1;
+          }
      }
 
    send_msg (fp, BUFFER_END);
@@ -1064,7 +1070,10 @@ define __fs_send_buffer ()
    % wait for the receiver to acknowledge
    variable msg = recv_msg (fp);
    if (msg.type != BUFFER_END)
-     return -1;
+     {
+        vmessage ("buffer sent, but receiver acknowledged with unexpected message type %d", msg.type);
+        return -1;
+     }
 
    return 0;
 }
@@ -1085,7 +1094,9 @@ define send_objs ()
      {
         __fs_pack (buf, x);
      }
-   __fs_send_buffer (fp, buf);
+
+   if (__fs_send_buffer (fp, buf))
+     throw IOError;
 }
 
 define recv_objs ()
