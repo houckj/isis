@@ -37,6 +37,9 @@ require ("select");
 %     status = write_array (fp, array);
 %     pid_vmessage (...)
 
+public variable Isis_Num_Slaves;
+public variable Isis_Nice_Slaves = 0;
+
 private variable User_Message_Handler;
 private variable Slaves_Running;
 private variable Sigchld_Received;
@@ -54,6 +57,8 @@ private define slave_is_active (s)
 {
    return s.status > 0;
 }
+
+private variable Check_For_Unread_Data = 1;
 
 private define process_struct (pid, sock)
 {
@@ -255,12 +260,15 @@ private define pending_messages (slaves)
    if (socks == NULL)
      return NULL;
 
-   % First handle any descriptors with unread data,
-   variable i,
-     status = array_map (Int_Type, &feof, socks.fp);
-   i = where (status == 0);
-   if (length(i) > 0)
-     return socks.fp[i];
+   if (Check_For_Unread_Data)
+     {
+        % handle any descriptors with unread data,
+        variable i,
+          status = array_map (Int_Type, &feof, socks.fp);
+        i = where (status == 0);
+        if (length(i) > 0)
+          return socks.fp[i];
+     }
 
    variable ss = select (socks.fd, NULL, NULL, -1);
    if (ss == NULL)
@@ -283,6 +291,19 @@ private define catch_sigusr1()
    sigprocmask (SIG_BLOCK, SIGUSR1);
    signal (SIGUSR1, &sigusr1_handler);
    sigprocmask (SIG_UNBLOCK, SIGUSR1);
+}
+
+private define renice (dp)
+{
+   if (dp == 0)
+     return 0;
+   variable p = getpriority (PRIO_PROCESS, 0);
+   if (p == NULL)
+     return -1;
+   variable s = setpriority (PRIO_PROCESS, 0, p + dp);
+   if (s == -1)
+     return -1;
+   return getpriority (PRIO_PROCESS, 0);
 }
 
 define fork_slave ()
@@ -325,6 +346,7 @@ define fork_slave ()
              if (close (s1) != 0)
                throw IOError, errno_string();
              variable p = process_struct (0, s2);
+             () = renice (typecast (qualifier ("nice", Isis_Nice_Slaves), Integer_Type));
              if (args != NULL)
                status = (@func_ref)(p, __push_args(args) ;; __qualifiers);
              else
@@ -427,13 +449,17 @@ define sigtest_slave (s, pids)
    variable n = length(pids), slaves_are_running;
    do
      {
-        % FIXME?
-        % The master ends up reading from this slave because
-        % feof returns 0 from its descriptor even if the slave
-        % has written nothing to the descriptor.  Since the
-        % master insists on reading something, we have to send
-        % something once in a while to prevent a block.
-        send_msg (s.fp, SLAVE_RUNNING);
+        if (Check_For_Unread_Data)
+          {
+             % If the master checks for unread data before calling
+             % select, it will end up reading from this slave because
+             % feof will return 0 from this slave's descriptor even
+             % if the slave has written nothing to it.
+             % For this reason, this slave must send something once
+             % in a while to keep that read from blocking.
+             send_msg (s.fp, SLAVE_RUNNING);
+          }
+
         variable i;
         slaves_are_running = 0;
         loop (10000){
@@ -534,8 +560,6 @@ define pid_vmessage ()
    vmessage (__push_args(args));
 }
 
-public variable Isis_Num_Slaves;
-
 require ("glob");
 define guess_num_slaves ()
 {
@@ -555,8 +579,8 @@ define guess_num_slaves ()
 
 % Communications interface:
 %
-%   fs_send_objs (fp, obj [, obj, ...]);
-%   List_Type = fs_recv_objs (fp [, num]);
+%   send_objs (fp, obj [, obj, ...]);
+%   List_Type = recv_objs (fp [, num]);
 %   buf = __fs_initsend();
 %   __fs_pack (buf, item [, item, ..]);
 %   x = __fs_unpack (buf [, num]);
@@ -1045,9 +1069,9 @@ define __fs_send_buffer ()
    return 0;
 }
 
-define fs_send_objs ()
+define send_objs ()
 {
-   variable msg = "fs_send_objs (File_Type, obj [, obj, ...])";
+   variable msg = "send_objs (File_Type, obj [, obj, ...])";
    variable fp, args = NULL;
 
    if (_NARGS < 2)
@@ -1064,9 +1088,9 @@ define fs_send_objs ()
    __fs_send_buffer (fp, buf);
 }
 
-define fs_recv_objs ()
+define recv_objs ()
 {
-   variable msg = "List_Type = fs_recv_objs (File_Type [, num])";
+   variable msg = "List_Type = recv_objs (File_Type [, num])";
    variable fp, num = -1;
 
    if (_NARGS > 1) num = ();
