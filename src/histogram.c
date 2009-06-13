@@ -1104,7 +1104,7 @@ static int get_canonical_hist_coordinates (Hist_t *h, int input_units) /*{{{*/
 
 static void invalid_uncertainties_replaced (void) /*{{{*/
 {
-   isis_vmesg (INFO, I_INVALID_UNCERT, __FILE__, __LINE__, NULL);
+   isis_vmesg (WARN, I_INVALID_UNCERT, __FILE__, __LINE__, NULL);
 }
 
 /*}}}*/

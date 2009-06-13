@@ -3808,7 +3808,7 @@ For example:
 {define\_counts}  % name
 {Define a counts-histogram using \slang\ arrays} % purpose
 {s = define\_counts (Struct\_Type | bins | [lo, hi,] counts [, err])} % usage
-{define\_flux, define\_back}
+{define\_flux, define\_back, Minimum\_Stat\_Err}
 
 This function provides a way to define a new data-set using
 \slang\ arrays.  As input, it accepts 1) a Struct\_Type with
@@ -4831,7 +4831,7 @@ zero indicates success).
 {status = load\_data("pha\_filename" [, rows])} %usage
 {load\_dataset, define\_counts, define\_flux, define\_back,
 get\_data\_*, put\_data\_*, plot\_unit, set\_dataset\_metadata,
-get\_dataset\_metadata, get\_sys\_err\_frac}
+get\_dataset\_metadata, get\_sys\_err\_frac, Minimum\_Stat\_Err}
 
 The format of the Type II PHA file is defined in the CXCDS Level 2
 Data Products ICD. An ASCII-format file should contain the histogram

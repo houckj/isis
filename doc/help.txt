@@ -1710,7 +1710,7 @@ define_counts
     assuming Poisson statistics.
 
  SEE ALSO
-    define_flux, define_back
+    define_flux, define_back, Minimum_Stat_Err
 
 ------------------------------------------------------------------------
 define_flux
@@ -3036,7 +3036,7 @@ load_data
  SEE ALSO
     load_dataset, define_counts, define_flux, define_back,
 get_data_*, put_data_*, plot_unit, set_dataset_metadata,
-get_dataset_metadata, get_sys_err_frac
+get_dataset_metadata, get_sys_err_frac, Minimum_Stat_Err
 
 ------------------------------------------------------------------------
 load_dataset
