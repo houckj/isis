@@ -588,8 +588,11 @@ define guess_num_slaves ()
 %   buf = __fs_recv_buffer (fp);
 %
 %  TODO:
-%    - add support for multi-dimensional arrays,
-%      Ref_Types (for linked lists, etc),
+%    - add support for:
+%        multi-dimensional arrays,
+%        array of List_Type,
+%        array of Assoc_Type,
+%        Ref_Types (for linked lists, etc),
 
 define __fs_initsend ()
 {
@@ -674,12 +677,12 @@ private variable Types =
    Null_Type, Struct_Type, Assoc_Type, List_Type
 };
 
-private define __datatype (i)
+private define datatype (i)
 {
    return Types[i];
 }
 
-private define __datatype_int (object)
+private define datatype_index (object)
 {
    variable i, n = length(Types);
 
@@ -792,10 +795,10 @@ private define recv_list();
 
 private define recv_item (fp)
 {
-   variable type_int, type, item;
+   variable type_index, type, item;
 
-   type_int = read_array (fp, 1, Integer_Type)[0];
-   type = __datatype(type_int);
+   type_index = read_array (fp, 1, Integer_Type)[0];
+   type = datatype(type_index);
 
    switch (type)
      {case Struct_Type:  item = recv_struct (fp);}
@@ -827,9 +830,9 @@ private define send_list();
 
 private define send_item (fp, item)
 {
-   variable type_int = __datatype_int (item);
+   variable type_index = datatype_index (item);
 
-   if (write_array (fp, type_int) < 0)
+   if (write_array (fp, type_index) < 0)
      return -1;
 
    variable status;
