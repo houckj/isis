@@ -12,8 +12,8 @@ pre1.5.0
  5.  Added support for non-standard FITS keywords appearing in
      INTEGRAL data.
  6.  slang-2.2 is now a minimum requirement
- 7.  New functions based on contributions by Mike Nowak:
-      group, group_bin, conf_loop
+ 7.  New functions based on contributions from Mike Nowak:
+      group, group_bin, ignore_values, notice_values, conf_loop
 
 Changes since 1.4.9 (released Nov 2007)
 ---------------------------------------

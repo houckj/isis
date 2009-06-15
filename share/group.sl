@@ -113,6 +113,9 @@ private define perform_select ()
    variable select_method = ();
    nargs--;
 
+   variable exclusive = ();
+   nargs--;
+
    _stk_roll (-nargs);
    variable datasets = ();
    nargs--;
@@ -121,6 +124,8 @@ private define perform_select ()
 
    if (mismatched_grids (datasets))
      throw ApplicationError, "*** Error:  mismatched dataset grids";
+
+   if (exclusive) ignore (datasets);
 
    variable value_mask, interval_mask;
    value_mask = mask_values (datasets ;; __qualifiers);
@@ -131,16 +136,22 @@ private define perform_select ()
    (@select_method)(datasets, where (value_mask and interval_mask));
 }
 
-define omit_matched ()
+define ignore_values ()
 {
+   variable msg = "ignore_values (datasets, lo1, hi1 [, lo2, hi2...] ; qualifiers)\n"
+                + "   qualifiers:  min_sum, min_val, unit";
+   if (_NARGS < 3) usage (msg);
    variable args = __pop_args (_NARGS);
-   perform_select (__push_args (args), &ignore_list ;; __qualifiers);
+   perform_select (__push_args (args), 0, &ignore_list ;; __qualifiers);
 }
 
-define select_matched ()
+define notice_values ()
 {
+   variable msg = "notice_values (datasets, lo1, hi1 [, lo2, hi2...] ; qualifiers)\n"
+                + "   qualifiers:  min_sum, min_val, unit";
+   if (_NARGS < 3) usage (msg);
    variable args = __pop_args (_NARGS);
-   perform_select (__push_args (args), &notice_list ;; __qualifiers);
+   perform_select (__push_args (args), 1, &notice_list ;; __qualifiers);
 }
 
 private define init_data_struct (k)

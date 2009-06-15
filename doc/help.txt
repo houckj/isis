@@ -10554,7 +10554,7 @@ ignore_list
     Ignore a list of bins when fitting
 
  USAGE
-    ignore_list (hist_index, list)
+    ignore_list (datasets[], list)
 
  DESCRIPTION
     This is an alternate form of the ignore function that takes a
@@ -10572,6 +10572,43 @@ ignore_list
 
  SEE ALSO
     ignore, notice_list, xnotice, exclude, include
+
+------------------------------------------------------------------------
+ignore_values
+
+ SYNOPSIS
+    Ignore bins with values exceeding a threshold
+
+ USAGE
+    ignore_values (datasets[], lo1, hi1 [,lo2, hi2...] ; qualifiers)
+
+ DESCRIPTION
+    Ignore bins in specific wavelength or energy intervals that
+    also meet criteria specified by the supported qualifiers. If
+    multiple datasets are specified, their spectral grids should
+    match exactly.
+
+    Use the unit qualfier to specify the physical units of the lo,
+    hi intervals.
+
+    Use the min_sum=value qualifier to ignore only those bins for
+    which the sum over all specified datasets exceeds value.
+
+    Use the min_val=value qualifier to ignore only those bins which
+    exceed value in any one of the specified datasets.
+
+    For example,
+
+       ignore_values ([2,4,5], 1.0, 1.5 ; min_sum=20, min_val=5, unit="kev");
+
+    will ignore bins falling entirely within the range 1-1.5 keV
+    and which also have more than 20 counts when summed over
+    datasets 2,4 and 5 and which have at least 5 counts in each of
+    those datasets.
+
+
+ SEE ALSO
+    ignore, ignore_list, notice, notice_values, notice_list, xnotice, exclude, include
 
 ------------------------------------------------------------------------
 include
@@ -11047,7 +11084,7 @@ notice_list
     Notice a list of bins when fitting
 
  USAGE
-    notice_list (hist_index, list)
+    notice_list (datasets[], list)
 
  DESCRIPTION
     This is an alternate form of the notice function that takes a
@@ -11066,6 +11103,43 @@ notice_list
 
  SEE ALSO
     notice, ignore_list, xnotice, exclude, include
+
+------------------------------------------------------------------------
+notice_values
+
+ SYNOPSIS
+    Notice bins with values exceeding a threshold
+
+ USAGE
+    notice_values (datasets[], lo1, hi1 [,lo2, hi2...] ; qualifiers)
+
+ DESCRIPTION
+    Exclusively notice bins in specific wavelength or energy
+    intervals that also meet criteria specified by the supported
+    qualifiers. If multiple datasets are specified, their spectral
+    grids should match exactly.
+
+    Use the unit qualfier to specify the physical units of the lo,
+    hi intervals.
+
+    Use the min_sum=value qualifier to notice only those bins for
+    which the sum over all specified datasets exceeds value.
+
+    Use the min_val=value qualifier to notice only those bins which
+    exceed value in any one of the specified datasets.
+
+    For example,
+
+       notice_values ([2,4,5], 1.0, 1.5 ; min_sum=20, min_val=5, unit="kev");
+
+    will exclusively notice bins falling entirely within the range
+    1-1.5 keV and which also have more than 20 counts when summed
+    over datasets 2, 4 and 5 and which have at least 5 counts in
+    each of those datasets.
+
+
+ SEE ALSO
+    ignore_values, ignore, ignore_list, notice, notice_list, xnotice, exclude, include
 
 ------------------------------------------------------------------------
 open_fit

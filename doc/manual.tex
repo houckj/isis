@@ -11757,7 +11757,7 @@ See \verb|ignore| for details.
 \begin{isisfunction}
 {ignore\_list} %name
 {Ignore a list of bins when fitting} %purpose
-{ignore\_list (hist\_index, list)}   %usage
+{ignore\_list (datasets[], list)}   %usage
 {ignore, notice\_list, xnotice, exclude, include}
 
 This is an alternate form of the \verb|ignore| function that
@@ -11772,6 +11772,39 @@ Note that the list of bin indices refers to the internal
 data which is stored in increasing wavelength order.
 
 See \verb|ignore| for details.
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{ignore\_values} %name
+{Ignore bins with values exceeding a threshold} %purpose
+{ignore\_values (datasets[], lo1, hi1 [,lo2, hi2...] ; qualifiers)}   %usage
+{ignore, ignore\_list, notice, notice\_values, notice\_list, xnotice, exclude, include}
+
+Ignore bins in specific wavelength or energy intervals that
+also meet criteria specified by the supported qualifiers. If
+multiple datasets are specified, their spectral grids should
+match exactly.
+
+Use the \verb|unit| qualfier to specify the physical units of
+the \verb|lo, hi| intervals.
+
+Use the \verb|min_sum=value| qualifier to ignore only those
+bins for which the sum over all specified datasets exceeds
+\verb|value|.
+
+Use the \verb|min_val=value| qualifier to ignore only those
+bins which exceed \verb|value| in any one of the specified
+datasets.
+
+For example,
+\begin{verbatim}
+   ignore_values ([2,4,5], 1.0, 1.5 ; min_sum=20, min_val=5, unit="kev");
+\end{verbatim}
+will ignore bins falling entirely within the range 1-1.5 keV
+and which also have more than 20 counts when summed over
+datasets 2,4 and 5 and which have at least 5 counts in
+each of those datasets.
 
 \end{isisfunction}
 
@@ -12150,7 +12183,7 @@ See \verb|notice| for details.
 \begin{isisfunction}
 {notice\_list} %name
 {Notice a list of bins when fitting} %purpose
-{notice\_list (hist\_index, list)}   %usage
+{notice\_list (datasets[], list)}   %usage
 {notice, ignore\_list, xnotice, exclude, include}
 
 This is an alternate form of the \verb|notice| function that
@@ -12166,6 +12199,39 @@ Note that the list of bin indices refers to the internal
 data which is stored in increasing wavelength order.
 
 See \verb|notice| for details.
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{notice\_values} %name
+{Notice bins with values exceeding a threshold} %purpose
+{notice\_values (datasets[], lo1, hi1 [,lo2, hi2...] ; qualifiers)}   %usage
+{ignore\_values, ignore, ignore\_list, notice, notice\_list, xnotice, exclude, include}
+
+Exclusively notice bins in specific wavelength or energy
+intervals that also meet criteria specified by the supported
+qualifiers. If multiple datasets are specified, their spectral
+grids should match exactly.
+
+Use the \verb|unit| qualfier to specify the physical units of
+the \verb|lo, hi| intervals.
+
+Use the \verb|min_sum=value| qualifier to notice only those
+bins for which the sum over all specified datasets exceeds
+\verb|value|.
+
+Use the \verb|min_val=value| qualifier to notice only those
+bins which exceed \verb|value| in any one of the specified
+datasets.
+
+For example,
+\begin{verbatim}
+   notice_values ([2,4,5], 1.0, 1.5 ; min_sum=20, min_val=5, unit="kev");
+\end{verbatim}
+will exclusively notice bins falling entirely within the range
+1-1.5 keV and which also have more than 20 counts when summed
+over datasets 2, 4 and 5 and which have at least 5 counts
+in each of those datasets.
 
 \end{isisfunction}
 
