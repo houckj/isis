@@ -471,3 +471,72 @@ define unique () %{{{
 
 %}}}
 #endif
+
+% binary search a histogram grid
+define bsearch_hist (x, lo, hi) %{{{
+{
+   variable n = length(lo);
+   if (n == 0)
+     return NULL;
+
+   if (isnan(x))
+     return NULL;
+
+   if (x < lo[0])
+     return -INT_MAX;
+   else if (hi[n-1] < x)
+     return INT_MAX;
+
+   variable n0=0, n1=n, n2;
+
+   while (n1 > n0 + 1)
+     {
+        n2 = (n0 + n1) / 2;
+        if (x < hi[n2])
+          {
+             if (lo[n2] <= x)
+               return n2;
+             n1 = n2;
+          }
+        else n0 = n2;
+     }
+
+   return n0;
+}
+
+%}}}
+
+% binary search for x in sorted array a,
+% returning index i such that a[i] <= x < a[i+1]
+define bsearch (x, a) %{{{
+{
+   variable n = length(a);
+   if (n == 0)
+     return NULL;
+
+   if (isnan(x))
+     return NULL;
+
+   if (x < a[0])
+     return -INT_MAX;
+   else if (a[n-1] < x)
+     return INT_MAX;
+
+   variable n0=0, n1=n, n2;
+
+   while (n1 > n0 + 1)
+     {
+        n2 = (n0 + n1) / 2;
+        if (x < a[n2])
+          {
+             if (a[n2] == x)
+               return n2;
+             n1 = n2;
+          }
+        else n0 = n2;
+     }
+
+   return n0;
+}
+
+%}}}

@@ -2,9 +2,11 @@ _isis.sl
 aped_fun.sl
 atom-cmds.sl
 cmds.sl
+conf_loop.sl
 emis-cmds.sl
 fit-cmds.sl
 fits_module_dep.sl
+group.sl
 hist-cmds.sl
 init.sl
 isis.sl

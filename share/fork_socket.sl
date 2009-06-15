@@ -31,8 +31,8 @@ require ("select");
 %     s = fork_slave (&task [,args [; qualifiers]])
 %     append_slave (slaves, s);
 %     manage_slaves (slaves, &message_handler [; qualifiers]);
-%     send_msg (fp, type)
-%     msg = recv_msg (fp)
+%     send_msg (s, type)
+%     msg = recv_msg (s)
 %     array = read_array (fp, n, type);
 %     status = write_array (fp, array);
 %     pid_vmessage (...)
@@ -181,7 +181,7 @@ define write_array (fp, array)
    return fflush (fp);
 }
 
-define recv_msg (fp)
+define _recv_msg (fp)
 {
    if (feof(fp))
      return NULL;
@@ -195,10 +195,29 @@ define recv_msg (fp)
    return s;
 }
 
-define send_msg (fp, type)
+define recv_msg ()
+{
+   if (_NARGS != 1)
+     usage ("Struct_Type = recv_msg (Struct_Type slave)");
+
+   variable s = ();
+   return _recv_msg (s.fp);
+}
+
+define _send_msg (fp, type)
 {
    if (write_array (fp, [getpid(), type]))
      throw IOError;
+}
+
+define send_msg ()
+{
+   if (_NARGS != 2)
+     usage ("send_msg (Struct_Type slave, Integer_Type msg_type)");
+
+   variable s, type;
+   (s, type) = ();
+   _send_msg (s.fp, type);
 }
 
 private define handle_message (s, msg)
@@ -208,7 +227,7 @@ private define handle_message (s, msg)
       case SLAVE_EXITING:
         % handshake to avoid race condition -- we don't want the
         % slave to exit before we've finished reading its results
-        send_msg (s.fp, SLAVE_EXITING);
+        _send_msg (s.fp, SLAVE_EXITING);
         call_waitpid_for_slave (s);
      }
      {
@@ -365,8 +384,8 @@ define fork_slave ()
              % handshake to avoid race condition -- we don't want the
              % slave to exit before we've finished reading its results.
              if (Do_Sigtest) vmessage ("%d: Num_Sigusr1 = %d", getpid(), Num_Sigusr1);
-             send_msg (p.fp, SLAVE_EXITING);
-             () = recv_msg (p.fp);
+             _send_msg (p.fp, SLAVE_EXITING);
+             () = _recv_msg (p.fp);
              () = close (s2);
              _exit (status);
           }
@@ -400,7 +419,7 @@ private define handle_pending_messages (slaves)
    variable fp;
    foreach fp (fp_set)
      {
-        variable msg = recv_msg (fp);
+        variable msg = _recv_msg (fp);
         if (msg == NULL)
           continue;
 
@@ -457,7 +476,7 @@ define sigtest_slave (s, pids)
              % if the slave has written nothing to it.
              % For this reason, this slave must send something once
              % in a while to keep that read from blocking.
-             send_msg (s.fp, SLAVE_RUNNING);
+             _send_msg (s.fp, SLAVE_RUNNING);
           }
 
         variable i;
@@ -579,8 +598,8 @@ define guess_num_slaves ()
 
 % Communications interface:
 %
-%   send_objs (fp, obj [, obj, ...]);
-%   List_Type = recv_objs (fp [, num]);
+%   send_objs (s, obj [, obj, ...]);
+%   List_Type = recv_objs (s [, num]);
 %   buf = __fs_initsend();
 %   __fs_pack (buf, item [, item, ..]);
 %   x = __fs_unpack (buf [, num]);
@@ -1015,7 +1034,7 @@ define __fs_recv_buffer ()
 
    variable fp = ();
 
-   variable msg = recv_msg (fp);
+   variable msg = _recv_msg (fp);
    if (msg.type != BUFFER_START)
      throw ApplicationError, "expected BUFFER_START message";
 
@@ -1028,12 +1047,9 @@ define __fs_recv_buffer ()
         list_append (buf, item);
      }
 
-   msg = recv_msg (fp);
+   msg = _recv_msg (fp);
    if (msg.type != BUFFER_END)
      throw ApplicationError, "expected BUFFER_END message";
-
-   % tell the sender the buffer was received.
-   send_msg (fp, BUFFER_END);
 
    return buf;
 }
@@ -1051,7 +1067,7 @@ define __fs_send_buffer ()
    if (buf == NULL)
      throw ApplicationError, "invalid buffer";
 
-   send_msg (fp, BUFFER_START);
+   _send_msg (fp, BUFFER_START);
    if (write_array (fp, length(buf)) < 0)
      {
         vmessage ("failed writing buffer length");
@@ -1068,29 +1084,21 @@ define __fs_send_buffer ()
           }
      }
 
-   send_msg (fp, BUFFER_END);
-
-   % wait for the receiver to acknowledge
-   variable msg = recv_msg (fp);
-   if (msg.type != BUFFER_END)
-     {
-        vmessage ("buffer sent, but receiver acknowledged with unexpected message type %d", msg.type);
-        return -1;
-     }
+   _send_msg (fp, BUFFER_END);
 
    return 0;
 }
 
 define send_objs ()
 {
-   variable msg = "send_objs (File_Type, obj [, obj, ...])";
-   variable fp, args = NULL;
+   variable msg = "send_objs (Struct_Type slv, obj [, obj, ...])";
+   variable s, args = NULL;
 
    if (_NARGS < 2)
      usage (msg);
 
    args = __pop_list (_NARGS-1);
-   fp = ();
+   s = ();
 
    variable x, buf = __fs_initsend ();
    foreach x (args)
@@ -1098,19 +1106,19 @@ define send_objs ()
         __fs_pack (buf, x);
      }
 
-   if (__fs_send_buffer (fp, buf))
+   if (__fs_send_buffer (s.fp, buf))
      throw IOError;
 }
 
 define recv_objs ()
 {
-   variable msg = "List_Type = recv_objs (File_Type [, num])";
-   variable fp, num = -1;
+   variable msg = "List_Type = recv_objs (Struct_Type slv [, num])";
+   variable s, num = -1;
 
    if (_NARGS > 1) num = ();
-   fp = ();
+   s = ();
 
-   variable buf = __fs_recv_buffer (fp);
+   variable buf = __fs_recv_buffer (s.fp);
    return __fs_unpack (buf, num);
 }
 
@@ -1127,10 +1135,10 @@ define task (s, which, num_loops)
    _for i (0, num_loops-1, 1)
      {
         %pid_vmessage ("ready");
-        send_msg (s.fp, SLAVE_READY);
+        _send_msg (s.fp, SLAVE_READY);
         variable x = read_array (s.fp, 2, Double_Type);
 
-        send_msg (s.fp, SLAVE_RESULT);
+        _send_msg (s.fp, SLAVE_RESULT);
 
         if (write_array (s.fp, urand(M,M)))
           throw IOError, "*** slave: write failed";

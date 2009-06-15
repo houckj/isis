@@ -36,6 +36,8 @@ $1 =
    ,"atom-cmds"
    ,"emis-cmds"
    ,"fit-cmds"
+   ,"group"
+   ,"conf_loop"
    ,"model-cmds"
    ,"aped_fun"
 ];

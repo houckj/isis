@@ -339,8 +339,8 @@ define reset () %{{{
 #iftrue
    _pop_n (_NARGS);
    vmessage ("***WARNING: 'reset' has been disabled and will soon be removed");
-   return;             
-#else   
+   return;
+#else
    variable force = 0;
 
    switch (_NARGS)
@@ -366,7 +366,7 @@ define reset () %{{{
 
    if (force)
      _isis->_reset;
-#endif   
+#endif
 }
 
 %}}}
@@ -584,6 +584,146 @@ define _A () %{{{
 }
 
 %}}}
+
+private variable Units = Assoc_Type[];
+
+define unit_add ()
+{
+   variable msg = "unit_add (String_Type name, Int_Type is_energy, scale)";
+   variable name, is_energy, scale;
+
+   if (_NARGS != 3)
+     usage (msg);
+   (name, is_energy, scale) = ();
+
+   ifnot (typeof(name) == String_Type
+          && typeof (is_energy) == Integer_Type
+          && __is_numeric (scale))
+     {
+        usage (msg);
+     }
+
+   variable u = struct
+     {
+        name = name,
+        is_energy = is_energy,
+        scale = scale
+        % Multiplying by 'scale' converts energy units to keV
+        % and wavelength units to Angstrom.
+     };
+
+   Units[strlow(name)] = u;
+}
+
+unit_add ("Angstrom",  0, 1.0);
+unit_add ("A",  0, 1.0);
+unit_add ("nm", 0, 1.e1);
+unit_add ("um", 0, 1.e4);
+unit_add ("mm", 0, 1.e7);
+unit_add ("cm", 0, 1.e8);
+unit_add ("m",  0, 1.e10);
+
+unit_add ("eV",  1, 1.e-3);
+unit_add ("keV", 1, 1.0);
+unit_add ("MeV", 1, 1.e3);
+unit_add ("GeV", 1, 1.e6);
+unit_add ("TeV", 1, 1.e9);
+
+private variable hz_to_kev = Const_h / (Const_eV * 1.e3);
+unit_add ("Hz",  1, hz_to_kev);
+unit_add ("kHz", 1, hz_to_kev * 1.e3);
+unit_add ("MHz", 1, hz_to_kev * 1.e6);
+unit_add ("GHz", 1, hz_to_kev * 1.e9);
+
+define unit_exists ()
+{
+   if (_NARGS != 1) usage ("unit_exists (unit)");
+   variable unit = ();
+   return assoc_key_exists (Units, strlow(unit));
+}
+
+private variable Default_Unit;
+
+private define unit_default_init (u)
+{
+   ifnot (unit_exists (u))
+     {
+        vmessage ("Unsupported unit: %s", u);
+        return;
+     }
+   Default_Unit = list_new();
+   list_insert (Default_Unit, u);
+}
+unit_default_init ("Angstrom");
+
+define unit_push ()
+{
+   if (_NARGS != 1)
+     usage ("unit_push (unit)");
+
+   variable unit = ();
+   if (unit_exists (unit))
+     list_insert (Default_Unit, unit);
+   else vmessage ("Unsupported unit: %s", unit);
+}
+
+define unit_pop ()
+{
+   if (length(Default_Unit) == 1)
+     return Default_Unit[0];
+   return list_pop (Default_Unit);
+}
+
+define unit_default ()
+{
+   switch (_NARGS)
+     {case 0: return Default_Unit[0];}
+     {case 1: unit_default_init ();}
+     {
+        usage ("unit = unit_default()  OR  unit_default (unit)");
+     }
+}
+
+define unit_info ()
+{
+   variable s = unit_default ();
+   if (_NARGS == 1)
+     s = ();
+   else if (_NARGS > 1)
+     usage ("Struct_Type = unit_info ([unit])");
+
+   if (unit_exists (s))
+     return Units[strlow(s)];
+   else vmessage ("Unsupported unit: %s", s);
+}
+
+define unit_is_energy ()
+{
+   variable s = unit_default ();
+   if (_NARGS == 1)
+     s = ();
+   else if (_NARGS > 1)
+     usage ("Int_Type = unit_is_energy ([unit])");
+
+   return unit_info(s).is_energy;
+}
+
+define to_angstrom ()
+{
+   variable msg = "x_angstrom = to_angstrom (x)";
+   if (_NARGS != 1) usage(msg);
+
+   variable x = ();
+
+   variable units, u, xa;
+   units = qualifier ("unit", unit_default());
+
+   u = unit_info (units);
+   xa = x * u.scale;
+   if (u.is_energy) xa = _A(xa);
+
+   return xa;
+}
 
 define readcol () %{{{
 {

@@ -993,7 +993,7 @@ C++, or {\sc fortran} code callable directly from \isis,
 automatically vectorize functions to take advantage of the
 powerful numerical and array capabilities native to \slang, and
 can even generate Makefiles to automate the build process.
-                  
+
 \section{Language Syntax}
 
 The \isisx command language syntax is the syntax of \slang, its
@@ -2711,10 +2711,10 @@ If several such functions are specified, the functions will be
 called in reverse order. If a slang error occurs when one of
 the functions is called and if that error is not cleared, the
 remaining functions registered with \verb|atexit| will not be
-called.  
+called.
 
 For example:
-\begin{verbatim} 
+\begin{verbatim}
 isis> define cleanup1 () {message ("called cleanup1");}
 isis> define cleanup2 () {message ("called cleanup2");}
 isis> atexit (&cleanup1);
@@ -2722,10 +2722,9 @@ isis> atexit (&cleanup2);
 isis> exit;
 called cleanup2
 called cleanup1
-\end{verbatim} 
+\end{verbatim}
 
 \end{isisfunction}
-
 
 \begin{isisfunction}
 {chdir} %name
@@ -2745,7 +2744,7 @@ otherwise it returns \verb|s=-1|.
 \begin{verbatim}
   fft(x, sign)[k] = sum_j( x[j] * exp(sign* 2*PI*i *j*k / length(x)) )
                     /sqrt(length(x))
-              
+
 \end{verbatim}
 where \verb|sign| is \verb|+1| or \verb|-1|.
 \end{isisfunction}
@@ -3197,7 +3196,7 @@ appended to the existing file.
 \index{Readline method}
 
 Use this function to select how the command-line interface
-should behave. 
+should behave.
 
 If \isisx was compiled with GNU \verb|readline|, then GNU
 \verb|readline| will manage the command line, providing
@@ -4388,31 +4387,31 @@ development.
 {flux\_corr}
 
 Define
-\begin{equation} 
+\begin{equation}
 W(h) = t \int dy R(h,y)A(y).
 \end{equation}
 This function returns the array $W(h)$ at full resolution.
 In the linear regime, the flux-corrected data and uncertainties
 are defined to be
-\begin{eqnarray} 
+\begin{eqnarray}
        f(h) &= (C(h) - B(h)) / W(h) \\
     df^2(h) &= (C(h) + B(h)) / W^2(h)
 \end{eqnarray}
 Summing over several bins $h$, to make a wider bin $H$,
 a rebinned version is:
-\begin{eqnarray}             
-     f(H) &= \frac{\sum_h C(h) - \sum_h B(h)}{\sum_h W(h)} \\            
+\begin{eqnarray}
+     f(H) &= \frac{\sum_h C(h) - \sum_h B(h)}{\sum_h W(h)} \\
   df^2(H) &= \frac{\sum_h C(h) + \sum_h B(h)}{(\sum_h W(h))^2}
 \end{eqnarray}
 If we define weights
-\begin{equation} 
+\begin{equation}
    w(h) = \frac{W(h)}{\sum_h' W(h')}
-\end{equation} 
+\end{equation}
 we can rewrite the rebinned version, $f(H)$ and $df(H)$, as:
-\begin{eqnarray} 
+\begin{eqnarray}
      f(H) &= \sum_h w(h) f(h) \\
   df^2(H) &= \sum_h w^2(h) df^2(h)
-\end{eqnarray} 
+\end{eqnarray}
 This approach allows one to perform arbitrary rebinning
 after computing the $f(h)$, $df(h)$ and $W(h)$ values only once.
 \end{isisfunction}
@@ -4497,10 +4496,81 @@ error, e.g. \verb|SYS_ERR|.
 \end{isisfunction}
 
 \begin{isisfunction}
+{group}
+{Group spectral bins using S/N ratio and/or channel}
+{group (datasets[] [; qualifiers])}
+{group\_bin, group\_data, rebin\_data, use\_file\_group, regroup\_file, rebin\_dataset, set\_rebin\_error\_hook, rebin, rebin\_array}
+\index{Rebinning!signal to noise ratio}
+\index{Rebinning!channel}
+
+Rebin data sets using a combination of minimum signal-to-noise
+(S/N) ratio and minimum number of channels in each grouped bin.
+If multiple datasets are to be grouped, their grids must match
+exactly.
+
+The background data set, if it exists, is included in the S/N
+calculation. \verb|group| presumes that the total noise goes as:
+\begin{verbatim}
+   sqrt( (Total_Counts) + (Back_Counts)*(Back_Scale*Exposure_Ratio)^2 )
+\end{verbatim}
+where the totals represent sums over all datasets (or those
+specified by the \verb|sn_data| qualifier, if it is present).
+The default minimum S/N ratio, \verb|min_sn=1/sqrt(0.05)|
+corresponds to 5\% Poisson uncertainty in each bin.
+
+The last channels are binned into a single group, regardless of
+whether or not they meet the binning criteria.
+
+Different rebinning criteria may be applied simulataneously to
+different parts of the spectrum.  Spectrum subintervals are
+specified using the \verb|bounds| and \verb|unit| qualifiers,
+and grouping criteria are specified as arrays with one entry
+for each subinterval.
+
+For example,
+\begin{verbatim}
+    group ([1,2,3]; sn_data=[1,2],
+                    bounds=[0.5,2], unit="kev",
+                    min_chan=[2,4], min_sn=5);
+\end{verbatim}
+will group data sets 1,2, and 3, starting at 0.5 keV, to minimum S/N of
+5 for the combination of data sets 1 and 2 only, and to a minimum of 2
+channels between 0.5-2 keV, and 4 channels above 2 keV.
+\begin{verbatim}
+    group ([1:4]; bounds=[1.5,6,12,18], unit="a",
+                  min_chan=[2,4,8,16], min_sn=0);
+\end{verbatim}
+will group data sets 1-4 to 2 channels per bin between 1.5-6
+Angstroms, to 4 channels per bin between 6-12 Angstroms, to 8
+channels per bin between 12-18 Angstroms, and to 16 channels
+per bin above 18 Angstroms.
+\begin{verbatim}
+\end{isisfunction}
+
+\begin{isisfunction}
+{group\_bin}
+{Group data to approximately match a specified grid}
+{group\_bin (datasets[], lo, hi [; qualifiers])}
+{group, group\_data, rebin\_data, use\_file\_group, regroup\_file, rebin\_dataset, set\_rebin\_error\_hook, rebin, rebin\_array}
+
+Regroup the specified datasets to match a particular histogram
+grid as closely as possible without changing the underlying
+spectral grids. If multiple datasets are to be grouped, their
+grids must match exactly.  
+
+The physical units of the input grid may be specified using the
+\verb|unit| qualifier. The current default physical units may
+be obtained or changed using the \verb|unit_default| intrinsic.
+
+To regrid a dataset to exactly match a particular grid, use
+\verb|rebin_dataset|.
+\end{isisfunction}
+
+\begin{isisfunction}
 {group\_data}
 {Group spectral bins by an integer factor}
 {group\_data (hist\_index\_array, factor)}
-{rebin\_data, use\_file\_group, regroup\_file, rebin\_dataset, set\_rebin\_error\_hook, rebin, rebin\_array}
+{group, group_bin, rebin\_data, use\_file\_group, regroup\_file, rebin\_dataset, set\_rebin\_error\_hook, rebin, rebin\_array}
 \index{Rebinning!integer factor}
 
 The count data of each histogram in {\tt hist\_index\_array} is
@@ -4566,8 +4636,8 @@ define backfun_fit (_l,_h,_p)
 
    return t * (p + g);
 }
-add_slang_function ("backfun", 
-                     ["a0", "a1", "a2", 
+add_slang_function ("backfun",
+                     ["a0", "a1", "a2",
                       "area", "center", "sigma"]);
 
 back_fun (h, "backfun");
@@ -4585,7 +4655,7 @@ The distinction between the data grid and the background grid
 can be important in the analysis of dispersed spectra
 containing contributions from multiple dispersion orders and
 with a significant background contribution(e.g. Chandra
-LETG/HRC-S data). 
+LETG/HRC-S data).
 
 \end{isisfunction}
 
@@ -4879,7 +4949,7 @@ bin-densities; uncertainty values should be positive.  By default, any
 input {\tt STAT\_ERR} uncertainty values smaller than 1 are reset to
 \begin{verbatim}
    stat_err = max[ sqrt(N), Minimum_Stat_Err ]
-\end{verbatim} 
+\end{verbatim}
 Where \verb|Minimum_Stat_Err| is the smallest acceptable
 (positive) uncertainty value with a default value of 1.
 
@@ -5576,7 +5646,7 @@ For example:
   % regroup a PHA file to match a given dataset
    grp = get_data_info (3).rebin;
    regroup_file (grp, "pha.fits");
-   
+
   % update the input PHA file to match the current grouping:
    id = load_data ("pha_x.fits");
    group_data (id, 4);
@@ -6310,7 +6380,7 @@ index of the new table.
 EXAMPLE
     % Retrieve references for emission lines between 1-20 Angstrom
     ref_struct = aped_bib (aped, where(wl(1,20)));
-\end{verbatim} 
+\end{verbatim}
 \end{isisfunction}
 
 \begin{isisfunction}
@@ -6319,14 +6389,14 @@ EXAMPLE
 {String\_Type = aped\_bib\_query\_string (Struct\_Type refs)} %usage
 {aped\_bib}
 
-\begin{verbatim} 
+\begin{verbatim}
 EXAMPLE
     % Retrieve references for emission lines between 1-20 Angstrom
     ref_struct = aped_bib (aped, where(wl(1,20)));
     qs = aped_bib_query_string (ref_struct);
 
     () = system ("lynx -dump '$qs' > /tmp/qs.bib"$);
-\end{verbatim} 
+\end{verbatim}
 \end{isisfunction}
 
 \begin{isisfunction}
@@ -6342,12 +6412,12 @@ a sum of such multi-temperature models -- for example, consider
 a three component model:
 \begin{verbatim}
    xaped(1) + xaped(2) + xaped(3)
-\end{verbatim} 
+\end{verbatim}
 where each \verb|xaped| component introduces N
-temperatures-density components, 
-\begin{verbatim} 
+temperatures-density components,
+\begin{verbatim}
    T[i],  n[i], i=0,1,2,...N-1.
-\end{verbatim} 
+\end{verbatim}
 
 In the resulting model spectrum, any given emission line
 represents the sum of 3N contributions -- 3 model components,
@@ -6358,7 +6428,7 @@ all of these separate contributions to each emission line. For
 example, the contribution to emission line, k, from
 temperature/density component, i, of model component, j, can be
 retrieved like so:
-\begin{verbatim} 
+\begin{verbatim}
    create_aped_fun ("xaped", p);
    fit_fun ("xaped(1) + xaped(2) + ... + xaped(N)");
 
@@ -6370,7 +6440,7 @@ retrieved like so:
 
 The single required input parameter is a string specifying a
 particular instance of an APED model created by
-\verb|create_aped_fun|.  
+\verb|create_aped_fun|.
 
 The return value is a \verb|List_Type| quantity with one
 \verb|Struct_Type| entry for each temperature-density component
@@ -6379,13 +6449,13 @@ parameters:
 \begin{verbatim}
    struct {density, temperature, line_flux,
            norm, redshift, vturb, metal_abund}
-\end{verbatim} 
+\end{verbatim}
 The \verb|line_flux| field is an array of length equal to the
 number of emission lines in the APED database. For this reason,
 the line indices returned by other isis functions, e.g.
 \verb|brightest|, may be used to index into this array.
 
-\begin{verbatim} 
+\begin{verbatim}
 EXAMPLE
 
    % define a spectral model
@@ -6397,7 +6467,7 @@ EXAMPLE
 
    % view database parameters for this emission line
    print(line_info (id));
-   
+
    % evaluate the spectral model (computing all the line fluxes)
    variable lo, hi, f;
    (lo, hi) = linear_grid (1, 20, 2000);
@@ -6408,7 +6478,7 @@ EXAMPLE
    info = aped_fun_details ("xaped(1)");
    flux0 = info[0].line_flux[ id ];
 
-\end{verbatim} 
+\end{verbatim}
 
 \end{isisfunction}
 
@@ -7399,7 +7469,7 @@ emissivities are to be loaded from the database.
 Access to the emissivity tables is usually most efficient if the all
 of the tables fit in memory at once (the default mode assumes that
 this is the case).  For large databases, however, this may not be
-practical.  
+practical.
 
 To support very large line lists, it may be necessary to
 increase the size of an internal hash table.  To increase the
@@ -7506,7 +7576,7 @@ plasma models may be generated using the function
 % After generating a wavelength grid, perhaps using {\tt
 % linear\_grid}, the spectrum of this model can be computed using
 % {\tt eval\_fun} and fitted using \verb|fit_counts| or
-% \verb|fit_flux|.  
+% \verb|fit_flux|.
 
 By default, spectral line profiles are delta-functions; {\tt
 use\_thermal\_profile} specifies that a thermal line profile
@@ -7736,9 +7806,9 @@ useful to allow those parameters to vary during a fit.
 
 For example, suppose we've defined a custom APED spectral model
 as defined above:
-\begin{verbatim} 
+\begin{verbatim}
   create_aped_fun ("xaped", template_struct);
-\end{verbatim} 
+\end{verbatim}
 
 To adjust the emissivity of selected spectral lines, we can
 write a \slang\ function of the form:
@@ -7748,7 +7818,7 @@ write a \slang\ function of the form:
      variable info = line_info(line_id);
       %
       % ... modify the emissivity of selected emission lines ...
-      % 
+      %
      return emis;
   }
 \end{verbatim}
@@ -7760,7 +7830,7 @@ new value for the line emissivity. This function will be called
 while the \verb|xaped| function is being computed and its
 adjustable parameters will be included in the fit.
 
-To enable this function to perform these tasks, we must 
+To enable this function to perform these tasks, we must
 register it as a line-modifier function:
 \begin{verbatim}
   create_aped_line_modifier ("modifier", &line_emis_modifier, ["a", "b", "c"]);
@@ -7783,23 +7853,23 @@ something like:
 \begin{verbatim}
 xaped (1, modifier(1))
  idx  param             tie-to  freeze   value     min     max
-  1  modifier(1).a          0     0          0       0       0  
-  2  modifier(1).b          0     0          0       0       0  
-  3  modifier(1).c          0     0          0       0       0  
-  4  xaped(1).norm          0     1          1       0       0  
-  5  xaped(1).temperature   0     1      1e+07       0       0  
-  6  xaped(1).density       0     1          1       0       0  
-  7  xaped(1).vturb         0     1          0       0       0  
-  8  xaped(1).redshift      0     1          0       0       0  
-  9  xaped(1).metal_abund   0     1          1       0       0  
-\end{verbatim} 
+  1  modifier(1).a          0     0          0       0       0
+  2  modifier(1).b          0     0          0       0       0
+  3  modifier(1).c          0     0          0       0       0
+  4  xaped(1).norm          0     1          1       0       0
+  5  xaped(1).temperature   0     1      1e+07       0       0
+  6  xaped(1).density       0     1          1       0       0
+  7  xaped(1).vturb         0     1          0       0       0
+  8  xaped(1).redshift      0     1          0       0       0
+  9  xaped(1).metal_abund   0     1          1       0       0
+\end{verbatim}
 
 The \verb|modifier| function may require additional
 user-defined data to perform the necessary computations.
 One solution to this problem is to store the additional data
 in global variables, but this is sometimes inconvenient because
 the implementation of the \verb|modifier| function then
-depends on symbols with global scope.  
+depends on symbols with global scope.
 
 An alternative is to have additional user-defined arguments
 passed to the modifier function when it is called.  The
@@ -7855,7 +7925,7 @@ use
 \end{verbatim}
 Note that we have provided a name for the function and each of
 its parameters.  These names will appear in the output of
-\verb|list_par|.  
+\verb|list_par|.
 
 To invoke this helper function, we specify a fit-function using
 the syntax:
@@ -7871,13 +7941,13 @@ something like:
 \begin{verbatim}
 xaped (1, square_profile(1))
  idx  param                tie-to  freeze  value     min      max
-  1  square_profile(1).width   0     0         0       0        0  
-  2  xaped(1).norm             0     1         1       0        0  
-  3  xaped(1).temperature      0     1     1e+07       0        0  
-  4  xaped(1).density          0     1         1       0        0  
-  5  xaped(1).vturb            0     1         0       0        0  
-  6  xaped(1).redshift         0     1         0       0        0  
-  7  xaped(1).metal_abund      0     1         1       0        0  
+  1  square_profile(1).width   0     0         0       0        0
+  2  xaped(1).norm             0     1         1       0        0
+  3  xaped(1).temperature      0     1     1e+07       0        0
+  4  xaped(1).density          0     1         1       0        0
+  5  xaped(1).vturb            0     1         0       0        0
+  6  xaped(1).redshift         0     1         0       0        0
+  7  xaped(1).metal_abund      0     1         1       0        0
 \end{verbatim}
 
 Note that multiple ``helper'' functions maybe used
@@ -7907,20 +7977,20 @@ is identical to the model computed using:
   f = eval_fun2 ("xaped", lo, hi, xaped_pars,
                  aped_line_modifier_args ("modifier", modifier_pars))
 \end{verbatim}
-assuming matching wavelength grids, \verb|lo|, \verb|hi|, and 
+assuming matching wavelength grids, \verb|lo|, \verb|hi|, and
 parameter arrays, \verb|xaped_pars| and \verb|modifier_pars|.
 
 Similarly, when the newly created function uses a ``hook'', as
 described above, e.g.:
 \begin{verbatim}
    create_aped_fun ("xaped", t, &xaped_hook);
-\end{verbatim} 
+\end{verbatim}
 the \verb|eval_fun2| arguments associated with that hook can be
 obtained by calling \verb|aped_hook_args|:
-\begin{verbatim} 
+\begin{verbatim}
   f = eval_fun2 ("xaped", lo, hi, xaped_pars,
                  aped_hook_args (&xaped_hook, xaped_instance));
-\end{verbatim} 
+\end{verbatim}
 where \verb|xaped_instance| is the integer argument expected
 by \verb|xaped_hook|.
 
@@ -8132,7 +8202,7 @@ model using the format described in {\tt load\_model}.
 {create\_aped\_line\_profile}
 \index{User-defined!line profile function}
 
-Here is an example implementation of a user-defined line profile 
+Here is an example implementation of a user-defined line profile
 function that provides a square line profile:
 \begin{verbatim}
 #include <stdlib.h>
@@ -8187,7 +8257,7 @@ ISIS_LINE_PROFILE_MODULE(square,g,flux,wl,atomic_weight,mid,
 \end{verbatim}
 
 The \verb|ISIS_LINE_PROFILE_MODULE| macro is used both to
-ensure that the correct interface is implemented and to 
+ensure that the correct interface is implemented and to
 provide a way for isis to check interface compatibility at
 run-time.
 
@@ -9711,14 +9781,14 @@ the fit-engine at run-time using
 Parameter names must be listed in the order they appear in the parameter
 array which is passed to the subroutine.  The \slang\ function
 may also be specified using a reference:
-\begin{verbatim} 
+\begin{verbatim}
     add_slang_function ("plaw", &plaw_fit, ["norm","power"]);
-\end{verbatim} 
+\end{verbatim}
 In this case, the function may have any name.  To provide
 a differential version of the same function (as opposed to
 the usual binned version), provide an array of two function
 references:
-\begin{verbatim} 
+\begin{verbatim}
     add_slang_function ("plaw", [&plaw_binned, &plaw_diff], ["norm","power"]);
 \end{verbatim}
 The differential version should have an interface of the form
@@ -9728,7 +9798,7 @@ The differential version should have an interface of the form
         % compute the differential value f(x)
         return f;
     }
-\end{verbatim} 
+\end{verbatim}
 
 To use this new \slang\ function in fitting data, one should use
 the fit invocation-name with the usual syntax: here, one might
@@ -9855,10 +9925,10 @@ to each spectral model:
     sync (1, pdf(1))
     invc (1, pdf(1))
     ntbrem (1, pdf(1))
-\end{verbatim} 
+\end{verbatim}
 This syntax means that the \verb|sync| function will be
 computed for the distribution function specified by \verb|pdf|,
-and so on.  
+and so on.
 
 The implementation is complicated by the fact that, for
 performance reasons, the particle distribution function is best
@@ -9873,13 +9943,13 @@ To make this connection, the fit-function \verb|pdf| should
 return two objects -- a string specifying the name of the
 particle distribution function plus the associated parameter
 vector:
-\begin{verbatim} 
+\begin{verbatim}
 private define pdf (l,h,p)
 {
    return ("pdf", p);
 }
 add_slang_function ("pdf", &pdf, ["a", "b", "c"]);
-\end{verbatim} 
+\end{verbatim}
 Note that the wrapper function does nothing with the spectral
 grid arrays \verb|(l,h)|.  The only purpose of this model is
 to enable passing a parameter array on to the named PDF.
@@ -9889,7 +9959,7 @@ parameter values.
 
 The \verb|sync| function can then be defined to make use of
 these additional parameters:
-\begin{verbatim} 
+\begin{verbatim}
 private define sync (l,h,p)
 {
    variable pdf_name, pdf_pars;
@@ -9897,8 +9967,8 @@ private define sync (l,h,p)
    return compute_sync (l, h, p, pdf_name, pdf_pars);
 }
 add_slang_function ("sync", &sync, ["norm", "B"]);
-\end{verbatim} 
-Note that the \verb|sync| function could also be defined 
+\end{verbatim}
+Note that the \verb|sync| function could also be defined
 like so:
 \begin{verbatim}
    define sync (pdf_name, pdf_pars, l, h,p)
@@ -9989,7 +10059,7 @@ To derive a new fit-function with the same properties as an
 existing fit-function, but with a different name, just do
 \begin{verbatim}
     alias_fun (old_name, new_name);
-\end{verbatim} 
+\end{verbatim}
 
 Several qualifiers support changing the parameter names
 or their default settings:
@@ -10156,7 +10226,7 @@ value is used.  Without this qualifier, the rebinned model is
 bin-integrated.
 
 The \verb|suffix| qualifier can be used to label different
-caching versions of a single underlying function.  
+caching versions of a single underlying function.
 
 \begin{verbatim}
 EXAMPLE:
@@ -10183,7 +10253,7 @@ isis>
 {conf} %name
 {Compute single-parameter confidence limits} %purpose
 {(low, high) = conf(param\_index [, level [, tolerance]])} %usage
-{fconf, vconf, fit\_counts, fit\_flux, conf\_joint}
+{fconf, vconf, conf\_loop, fit\_counts, fit\_flux, conf\_joint}
 \index{Confidence Limits!single parameter}
 
 By default, 90\% confidence limits are computed. The optional
@@ -10284,6 +10354,39 @@ Example:
         => jlim = struct {xmin, xmax, ymin, ymax}
 \end{verbatim}
 
+\end{isisfunction}
+
+\begin{isisfunction}
+{conf\_loop} %name
+{Generate single-parameter confidence limits for specified parameters} %purpose
+{(min[], max[]) = conf\_loop (params[] [, level [, tolerance]][; qualifiers])} %usage
+{conf}
+
+This function calls \verb|conf| to determine single parameter
+confidence limits for a specified list of fit parameters. If a
+new best-fit solution during the search for the confidence
+limits, a new confidence limit search is begun, starting at the
+new best-fit solution.
+
+To save intermediate results and generate a parameter file
+containing the computed confidence limits, use the \verb|save|
+qualifier. Use the \verb|prefix| qualifier to provide a prefix
+for the output files that will be generated; if the specified
+prefix has the form \verb|DIR/string|, then a subdirectory
+named \verb|DIR| will be created to contain output files
+prefixed with \verb|string|.
+
+By default, the computations are done in parallel, using all
+available CPU cores.  Use the \verb|serial| qualifier to force
+the computations to be performed on a single CPU core.
+
+For example, this:
+\begin{verbatim}
+   (pmin, pmax) = conf_loop ([2,3,6,7] ; save,
+                             prefix="/tmp/conf_loop/pars");
+\end{verbatim}
+will compute single-parameter confidence limits for 4
+parameters, saving output in the specified directory.
 \end{isisfunction}
 
 \begin{isisfunction}
@@ -10684,7 +10787,7 @@ specified by name (\verb|"gauss"|), by reference
 \begin{verbatim}
 Example:
           (lo, hi) = linear_grid (1,20,2000);   % define a grid
-          
+
           % define parameters [area, center, sigma]
           pars = [100.0, 12.0, 0.025];
 
@@ -10714,7 +10817,7 @@ the last argument.
 \begin{verbatim}
 Example:
       y = eval_fun2 ("gsmooth", lo, hi, pars, arg);
-\end{verbatim} 
+\end{verbatim}
 
 Note that \verb|eval_fun2| returns the fit-function integrated
 over the width of the specified bins.
@@ -10727,7 +10830,7 @@ over the width of the specified bins.
 {eval\_stat\_flux, fit\_counts}
 
 This function recomputes the fit-statistic for the counts data
-without re-evaluating the current model. 
+without re-evaluating the current model.
 
 This necessarily assumes that the model has already been
 computed on the correct grid.  Note that the model stored
@@ -10746,7 +10849,7 @@ will also be inconsistent.
 {eval\_stat\_counts, fit\_counts}
 
 This function recomputes the fit-statistic for the
-flux-corrected data without re-evaluating the current model. 
+flux-corrected data without re-evaluating the current model.
 
 This necessarily assumes that the model has already been
 computed on the correct grid.  Note that the model stored
@@ -10934,7 +11037,7 @@ preserved. For example:
     a_struct = get_arf(a);
     A_struct.value *= a_struct.value;
     put_arf (A, A_struct);
-\end{verbatim} 
+\end{verbatim}
 \end{isisfunction}
 
 \begin{isisfunction}
@@ -11124,7 +11227,7 @@ with the names and values of all the parameters and the value
 of the fit-statistic.
 
 By default, the fit statistic and the parameter names and
-values are printed to \verb|stdout|.  
+values are printed to \verb|stdout|.
 
 Users may provide alternate definitions of these functions in
 the \verb|Global| namespace to print the parameter values to a
@@ -11158,7 +11261,7 @@ public define fit_verbose_info_hook (stat, values, names)
    () = fprintf (Fp, "%11.4e = %s\n", stat, Fit_Statistic);
    array_map (Void_Type, &write_par, names, values);
 }
-\end{verbatim} 
+\end{verbatim}
 
 \end{isisfunction}
 
@@ -11191,8 +11294,8 @@ One can also refer to parameters by name:
 
 This kernel applies a linear transformation of the form
 \begin{verbatim}
-   E' = E/slope - intercept  
-\end{verbatim} 
+   E' = E/slope - intercept
+\end{verbatim}
 to the energy grid of the model counts spectrum. The parameters
 of the linear transformation are fittable. Aside from the
 energy grid transformation, this kernel performs the same
@@ -11310,7 +11413,7 @@ specified by name (\verb|"voigt"|), by reference
 \begin{verbatim}
 Example:
           e = [0.9:1.1:1.e-3];   % define a grid
-          
+
           % define parameters [norm, energy, fwhm, vtherm]
           pars = [1.0, 1.0, 0.02, 1.e3];
 
@@ -11979,36 +12082,36 @@ to be greater than or equal to \verb|Minimum_Stat_Err|, where
 
 For example, defining a single-bin counts dataset with has
 bin value \verb|1.e-5| and uncertainty \verb|1.e-8|:
-\begin{verbatim} 
+\begin{verbatim}
 isis> define_counts (1.0, 2.0, 1.e-5, 1.e-8);
 1
 isis> print(get_data_counts(1).err);
 1
-\end{verbatim} 
+\end{verbatim}
 Note that isis replaced the \verb|1.e-8| uncertainty value
 because it was inconsistent with default expectations for this
 kind of data.
 
-To force isis to retain positive counts-uncertainty values 
+To force isis to retain positive counts-uncertainty values
 smaller than unity, define a minimum (positive) allowable uncertainty
 value using \verb|Minimum_Stat_Err|:
-\begin{verbatim} 
+\begin{verbatim}
 isis> Minimum_Stat_Err=1.e-20;
 isis> define_counts (1.0, 2.0, 1.e-5, 1.e-8);
 2
 isis> print(get_data_counts(2).err);
 1e-08
-\end{verbatim} 
+\end{verbatim}
 Here, isis kept the \verb|1.e-8| uncertainty value.
 
 When input data is to be treated as flux, this kind of
 filtering does not take place:
-\begin{verbatim} 
+\begin{verbatim}
 isis> define_flux (1, 2, 1.e-5, 1.e-8);
 1
 isis> print(get_data_flux(1).err);
 1e-08
-\end{verbatim} 
+\end{verbatim}
 Uncertainties for flux values must be positive.
 
 \end{isisfunction}
@@ -12074,7 +12177,7 @@ See \verb|notice| for details.
 
 This function is primarily useful for implementing optimization
 methods in \slang.  It returns a structure of the form
-\begin{verbatim} 
+\begin{verbatim}
      s = struct
      {
         object, close, eval_statistic,
@@ -12137,7 +12240,6 @@ data points involved in the statistic computation.  The
 otherwise.
 
 \end{isisfunction}
-
 
 \label{pileup-help}
 \begin{isisfunction}
@@ -12350,7 +12452,7 @@ in S-Lang.  For example:
 
   register_slang_optimizer ("name", &some_function;
                                      set_options=&set_options);
-                                     
+
   set_fit_method ("name; option1; option2=2.4;  option3=astring");
 \end{verbatim}
 
@@ -12363,7 +12465,7 @@ gives the name of the fit statistic that will be used by default.
 If not specified, the default fit-statistic is \verb|chisqr|.
 
 If present, the `\verb|set_options|' qualifier should provide a
-reference to a function that takes one argument, which is a 
+reference to a function that takes one argument, which is a
 \verb|Struct_Type| containing options from the
 \verb|set_fit_method| call.  In the above example, the options
 struct will have the form
@@ -12372,7 +12474,6 @@ struct will have the form
 \end{verbatim}
 
 \end{isisfunction}
-
 
 \begin{isisfunction}
 {renorm\_counts} %name
@@ -12791,8 +12892,8 @@ Example:
  min, max    [optional] allowed range for parameter value
 \end{verbatim}
 
-If allowed ranges are not specified by the user or if 
-{\tt min}={\tt max}=0, the parameter value range is unlimited; 
+If allowed ranges are not specified by the user or if
+{\tt min}={\tt max}=0, the parameter value range is unlimited;
 this is the default.
 
 One can also refer to parameters by name:
@@ -12823,15 +12924,15 @@ the \verb|G0_0| parameters to a specified value, e.g.,
 \begin{verbatim}
  isis> set_par ("xpileup_n(?).G0_0", 0.5);
  isis> set_par ("*.G0_1", 2.1);
-\end{verbatim} 
+\end{verbatim}
 
 \slang\ regular expression equivalents of the above are:
-\begin{verbatim} 
+\begin{verbatim}
  isis> set_par ("^xpileup_n(.)\\.G0_0$", 0.5);
  isis> set_par (".*G0_1$", 2.1);
-\end{verbatim}  
+\end{verbatim}
 (Note the presence of \verb|^| or \verb|$| %$
-to indicate the string represents a regular expression). 
+to indicate the string represents a regular expression).
 
 Array arguments are supported.  Consider:
 \begin{verbatim}
@@ -12908,7 +13009,7 @@ where the first parameter is the zero-based array index and
 \verb|args| is an optional list of user-defined arguments. The
 optional arguments are specified when the hook function is
 defined. The function must return four values,
-\begin{verbatim} 
+\begin{verbatim}
        return (value, freeze, min, max);
 \end{verbatim}
 providing defaults for (\verb|value|, \verb|freeze|,
@@ -13245,6 +13346,195 @@ This kernel was added primarily to support analysis of
 dispersed spectra of marginally resolved point sources using
 \verb|combine_datasets|.
 
+\end{isisfunction}
+
+\section{Mult-Core Parallel Programming}
+\label{chap:multicore}
+
+\isisx provides a simple interface to support parallel
+programming on multi-core computers.  This interface is
+specifically intended to support coordinating multiple
+instances of isis running on a single multi-core computer.  To
+coordinate multiple isis processes running on different
+computers, use the \verb|PVM| module instead (see
+\verb|http://space.mit.edu/cxc/software/slang/modules/pvm/|).
+
+Scripts using this parallel programming interface will normally
+be structured as follows:
+\begin{verbatim}
+  variable s, slaves = new_slave_list ();
+  loop (num_slaves)
+    {
+       s = fork_slave (&task, args);
+       append_slave (slaves, s);
+    }
+  manage_slaves (slaves, &message_handler);
+\end{verbatim}
+Interface details for the functions \verb|task| and
+\verb|message\_handler| are defined below.
+
+\begin{isisfunction}
+{new\_slave\_list} %name
+{Create an empty list to manage slave processes} %purpose
+{List\_Type = new\_slave\_list ()} %usage
+{append\_slave, fork\_slave, manage\_slaves}
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{fork\_slave} %name
+{Start a new isis processes running a specified function} %purpose
+{Struct\_Type = fork\_slave (Ref\_Type task [, args] [; qualifiers])} %usage
+{append\_slave, manage\_slaves, send\_msg, recv\_msg, send\_objs, recv\_objs}
+
+This function creates a copy of the current isis process and
+executes the function referenced by \verb|task| using the
+remaining parameters, if any.  The \verb|task| function should
+have the form
+\begin{verbatim}
+   define task (Struct_Type slave_info [, arg1, arg2, ...] [; qualifiers])
+   {
+      % ...
+      return status;
+   }
+\end{verbatim}
+The \verb|slave_info| parameter has the form:
+\begin{verbatim}
+   slave_info = struct {pid, sock, fp, status, data};
+
+   where:
+    pid = slave process id (from getpid)
+   sock = a socket file descriptor (FD_Type) that may be
+          used to communicate with the master process
+     fp = a file pointer (File_Type) that may be used to
+          communicate with the master process
+   data = a pointer to user-defined data.
+\end{verbatim}
+Any additional arguments and qualifiers passed to
+\verb|fork_slave| will also be passed to the \verb|task|
+function. When this function returns, it should return an
+integer status value to indicate success (\verb|status=0|) or
+failure (\verb|status!=0|).
+
+To run the new \isisx processes at lower priority, use the
+\verb|nice| qualifier to provide a priority value in the range
+0-19, with 19 being the lowest priority.
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{append\_slave} %name
+{Append a slave structure to the list of managed slaves} %purpose
+{append\_slave (List\_Type, Struct\_Type)} %usage
+{append\_slave, fork\_slave, manage\_slaves}
+\end{isisfunction}
+
+\begin{isisfunction}
+{manage\_slaves} %name
+{Manage a list of running slave processes} %purpose
+{manage\_slaves (List\_Type, Ref\_Type message\_handler} %usage
+{append\_slave, fork\_slave, manage\_slaves}
+
+This function uses the provided message handler to manage
+communications between the master and slave processes until all
+the slave processes exit.  The message handler function should
+have the form:
+\begin{verbatim}
+   define message_handler (slave, message)
+   {
+   }
+\end{verbatim}
+The \verb|slave| parameter is a \verb|Struct_Type| like
+that returned by \verb|fork_slave|.  The \verb|message|
+struct has the form:
+\begin{verbatim}
+   message = struct {pid, type};
+\end{verbatim}
+where \verb|pid| is the process id of the slave that sent
+the message and \verb|type| is an integer ``message''.
+
+For example, a practical message handler might look like
+this:
+\begin{verbatim}
+   define message_handler (s, msg)
+   {
+      switch (msg.type)
+      {case READY:         send_task (s); }
+      {case HAVE_RESULT:   recv_result (s); }
+      {case HAVE_PROBLEM:  handle_problems (s);}
+   }
+\end{verbatim}
+The \verb|send_task| function represents a user-defined
+function that might use the \isisx intrinsics \verb|send_msg|
+and \verb|send_objs| to send the parameters of a task to a
+slave process.  Similarly, the \verb|recv_result| function
+represents a user-defined function that might use the \isisx
+intrinsic \verb|recv_msg| and \verb|recv_objs| to receive data
+structures sent to the master by a slave process.
+\end{isisfunction}
+
+\begin{isisfunction}
+{send\_msg} %name
+{Send an integer message code to a slave process} %purpose
+{send\_msg (Struct\_Type slv, msgid)} %usage
+{recv\_msg, send\_objs, recv\_objs, fork\_slave, manage\_slaves}
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{recv\_msg} %name
+{Receive an integer message code from a slave process} %purpose
+{Integer\_Type = recv\_msg (Struct\_Type slv)} %usage
+{send\_objs, recv\_msg, recv\_objs, fork\_slave, manage\_slaves}
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{send\_objs} %name
+{Send S-Lang objects to a slave process} %purpose
+{send\_objs (Struct\_Type slv, obj1 [, obj2, ...])} %usage
+{recv\_objs, recv\_msg, send\_msg, fork\_slave, manage\_slaves}
+
+Most S-Lang objects can be sent transparently to another
+process.  However, a few S-Lang objects are not yet supported
+(multi-dimensional arrays, arrays of \verb|List_Type| and
+\verb|Assoc_Type|, objects of \verb|Ref_Type|).
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{recv\_objs} %name
+{Receive S-Lang objects from a slave process} %purpose
+{List\_Type = recv\_objs (Struct\_Type slv [, num])} %usage
+{send\_objs, send\_msg, recv\_msg, fork\_slave, manage\_slaves}
+
+A few examples may be sufficient to illustrate how to use this
+function.  If one process executes:
+\begin{verbatim}
+   send_objs (s, "a string", PI, 3, [1,2,3], {["a", "b"], urand(5)});
+\end{verbatim}
+then, in the receiving process,
+\begin{verbatim}
+   x = recv_objs (s);
+\end{verbatim}
+will define \verb|x| as a \verb|List_Type| object with 5
+entries:
+\begin{verbatim}
+   x[0] = "a string";
+   x[1] = PI;
+   x[2] = 3;
+   x[3] = [1,2,3];
+   x[4] = List_Type {["a", "b"], Double_Type[5]}
+\end{verbatim}
+
+The optional argument \verb|num| is used to specify the number
+of objects to return.  For example, in the above example,
+\begin{verbatim}
+   x = recv_objs (s, 3);
+\end{verbatim}
+would have yielded a \verb|List_Type| with only 3 entries. The
+remaining two entries would remain in the communications buffer
+and could be retrieved by subsequent calls to \verb|recv_objs|.
 \end{isisfunction}
 
 \section{Low-level PGPLOT Interface}
@@ -13680,7 +13970,7 @@ Defining this global variable:
   public variable _xspec_module_verbose_link_errors=1;
 \end{verbatim}
 will cause \verb|load_xspec_local_models| to generate more
-verbose error messages that may help diagnose certain 
+verbose error messages that may help diagnose certain
 linking errors that may occur.
 
 \end{isisfunction}
@@ -13738,32 +14028,32 @@ averaging the value at energies \verb|E2_kev| and
 {apropos, help}
 
 The spectral model documentation for xspec12 is locally
-available in either \verb|html| or \verb|pdf| format.  
+available in either \verb|html| or \verb|pdf| format.
 The \verb|method| qualifier may be used to select the
 preferred file format and reader.  This string
 variable must have the structure
-\begin{verbatim} 
+\begin{verbatim}
     "<file-format> ; <display-command>"
 \end{verbatim}
 where \verb|file-format| is either \verb|pdf| or \verb|html|.
-The \verb|%s| directive must appear in the 
+The \verb|%s| directive must appear in the
 \verb|display-command| substring to indicate where the name of
 the documentation file should be inserted.
 
 The environment variable \verb|XSPEC_MODULE_HELP| may also be
-used to select the preferred file format and reader.  
+used to select the preferred file format and reader.
 
-\begin{verbatim} 
+\begin{verbatim}
 EXAMPLE
 
 % To view html documentation with the web browser `firefox':
   xspec_help ("powerlaw", method="html; firefox %s");
 or
   setenv XSPEC_MODULE_HELP "html; firefox %s"
-  
+
 % To view pdf documentation with the pdf reader `acroread':
   XSPEC_MODULE_HELP = "pdf; acroread %s"
-\end{verbatim} 
+\end{verbatim}
 
 \end{isisfunction}
 
@@ -13778,10 +14068,10 @@ This function provides an interface for the XSPEC subroutine
 The return value is a structure of the form
 \begin{verbatim}
    struct {fout, ionel, ionstage}
-\end{verbatim} 
+\end{verbatim}
 From the \verb|ionsneqr| source code documentation:
 
-\begin{verbatim} 
+\begin{verbatim}
   Calculates ionization fractions fout at electron temperature
   tmp(n) and ionization parameter tau(n), for electron
   temperatures tmp given in a tabular form as a function of
@@ -13793,7 +14083,7 @@ From the \verb|ionsneqr| source code documentation:
           ionel    - the element for each fout entry
           ionstage - the ion stage for each fout entry
                      (ionel+1 = fully stripped)
-\end{verbatim} 
+\end{verbatim}
 
 \end{isisfunction}
 
@@ -13823,7 +14113,7 @@ subroutine.  From the \verb|phfit2| source code:
  1 - 1s, 2 - 2s, 3 - 2p, 4 - 3s, 5 - 3p, 6 - 3d, 7 - 4s.
  If a species in the ground state has no electrons on the given shell,
  the subroutine returns s=0.
-\end{verbatim} 
+\end{verbatim}
 
 \end{isisfunction}
 
@@ -13836,7 +14126,7 @@ subroutine.  From the \verb|phfit2| source code:
 This function provides an interface to the \verb|photo.f|
 subroutine distributed with xspec.  From the source code:
 
-\begin{verbatim} 
+\begin{verbatim}
  Cross-section data from Henke etal, Atomic Data and Nuclear Data Tables
  vol 27, no 1, 1982. Fits mainly by Monika Balucinska-Church and Dan McCammon
  "Photoelectric Absorption Cross Sections with Variable Abunances"
@@ -13849,7 +14139,7 @@ subroutine distributed with xspec.  From the source code:
       versn   i       i: 2 == old Marr & West He x-section
                          3 == new Yan et al. x-section
       photo   r       r: Cross-section in cm**2
-\end{verbatim} 
+\end{verbatim}
 
 \end{isisfunction}
 
@@ -13951,7 +14241,7 @@ If the \isisx source-code directory is moved after \isisx is
 compiled, use this environment variable to specify the new path.\\
 
 {\sc ISIS\_HISTORY\_FILE} & Optional &
-If GNU readline has been enabled (see \verb|set_readline_method|) 
+If GNU readline has been enabled (see \verb|set_readline_method|)
 the cumulative history of interactive commands
 will be saved in the file specified by this environment variable.\\
 

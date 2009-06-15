@@ -2241,7 +2241,7 @@ private define slave_process (s, task, ip1, pxs, ip2, pys, info) %{{{
              _exit(1);
           }
 
-        send_msg (s.fp, SLAVE_RESULT);
+        send_msg (s, SLAVE_RESULT);
         if (0 != write_array (s.fp, task)
             or 0 != write_array (s.fp, map))
           throw IOError, "*** slave: write failed";

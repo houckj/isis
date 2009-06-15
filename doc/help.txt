@@ -2507,6 +2507,89 @@ set_sys_err_frac
     get_sys_err_frac, load_data
 
 ------------------------------------------------------------------------
+group
+
+ SYNOPSIS
+    Group spectral bins using S/N ratio and/or channel
+
+ USAGE
+    group (datasets[] [; qualifiers])
+
+ DESCRIPTION
+    Rebin data sets using a combination of minimum signal-to-noise
+    (S/N) ratio and minimum number of channels in each grouped bin.
+    If multiple datasets are to be grouped, their grids must match
+    exactly.
+
+    The background data set, if it exists, is included in the S/N
+    calculation. group presumes that the total noise goes as:
+
+       sqrt( (Total_Counts) + (Back_Counts)*(Back_Scale*Exposure_Ratio)^2 )
+
+    where the totals represent sums over all datasets (or those
+    specified by the sn_data qualifier, if it is present). The
+    default minimum S/N ratio, min_sn=1/sqrt(0.05) corresponds to
+    5% Poisson uncertainty in each bin.
+
+    The last channels are binned into a single group, regardless of
+    whether or not they meet the binning criteria.
+
+    Different rebinning criteria may be applied simulataneously to
+    different parts of the spectrum.  Spectrum subintervals are
+    specified using the bounds and unit qualifiers, and grouping
+    criteria are specified as arrays with one entry for each
+    subinterval.
+
+    For example,
+
+        group ([1,2,3]; sn_data=[1,2],
+                        bounds=[0.5,2], unit="kev",
+                        min_chan=[2,4], min_sn=5);
+
+    will group data sets 1,2, and 3, starting at 0.5 keV, to
+    minimum S/N of 5 for the combination of data sets 1 and 2 only,
+    and to a minimum of 2 channels between 0.5-2 keV, and 4
+    channels above 2 keV.
+
+        group ([1:4]; bounds=[1.5,6,12,18], unit="a",
+                      min_chan=[2,4,8,16], min_sn=0);
+
+    will group data sets 1-4 to 2 channels per bin between 1.5-6
+    Angstroms, to 4 channels per bin between 6-12 Angstroms, to 8
+    channels per bin between 12-18 Angstroms, and to 16 channels
+    per bin above 18 Angstroms.
+
+
+
+ SEE ALSO
+    group_bin, group_data, rebin_data, use_file_group, regroup_file, rebin_dataset, set_rebin_error_hook, rebin, rebin_array
+
+------------------------------------------------------------------------
+group_bin
+
+ SYNOPSIS
+    Group data to approximately match a specified grid
+
+ USAGE
+    group_bin (datasets[], lo, hi [; qualifiers])
+
+ DESCRIPTION
+    Regroup the specified datasets to match a particular histogram
+    grid as closely as possible without changing the underlying
+    spectral grids. If multiple datasets are to be grouped, their
+    grids must match exactly.
+
+    The physical units of the input grid may be specified using the
+    unit qualifier. The current default physical units may be
+    obtained or changed using the unit_default intrinsic.
+
+    To regrid a dataset to exactly match a particular grid, use
+    rebin_dataset.
+
+ SEE ALSO
+    group, group_data, rebin_data, use_file_group, regroup_file, rebin_dataset, set_rebin_error_hook, rebin, rebin_array
+
+------------------------------------------------------------------------
 group_data
 
  SYNOPSIS
@@ -2530,7 +2613,7 @@ group_data
 
 
  SEE ALSO
-    rebin_data, use_file_group, regroup_file, rebin_dataset, set_rebin_error_hook, rebin, rebin_array
+    group, group_bin, rebin_data, use_file_group, regroup_file, rebin_dataset, set_rebin_error_hook, rebin, rebin_array
 
 ------------------------------------------------------------------------
 back_fun
@@ -8768,7 +8851,7 @@ conf
 
 
  SEE ALSO
-    fconf, vconf, fit_counts, fit_flux, conf_joint
+    fconf, vconf, conf_loop, fit_counts, fit_flux, conf_joint
 
 ------------------------------------------------------------------------
 conf_grid
@@ -8833,6 +8916,44 @@ conf_joint
 
  SEE ALSO
     conf_map_counts, conf_map_flux, plot_conf, save_conf, load_conf
+
+------------------------------------------------------------------------
+conf_loop
+
+ SYNOPSIS
+    Generate single-parameter confidence limits for specified parameters
+
+ USAGE
+    (min[], max[]) = conf_loop (params[] [, level [, tolerance]][; qualifiers])
+
+ DESCRIPTION
+    This function calls conf to determine single parameter
+    confidence limits for a specified list of fit parameters. If a
+    new best-fit solution during the search for the confidence
+    limits, a new confidence limit search is begun, starting at the
+    new best-fit solution.
+
+    To save intermediate results and generate a parameter file
+    containing the computed confidence limits, use the save
+    qualifier. Use the prefix qualifier to provide a prefix for the
+    output files that will be generated; if the specified prefix
+    has the form DIR/string, then a subdirectory named DIR will be
+    created to contain output files prefixed with string.
+
+    By default, the computations are done in parallel, using all
+    available CPU cores.  Use the serial qualifier to force the
+    computations to be performed on a single CPU core.
+
+    For example, this:
+
+       (pmin, pmax) = conf_loop ([2,3,6,7] ; save,
+                                 prefix="/tmp/conf_loop/pars");
+
+    will compute single-parameter confidence limits for 4
+    parameters, saving output in the specified directory.
+
+ SEE ALSO
+    conf
 
 ------------------------------------------------------------------------
 conf_map_counts
@@ -12263,6 +12384,216 @@ yshift
     set_kernel, fit_fun
 
 ------------------------------------------------------------------------
+new_slave_list
+
+ SYNOPSIS
+    Create an empty list to manage slave processes
+
+ USAGE
+    List_Type = new_slave_list ()
+
+ DESCRIPTION
+
+
+ SEE ALSO
+    append_slave, fork_slave, manage_slaves
+
+------------------------------------------------------------------------
+fork_slave
+
+ SYNOPSIS
+    Start a new isis processes running a specified function
+
+ USAGE
+    Struct_Type = fork_slave (Ref_Type task [, args] [; qualifiers])
+
+ DESCRIPTION
+    This function creates a copy of the current isis process and
+    executes the function referenced by task using the remaining
+    parameters, if any.  The task function should have the form
+
+       define task (Struct_Type slave_info [, arg1, arg2, ...] [; qualifiers])
+       {
+          % ...
+          return status;
+       }
+
+    The slave_info parameter has the form:
+
+       slave_info = struct {pid, sock, fp, status, data};
+
+       where:
+        pid = slave process id (from getpid)
+       sock = a socket file descriptor (FD_Type) that may be
+              used to communicate with the master process
+         fp = a file pointer (File_Type) that may be used to
+              communicate with the master process
+       data = a pointer to user-defined data.
+
+    Any additional arguments and qualifiers passed to fork_slave
+    will also be passed to the task function. When this function
+    returns, it should return an integer status value to indicate
+    success (status=0) or failure (status!=0).
+
+    To run the new ISIS processes at lower priority, use the nice
+    qualifier to provide a priority value in the range 0-19, with
+    19 being the lowest priority.
+
+
+ SEE ALSO
+    append_slave, manage_slaves, send_msg, recv_msg, send_objs, recv_objs
+
+------------------------------------------------------------------------
+append_slave
+
+ SYNOPSIS
+    Append a slave structure to the list of managed slaves
+
+ USAGE
+    append_slave (List_Type, Struct_Type)
+
+ DESCRIPTION
+
+
+ SEE ALSO
+    append_slave, fork_slave, manage_slaves
+
+------------------------------------------------------------------------
+manage_slaves
+
+ SYNOPSIS
+    Manage a list of running slave processes
+
+ USAGE
+    manage_slaves (List_Type, Ref_Type message_handler
+
+ DESCRIPTION
+    This function uses the provided message handler to manage
+    communications between the master and slave processes until all
+    the slave processes exit.  The message handler function should
+    have the form:
+
+       define message_handler (slave, message)
+       {
+       }
+
+    The slave parameter is a Struct_Type like that returned by
+    fork_slave.  The message struct has the form:
+
+       message = struct {pid, type};
+
+    where pid is the process id of the slave that sent the message
+    and type is an integer "message".
+
+    For example, a practical message handler might look like this:
+
+       define message_handler (s, msg)
+       {
+          switch (msg.type)
+          {case READY:         send_task (s); }
+          {case HAVE_RESULT:   recv_result (s); }
+          {case HAVE_PROBLEM:  handle_problems (s);}
+       }
+
+    The send_task function represents a user-defined function that
+    might use the ISIS intrinsics send_msg and send_objs to send
+    the parameters of a task to a slave process.  Similarly, the
+    recv_result function represents a user-defined function that
+    might use the ISIS intrinsic recv_msg and recv_objs to receive
+    data structures sent to the master by a slave process.
+
+ SEE ALSO
+    append_slave, fork_slave, manage_slaves
+
+------------------------------------------------------------------------
+send_msg
+
+ SYNOPSIS
+    Send an integer message code to a slave process
+
+ USAGE
+    send_msg (Struct_Type slv, msgid)
+
+ DESCRIPTION
+
+
+ SEE ALSO
+    recv_msg, send_objs, recv_objs, fork_slave, manage_slaves
+
+------------------------------------------------------------------------
+recv_msg
+
+ SYNOPSIS
+    Receive an integer message code from a slave process
+
+ USAGE
+    Integer_Type = recv_msg (Struct_Type slv)
+
+ DESCRIPTION
+
+
+ SEE ALSO
+    send_objs, recv_msg, recv_objs, fork_slave, manage_slaves
+
+------------------------------------------------------------------------
+send_objs
+
+ SYNOPSIS
+    Send S-Lang objects to a slave process
+
+ USAGE
+    send_objs (Struct_Type slv, obj1 [, obj2, ...])
+
+ DESCRIPTION
+    Most S-Lang objects can be sent transparently to another
+    process.  However, a few S-Lang objects are not yet supported
+    (multi-dimensional arrays, arrays of List_Type and Assoc_Type,
+    objects of Ref_Type).
+
+
+ SEE ALSO
+    recv_objs, recv_msg, send_msg, fork_slave, manage_slaves
+
+------------------------------------------------------------------------
+recv_objs
+
+ SYNOPSIS
+    Receive S-Lang objects from a slave process
+
+ USAGE
+    List_Type = recv_objs (Struct_Type slv [, num])
+
+ DESCRIPTION
+    A few examples may be sufficient to illustrate how to use this
+    function.  If one process executes:
+
+       send_objs (s, "a string", PI, 3, [1,2,3], {["a", "b"], urand(5)});
+
+    then, in the receiving process,
+
+       x = recv_objs (s);
+
+    will define x as a List_Type object with 5 entries:
+
+       x[0] = "a string";
+       x[1] = PI;
+       x[2] = 3;
+       x[3] = [1,2,3];
+       x[4] = List_Type {["a", "b"], Double_Type[5]}
+
+    The optional argument num is used to specify the number of
+    objects to return.  For example, in the above example,
+
+       x = recv_objs (s, 3);
+
+    would have yielded a List_Type with only 3 entries. The
+    remaining two entries would remain in the communications buffer
+    and could be retrieved by subsequent calls to recv_objs.
+
+ SEE ALSO
+    send_objs, send_msg, recv_msg, fork_slave, manage_slaves
+
+------------------------------------------------------------------------
 add_atable_model
 
  SYNOPSIS
@@ -12462,7 +12793,7 @@ xspec_help
 
  DESCRIPTION
     The spectral model documentation for xspec12 is locally
-    available in either html or pdf format.  The method qualifier
+    available in either html or pdf format. The method qualifier
     may be used to select the preferred file format and reader.
     This string variable must have the structure
 

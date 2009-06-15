@@ -43,7 +43,7 @@ private variable TEST_ITEMS = 1000;
 
 private define send_test_items (s)
 {
-   send_msg (s.fp, TEST_ITEMS);
+   send_msg (s, TEST_ITEMS);
 
    variable buf = __fs_initsend ();
    variable x;
