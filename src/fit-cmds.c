@@ -4005,6 +4005,9 @@ int isis_eval_model_on_alt_grid (Isis_Hist_t *x) /*{{{*/
    Isis_Hist_t *g;
    int ret = -1;
 
+   if (SLang_get_error ())
+     return -1;
+
    /* Validate x only to check for NULL pointers */
    if (!Isis_Hist_has_grid(x))
      {
