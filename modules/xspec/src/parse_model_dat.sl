@@ -166,7 +166,7 @@ private define xspec12_filter (buf) %{{{
 
         variable flag_char = NULL;
         if ((ts[0] == '$') || (ts[0] == '*'))
-          flag_char = ts[0];
+          flag_char = ts[[0]];
 
         if (flag_char != NULL)
           {
@@ -175,7 +175,7 @@ private define xspec12_filter (buf) %{{{
 
              if (num_tok >= 8)
                {
-                  (buf[i], ) = strreplace (buf[i], string(flag_char), "", 1);
+                  (buf[i], ) = strreplace (buf[i], flag_char, "", 1);
                }
              else
                {
@@ -213,7 +213,7 @@ define parse_function (buf) %{{{
    variable m = struct
      {
           model_name, routine_name, model_type,
-	  num_pars, par_info, init_string, 
+	  num_pars, par_info, init_string,
 	  exec_symbol, exec_symbol_hook,
           interface
      };
@@ -221,10 +221,10 @@ define parse_function (buf) %{{{
    m.model_name = hdr[0];
    m.routine_name = hdr[4];
    m.model_type = strlow(hdr[5]);
-   
+
    if (m.model_type == "acn")
      return NULL;
-   
+
    % this should follow the test for "acn" models.
    if (length(hdr) > 7)
      {
