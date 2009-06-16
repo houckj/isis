@@ -5540,8 +5540,10 @@ static int update_stat_err (Hist_t *h) /*{{{*/
    val_stat = validate_stat_err (h);
    if (-1 == val_stat)
      return -1;
+#if 0
    else if (1 == val_stat)
      invalid_uncertainties_replaced ();
+#endif
 
    return 0;
 }
