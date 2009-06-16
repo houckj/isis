@@ -320,7 +320,8 @@ public define conf_loop()
           }
      }
 
-   variable slaves, num_slaves = guess_num_slaves();
+   variable slaves,
+     num_slaves = qualifier ("num_slaves", guess_num_slaves());
    ctrl.serial = qualifier_exists ("serial") || num_slaves < 2;
 
    ifnot (ctrl.serial)

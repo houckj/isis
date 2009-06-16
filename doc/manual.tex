@@ -10376,9 +10376,12 @@ prefix has the form \verb|DIR/string|, then a subdirectory
 named \verb|DIR| will be created to contain output files
 prefixed with \verb|string|.
 
-By default, the computations are done in parallel, using all
-available CPU cores.  Use the \verb|serial| qualifier to force
-the computations to be performed on a single CPU core.
+By default, the computations are done in parallel, with the
+number of slave processes specified by the global variable
+\verb|Isis_Num_Slaves| or by the \verb|num_slaves| qualifier
+(the qualifier takes precedence).  Use the \verb|serial|
+qualifier to force the computations to be performed on a single
+CPU core.
 
 For example, this:
 \begin{verbatim}
@@ -10403,6 +10406,13 @@ with \verb|set_par_fun|, one can also generate confidence
 contour plots which include fairly arbitrary coordinate
 transformations (e.g. contours drawn vs. the log of the
 parameter rather than the parameter value itself).
+
+By default, the computations are done in parallel, with the
+number of slave processes specified by the global variable
+\verb|Isis_Num_Slaves| or by the \verb|num_slaves| qualifier
+(the qualifier takes precedence).  Use the \verb|serial|
+qualifier to force the computations to be performed on a single
+CPU core.
 
 The parameter indices and an associated uniform grid of values
 should be specified using a structure of the form:
@@ -13420,8 +13430,8 @@ dispersed spectra of marginally resolved point sources using
 \isisx provides a simple interface to support parallel
 programming on multi-core computers.  This interface is
 specifically intended to support coordinating multiple
-instances of isis running on a single multi-core computer.  To
-coordinate multiple isis processes running on different
+instances of isis running on a single multi-core computer.
+To coordinate multiple isis processes running on different
 computers, use the \verb|PVM| module instead (see
 \verb|http://space.mit.edu/cxc/software/slang/modules/pvm/|).
 
@@ -14434,6 +14444,8 @@ For details, see {\tt set\_eval\_grid\_method}.
 {\tt Isis\_List\_Filenames} & 1 & If non-zero, \verb|list_data| will
 list the spectrum filename and background filename for each
 dataset, if any.\index{{\tt Isis\_List\_Filenames}}\\
+{\tt Isis\_Num\_Slaves} &  & The number of slave processes used
+for parallel processes.\index{{\tt Isis\_Num\_Slaves}}\\
 {\tt Isis\_Use\_PHA\_Grouping} & 0 & If non-zero,
 \verb|load_data| will apply the channel grouping specified by the
 \verb|GROUPING| column in the input PHA file.

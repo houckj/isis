@@ -8940,8 +8940,10 @@ conf_loop
     has the form DIR/string, then a subdirectory named DIR will be
     created to contain output files prefixed with string.
 
-    By default, the computations are done in parallel, using all
-    available CPU cores.  Use the serial qualifier to force the
+    By default, the computations are done in parallel, with the
+    number of slave processes specified by the global variable
+    Isis_Num_Slaves or by the num_slaves qualifier (the qualifier
+    takes precedence).  Use the serial qualifier to force the
     computations to be performed on a single CPU core.
 
     For example, this:
@@ -8971,6 +8973,12 @@ conf_map_counts
     which include fairly arbitrary coordinate transformations (e.g.
     contours drawn vs. the log of the parameter rather than the
     parameter value itself).
+
+    By default, the computations are done in parallel, with the
+    number of slave processes specified by the global variable
+    Isis_Num_Slaves or by the num_slaves qualifier (the qualifier
+    takes precedence).  Use the serial qualifier to force the
+    computations to be performed on a single CPU core.
 
     The parameter indices and an associated uniform grid of values
     should be specified using a structure of the form:
