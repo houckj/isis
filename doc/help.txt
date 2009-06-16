@@ -12466,6 +12466,21 @@ yshift
     set_kernel, fit_fun
 
 ------------------------------------------------------------------------
+_num_cpus
+
+ SYNOPSIS
+    Determine the number of available CPUs
+
+ USAGE
+    Integer_Type = _num_cpus ()
+
+ DESCRIPTION
+
+
+ SEE ALSO
+    append_slave, fork_slave, manage_slaves
+
+------------------------------------------------------------------------
 new_slave_list
 
  SYNOPSIS
@@ -12523,7 +12538,7 @@ fork_slave
 
 
  SEE ALSO
-    append_slave, manage_slaves, send_msg, recv_msg, send_objs, recv_objs
+    append_slave, manage_slaves, _num_cpus, send_msg, recv_msg, send_objs, recv_objs
 
 ------------------------------------------------------------------------
 append_slave
@@ -12585,7 +12600,7 @@ manage_slaves
     data structures sent to the master by a slave process.
 
  SEE ALSO
-    append_slave, fork_slave, manage_slaves
+    append_slave, _num_cpus, fork_slave, manage_slaves
 
 ------------------------------------------------------------------------
 send_msg

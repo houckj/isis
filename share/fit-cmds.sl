@@ -2331,7 +2331,7 @@ private define generate_contours (px, py, info) %{{{
 
 #ifexists fork_slave
    variable serial = qualifier_exists ("serial");
-   variable num_slaves = qualifier ("num_slaves", guess_num_slaves());
+   variable num_slaves = qualifier ("num_slaves", _num_cpus());
    if ((serial == 0) && (num_slaves > 1))
      {
         return parallel_map_chisqr (num_slaves, px, py,

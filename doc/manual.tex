@@ -13426,6 +13426,7 @@ dispersed spectra of marginally resolved point sources using
 
 \section{Mult-Core Parallel Programming}
 \label{chap:multicore}
+\index{Parallel processing}
 
 \isisx provides a simple interface to support parallel
 programming on multi-core computers.  This interface is
@@ -13450,6 +13451,14 @@ Interface details for the functions \verb|task| and
 \verb|message\_handler| are defined below.
 
 \begin{isisfunction}
+{\_num\_cpus} %name
+{Determine the number of available CPUs} %purpose
+{Integer\_Type = \_num\_cpus ()} %usage
+{append\_slave, fork\_slave, manage\_slaves}
+
+\end{isisfunction}
+
+\begin{isisfunction}
 {new\_slave\_list} %name
 {Create an empty list to manage slave processes} %purpose
 {List\_Type = new\_slave\_list ()} %usage
@@ -13461,7 +13470,7 @@ Interface details for the functions \verb|task| and
 {fork\_slave} %name
 {Start a new isis processes running a specified function} %purpose
 {Struct\_Type = fork\_slave (Ref\_Type task [, args] [; qualifiers])} %usage
-{append\_slave, manage\_slaves, send\_msg, recv\_msg, send\_objs, recv\_objs}
+{append\_slave, manage\_slaves, \_num\_cpus, send\_msg, recv\_msg, send\_objs, recv\_objs}
 
 This function creates a copy of the current isis process and
 executes the function referenced by \verb|task| using the
@@ -13509,7 +13518,7 @@ To run the new \isisx processes at lower priority, use the
 {manage\_slaves} %name
 {Manage a list of running slave processes} %purpose
 {manage\_slaves (List\_Type, Ref\_Type message\_handler} %usage
-{append\_slave, fork\_slave, manage\_slaves}
+{append\_slave, \_num\_cpus, fork\_slave, manage\_slaves}
 
 This function uses the provided message handler to manage
 communications between the master and slave processes until all

@@ -579,21 +579,24 @@ define pid_vmessage ()
    vmessage (__push_args(args));
 }
 
+require ("sysconf");
 require ("glob");
-define guess_num_slaves ()
+define _num_cpus ()
 {
    if (__is_initialized (&Isis_Num_Slaves) && Isis_Num_Slaves >= 0)
      return Isis_Num_Slaves;
 
-   % linux-specific guess...
-   variable num_slaves = 0;
+   variable num_slaves = sysconf ("_SC_NPROCESSORS_ONLN");
+   if (num_slaves != NULL)
+     return num_slaves;
+
+   % Sigh. Try a linux-specific guess.
    variable dir = "/sys/devices/system/cpu";
    if (NULL != stat_file (dir))
-     {
-        num_slaves = length(glob("$dir/cpu?"$));
-     }
+     return length(glob("$dir/cpu?"$));
 
-   return num_slaves;
+   % Give up.
+   return 0;
 }
 
 % Communications interface:
