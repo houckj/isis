@@ -797,6 +797,13 @@ static int compute_offsets (int *element_offset, int *Z, int num_elements) /*{{{
    off = 0;
    for (j=0; j < num_elements; j++)
      {
+        if (Z[j] > ISIS_MAX_PROTON_NUMBER)
+          {
+             isis_vmesg (FAIL, I_WARNING, __FILE__, __LINE__,
+                         "truncating ionization balance table\n\t(number of elements in ionization table exceeds\n\t ISIS_MAX_PROTON_NUMBER=%d)",
+                         ISIS_MAX_PROTON_NUMBER);
+             break;
+          }
         element_offset[ Z[j] ] = off;
         off += Z[j] + 1;
      }
