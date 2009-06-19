@@ -18,7 +18,6 @@ physconst.sl
 plot-cmds.sl
 plot-extra.sl
 pgplot_interface.sl
-require.sl
 setup.sl
 fork_socket.sl
 

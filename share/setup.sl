@@ -24,7 +24,9 @@
 %
 
 #ifnexists require
-() = evalfile ("require", _isis->Isis_Public_Namespace_Name);
+$1 = _slang_install_prefix + "/share/slsh/require.sl";
+if (stat_file($1) == NULL)  $1 = "require";
+() = evalfile ($1, _isis->Isis_Public_Namespace_Name);
 #endif
 
 #ifnexists quit
