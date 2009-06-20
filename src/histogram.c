@@ -39,6 +39,10 @@
 # include <stdlib.h>
 #endif
 
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif
+
 #include <slang.h>
 
 #include "_isis.h"
@@ -181,8 +185,8 @@ struct _Hist_t
    char     object[CFLEN_VALUE];      /* target name */
    char    grating[CFLEN_VALUE];      /* HETG or LETG */
    char instrument[CFLEN_VALUE];      /* ACIS-S or HRC-S */
-   char   ancrfile[CFLEN_FILENAME];   /* ARF file for this spectrum */
-   char   respfile[CFLEN_FILENAME];   /* RMF file for this spectrum */
+   char  *ancrfile;                   /* ARF file for this spectrum */
+   char  *respfile;                   /* RMF file for this spectrum */
    double exposure;                   /* sum of good time intervals [sec] */
    double totcts;                     /* total counts */
    Area_Type area;                    /* area of extraction region [usually pixels^2] */
@@ -341,6 +345,8 @@ static void free_hist (Hist_t *h) /*{{{*/
    ISIS_FREE (h->orig_sys_err_frac);
    ISIS_FREE (h->orig_bgd);
    ISIS_FREE (h->bgd_file);
+   ISIS_FREE (h->ancrfile);
+   ISIS_FREE (h->respfile);
    ISIS_FREE (h->file);
    ISIS_FREE (h->orig_notice);
    ISIS_FREE (h->quality);
@@ -542,8 +548,8 @@ static Hist_t *Hist_new_hist (int nbins) /*{{{*/
    h->frame_time = -1.0;
    h->tstart = -1.0;
 
-   *h->respfile = 0;
-   *h->ancrfile = 0;
+   h->respfile = NULL;
+   h->ancrfile = NULL;
 
    h->a_rsp.next = NULL;
    h->f_rsp.next = NULL;
@@ -2284,7 +2290,41 @@ static int is_whitespace (const char *s) /*{{{*/
 
 /*}}}*/
 
-static Hist_t *_read_typeI_pha (char * pha_filename, int *have_rmf, int *have_arf, int *have_back) /*{{{*/
+static char *read_file_keyword (cfitsfile *fp, char *keyname, char *filename) /*{{{*/
+{
+   char buf[CFLEN_FILENAME];
+   char *path=NULL, *dir=NULL, *slash=NULL;
+#ifdef HAVE_STAT
+   struct stat st;
+#endif
+
+   *buf = 0;
+
+   if (0 != cfits_read_string_keyword (buf, keyname, fp)
+       || (0 != is_whitespace (buf))
+       || (0 == isis_strcasecmp (buf, "NONE")))
+     return NULL;
+
+#ifndef HAVE_STAT
+   return isis_make_string (buf);
+#else
+   if ((0 == stat (buf, &st))
+       || (NULL == (slash = strrchr (filename, '/')))
+       || (NULL == (dir = isis_make_string (filename))))
+     {
+        return isis_make_string (buf);
+     }
+
+   *(dir + (slash - filename)) = 0;
+   path = isis_mkstrcat (dir, "/", buf, NULL);
+   ISIS_FREE(dir);
+   return path;
+#endif
+}
+
+/*}}}*/
+
+static Hist_t *_read_typeI_pha (char *pha_filename) /*{{{*/
 {
    Keyword_t *keytable = Hist_Keyword_Table;
    Hist_t *h = NULL;
@@ -2325,43 +2365,13 @@ static Hist_t *_read_typeI_pha (char * pha_filename, int *have_rmf, int *have_ar
 
    if (Hist_Ignore_PHA_Response_Keywords == 0)
      {
-        if (have_rmf != NULL)
-          {
-             *have_rmf = 0;
-             if (0 == cfits_read_string_keyword (h->respfile, "RESPFILE", fp)
-                 && (0 == is_whitespace (h->respfile))
-                 && (0 != isis_strcasecmp (h->respfile, "NONE")))
-               {
-                  *have_rmf = 1;
-               }
-          }
-
-        if (have_arf != NULL)
-          {
-             *have_arf = 0;
-             if ((0 == cfits_read_string_keyword (h->ancrfile, "ANCRFILE", fp))
-                 && (0 == is_whitespace (h->ancrfile))
-                 && (0 != isis_strcasecmp (h->ancrfile, "NONE")))
-               {
-                  *have_arf = 1;
-               }
-          }
+        h->respfile = read_file_keyword (fp, "RESPFILE", pha_filename);
+        h->ancrfile = read_file_keyword (fp, "ANCRFILE", pha_filename);
      }
 
    if (Hist_Ignore_PHA_Backfile_Keyword == 0)
      {
-        if (have_back != NULL)
-          {
-             char backfile[CFLEN_FILENAME];
-             *have_back = 0;
-             if (0 == cfits_read_string_keyword (backfile, "BACKFILE", fp)
-                 && (0 == is_whitespace (backfile))
-                 && (0 != isis_strcasecmp (backfile, "NONE"))
-                 && (0 == Hist_set_background_name (h, backfile)))
-               {
-                  *have_back = 1;
-               }
-          }
+        h->bgd_file = read_file_keyword (fp, "BACKFILE", pha_filename);
      }
 
    h->spec_num = 1;
@@ -2486,18 +2496,15 @@ static int read_typeI_pha (Hist_t *head, Isis_Arf_t *arf_head, /*{{{*/
                            Isis_Rmf_t *rmf_head, char *file,
                            int *hist_index, int strict)
 {
-   int have_rmf = 0;
-   int have_arf = 0;
-   int have_back = 0;
-   int id;
    Hist_t *h;
+   int id;
 
    (void) strict;
 
-   if (NULL == (h = _read_typeI_pha (file, &have_rmf, &have_arf, &have_back)))
+   if (NULL == (h = _read_typeI_pha (file)))
      return -1;
 
-   if (have_rmf)
+   if (h->respfile)
      {
         if (-1 == get_grid_from_rmf (h, rmf_head))
           {
@@ -2506,7 +2513,7 @@ static int read_typeI_pha (Hist_t *head, Isis_Arf_t *arf_head, /*{{{*/
           }
      }
 
-   if (have_rmf && have_back)
+   if (h->respfile && h->bgd_file)
      {
         /* try loading the background only if the RMF has defined the grid */
         if (-1 == load_background_from_file (h, h->bgd_file))
@@ -2530,7 +2537,7 @@ static int read_typeI_pha (Hist_t *head, Isis_Arf_t *arf_head, /*{{{*/
      return -1;
 
    /* now assign the ARF if there is one. */
-   if (have_arf)
+   if (h->ancrfile)
      {
         Isis_Arf_t *a;
         int arf_index;
@@ -2543,13 +2550,10 @@ static int read_typeI_pha (Hist_t *head, Isis_Arf_t *arf_head, /*{{{*/
               * we know we've got a valid RMF */
              if (-1 == assign_matching_rsp (h, &h->a_rsp.rmf, &a))
                {
-                  *h->ancrfile = 0;
                   isis_vmesg (WARN, I_ERROR, __FILE__, __LINE__,
-                              "ARF not compatible with RMF: %s",
-                              h->ancrfile);
+                              "ARF not compatible with RMF: %s", h->ancrfile);
                }
           }
-        else *h->ancrfile = 0;
      }
 
    *hist_index = id;
@@ -2582,7 +2586,7 @@ static int load_background_from_file (Hist_t *h, char *file) /*{{{*/
    else
      {
         cfits_close_file (fp);
-        if (NULL == (b = _read_typeI_pha (file, NULL, NULL, NULL)))
+        if (NULL == (b = _read_typeI_pha (file)))
           return -1;
         if (-1 == set_hist_grid_using_rmf (h->a_rsp.rmf, b))
           {
@@ -2619,6 +2623,12 @@ static int load_background_from_file (Hist_t *h, char *file) /*{{{*/
 int Hist_set_background_name (Hist_t *h, char *name) /*{{{*/
 {
    char *s;
+
+   if (name == NULL)
+     {
+        ISIS_FREE(h->bgd_file);
+        return 0;
+     }
 
    /* use string copy in case file == h->bgd_file */
    if (NULL == (s = isis_make_string (name)))
@@ -2739,8 +2749,6 @@ static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *n
                     goto finish;
                }
           }
-
-        h->ancrfile[0] = '\0';
 
         if (-1 == cfits_read_int_col (&h->spec_num, 1, k, "SPEC_NUM", cfp)
             || -1 == cfits_read_optional_int_col (&h->order, 1, k, "TG_M", cfp)
@@ -3640,8 +3648,8 @@ static int handle_grid_change (Hist_t *h) /*{{{*/
    *h->object = 0;
    *h->grating = 0;
    *h->instrument = 0;
-   *h->ancrfile = 0;
-   *h->respfile = 0;
+   h->ancrfile = NULL;
+   h->respfile = NULL;
    h->exposure = 1.0;
 
    h->frame_time = -1.0;
@@ -5095,7 +5103,7 @@ static int compute_plot_residuals (Hist_t *h, unsigned int version, /*{{{*/
    Isis_Hist_t *m, *d;
    Isis_Hist_t other;
    unsigned int i, n;
-   double t, stat;
+   double t, statistic;
    double *wt;
 
    if (is_model(version))
@@ -5133,7 +5141,7 @@ static int compute_plot_residuals (Hist_t *h, unsigned int version, /*{{{*/
              double dv = d->val_err[i];
              wt[i] = 1.0/(dv*dv);
           }
-        if (-1 == s->fun (s, d->val, m->val, wt, n, cpy->val, &stat))
+        if (-1 == s->fun (s, d->val, m->val, wt, n, cpy->val, &statistic))
           return -1;
         for (i = 0; i < n; i++)
           cpy->val_err[i] = 1.0;
