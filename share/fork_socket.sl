@@ -28,9 +28,10 @@ require ("select");
 
 %  Public functions:
 %     slaves = new_slave_list ( [; qualifiers]);
-%     s = fork_slave (&task [,args [; qualifiers]])
+%     s = fork_slave (&task [,args [; qualifiers]]);
 %     append_slave (slaves, s);
 %     manage_slaves (slaves, &message_handler [; qualifiers]);
+%     s = replace_slave (&s, &task [, args [; qualifiers]]);
 %     send_msg (s, type)
 %     msg = recv_msg (s)
 %     array = read_array (fp, n, type);
@@ -42,6 +43,7 @@ public variable Isis_Nice_Slaves = 0;
 
 private variable User_Message_Handler;
 private variable Slaves_Running;
+private variable Slaves_Were_Replaced;
 private variable Sigchld_Received;
 private variable Verbose = 0;
 
@@ -52,6 +54,8 @@ variable
    SLAVE_RUNNING =  101,
    SLAVE_READY   =  102,
    SLAVE_RESULT  =  103;
+
+define pid_vmessage ();
 
 private define slave_is_active (s)
 {
@@ -97,12 +101,26 @@ private define cleanup_slave (s)
    Slaves_Running--;
    s.status = SLAVE_EXITED;
 
-   if ((s.sock != NULL)
-       && (close (s.sock) != 0))
+   if (s.fp != NULL)
      {
-        variable msg = sprintf ("%s:  close failed (%s)", _function_name, errno_string());
-        throw IOError, msg;
+        if (fclose (s.fp) != 0)
+          {
+             throw IOError, sprintf ("%s:  fclose failed (%s)",
+                                     _function_name, errno_string());
+          }
      }
+   else if (s.sock != NULL)
+     {
+        if (close (s.sock) != 0)
+          {
+             throw IOError, sprintf ("%s:  close failed (%s)",
+                                     _function_name, errno_string());
+          }
+     }
+
+   % Be sure slang knows these descriptors are no longer valid.
+   s.sock = NULL;
+   s.fp = NULL;
 
    return 0;
 }
@@ -415,17 +433,19 @@ private define shuffle (array)
 private define handle_pending_messages (slaves)
 {
    variable fp_set = pending_messages (slaves);
+   variable i, num_fp = length(fp_set);
 
-   variable fp;
-   foreach fp (fp_set)
+   _for i (0, num_fp-1, 1)
      {
-        variable msg = _recv_msg (fp);
+        variable msg = _recv_msg (fp_set[i]);
         if (msg == NULL)
           continue;
 
         variable s = find_slave (slaves, msg.from_pid);
-
         () = handle_message (s, msg);
+
+        if (Slaves_Were_Replaced)
+          break;
      }
 }
 
@@ -516,8 +536,12 @@ private define start_sigtest_slave (slaves)
    append_slave (slaves, fork_slave (&sigtest_slave, pids));
 }
 
+private variable Current_Slave_List;
+
 define manage_slaves (slaves, mesg_handler)
 {
+   Current_Slave_List = slaves;
+
    Verbose = qualifier_exists ("verbose");
    User_Message_Handler = mesg_handler;
 
@@ -563,6 +587,7 @@ define new_slave_list ()
 {
    Sigchld_Received = 0;
    Slaves_Running = 0;
+   Slaves_Were_Replaced = 0;
    Do_Sigtest = qualifier_exists ("sigtest");
    return list_new();
 }
@@ -577,6 +602,63 @@ define pid_vmessage ()
    variable args = __pop_args (_NARGS);
    () = fprintf (stderr, "%d: ", getpid());
    vmessage (__push_args(args));
+}
+
+define replace_slave ()
+{
+   variable s, task_ref, args = NULL;
+   variable msg = "Struct_Type = replace_slave (s, &task [, args] [; qualifiers])";
+
+   if (_NARGS == 0)
+     usage (msg);
+   else if (_NARGS > 2)
+     args = __pop_list (_NARGS-2);
+
+   (s, task_ref) = ();
+
+   variable i,
+     num_slaves = length(Current_Slave_List);
+
+   _for i (0, num_slaves-1, 1)
+     {
+        if (Current_Slave_List[i].pid == s.pid)
+          break;
+     }
+   if (i == num_slaves)
+     {
+        vmessage ("*** %s:  unregistered slave:", _function_name);
+        print(s);
+        return NULL;
+     }
+
+   if (kill (s.pid, 0) != 0)
+     {
+        vmessage ("*** %s: slave pid=%d does not exist", _function_name, s.pid);
+        return NULL;
+     }
+
+   if (kill (s.pid, SIGTERM) != 0)
+     {
+        vmessage ("*** %s: error sending TERM to pid=%d", _function_name, s.pid);
+        return NULL;
+     }
+
+   % Call waitpid here while we know who to wait for.
+   call_waitpid_for_slave (s);
+
+   % Restore the slave list to a consistent state.
+   () = list_pop (Current_Slave_List, i);
+
+   variable new_s;
+   if (args != NULL)
+     new_s = fork_slave (task_ref, __push_list (args) ;; __qualifiers);
+   else
+     new_s = fork_slave (task_ref ;; __qualifiers);
+
+   append_slave (Current_Slave_List, new_s);
+   Slaves_Were_Replaced++;
+
+   return new_s;
 }
 
 require ("sysconf");
