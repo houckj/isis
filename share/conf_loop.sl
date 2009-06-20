@@ -48,8 +48,20 @@ public define save_par_limits()
 
 private define valid_param_indices (index_array)
 {
-   variable s, pi = get_par_info (index_array),
-     indices = list_new();
+   variable s, indices = list_new();
+
+   if (index_array == NULL)
+     {
+        foreach s (get_params())
+          {
+             if (s.freeze != 0 || s.tie != NULL)
+               continue;
+             list_append (indices, s.index);
+          }
+        return indices;
+     }
+
+   variable pi = get_par_info (index_array);
 
    foreach s (pi)
      {
@@ -295,6 +307,8 @@ public define conf_loop()
      }
 
    indices = valid_param_indices (indices);
+   if (length(indices) == 0)
+     throw UsageError, "*** conf_loop:  no free parameters";
    variable ordered_indices = list_to_array (indices);
 
    variable num_indices = length(indices),

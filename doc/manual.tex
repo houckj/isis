@@ -10363,10 +10363,11 @@ Example:
 {conf}
 
 This function calls \verb|conf| to determine single parameter
-confidence limits for a specified list of fit parameters. If a
-new best-fit solution during the search for the confidence
-limits, a new confidence limit search is begun, starting at the
-new best-fit solution.
+confidence limits for a specified list of fit parameters; for
+convenience, \verb|params=NULL| indicates that the loop should
+include all free parameters. If a new best-fit solution during
+the search for the confidence limits, a new confidence limit
+search is begun, starting at the new best-fit solution.
 
 To save intermediate results and generate a parameter file
 containing the computed confidence limits, use the \verb|save|
