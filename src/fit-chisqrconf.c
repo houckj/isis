@@ -111,8 +111,7 @@ static int examine_fit_statistic (Param_t *pt, unsigned int idx, double p, doubl
    if (run_fit_improved_hook ())
      return EVAL_IMPROVED;
 
-   if ((-1 == fit_object_config (fo, pt, 1))
-       || (-1 == fit_statistic (fo, sinfo->find_best, chisqr, NULL)))
+   if (-1 == fit_statistic (fo, sinfo->find_best, chisqr, NULL))
      return EVAL_FAILED;
    dchisqr = *chisqr - sinfo->min_chisqr;
 
