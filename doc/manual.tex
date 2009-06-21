@@ -4556,7 +4556,7 @@ per bin above 18 Angstroms.
 Regroup the specified datasets to match a particular histogram
 grid as closely as possible without changing the underlying
 spectral grids. If multiple datasets are to be grouped, their
-grids must match exactly.  
+grids must match exactly.
 
 The physical units of the input grid may be specified using the
 \verb|unit| qualifier. The current default physical units may
@@ -10967,13 +10967,13 @@ even if those wavelength ranges correspond to regions of the data
 that are currently being ignored for purposes of finding the best
 fitting model.
 
-Four minimization algorithms are available: {\tt lmdif} and
+Several minimization algorithms are available: {\tt lmdif} and
 {\tt marquardt} are Levenberg-Marquardt algorithms with
-numerical derivatives; {\tt minim} and {\tt subplex} are
-variants of the Nelder-Mead simplex algorithm. The latter
-approach may require more function evaluations to find the
-minimum, but may be less likely to become stuck in a local
-minimum.
+numerical derivatives; {\tt simann} is a simulated annealing
+method; {\tt subplex} is a variant of the Nelder-Mead simplex
+algorithm. The latter two approaches may require more function
+evaluations to find the minimum, but may be less likely to
+become stuck in a local minimum.
 
 Either can be used to search for the best-fit model parameters.
 Aside from cases where the fit-function evaluation itself might
@@ -11005,6 +11005,10 @@ With this definition of the hook, the \verb|MERGED_GRID|
 method will be used whenever multiple datasets are fitted
 simultaneously. See \verb|set_eval_grid_method| for
 more details.
+
+Use the \verb|fit_verbose| qualifier to provide a verbose
+level that overides the current setting of the
+intrinsic variable \verb|Fit_Verbose|.
 
 \end{isisfunction}
 

@@ -9615,12 +9615,13 @@ fit_counts
     currently being ignored for purposes of finding the best
     fitting model.
 
-    Four minimization algorithms are available: lmdif and marquardt
-    are Levenberg-Marquardt algorithms with numerical derivatives;
-    minim and subplex are variants of the Nelder-Mead simplex
-    algorithm. The latter approach may require more function
-    evaluations to find the minimum, but may be less likely to
-    become stuck in a local minimum.
+    Several minimization algorithms are available: lmdif and
+    marquardt are Levenberg-Marquardt algorithms with numerical
+    derivatives; simann is a simulated annealing method; subplex is
+    a variant of the Nelder-Mead simplex algorithm. The latter two
+    approaches may require more function evaluations to find the
+    minimum, but may be less likely to become stuck in a local
+    minimum.
 
     Either can be used to search for the best-fit model parameters.
     Aside from cases where the fit-function evaluation itself might
@@ -9650,6 +9651,10 @@ fit_counts
     With this definition of the hook, the MERGED_GRID method will
     be used whenever multiple datasets are fitted simultaneously.
     See set_eval_grid_method for more details.
+
+    Use the fit_verbose qualifier to provide a verbose level that
+    overides the current setting of the intrinsic variable
+    Fit_Verbose.
 
 
  SEE ALSO

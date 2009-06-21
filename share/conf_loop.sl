@@ -75,7 +75,9 @@ private define valid_param_indices (index_array)
 
 private define try_conf (index, ctrl)
 {
-   variable save = qualifier_exists ("save");
+   variable
+     save = qualifier_exists ("save"),
+     fit_verbose = qualifier ("fit_verbose", -1);
 
    variable prefix = qualifier ("prefix", "conf_loop"),
      file_conf = prefix + ".conf",
@@ -113,7 +115,7 @@ private define try_conf (index, ctrl)
           {
              % conf failed -- refit
              variable info;
-             () = fit_counts (&info);
+             () = fit_counts (&info ; fit_verbose=fit_verbose);
              s.num_retries++;
 
              if (save)
@@ -145,6 +147,8 @@ private define conf_slave (s, ctrl)
 {
    send_msg (s, SLAVE_READY);
 
+   variable fit_verbose = qualifier ("fit_verbose", -1);
+
    forever
      {
         variable objs = recv_objs (s);
@@ -161,7 +165,7 @@ private define conf_slave (s, ctrl)
         variable result = try_conf (index, ctrl ;; __qualifiers);
 
         variable info;
-        () = eval_counts (&info);
+        () = eval_counts (&info; fit_verbose=fit_verbose);
 
         send_msg (s, SLAVE_RESULT);
         send_objs (s, index, param_version,

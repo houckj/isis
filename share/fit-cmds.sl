@@ -1013,8 +1013,22 @@ private define _do_eval_fit (_do_eval, data_type, msg, nargs) %{{{
 
    _isis->_set_fit_type (response_type, data_type);
 
+   variable saved_fit_verbose = Fit_Verbose,
+     fit_verbose = qualifier ("fit_verbose", NULL);
+
    variable status;
-   (status, s.statistic, s.num_variable_params, s.num_bins) = (@_do_eval)();
+   try
+     {
+        if (fit_verbose != NULL)
+          {
+             Fit_Verbose = fit_verbose;
+          }
+        (status, s.statistic, s.num_variable_params, s.num_bins) = (@_do_eval)();
+     }
+   finally
+     {
+        Fit_Verbose = saved_fit_verbose;
+     }
    return status;
 }
 
@@ -1024,28 +1038,28 @@ define fit_counts ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "s = fit_counts ([response_type][, &info_struct])";
-   return _do_eval_fit (&_isis->_fit, 0, msg, _NARGS);
+   return _do_eval_fit (&_isis->_fit, 0, msg, _NARGS ;; __qualifiers);
 }
 
 define fit_flux ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "s = fit_flux ([response_type][, &info_struct])";
-   return _do_eval_fit (&_isis->_fit, 1, msg, _NARGS);
+   return _do_eval_fit (&_isis->_fit, 1, msg, _NARGS ;; __qualifiers);
 }
 
 define eval_counts ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "s = eval_counts ([response_type][, &info_struct])";
-   return _do_eval_fit (&_isis->_eval_model, 0, msg, _NARGS);
+   return _do_eval_fit (&_isis->_eval_model, 0, msg, _NARGS ;; __qualifiers);
 }
 
 define eval_flux ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "s = eval_flux ([response_type][, &info_struct])";
-   return _do_eval_fit (&_isis->_eval_model, 1, msg, _NARGS);
+   return _do_eval_fit (&_isis->_eval_model, 1, msg, _NARGS ;; __qualifiers);
 }
 
 private define eval_statistic (data_type)
