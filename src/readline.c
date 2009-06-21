@@ -547,7 +547,8 @@ static void sig_exit_isis (int sig) /*{{{*/
    Exit_Signal_In_Progress = 1;
    SLsig_block_signals ();
 
-   fprintf (stderr, "isis[%d]:  Killed by signal %d.\n", getpid (), sig);
+   if (sig != SIGTERM)
+     fprintf (stderr, "isis[%d]:  Killed by signal %d.\n", getpid (), sig);
 
    exit_isis (sig);
 }
