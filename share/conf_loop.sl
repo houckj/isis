@@ -260,20 +260,40 @@ private define recv_slave_result (slv)
    return restart;
 }
 
-private define restart_slaves (slaves)
+#iffalse
+% wait on restart
+private define restart_slaves ()
 {
-   variable s;
-   foreach s (slaves)
+   variable s, x = Parallel_Conf_Loop_Info;
+
+   foreach s (x.slaves)
      {
         if (s.status == SLAVE_READY)
           send_next_task (s);
      }
 }
+#else
+% kill on restart (if necessary)
+private define restart_slaves ()
+{
+   variable x = Parallel_Conf_Loop_Info;
+   variable i, n = length(x.slaves);
+
+   _for i (0, n-1, 1)
+     {
+        variable s = x.slaves[i];
+        if (s.status != SLAVE_READY)
+          {
+             s = replace_slave (s, &conf_slave, x.ctrl ;; x.qualifiers);
+             s.status = SLAVE_READY;
+          }
+        send_next_task (s);
+     }
+}
+#endif
 
 private define conf_handler (s, msg)
 {
-   variable x = Parallel_Conf_Loop_Info;
-
    switch (msg.type)
      {
       case SLAVE_READY:
@@ -282,7 +302,7 @@ private define conf_handler (s, msg)
      {
       case SLAVE_RESULT:
         if (recv_slave_result (s))
-          restart_slaves (x.slaves);
+          restart_slaves ();
         else send_next_task (s);
      }
 }
@@ -353,7 +373,9 @@ public define conf_loop()
              pmin_final = pmin_final,
              pmax_final = pmax_final,
              best_stat = _Inf,
-             slaves = slaves
+             slaves = slaves,
+             ctrl = ctrl,
+             qualifiers = __qualifiers
           };
 
         loop (num_slaves)
