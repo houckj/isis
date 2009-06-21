@@ -39,8 +39,8 @@
 # include <stdlib.h>
 #endif
 
-#ifdef HAVE_SYS_STAT_H
-# include <sys/stat.h>
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
 #endif
 
 #include <slang.h>
@@ -2294,9 +2294,6 @@ static char *read_file_keyword (cfitsfile *fp, char *keyname, char *filename) /*
 {
    char buf[CFLEN_FILENAME];
    char *path=NULL, *dir=NULL, *slash=NULL;
-#ifdef HAVE_STAT
-   struct stat st;
-#endif
 
    *buf = 0;
 
@@ -2305,10 +2302,10 @@ static char *read_file_keyword (cfitsfile *fp, char *keyname, char *filename) /*
        || (0 == isis_strcasecmp (buf, "NONE")))
      return NULL;
 
-#ifndef HAVE_STAT
+#ifndef HAVE_UNISTD_H
    return isis_make_string (buf);
 #else
-   if ((0 == stat (buf, &st))
+   if ((0 == access (buf, F_OK))
        || (NULL == (slash = strrchr (filename, '/')))
        || (NULL == (dir = isis_make_string (filename))))
      {
