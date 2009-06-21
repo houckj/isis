@@ -62,7 +62,12 @@ private define slave_is_active (s)
    return s.status > 0;
 }
 
-private variable Check_For_Unread_Data = 1;
+private variable Check_For_Unread_Data = 0;
+% If the master checks for unread data in the message handler
+% loop, it can end up blocking in a read if replace_slave is
+% being used.  If replace_slave is *not* being used, then
+% it doesn't seem to matter whether Check_For_Unread_Data is zero
+% or not.
 
 private define process_struct (pid, sock)
 {
@@ -435,6 +440,8 @@ private define handle_pending_messages (slaves)
    variable fp_set = pending_messages (slaves);
    variable i, num_fp = length(fp_set);
 
+   Slaves_Were_Replaced = 0;
+
    _for i (0, num_fp-1, 1)
      {
         variable msg = _recv_msg (fp_set[i]);
@@ -645,9 +652,7 @@ define replace_slave ()
 
    % Call waitpid here while we know who to wait for.
    call_waitpid_for_slave (s);
-
-   % Restore the slave list to a consistent state.
-   () = list_pop (Current_Slave_List, i);
+   Current_Slave_List[i] = NULL;
 
    variable new_s;
    if (args != NULL)
@@ -655,7 +660,7 @@ define replace_slave ()
    else
      new_s = fork_slave (task_ref ;; __qualifiers);
 
-   append_slave (Current_Slave_List, new_s);
+   Current_Slave_List[i] = new_s;
    Slaves_Were_Replaced++;
 
    return new_s;
@@ -693,9 +698,9 @@ define _num_cpus ()
 %
 %  TODO:
 %    - add support for:
-%        multi-dimensional arrays,
 %        array of List_Type,
 %        array of Assoc_Type,
+%        multi-dimensional arrays of "non-basic" types
 %        Ref_Types (for linked lists, etc),
 
 define __fs_initsend ()
@@ -801,18 +806,31 @@ private define datatype_index (object)
 
 private define recv_basic (fp, type)
 {
-   variable num = read_array (fp, 1, Integer_Type)[0];
-   return read_array (fp, num, type);
+   variable num_dims, dims;
+   num_dims = read_array (fp, 1, Integer_Type)[0];
+   dims = read_array (fp, num_dims, Integer_Type);
+
+   variable len, array;
+   len = int(prod(dims));
+   array = read_array (fp, len, type);
+   reshape (array, dims);
+
+   return array;
 }
 
 private define send_basic (fp, x)
 {
-   if (write_array (fp, length(x)) < 0)
+   variable dims = array_shape(x);
+   if (write_array (fp, length(dims)) < 0)
      return -1;
-   if (write_array (fp, x) < 0)
+   if (write_array (fp, dims) < 0)
      return -1;
 
-   return 0;
+   reshape (x, length(x));
+   variable status = write_array (fp, x);
+   reshape (x, dims);
+
+   return status;
 }
 
 private define recv_string (fp)

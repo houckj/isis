@@ -11,17 +11,18 @@ private define test_items()
      floats = typecast (urand(5), Float_Type),
      doubles = urand(5),
      strings = ["this", "is", "an", "array", "of", "strings"],
-     nulls = [NULL, NULL, NULL];
+     nulls = [NULL, NULL, NULL],
+     doubles_3d = urand(3,5,2);
 
    variable _struct = struct
      {
         cc = chars, ii = ints, ll = longs, ff = floats, dd = doubles, ss = strings,
-        nulls = nulls
+        nulls = nulls, doubles_3d = doubles_3d
      };
 
    variable _list =
      {
-        chars, ints, longs, floats, doubles, strings, nulls
+        chars, ints, longs, floats, doubles, strings, nulls, doubles_3d
      };
 
    variable _assoc = Assoc_Type[];
@@ -32,6 +33,7 @@ private define test_items()
    _assoc["doubles"] = doubles;
    _assoc["strings"] = strings;
    _assoc["nulls"] = nulls;
+   _assoc["doubles_3d"] = doubles_3d;
 
    return _list, _struct, _assoc;
 }

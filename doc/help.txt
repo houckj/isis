@@ -12645,8 +12645,7 @@ send_objs
  DESCRIPTION
     Most S-Lang objects can be sent transparently to another
     process.  However, a few S-Lang objects are not yet supported
-    (multi-dimensional arrays, arrays of List_Type and Assoc_Type,
-    objects of Ref_Type).
+    (arrays of List_Type and Assoc_Type, objects of Ref_Type).
 
 
  SEE ALSO
