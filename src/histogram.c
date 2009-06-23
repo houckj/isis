@@ -68,7 +68,7 @@ int Isis_Residual_Plot_Type = ISIS_STAT_RESID;
 int Hist_Ignore_PHA_Response_Keywords;
 int Hist_Ignore_PHA_Backfile_Keyword;
 int Hist_Allow_Multiple_Arf_Factors;
-int Hist_Warn_Invalid_Uncertainties = 1;
+int Hist_Warn_Invalid_Uncertainties;
 
 Hist_Stat_Error_Hook_Type *Hist_Stat_Error_Hook;
 
