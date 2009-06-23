@@ -514,6 +514,14 @@ void exit_isis (int err) /*{{{*/
 {
    int status = 0;
 
+   /* Use _exit() if this process was created by fork() */
+   if (Isis_Initial_Pid != getpid())
+     {
+        if (err || SLang_get_error())
+          status = EXIT_FAILURE;
+        _exit (status);
+     }
+
    SLang_run_hooks ("stop_log", 1, NULL);
    call_at_exit_hooks ();
    quit_isis (0);
@@ -522,10 +530,7 @@ void exit_isis (int err) /*{{{*/
    if (err || SLang_get_error())
      status = EXIT_FAILURE;
 
-   /* Use _exit if this process was created via fork() */
-   if (Isis_Initial_Pid == getpid())
-     exit (status);
-   else _exit (status);
+   exit (status);
 }
 
 /*}}}*/
@@ -549,14 +554,16 @@ static void reset_isis (void) /*{{{*/
 static volatile sig_atomic_t Exit_Signal_In_Progress = 0;
 static void sig_exit_isis (int sig) /*{{{*/
 {
+   if (Isis_Initial_Pid != getpid ())
+     _exit (EXIT_FAILURE);
+
    if (Exit_Signal_In_Progress)
      return;
 
    Exit_Signal_In_Progress = 1;
    SLsig_block_signals ();
 
-   if (sig != SIGTERM)
-     fprintf (stderr, "isis[%d]:  Killed by signal %d.\n", getpid (), sig);
+   fprintf (stderr, "isis[%d]:  Killed by signal %d.\n", getpid (), sig);
 
    exit_isis (sig);
 }
