@@ -282,9 +282,9 @@ static void sig_segv (int signo) /*{{{*/
      return;
    Signal_In_Progress = 1;
    write (STDERR_FILENO, msg, sizeof(msg));
-   /* so more SEGVs won't interfere with exit() */
+   /* so more SEGVs won't interfere with _exit() */
    SLsignal (SIGSEGV, SIG_DFL);
-   exit (EXIT_FAILURE);
+   _exit (EXIT_FAILURE);
 }
 
 /*}}}*/

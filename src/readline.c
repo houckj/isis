@@ -90,6 +90,8 @@ int Isis_Preparse_Only;
 int Isis_Debug_Mode;
 char *Isis_Public_Namespace_Name;
 
+static pid_t Isis_Initial_Pid;
+
 static int Input_From_Stdin;
 static int TTY_Inited;
 static char *Isis_Readline_Namespace_Name;
@@ -337,7 +339,7 @@ static int init_optional_modules (char *ns_name) /*{{{*/
 {
    (void) ns_name;
 
-#ifdef WITH_XSPEC_STATIC_LINKED   
+#ifdef WITH_XSPEC_STATIC_LINKED
    if (-1 == init_xspec_module_ns (Isis_Public_Namespace_Name))
      return isis_trace_return(-1);
    (void) SLdefine_for_ifdef ("__XSPEC_IS_STATIC__");
@@ -383,7 +385,8 @@ static int sldb_load_hook (char *file) /*{{{*/
 int init_isis_intrinsics (char *ns_name) /*{{{*/
 {
    enable_fpe (1);
-   
+   Isis_Initial_Pid = getpid();
+
    /* init_readline_ must come first
     * fits module must come before init.sl
     */
@@ -509,15 +512,20 @@ static void call_at_exit_hooks (void) /*{{{*/
 
 void exit_isis (int err) /*{{{*/
 {
+   int status = 0;
+
    SLang_run_hooks ("stop_log", 1, NULL);
    call_at_exit_hooks ();
    quit_isis (0);
    deinit_readline_module ();
+
    if (err || SLang_get_error())
-     {
-        exit (EXIT_FAILURE);
-     }
-   else exit(0);
+     status = EXIT_FAILURE;
+
+   /* Use _exit if this process was created via fork() */
+   if (Isis_Initial_Pid == getpid())
+     exit (status);
+   else _exit (status);
 }
 
 /*}}}*/
@@ -923,7 +931,7 @@ static void close_intrinsic_readline (void) /*{{{*/
 }
 /*}}}*/
 #endif
-	
+
 static int readline_intrinsic_internal (SLang_RLine_Info_Type *rli, char *prompt) /*{{{*/
 {
    char *line;
@@ -991,14 +999,14 @@ static void new_slrline_intrinsic (char *name) /*{{{*/
    SLang_RLine_Info_Type *rli;
    SLang_MMT_Type *mmt;
 
-#if (SLANG_VERSION>=20100)   
+#if (SLANG_VERSION>=20100)
    if (NULL == (rli = SLrline_open2 (name, SLtt_Screen_Cols, SL_RLINE_BLINK_MATCH)))
      return;
 #else
    if (NULL == (rli = SLrline_open (SLtt_Screen_Cols, SL_RLINE_BLINK_MATCH)))
      return;
-#endif   
-   
+#endif
+
    if (NULL == (mmt = SLang_create_mmt (Rline_Type_Id, (VOID_STAR) rli)))
      {
 	SLrline_close (rli);
@@ -1014,9 +1022,9 @@ static void new_slrline_intrinsic (char *name) /*{{{*/
 static int init_readline (char *appname) /*{{{*/
 {
    static int inited = 0;
-   
+
    (void) appname;
-   
+
    if (inited)
      return 0;
 
@@ -1026,10 +1034,10 @@ static int init_readline (char *appname) /*{{{*/
 	inited = 1;
 	return 0;
      }
-#if (SLANG_VERSION>=20100)   
+#if (SLANG_VERSION>=20100)
    if (-1 == SLrline_init (appname, NULL, NULL))
      return -1;
-#endif   
+#endif
 #endif
 
    inited = 1;
@@ -1071,15 +1079,15 @@ static void set_prompt_intrin (void) /*{{{*/
    char *prompt;
 
    if (SLang_Num_Function_Args == 0)
-     {        
+     {
         (void) set_prompt (isis_prompt_default);
-     }   
-   else if (SLANG_NULL_TYPE == SLang_peek_at_stack()) 
+     }
+   else if (SLANG_NULL_TYPE == SLang_peek_at_stack())
      {
         (void) SLdo_pop();
         (void) set_prompt (isis_prompt_default);
      }
-   else if (0 == SLang_pop_slstring (&prompt)) 
+   else if (0 == SLang_pop_slstring (&prompt))
      {
         (void) set_prompt (prompt);
         SLang_free_slstring (prompt);
@@ -1345,7 +1353,7 @@ int open_readline (char *namespace_name) /*{{{*/
           return -1;
         if (NULL == (RLI = SLrline_open2 ("isis", SLtt_Screen_Cols, SL_RLINE_BLINK_MATCH)))
           return -1;
-#else        
+#else
         if (NULL == (RLI = SLrline_open (SLtt_Screen_Cols, SL_RLINE_BLINK_MATCH)))
           return -1;
 #endif
@@ -1551,7 +1559,7 @@ static void clear_errors (void) /*{{{*/
      {
         SLang_verror (0, "%s", SLerr_strerror (0));
      }
-   
+
    if (SLang_get_error())
      SLang_restart (1);
 
@@ -1673,7 +1681,7 @@ static void destroy_rline (SLtype type, VOID_STAR f) /*{{{*/
 {
    SLang_RLine_Info_Type *rli;
    (void) type;
-   
+
    rli = (SLang_RLine_Info_Type *) f;
    if (rli != NULL)
      SLrline_close (rli);
@@ -1697,7 +1705,7 @@ static int register_rline_type (void) /*{{{*/
    /* By registering as SLANG_VOID_TYPE, slang will dynamically allocate a
     * type.
     */
-   if (-1 == SLclass_register_class (cl, SLANG_VOID_TYPE, sizeof (SLang_RLine_Info_Type*), 
+   if (-1 == SLclass_register_class (cl, SLANG_VOID_TYPE, sizeof (SLang_RLine_Info_Type*),
                                      SLANG_CLASS_TYPE_MMT))
      return -1;
 
@@ -1735,7 +1743,7 @@ int init_readline_module_ns (char *ns_name) /*{{{*/
        || (-1 == SLns_add_intrin_fun_table (ns, Private_Intrinsics, NULL))
        || (-1 == SLns_add_intrin_fun_table (pub_ns, Readline_Intrinsics, NULL)))
      return isis_trace_return(-1);
-   
+
    if (-1 == set_prompt (isis_prompt_default))
      return isis_trace_return(-1);
 
