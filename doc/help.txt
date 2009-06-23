@@ -3015,7 +3015,9 @@ load_data
        stat_err = max[ sqrt(N), Minimum_Stat_Err ]
 
     Where Minimum_Stat_Err is the smallest acceptable (positive)
-    uncertainty value with a default value of 1.
+    uncertainty value with a default value of 1. To shut off
+    warnings about invalid uncertainties being replaced, set
+    Warn_Invalid_Uncertainties=0.
 
     If the SYS_ERR column or header keyword is present, a
     systematic error is added in quadrature so that the uncertainty
@@ -11042,6 +11044,9 @@ Minimum_Stat_Err
     1e-08
 
     Uncertainties for flux values must be positive.
+
+    To shut off warnings about invalid uncertainties being
+    replaced, set Warn_Invalid_Uncertainties=0.
 
 
  SEE ALSO

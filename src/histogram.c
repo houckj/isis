@@ -68,6 +68,7 @@ int Isis_Residual_Plot_Type = ISIS_STAT_RESID;
 int Hist_Ignore_PHA_Response_Keywords;
 int Hist_Ignore_PHA_Backfile_Keyword;
 int Hist_Allow_Multiple_Arf_Factors;
+int Hist_Warn_Invalid_Uncertainties = 1;
 
 Hist_Stat_Error_Hook_Type *Hist_Stat_Error_Hook;
 
@@ -1110,7 +1111,8 @@ static int get_canonical_hist_coordinates (Hist_t *h, int input_units) /*{{{*/
 
 static void invalid_uncertainties_replaced (void) /*{{{*/
 {
-   isis_vmesg (WARN, I_INVALID_UNCERT, __FILE__, __LINE__, NULL);
+   if (Hist_Warn_Invalid_Uncertainties)
+     isis_vmesg (WARN, I_INVALID_UNCERT, __FILE__, __LINE__, NULL);
 }
 
 /*}}}*/

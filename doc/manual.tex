@@ -4952,9 +4952,12 @@ input {\tt STAT\_ERR} uncertainty values smaller than 1 are reset to
 \end{verbatim}
 Where \verb|Minimum_Stat_Err| is the smallest acceptable
 (positive) uncertainty value with a default value of 1.
+To shut off warnings about invalid uncertainties being
+replaced, set \verb|Warn_Invalid_Uncertainties=0|.
 
 \index{Minimum\_Stat\_Err@{\tt Minimum\_Stat\_Err}}
 \index{Minimum valid stat\_err!see{{\tt Minimum\_Stat\_Err}}}
+\index{Warn\_Invalid\_Uncertainties@{\tt Warn\_Invalid\_Uncertainties}}
 
 If the \verb|SYS_ERR| column or header keyword is present, a
 systematic error is added in quadrature so that the uncertainty
@@ -12162,6 +12165,10 @@ isis> print(get_data_flux(1).err);
 \end{verbatim}
 Uncertainties for flux values must be positive.
 
+\index{Warn\_Invalid\_Uncertainties@{\tt Warn\_Invalid\_Uncertainties}}
+To shut off warnings about invalid uncertainties being
+replaced, set \verb|Warn_Invalid_Uncertainties=0|.
+
 \end{isisfunction}
 
 \begin{isisfunction}
@@ -14495,6 +14502,9 @@ uncertainties associated with input spectral data.  When positive, this
 value of this variable defines the smallest valid uncertainty for
 a single data bin.  If zero (the default), Poisson errors are
 assumed.\\
+{\tt Warn\_Invalid\_Uncertainties} & 1 & If non-zero, a warning
+message will indicate when invalid uncertainty values have
+been replaced.\\
 \hline
 \end{tabular}
 \vfill
