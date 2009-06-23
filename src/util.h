@@ -82,7 +82,6 @@ extern int Isis_Remove_Spectrum_Gaps;
 
 #include <stdio.h>
 extern int isis_fclose (FILE *fp);
-extern FILE *get_message_file (char *file);
 extern FILE *isis_open_pager (void);
 extern void isis_close_pager (FILE *fp);
 

@@ -410,32 +410,6 @@ int isis_vsnprintf (char *buf, unsigned int bufsize, /*{{{*/
 
 /*}}}*/
 
-static void close_message_file (void) /*{{{*/
-{
-   if (pMessage_File)
-     fclose (pMessage_File);
-}
-
-/*}}}*/
-
-FILE *get_message_file (char *file) /*{{{*/
-{
-   if (pMessage_File)
-     return pMessage_File;
-
-   pMessage_File = fopen (file, "w");
-   if (pMessage_File == NULL)
-     {
-        fprintf (stderr, "Failed opening %s\n", file);
-        exit (EXIT_FAILURE);
-     }
-   atexit (close_message_file);
-
-   return pMessage_File;
-}
-
-/*}}}*/
-
 /*}}}*/
 
 int isis_secure_mode (void) /*{{{*/
