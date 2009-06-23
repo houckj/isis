@@ -362,6 +362,9 @@ public define conf_loop()
           }
      }
 
+   variable info, fit_verbose = qualifier ("fit_verbose", -1);
+   () = eval_counts (&info; fit_verbose=fit_verbose);
+
    variable slaves, num_slaves;
    num_slaves = qualifier ("num_slaves", min ([_num_cpus(), num_indices]));
 
@@ -381,7 +384,7 @@ public define conf_loop()
              max_num_retries = max_num_retries,
              pmin_final = pmin_final,
              pmax_final = pmax_final,
-             best_stat = _Inf,
+             best_stat = info.statistic,
              slaves = slaves,
              ctrl = ctrl,
              qualifiers = __qualifiers
