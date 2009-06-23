@@ -125,6 +125,7 @@ private define try_conf (index, ctrl)
                                 info.statistic,
                                 (info.num_bins-info.num_variable_params),
                                 time());
+                  () = fflush (fp);
                }
           }
 
@@ -290,6 +291,9 @@ private define restart_slaves ()
           {
              s = replace_slave (s, &conf_slave, x.ctrl ;; x.qualifiers);
              s.status = SLAVE_READY;
+             variable msg = recv_msg (s);
+             if (msg.type != SLAVE_READY)
+               throw ApplicationError, "*** unexpected message from restarted slave";
           }
         send_next_task (s);
      }
