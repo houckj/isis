@@ -144,7 +144,7 @@ private define try_conf (index, ctrl)
    return s;
 }
 
-private define conf_slave (s, ctrl)
+private define conf_slave (s, indices, ctrl)
 {
    send_msg (s, SLAVE_READY);
 
@@ -170,7 +170,7 @@ private define conf_slave (s, ctrl)
 
         send_msg (s, SLAVE_RESULT);
         send_objs (s, index, param_version,
-                   result, info, get_params());
+                   result, info, get_params(indices));
      }
 
    return 0;
@@ -200,7 +200,7 @@ private define send_next_task (slv)
    if (x.next_task < length(x.indices))
      {
         variable index = x.indices[x.next_task];
-        send_objs (slv, index, x.param_version, get_params());
+        send_objs (slv, index, x.param_version, get_params(x.indices));
         x.next_task++;
         slv.status = SLAVE_RUNNING;
      }
@@ -289,7 +289,7 @@ private define restart_slaves ()
         variable s = x.slaves[i];
         if (s.status != SLAVE_READY)
           {
-             s = replace_slave (s, &conf_slave, x.ctrl ;; x.qualifiers);
+             s = replace_slave (s, &conf_slave, x.indices, x.ctrl ;; x.qualifiers);
              s.status = SLAVE_READY;
              variable msg = recv_msg (s);
              if (msg.type != SLAVE_READY)
@@ -392,7 +392,7 @@ public define conf_loop()
 
         loop (num_slaves)
           {
-             s = fork_slave (&conf_slave, ctrl ;; __qualifiers);
+             s = fork_slave (&conf_slave, indices, ctrl ;; __qualifiers);
              s.status = SLAVE_READY;
              append_slave (slaves, s);
           }
