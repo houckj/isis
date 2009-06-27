@@ -3261,23 +3261,18 @@ return_error:
 
 /*}}}*/
 
-static int eval_fit_stat (Isis_Fit_Statistic_Type *s,  int enable_copying, /*{{{*/
-                          double *y, double *w, int n,
-                          double *par, int npars, double *stat)
+static int eval_fit_stat2 (Isis_Fit_Statistic_Type *s,  int enable_copying, /*{{{*/
+                           double *y, double *w, int n, double *par, int npars,
+                           double *stat, double **vec, int which)
 {
-   double *fx = NULL;
-   double *vec = NULL;
+   double *fx=NULL, *vstat=NULL;
    int ret;
 
    *stat = 0;
 
-   if ((NULL == (fx = ISIS_MALLOC(n * sizeof(double))))
-       ||(NULL == (vec = ISIS_MALLOC(n * sizeof(double)))))
-     {
-        ISIS_FREE(fx);
-        ISIS_FREE(vec);
-        return -1;
-     }
+   if (NULL == (fx = ISIS_MALLOC(2*n * sizeof(double))))
+     return -1;
+   vstat = fx + n;
 
    Fit_Store_Model = enable_copying;
 
@@ -3285,16 +3280,70 @@ static int eval_fit_stat (Isis_Fit_Statistic_Type *s,  int enable_copying, /*{{{
      {
         verbose_warn_hook (NULL, "Failed evaluating fit-function\n");
         ISIS_FREE (fx);
-        ISIS_FREE(vec);
         return -1;
      }
 
-   ret = s->fun (s, y, fx, w, n, vec, stat);
+   ret = s->fun (s, y, fx, w, n, vstat, stat);
+
+   if (vec)
+     {
+        double *cpy;
+        int i;
+
+        if (NULL == (cpy = ISIS_MALLOC (n * sizeof(double))))
+          {
+             ISIS_FREE(fx);
+             return -1;
+          }
+
+        if (which == 0)
+          {
+             /* vector statistic */
+             memcpy ((char *)cpy, (char *)vstat, n * sizeof(double));
+          }
+        else if (which == 1)
+          {
+             /* fit residuals */
+             for (i = 0; i < n; i++)
+               cpy[i] = y[i] - fx[i];
+          }
+        else
+          {
+             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                         "unrecognized option which=%d", which);
+          }
+        *vec = cpy;
+     }
 
    ISIS_FREE (fx);
-   ISIS_FREE(vec);
 
    return ret;
+}
+
+/*}}}*/
+
+static int eval_fit_stat (Isis_Fit_Statistic_Type *s,  int enable_copying, /*{{{*/
+                          double *y, double *w, int n,
+                          double *par, int npars, double *stat)
+{
+   return eval_fit_stat2 (s, enable_copying, y, w, n, par, npars, stat, NULL, 0);
+}
+
+/*}}}*/
+
+static double *eval_fit_residual (Isis_Fit_Statistic_Type *s,  int enable_copying, /*{{{*/
+                                  double *y, double *w, int n,
+                                  double *par, int npars)
+{
+   double *resid = NULL;
+   double stat;
+
+   if (-1 == eval_fit_stat2 (s, enable_copying, y, w, n, par, npars, &stat, &resid, 1))
+     {
+        ISIS_FREE(resid);
+     }
+
+   return resid;
 }
 
 /*}}}*/
@@ -3636,6 +3685,37 @@ static void open_fit_object_mmt_intrin (void) /*{{{*/
 
 /*}}}*/
 
+static int pop_params (Isis_Fit_Type *ft, Fit_Param_t *par) /*{{{*/
+{
+   SLang_Array_Type *sl_pars = NULL;
+
+   if ((-1 == SLang_pop_array_of_type (&sl_pars, SLANG_DOUBLE_TYPE))
+       || (sl_pars == NULL))
+     return -1;
+
+   if (sl_pars->num_elements != (unsigned int) par->npars)
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "expecting %d parameter values, got %d",
+                    par->npars, sl_pars->num_elements);
+        SLang_free_array (sl_pars);
+        return -1;
+     }
+
+   if (isis_invalid_params (ft->engine, (double *)sl_pars->data, par->npars))
+     {
+        SLang_free_array (sl_pars);
+        return -1;
+     }
+
+   memcpy ((char *)par->par, (char *)sl_pars->data, par->npars * sizeof(double));
+
+   SLang_free_array (sl_pars);
+
+   return 0;
+}
+
+/*}}}*/
+
 static void eval_statistic_using_fit_object_intrin (Fit_Object_MMT_Type *mmt, int *enable_copying) /*{{{*/
 {
    Fit_Object_Type *fo = mmt->fo;
@@ -3643,37 +3723,18 @@ static void eval_statistic_using_fit_object_intrin (Fit_Object_MMT_Type *mmt, in
    Isis_Fit_Type *ft = fo->ft;
    Fit_Object_Data_Type *dt = fo->dt;
    Fit_Param_t *par = info->par;
-   SLang_Array_Type *sl_pars = NULL;
    double stat = DBL_MAX;
    int status = -1;
 
-   if ((-1 == SLang_pop_array_of_type (&sl_pars, SLANG_DOUBLE_TYPE))
-       || (sl_pars == NULL))
+   if (-1 == pop_params (ft, par))
      {
         isis_throw_exception (Isis_Error);
-        goto return_error;
+        return;
      }
-
-   if (sl_pars->num_elements != (unsigned int) par->npars)
-     {
-        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "expecting %d parameter values, got %d",
-                   par->npars, sl_pars->num_elements);
-        isis_throw_exception (Isis_Error);
-        goto return_error;
-     }
-
-   if (isis_invalid_params (ft->engine, (double *)sl_pars->data, par->npars))
-     {
-        isis_throw_exception (Isis_Error);
-        goto return_error;
-     }
-
-   memcpy ((char *)par->par, (char *)sl_pars->data, par->npars * sizeof(double));
 
    status = eval_fit_stat (ft->stat, *enable_copying, dt->data, dt->weight, dt->num, par->par, par->npars, &stat);
    ft->statistic = stat;
 
-return_error:
    SLang_push_integer (status ? -1 : 0);
    SLang_push_double (stat);
    SLang_push_integer ((int) info->num_vary);
@@ -3681,6 +3742,52 @@ return_error:
 }
 
 /*}}}*/
+
+static void eval_residuals_using_fit_object_intrin (Fit_Object_MMT_Type *mmt, int *enable_copying) /*{{{*/
+{
+   Fit_Object_Type *fo = mmt->fo;
+   Fit_Info_Type *info = fo->info;
+   Isis_Fit_Type *ft = fo->ft;
+   Fit_Object_Data_Type *dt = fo->dt;
+   Fit_Param_t *par = info->par;
+   SLang_Array_Type *sl_res = NULL;
+   double *res = NULL;
+
+   if (-1 == pop_params (ft, par))
+     {
+        isis_throw_exception (Isis_Error);
+        return;
+     }
+
+   res = eval_fit_residual (ft->stat, *enable_copying, dt->data, dt->weight, dt->num, par->par, par->npars);
+
+   if ((res == NULL)
+       || (NULL == (sl_res = SLang_create_array (SLANG_DOUBLE_TYPE, 0, res, &dt->num, 1))))
+     {
+        ISIS_FREE(res);
+     }
+
+   SLang_push_array (sl_res, 1);
+}
+
+/*}}}*/
+
+static void get_data_weights_using_fit_object_intrin (Fit_Object_MMT_Type *mmt)
+{
+   Fit_Object_Type *fo = mmt->fo;
+   Fit_Object_Data_Type *dt = fo->dt;
+   SLang_Array_Type *sl_wt = NULL;
+
+   if (NULL == (sl_wt = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &dt->num, 1)))
+     {
+        isis_throw_exception (Isis_Error);
+        return;
+     }
+
+   memcpy ((char *)sl_wt->data, (char *)dt->weight, dt->num * sizeof(double));
+
+   SLang_push_array (sl_wt, 1);
+}
 
 static void iterate_fit_fun (int optimize) /*{{{*/
 {
@@ -4466,6 +4573,8 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
    MAKE_INTRINSIC_1("get_fitfun_info", Fit_get_fun_info, V, S),
    MAKE_INTRINSIC("open_fit_object_mmt_intrin", open_fit_object_mmt_intrin, V, 0),
    MAKE_INTRINSIC_2("eval_statistic_using_fit_object_intrin", eval_statistic_using_fit_object_intrin, V, MTO, I),
+   MAKE_INTRINSIC_2("eval_residuals_using_fit_object_intrin", eval_residuals_using_fit_object_intrin, V, MTO, I),
+   MAKE_INTRINSIC_1("get_data_weights_using_fit_object_intrin", get_data_weights_using_fit_object_intrin, V, MTO),
    SLANG_END_INTRIN_FUN_TABLE
 };
 

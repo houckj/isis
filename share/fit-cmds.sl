@@ -3018,9 +3018,28 @@ define set_eval_grid_method () %{{{
 
 % Support using optimization methods implemented in S-Lang
 
+define __eval_residuals () %{{{
+{
+   variable msg = "res[] = __eval_residuals (obj, params[]);";
+   if (_isis->chk_num_args (_NARGS, 2, msg))
+     return;
+
+   variable enable_copying = 1;
+   if (qualifier_exists ("nocopy"))
+     enable_copying = 0;
+
+   variable obj, params;
+   (obj, params) = ();
+
+   return _isis->eval_residuals_using_fit_object_intrin
+     (params, obj, enable_copying);
+}
+
+%}}}
+
 define __eval_stat () %{{{
 {
-   variable msg = "s = __eval_stat (obj, params);";
+   variable msg = "s = __eval_stat (obj, params[]);";
    if (_isis->chk_num_args (_NARGS, 2, msg))
      return;
 
@@ -3036,6 +3055,18 @@ define __eval_stat () %{{{
      (params, obj, enable_copying);
 
    return stat;
+}
+
+%}}}
+
+define __data_weights () %{{{
+{
+   variable msg = "w[] = __data_weights (obj);";
+   if (_isis->chk_num_args (_NARGS, 1, msg))
+     return;
+
+   variable obj = ();
+   return _isis->get_data_weights_using_fit_object_intrin (obj);
 }
 
 %}}}
