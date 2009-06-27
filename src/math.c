@@ -183,20 +183,20 @@ static int mean_stddev_doubles (double *x, unsigned int num, double *s) /*{{{*/
 {
    unsigned int i;
    double mean_i, variance_i;
- 
+
    mean_i = variance_i = 0.0;
    i = 0;
    while (i < num)
      {
         double diff, x_i;
-        
+
         x_i = x[i];
         diff = x_i - mean_i;
         i++;
         mean_i += diff / i;
         variance_i += diff * (x_i - mean_i);
      }
- 
+
    s[0] = mean_i;
    if (num > 1)
      s[1] = sqrt (variance_i / (num - 1));
@@ -223,7 +223,7 @@ static void moment (void) /*{{{*/
         isis_throw_exception (Isis_Error);
         goto error_return;
      }
-   
+
    if (sx->num_elements < 1)
      {
         m.num = 0;
@@ -234,13 +234,13 @@ static void moment (void) /*{{{*/
 
    x = (double *)sx->data;
    n = sx->num_elements;
-   
+
    m.num = n;
    xmin = xmax = x[0];
-   
+
    for (i = 0; i < n; i++)
      {
-        double x_i = x[i];        
+        double x_i = x[i];
         if (x_i > xmax)
           xmax = x_i;
         else if (x_i < xmin)
@@ -254,16 +254,16 @@ static void moment (void) /*{{{*/
         isis_throw_exception (Isis_Error);
         goto error_return;
      }
-   
+
    m.ave = s[0];
    m.sdev = s[1];
    m.var = m.sdev * m.sdev;
    m.sdom = m.sdev / sqrt(n);
-   
+
    error_return:
 
-   SLang_free_array (sx);   
-   SLang_push_cstruct ((VOID_STAR)&m, Moment_Layout);   
+   SLang_free_array (sx);
+   SLang_push_cstruct ((VOID_STAR)&m, Moment_Layout);
 }
 
 /*}}}*/
@@ -363,8 +363,8 @@ static int pop_two_darrays (SLang_Array_Type **a, SLang_Array_Type **b) /*{{{*/
        || (*a == NULL || *b == NULL))
      {
         isis_throw_exception (Isis_Error);
-        SLang_free_array (*a); 
-        SLang_free_array (*b); 
+        SLang_free_array (*a);
+        SLang_free_array (*b);
         *a = NULL;
         *b = NULL;
         return -1;
@@ -395,7 +395,7 @@ static SLang_Array_Type *convert_reverse_indices (int *r, unsigned int num_r, un
         return NULL;
      }
    memset ((char *)lens, 0, num_h*sizeof(int));
-   
+
    for (i = 0; i < num_r; i++)
      {
         int r_i = r[i];
@@ -403,7 +403,7 @@ static SLang_Array_Type *convert_reverse_indices (int *r, unsigned int num_r, un
         if (r_i >= 0)
           lens[r_i]++;
      }
-   
+
    new_r_data = (SLang_Array_Type **) new_r->data;
    for (i = 0; i < num_h; i++)
      {
@@ -412,12 +412,12 @@ static SLang_Array_Type *convert_reverse_indices (int *r, unsigned int num_r, un
 
         lens[i] = 0;
      }
-   
+
    for (i = 0; i < num_r; i++)
      {
         SLang_Array_Type *at;
         int r_i = r[i];
-        
+
         if (r_i < 0)
           continue;
 
@@ -426,7 +426,7 @@ static SLang_Array_Type *convert_reverse_indices (int *r, unsigned int num_r, un
         ((int *)at->data)[lens[r_i]] = i;
         lens[r_i]++;
      }
-   
+
    SLfree ((char *)lens);
    return new_r;
 
@@ -435,7 +435,6 @@ static SLang_Array_Type *convert_reverse_indices (int *r, unsigned int num_r, un
    SLang_free_array (new_r);
    return NULL;
 }
-
 
 static void make_1d_histogram (int *reverse) /*{{{*/
 {
@@ -489,14 +488,14 @@ static void make_1d_histogram (int *reverse) /*{{{*/
    bv = (double *)v->data;
    xlo = (double *)lo->data;
    xhi = (double *)hi->data;
-   
+
    /* If the (lo,hi) grid has holes, this algorithm will
     * give the wrong answer because every item will go
     * into a bin.  But what if the grid has holes by
     * accident because it was poorly constructed?
     * Perhaps that is a strong reason to deprecate this
     * interface.
-    */ 
+    */
 
    for (i = 0; i < n; i++)
      {
@@ -519,7 +518,7 @@ static void make_1d_histogram (int *reverse) /*{{{*/
    SLang_free_array (hi);
    SLang_free_array (lo);
    ISIS_FREE(r);
-   
+
    SLang_push_array (b, 1);
    SLang_push_array (rev, 1);
 }
@@ -584,7 +583,7 @@ static void make_2d_histogram (int *reverse) /*{{{*/
    by = (double *)sl_y->data;
    x = (double *)grid_x->data;
    y = (double *)grid_y->data;
-   
+
    xmax = x[nx-1];
    ymax = y[ny-1];
 
@@ -613,16 +612,16 @@ static void make_2d_histogram (int *reverse) /*{{{*/
    if ((r != NULL)
        && (NULL == (rev = convert_reverse_indices (r, n, nx*ny))))
      goto push_result;
-   
+
    push_result:
 
    SLang_free_array (sl_x);
    SLang_free_array (sl_y);
    SLang_free_array (grid_x);
    SLang_free_array (grid_y);
-   
+
    ISIS_FREE(r);
-   
+
    SLang_push_array (b, 1);
    SLang_push_array (rev, 1);
 }
@@ -937,6 +936,133 @@ static void prand_array (double *rate, unsigned int *num) /*{{{*/
 
 /*}}}*/
 
+/* solving linear systems */
+
+typedef struct
+{
+   double **a;
+   double *b;
+   int n;
+}
+Linear_System_Type;
+
+static int pop_linear_system (Linear_System_Type *t) /*{{{*/
+{
+   SLang_Array_Type *sl_a=NULL, *sl_b=NULL;
+   double **a=NULL, *b=NULL;
+   SLindex_Type i, j, n, dims[2];
+   int status = -1;
+
+   t->a = NULL;
+   t->b = NULL;
+   t->n = 0;
+
+   if ((-1 == SLang_pop_array_of_type (&sl_b, SLANG_DOUBLE_TYPE))
+       || (-1 == SLang_pop_array_of_type (&sl_a, SLANG_DOUBLE_TYPE)))
+     goto return_error;
+
+   n = sl_b->num_elements;
+
+   if (sl_a->num_elements != n*n)
+     goto return_error;
+
+   if ((NULL == (a = JDMdouble_matrix (n, n)))
+       || (NULL == (b = JDMdouble_vector (n))))
+     goto return_error;
+
+   memcpy ((char *)b, (char *)sl_b->data, n * sizeof(double));
+   for (i = 0; i < n; i++)
+     {
+        double *ai = a[i];
+        if (-1 == SLang_get_array_element (sl_b, &i, &b[i]))
+          goto return_error;
+        dims[0] = i;
+        for (j = 0; j < n; j++)
+          {
+             double aij;
+             dims[1] = j;
+             if (-1 == SLang_get_array_element (sl_a, dims, &aij))
+               goto return_error;
+             ai[j] = aij;
+          }
+     }
+
+   t->a = a;
+   t->b = b;
+   t->n = n;
+
+   status = 0;
+return_error:
+   SLang_free_array (sl_a);
+   SLang_free_array (sl_b);
+   return status;
+}
+
+/*}}}*/
+
+static void free_linear_system (Linear_System_Type *t)
+{
+   if (t == NULL)
+     return;
+   JDMfree_double_matrix (t->a, t->n);
+   t->a = NULL;
+   ISIS_FREE(t->b);
+   t->n = 0;
+}
+
+static void lu_solve_intrin (void)
+{
+   Linear_System_Type t;
+   SLang_Array_Type *sl_b = NULL;
+   unsigned int *piv = NULL;
+
+   if ((-1 == pop_linear_system (&t))
+       || (NULL == (piv = ISIS_MALLOC (t.n * sizeof(unsigned int)))))
+     {
+        isis_throw_exception (Isis_Error);
+        goto the_return;
+     }
+
+   if (-1 == isis_lu_solve (t.a, t.n, piv, t.b))
+     goto the_return;
+
+   sl_b = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &t.n, 1);
+   if (sl_b != NULL)
+     {
+        memcpy ((char *)sl_b->data, (char *)t.b, t.n * sizeof (double));
+     }
+
+the_return:
+   SLang_push_array (sl_b, 1);
+   free_linear_system (&t);
+   ISIS_FREE(piv);
+}
+
+static void svd_solve_intrin (void)
+{
+   Linear_System_Type t;
+   SLang_Array_Type *sl_b = NULL;
+
+   if (-1 == pop_linear_system (&t))
+     {
+        isis_throw_exception (Isis_Error);
+        goto the_return;
+     }
+
+   if (-1 == isis_svd_solve (t.a, t.n, t.b))
+     goto the_return;
+
+   sl_b = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &t.n, 1);
+   if (sl_b != NULL)
+     {
+        memcpy ((char *)sl_b->data, (char *)t.b, t.n * sizeof (double));
+     }
+
+the_return:
+   SLang_push_array (sl_b, 1);
+   free_linear_system (&t);
+}
+
 /*{{{ intrinsics */
 
 #define V SLANG_VOID_TYPE
@@ -954,9 +1080,9 @@ static SLang_Intrin_Fun_Type Math_Intrinsics [] =
    MAKE_INTRINSIC("_moment", moment, V, 0),
    MAKE_INTRINSIC("_median", median, V, 0),
    MAKE_INTRINSIC_1("_cumsum", cumsum, V, I),
-#if (SLANG_VERSION<20000)   
+#if (SLANG_VERSION<20000)
    MAKE_INTRINSIC("_hypot", _hypot, V, 0),
-#endif   
+#endif
    MAKE_INTRINSIC("_finite", finite_intrin, V, 0),
    MAKE_INTRINSIC("_ks_difference", ks_difference, D, 0),
    MAKE_INTRINSIC_1("_ks_probability", ks_probability, D, D),
@@ -965,6 +1091,8 @@ static SLang_Intrin_Fun_Type Math_Intrinsics [] =
    MAKE_INTRINSIC_I("_grand_array", grand_array, V),
    MAKE_INTRINSIC_2("_prand_array", prand_array, V, D, U),
    MAKE_INTRINSIC("_prand_vec", prand_vec, V, 0),
+   MAKE_INTRINSIC("lu_solve_intrin", lu_solve_intrin, V, 0),
+   MAKE_INTRINSIC("svd_solve_intrin", svd_solve_intrin, V, 0),
    SLANG_END_INTRIN_FUN_TABLE
 };
 

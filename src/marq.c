@@ -34,7 +34,6 @@
 
 #include "isis.h"
 #include "isismath.h"
-#include "svd.h"
 
 /* JCH: some features based on Marquardt implementation in
  *  Nash, J.C., 1990, "Compact Numerical Methods for Computers,
@@ -92,50 +91,6 @@ static void marquardt_verbose_hook (void *clientdata, double statistic, /*{{{*/
    for (i = 0; i < n; i++)
      fprintf (stdout, "\tp[%u]=%e", i, par[i]);
    (void) fputs ("\n", stdout);
-}
-
-/*}}}*/
-
-static int marq_svd_solve (double **cov, unsigned int nparms, double *b) /*{{{*/
-{
-   double *a, *t;
-   unsigned int i;
-   int ret;
-
-   a = JDMdouble_vector (nparms * nparms);
-   t = JDMdouble_vector (nparms);
-   if ((a == NULL) || (t == NULL))
-     {
-        ISIS_FREE (a);
-        ISIS_FREE (t);
-        return -1;
-     }
-
-   memcpy ((char *)t, (char *)b, nparms * sizeof(double));
-   for (i = 0; i < nparms; i++)
-     memcpy ((char *)&a[i*nparms], (char *)cov[i], nparms * sizeof(double));
-
-   ret = svd_solve (a, nparms, nparms, t, b);
-
-   ISIS_FREE (a);
-   ISIS_FREE (t);
-
-   return ret;
-}
-
-/*}}}*/
-
-/* the input matrix 'cov' will be over-written */
-static int marq_lu_solve (double **cov, unsigned int nparms, unsigned int *piv, double *b) /*{{{*/
-{
-#define TOLERANCE 1.e-23
-   if (-1 == JDM_lu_decomp (cov, nparms, piv, TOLERANCE, NULL)
-       || -1 == JDM_lu_backsubst (cov, nparms, piv, b))
-     {
-        return -1;
-     }
-
-   return 0;
 }
 
 /*}}}*/
@@ -344,14 +299,14 @@ static int marquardt (Isis_Fit_Type *ft, void *clientdata, /*{{{*/
                  cov[j][k] = alpha[j][k];
              memcpy ((char *)a1, (char *)beta, nparms * sizeof(double));
 
-             if (-1 == marq_lu_solve (cov, nparms, piv, a1))
+             if (-1 == isis_lu_solve (cov, nparms, piv, a1))
                {
                   for (j=0; j < nparms; j++)
                     for (k=0; k < nparms; k++)
                       cov[j][k] = alpha[j][k];
                   memcpy ((char *)a1, (char *)beta, nparms * sizeof(double));
 
-                  if (-1 == marq_svd_solve (cov, nparms, a1))
+                  if (-1 == isis_svd_solve (cov, nparms, a1))
                     {
                        if (e->verbose > 0)
                          e->warn_hook (clientdata, "marquardt: matrix solution failed\n");

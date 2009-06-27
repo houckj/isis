@@ -65,6 +65,8 @@
 #include <slang.h>
 
 #include "isis.h"
+#include "isismath.h"
+#include "svd.h"
 #include "util.h"
 #include "errors.h"
 
@@ -234,6 +236,50 @@ double isis_kahan_sum_squares (double *x, unsigned int n) /*{{{*/
      }
 
    return s;
+}
+
+/*}}}*/
+
+int isis_svd_solve (double **matrix, unsigned int n, double *b) /*{{{*/
+{
+   double *a, *t;
+   unsigned int i;
+   int ret;
+
+   a = JDMdouble_vector (n * n);
+   t = JDMdouble_vector (n);
+   if ((a == NULL) || (t == NULL))
+     {
+        ISIS_FREE (a);
+        ISIS_FREE (t);
+        return -1;
+     }
+
+   memcpy ((char *)t, (char *)b, n * sizeof(double));
+   for (i = 0; i < n; i++)
+     memcpy ((char *)&a[i*n], (char *)matrix[i], n * sizeof(double));
+
+   ret = svd_solve (a, n, n, t, b);
+
+   ISIS_FREE (a);
+   ISIS_FREE (t);
+
+   return ret;
+}
+
+/*}}}*/
+
+/* the input matrix 'matrix' will be over-written */
+int isis_lu_solve (double **matrix, unsigned int n, unsigned int *piv, double *b) /*{{{*/
+{
+#define TOLERANCE 1.e-23
+   if (-1 == JDM_lu_decomp (matrix, n, piv, TOLERANCE, NULL)
+       || -1 == JDM_lu_backsubst (matrix, n, piv, b))
+     {
+        return -1;
+     }
+
+   return 0;
 }
 
 /*}}}*/
@@ -1385,7 +1431,7 @@ int _isis_fixup_lo_hi_grids (double *lo, double *hi, unsigned int num, /*{{{*/
      }
 
    if (num_tweaked)
-     isis_vmesg (WARN, I_WARNING, __FILE__, __LINE__, "%u hi/lo grid values needed tweaking", num_tweaked);
+     isis_vmesg (INFO, I_WARNING, __FILE__, __LINE__, "%u hi/lo grid values needed tweaking", num_tweaked);
 
    if (tweaked != NULL)
      *tweaked = (num_tweaked > 0);

@@ -99,6 +99,9 @@ extern int Isis_pop_double_array (double *x, int n);
 extern double isis_hypot (double x, double y);
 extern double isis_kahan_sum (double *x, unsigned int n);
 extern double isis_kahan_sum_squares (double *x, unsigned int n);
+extern int isis_svd_solve (double **a, unsigned int n, double *b);
+extern int isis_lu_solve (double **a, unsigned int n, unsigned int *piv, double *b);
+
 extern char **new_string_array (int n, int len);
 extern void free_string_array (char **p, int n);
 extern int edit_temp_file (int (*save_file)(char *), int (*load_file)(char *), char *file);
