@@ -259,12 +259,8 @@ private define handle_message (s, msg)
      }
      {
         % default:
-        if (User_Message_Handler == NULL)
-          {
-             print(msg);
-             throw ApplicationError, "Unsupported message type";
-          }
-        (@User_Message_Handler)(s, msg);
+        if (User_Message_Handler != NULL)
+          (@User_Message_Handler)(s, msg);
      }
 
    % return non-zero if the number of slaves changed,
@@ -545,12 +541,22 @@ private define start_sigtest_slave (slaves)
 
 private variable Current_Slave_List;
 
+private define handler_condition ()
+{
+   variable condition = qualifier ("_while", NULL);
+
+   if (condition == NULL)
+     return Slaves_Running;
+
+   return Slaves_Running && (@condition)( ;; __qualifiers);
+}
+
 define manage_slaves (slaves, mesg_handler)
 {
    Current_Slave_List = slaves;
+   User_Message_Handler = mesg_handler;
 
    Verbose = qualifier_exists ("verbose");
-   User_Message_Handler = mesg_handler;
 
    if (length(slaves) != Slaves_Running)
      {
@@ -570,7 +576,7 @@ define manage_slaves (slaves, mesg_handler)
    variable e;
    try (e)
      {
-        while (Slaves_Running)
+        while (handler_condition( ;; __qualifiers))
           {
              handle_pending_messages (slaves);
           }
@@ -585,7 +591,8 @@ define manage_slaves (slaves, mesg_handler)
      }
    finally
      {
-        kill_slaves (slaves);
+        ifnot (qualifier_exists ("_while"))
+          kill_slaves (slaves);
         if (Do_Sigtest) () = list_pop (slaves, -1);
      }
 }
