@@ -1640,7 +1640,7 @@ static int x_in_specified_range (float x, float *xmin, float *xmax) /*{{{*/
         float lo, hi;
         lo = MIN(*xmin, *xmax);
         hi = MAX(*xmin, *xmax);
-        return (lo <= x && x < hi);
+        return (lo <= x && x <= hi);
      }
 
    if ((xmin != NULL && x < *xmin)
