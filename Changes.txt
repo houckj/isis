@@ -14,7 +14,9 @@ pre1.5.0
  6.  slang-2.2 is now a minimum requirement
  7.  New functions based on contributions from Mike Nowak:
       group, group_bin, ignore_values, notice_values, conf_loop
+     Parallelized conf_loop.
  8.  Use require.sl from slang distribution
+ 9.  Added parallel Levenberg-Marquardt optimization method (plm).
 
 Changes since 1.4.9 (released Nov 2007)
 ---------------------------------------
