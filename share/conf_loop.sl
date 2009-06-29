@@ -244,22 +244,26 @@ private define recv_slave_result (slv)
         x.pmax_final[k] = result.pmax;
      }
 
-   % If an index failed to converge, it's likely to
-   % happen again -- move it to the front of the list
-   % so that failures happen as early as possible.
-   if (result.num_retries != 0 || result.pmin == result.pmax)
-     {
-        variable i = where (list_to_array (x.indices) == index)[0];
-        list_insert (x.indices, list_pop (x.indices, i), 0);
-        x.next_task = 0;
-     }
-
    if (restart)
      {
         x.best_stat = info.statistic;
         set_params (slave_params);
         x.param_version++;
         x.next_task = 0;
+
+        if (result.num_retries > 0 || result.pmin == result.pmax)
+          {
+             % If an index failed to converge, it's likely to
+             % happen again -- move it to the front of the list
+             % so that failures happen as early as possible.
+             variable i = where (list_to_array (x.indices) == index)[0];
+             list_insert (x.indices, list_pop (x.indices, i), 0);
+
+             % If we actually have a result for this parameter, don't
+             % bother recomputing it.
+             if (result.pmin != result.pmax)
+               x.next_task = 1;
+          }
      }
 
    return restart;
