@@ -11949,7 +11949,7 @@ overwritten by \verb|save_par|.
 {lmdif} %name
 {Variant of Levenberg-Marquardt minimization algorithm} %purpose
 {set\_fit\_method ("lmdif")} %usage
-{marquardt, minim, subplex, set\_fit\_method}
+{plm, marquardt, simann, subplex, set\_fit\_method}
 
 The \verb|lmdif| Levenberg-Marquardt algorithm is the default
 minimization algorithm used in fitting models to data.  This
@@ -12081,13 +12081,13 @@ at $x_0$ with full-width at half-maximum $\Gamma$.
 {marquardt} %name
 {Levenberg-Marquardt minimization algorithm} %purpose
 {set\_fit\_method ("marquardt")} %usage
-{lmdif, minim, subplex, set\_fit\_method}
+{plm, lmdif, simann, subplex, set\_fit\_method}
 
-The \verb|lmdif| Levenberg-Marquardt algorithm is the default
-minimization algorithm used in fitting models to data.  This
-algorithm was derived under the assumption that the function to
-be minimized is the Chi-square fit-statistic.  For details on
-the derivation, see e.g. Bevington and Robinson (1992).
+This is an alternate implementation of the Levenberg-Marquardt
+algorithm.  This algorithm was derived under the assumption
+that the function to be minimized is the Chi-square
+fit-statistic.  For details on the derivation, see e.g.
+Bevington and Robinson (1992).
 
 The algorithm supports several optional parameters:
 \begin{verbatim}
@@ -12098,25 +12098,121 @@ The algorithm supports several optional parameters:
 jump_factor  10.0        Lambda adjustment factor
 \end{verbatim}
 
-Other than \verb|max_loops|, these parameters normally
-need not be changed.
+To see a list of optional parameters, use
+\begin{verbatim}
+  set_fit_method ("marquardt;help");
+\end{verbatim}
+
 \end{isisfunction}
 
 \begin{isisfunction}
-{minim} %name
-{Variant of Nelder-Mead Simplex minimization algorithm} %purpose
-{set\_fit\_method ("minim")} %usage
-{subplex, lmdif, marquardt, set\_fit\_method}
+{plm} %name
+{Parallel Levenberg-Marquardt optimization method} %purpose
+{set\_fit\_method ("plm")} %usage
+{marquardt, lmdif, simann, subplex, set\_fit\_method}
 
-This is the \verb|MINIM| algorithm from the Applied Statistics
-Journal of the Royal Statistical Society.  For details, see
-Nelder \& Mead, The Computer Journal, Jan 1965. The code was
-obtained from \verb|http://lib.stat.cmu.edu/apstat/47|.
+This is a parallelized version of the Levenberg-Marquardt
+optimization method. The basic algorithm was derived under the
+assumption that the function to be minimized is the Chi-square
+fit-statistic.  For details on the derivation, see e.g.
+Bevington and Robinson (1992).
+
+The algorithm supports several optional parameters, with
+default values shown in parentheses:
+\begin{verbatim}
+          tol (1.e-4)  Chi-square (X) has converged when dX/X <= tol
+       lambda (0.1)    Levenberg-Marquardt parameter
+  grow_factor (10)     lambda increases by lambda *= grow_factor
+shrink_factor (0.1)    lambda decreases by lambda *= shrink_factor
+    max_loops (100)    Maximum number of trials
+        delta (1.e-4)  param delta for numerical derivative is
+                          (|p| + sqrt(delta))*sqrt(delta)
+\end{verbatim}
+
+The number of compute slaves may be specified using the
+\verb|num_slaves| option.  For example:
+
+\begin{verbatim}
+  set_fit_method ("plm;num_slaves=4;max_loops=200");
+\end{verbatim}
 
 To see a list of optional parameters, use
 \begin{verbatim}
-  set_fit_method ("minim;help");
+  set_fit_method ("plm;help");
 \end{verbatim}
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{simann} %name
+{Variant of Simulated Annealing minimization algorithm} %purpose
+{set\_fit\_method ("simann")} %usage
+{subplex, plm, lmdif, marquardt, set\_fit\_method}
+
+To see a list of optional parameters, use
+\begin{verbatim}
+  set_fit_method ("simann;help");
+\end{verbatim}
+
+The following description is an excerpt from the documentation
+included with the code.
+
+This routine implements the continuous simulated annealing global
+optimization algorithm described in Corana et al.'s article
+{\it Minimizing Multimodal Functions of Continuous Variables with the
+Simulated Annealing Algorithm} in the September 1987 (vol. 13,
+no. 3, pp. 262-280) issue of the ACM Transactions on Mathematical
+Software.
+
+A very quick (perhaps too quick) overview of SA:
+   SA tries to find the global optimum of an N dimensional function.
+It moves both up and downhill and as the optimization process
+proceeds, it focuses on the most promising area.
+
+   To start, it randomly chooses a trial point within the step length
+VM (a vector of length N) of the user selected starting point. The
+function is evaluated at this trial point and its value is compared
+to its value at the initial point.
+
+   In a maximization problem, all uphill moves are accepted and the
+algorithm continues from that trial point. Downhill moves may be
+accepted; the decision is made by the Metropolis criteria. It uses T
+(temperature) and the size of the downhill move in a probabilistic
+manner. The smaller T and the size of the downhill move are, the more
+likely that move will be accepted. If the trial is accepted, the
+algorithm moves on from that point. If it is rejected, another point
+is chosen instead for a trial evaluation.
+
+   Each element of VM periodically adjusted so that half of all
+function evaluations in that direction are accepted.
+
+   A fall in T is imposed upon the system with the RT variable by
+T(i+1) = RT*T(i) where i is the ith iteration. Thus, as T declines,
+downhill moves are less likely to be accepted and the percentage of
+rejections rise. Given the scheme for the selection for VM, VM falls.
+Thus, as T declines, VM falls and SA focuses upon the most promising
+area for optimization.
+
+The importance of the parameter T:
+   The parameter T is crucial in using SA successfully. It influences
+VM, the step length over which the algorithm searches for optima. For
+a small intial T, the step length may be too small; thus not enough
+of the function might be evaluated to find the global optima. The user
+should carefully examine VM in the intermediate output (set IPRINT =
+1) to make sure that VM is appropriate. The relationship between the
+initial temperature and the resulting step length is function
+dependent.
+
+   To determine the starting temperature that is consistent with
+optimizing a function, it is worthwhile to run a trial run first. Set
+RT = 1.5 and T = 1.0. With RT $>$ 1.0, the temperature increases and VM
+rises as well. Then select the T that produces a large enough VM.
+
+For modifications to the algorithm and many details on its
+use, (particularly for econometric applications) see Goffe, Ferrier
+and Rogers, ``Global Optimization of Statistical Functions
+with Simulated Annealing,'' Journal of Econometrics, vol. 60, no.
+1/2, Jan./Feb. 1994, pp. 65-100.
 
 \end{isisfunction}
 

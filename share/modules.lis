@@ -15,6 +15,7 @@ isisprof.sl
 mathmisc.sl
 model-cmds.sl
 physconst.sl
+plm.sl
 plot-cmds.sl
 plot-extra.sl
 pgplot_interface.sl

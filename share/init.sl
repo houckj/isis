@@ -36,6 +36,7 @@ $1 =
    ,"atom-cmds"
    ,"emis-cmds"
    ,"fit-cmds"
+   ,"plm"
    ,"group"
    ,"conf_loop"
    ,"model-cmds"
