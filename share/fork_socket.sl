@@ -46,6 +46,7 @@ private variable Slaves_Running;
 private variable Slaves_Were_Replaced;
 private variable Sigchld_Received;
 private variable Verbose = 0;
+private variable Parent_Pid = getpid();
 
 variable
    SLAVE_EXITED  = -101,
@@ -375,6 +376,7 @@ define fork_slave ()
    if (pid == 0)
      {
         % child
+        () = setpgid (getpid(), Parent_Pid);
         signal (SIGINT, SIG_DFL);
         signal (SIGCHLD, SIG_DFL);
         if (Do_Sigtest) catch_sigusr1();
@@ -651,9 +653,20 @@ define replace_slave ()
         return NULL;
      }
 
-   if (kill (s.pid, SIGTERM) != 0)
+   % check for a process group in case the slave forked.
+   if (kill (-s.pid, 0) == 0)
      {
-        vmessage ("*** %s: error sending TERM to pid=%d", _function_name, s.pid);
+        if (killpg (s.pid, SIGTERM) != 0)
+          {
+             vmessage ("*** %s: error sending TERM to pid=%d (%s)",
+                       _function_name, s.pid, errno_string());
+             return NULL;
+          }
+     }
+   else if (kill (s.pid, SIGTERM) != 0)
+     {
+        vmessage ("*** %s: error sending TERM to pid=%d (%s)",
+                  _function_name, s.pid, errno_string());
         return NULL;
      }
 
