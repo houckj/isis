@@ -3716,7 +3716,7 @@ static int pop_params (Isis_Fit_Type *ft, Fit_Param_t *par) /*{{{*/
 
 /*}}}*/
 
-static void eval_statistic_using_fit_object_intrin (Fit_Object_MMT_Type *mmt, int *enable_copying) /*{{{*/
+static void fobj_eval_statistic (Fit_Object_MMT_Type *mmt, int *enable_copying) /*{{{*/
 {
    Fit_Object_Type *fo = mmt->fo;
    Fit_Info_Type *info = fo->info;
@@ -3743,7 +3743,7 @@ static void eval_statistic_using_fit_object_intrin (Fit_Object_MMT_Type *mmt, in
 
 /*}}}*/
 
-static void eval_residuals_using_fit_object_intrin (Fit_Object_MMT_Type *mmt, int *enable_copying) /*{{{*/
+static void fobj_eval_residuals (Fit_Object_MMT_Type *mmt, int *enable_copying) /*{{{*/
 {
    Fit_Object_Type *fo = mmt->fo;
    Fit_Info_Type *info = fo->info;
@@ -3772,7 +3772,7 @@ static void eval_residuals_using_fit_object_intrin (Fit_Object_MMT_Type *mmt, in
 
 /*}}}*/
 
-static void get_data_weights_using_fit_object_intrin (Fit_Object_MMT_Type *mmt)
+static void fobj_get_data_weights (Fit_Object_MMT_Type *mmt)
 {
    Fit_Object_Type *fo = mmt->fo;
    Fit_Object_Data_Type *dt = fo->dt;
@@ -4572,9 +4572,9 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
    MAKE_INTRINSIC_1("get_fitfun_handle_intrin", push_mmt_fitfun_type_intrin, V, S),
    MAKE_INTRINSIC_1("get_fitfun_info", Fit_get_fun_info, V, S),
    MAKE_INTRINSIC("open_fit_object_mmt_intrin", open_fit_object_mmt_intrin, V, 0),
-   MAKE_INTRINSIC_2("eval_statistic_using_fit_object_intrin", eval_statistic_using_fit_object_intrin, V, MTO, I),
-   MAKE_INTRINSIC_2("eval_residuals_using_fit_object_intrin", eval_residuals_using_fit_object_intrin, V, MTO, I),
-   MAKE_INTRINSIC_1("get_data_weights_using_fit_object_intrin", get_data_weights_using_fit_object_intrin, V, MTO),
+   MAKE_INTRINSIC_2("fobj_eval_statistic", fobj_eval_statistic, V, MTO, I),
+   MAKE_INTRINSIC_2("fobj_eval_residuals", fobj_eval_residuals, V, MTO, I),
+   MAKE_INTRINSIC_1("fobj_get_data_weights", fobj_get_data_weights, V, MTO),
    SLANG_END_INTRIN_FUN_TABLE
 };
 

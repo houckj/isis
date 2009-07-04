@@ -3031,8 +3031,7 @@ define __eval_residuals () %{{{
    variable obj, params;
    (obj, params) = ();
 
-   return _isis->eval_residuals_using_fit_object_intrin
-     (params, obj, enable_copying);
+   return _isis->fobj_eval_residuals (params, obj, enable_copying);
 }
 
 %}}}
@@ -3051,8 +3050,7 @@ define __eval_stat () %{{{
    (obj, params) = ();
 
    variable err, stat;
-   (err, stat,,) = _isis->eval_statistic_using_fit_object_intrin
-     (params, obj, enable_copying);
+   (err, stat,,) = _isis->fobj_eval_statistic (params, obj, enable_copying);
 
    return stat;
 }
@@ -3066,7 +3064,7 @@ define __data_weights () %{{{
      return;
 
    variable obj = ();
-   return _isis->get_data_weights_using_fit_object_intrin (obj);
+   return _isis->fobj_get_data_weights (obj);
 }
 
 %}}}
@@ -3078,7 +3076,7 @@ private define fit_object_eval_statistic (s, pars) %{{{
      enable_copying = 0;
 
    (s.status, s.statistic, s.num_vary, s.num_points) =
-     _isis->eval_statistic_using_fit_object_intrin (pars, s.object, enable_copying);
+     _isis->fobj_eval_statistic (pars, s.object, enable_copying);
    return s.statistic;
 }
 
