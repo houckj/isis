@@ -45,16 +45,13 @@
    int maxfev;
 
 #include "isis.h"
-#include "cfortran.h"
 
-#define FEWER_CFORTRAN_COMPILER_WARNINGS \
-     (void)c2fstrv; (void)f2cstrv; (void)kill_trailing; (void)vkill_trailing; \
-     (void)num_elem
-
-PROTOCCALLSFSUB13(LMDIF1,lmdif1,ROUTINE,INT,INT,DOUBLEV,DOUBLEV,PDOUBLE,DOUBLE,DOUBLE,INT,PINT,INTV,DOUBLEV,INT)
-#define LMDIF1(fun,npts,npars,pars,y,stat,tol,epsfcn,maxfev,info,iwa,wa,lwa) \
-   CCALLSFSUB13(LMDIF1,lmdif1,ROUTINE,INT,INT,DOUBLEV,DOUBLEV,PDOUBLE,DOUBLE,DOUBLE,INT,PINT,INTV,DOUBLEV,INT,\
-                fun,npts,npars,pars,y,stat,tol,epsfcn,maxfev,info,iwa,wa,lwa)
+#define LMDIF_FC FC_FUNC(lmdif1,LMDIF1)
+typedef void lmdif_fun_type
+       (int *npts, int *npars, double *pars, double *fvec, int *iflag);
+extern void LMDIF_FC(lmdif_fun_type *fun, int *npts, int *npars, double *pars,
+                     double *y, double *stat, double *tol, double *epsfcn, int *maxfev,
+                     int *info, int *iwa, double *wa, int *lwa);
 
 typedef struct
 {
@@ -157,6 +154,7 @@ static int lmdif (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
    double *fvec = NULL;
    double *wa = NULL;
    int *iwa = NULL;
+   int npars_int=npars, npts_int=npts;
    int info = INT_MAX, lwa, status=-1;
 
    Client_Data = clientdata;
@@ -176,7 +174,7 @@ static int lmdif (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
 
    fi->fx = NULL;
    Tmp_Params = NULL;
-   
+
    if ((NULL == (iwa = ISIS_MALLOC (npars * sizeof(double))))
        || (NULL == (Tmp_Params = ISIS_MALLOC (npars * sizeof(double))))
        || (NULL == (wa = ISIS_MALLOC (lwa * sizeof(double))))
@@ -185,9 +183,7 @@ static int lmdif (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
      goto finish;
 
    Error_Occurred = 0;
-   LMDIF1(fun,npts,npars,pars,fvec,ift->statistic,e->tol,e->epsfcn,e->maxfev,info,iwa,wa,lwa);
-   
-   FEWER_CFORTRAN_COMPILER_WARNINGS;
+   LMDIF_FC(fun,&npts_int,&npars_int,pars,fvec,&ift->statistic,&e->tol,&e->epsfcn,&e->maxfev,&info,iwa,wa,&lwa);
 
    if (e->verbose > 0)
      print_status (info);
@@ -358,7 +354,7 @@ ISIS_FIT_ENGINE_METHOD(lmdif,name,sname)
    e->tol = 1.e-6;
    e->epsfcn = 1.e-6;
    e->maxfev = 500;
-   
+
    e->option_string = isis_make_default_option_string ("lmdif", Option_Table);
    if (e->option_string == NULL)
      {

@@ -34,6 +34,7 @@
 
 #include "isis.h"
 #include "isismath.h"
+#include "util.h"
 
 /* JCH: some features based on Marquardt implementation in
  *  Nash, J.C., 1990, "Compact Numerical Methods for Computers,

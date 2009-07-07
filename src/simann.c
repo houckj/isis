@@ -49,16 +49,17 @@
    int iseed1, iseed2;
 
 #include "isis.h"
-#include "cfortran.h"
 
-#define FEWER_CFORTRAN_COMPILER_WARNINGS \
-     (void)c2fstrv; (void)f2cstrv; (void)kill_trailing; (void)vkill_trailing; \
-     (void)num_elem
-
-PROTOCCALLSFSUB26(SIMANN,simann,INT,DOUBLEV,LOGICAL,DOUBLE,DOUBLE,INT,INT,INT,INT,DOUBLEV,DOUBLEV,DOUBLEV,INT,INT,INT,PDOUBLE,DOUBLEV,DOUBLEV,PDOUBLE,PINT,PINT,PINT,PINT,DOUBLEV,DOUBLEV,INTV)
-#define SIMANN(n,x,max,rt,eps,ns,nt,neps,maxevl,lb,ub,c,iprint,iseed1,iseed2,t,vm,xopt,fopt,nacc,nfcnev,nobds,ier,fstar,xp,nacp) \
-   CCALLSFSUB26(SIMANN,simann,INT,DOUBLEV,LOGICAL,DOUBLE,DOUBLE,INT,INT,INT,INT,DOUBLEV,DOUBLEV,DOUBLEV,INT,INT,INT,PDOUBLE,DOUBLEV,DOUBLEV,PDOUBLE,PINT,PINT,PINT,PINT,DOUBLEV,DOUBLEV,INTV,\
-                   n,x,max,rt,eps,ns,nt,neps,maxevl,lb,ub,c,iprint,iseed1,iseed2,t,vm,xopt,fopt,nacc,nfcnev,nobds,ier,fstar,xp,nacp)
+#define SIMANN_FC FC_FUNC(simann,SIMANN)
+typedef void simann_fun_type (int npars, double *pars, double *val);
+extern void SIMANN_FC (simann_fun_type *fcn,
+                       int *n, double *x, int *max, double *rt, double *eps,
+                       int *ns, int *nt, int *neps, int *maxevl,
+                       double *lb, double *ub, double *c,
+                       int *iprint, int *iseed1, int *iseed2,
+                       double *t, double *vm, double *xopt, double *fopt,
+                       int *nacc, int *nfcnev, int *nobds, int *ier,
+                       double *fstar, double *xp, int *nacp);
 
 typedef struct
 {
@@ -108,8 +109,6 @@ static void fcn (int npars, double *pars, double *val) /*{{{*/
 
 /*}}}*/
 
-FCALLSCSUB3(fcn,FCN,fcn,INT,DOUBLEV,PDOUBLE)
-
 static void print_status (unsigned int info) /*{{{*/
 {
    static const char *messages[] = {
@@ -142,23 +141,21 @@ static int call_simann (Isis_Fit_Engine_Type *e, double *pars, int npars,
                         double *xp, int *nacp)
 {
    double x_fopt;
-   int x_nacc, x_nfcnev, x_nobds, x_ier;
+   int x_nacc, x_nfcnev, x_nobds, x_ier, zero=0;
 
    /* simann doesnt check function return values */
    if (setjmp (Jumpbuf))
      return -1;
 
-   SIMANN(npars,pars,0,e->rt,e->eps,e->ns,nt,e->neps,e->maxevl,
-          e->par_min,e->par_max,c,e->iprint,e->iseed1,e->iseed2,
-          e->t,vm,xopt,x_fopt,x_nacc,x_nfcnev,x_nobds,x_ier,fstar,xp,nacp);
-   
+   SIMANN_FC(fcn,&npars,pars,&zero,&e->rt,&e->eps,&e->ns,&nt,&e->neps,&e->maxevl,
+             e->par_min,e->par_max,c,&e->iprint,&e->iseed1,&e->iseed2,
+             &e->t,vm,xopt,&x_fopt,&x_nacc,&x_nfcnev,&x_nobds,&x_ier,fstar,xp,nacp);
+
    *fopt = x_fopt;
    *nacc = x_nacc;
    *nfcnev = x_nfcnev;
    *nobds = x_nobds;
    *ier = x_ier;
-
-   FEWER_CFORTRAN_COMPILER_WARNINGS;
 
    return 0;
 }

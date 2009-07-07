@@ -28,7 +28,6 @@ RPATH    = @RPATH@
 FC       = @FC@
 FCFLAGS  = @FCFLAGS@
 FCLIBS   = @FCLIBS@ @FC_EXTRA_LIBS@
-FC_DEFS  = @FC_DEFS@
 
 # X Include directory
 X_CFLAGS = @X_CFLAGS@
@@ -172,9 +171,6 @@ ELFDIR_SHARED_LIB = $(ELFDIR)/$(SHARED_LIB)
 
 isis_C_FLAGS = -DSRCDIR='"$(prefix)"' -DATOMDBDIR='"$(ATOMDBDIR)"'
 miscio_C_FLAGS = -DINSTALL_PREFIX=\"$(install_prefix)\" -DINSTALL_PREFIX_INPUT=\"$(prefix_input)\"
-lmdif_C_FLAGS = $(FC_DEFS) -I$(config_dir)/modules/xspec/src
-simann_C_FLAGS = $(FC_DEFS) -I$(config_dir)/modules/xspec/src
-subplex_C_FLAGS = $(FC_DEFS) -I$(config_dir)/modules/xspec/src
 readline_C_FLAGS = @READLINE_INC@ -DSLANGLIBDIR='"$(SLANG_LIBDIR)"'
 
 #---------------------------------------------------------------------------

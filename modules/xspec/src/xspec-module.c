@@ -51,12 +51,7 @@
 
 #include <slang.h>
 
-#include "cfortran.h"
 #include "isis.h"
-
-#define FEWER_CFORTRAN_COMPILER_WARNINGS \
-        (void)c2fstrv; (void)f2cstrv; (void)kill_trailing; (void)vkill_trailing; \
-        (void)num_elem
 
 /*}}}*/
 
@@ -1037,25 +1032,23 @@ static void free_xspec_fun_type (SLtype type, void *f) /*{{{*/
 
 /*}}}*/
 
+#include "xsFortran.h"
+
+#ifndef HAVE_XSPEC_12
 #include "xspec-compat.inc"
+#endif
 
 /* In the xspec source code,
  * fpdatd is defined in xspec/src/functions/fpunc.f
  * fgdatd is defined in xspec/src/functions/fgunc.f
  */
-PROTOCCALLSFSUB2(FPDATD,fpdatd,STRING,PINT)
-#define FPDATD(cvalue,ierr) CCALLSFSUB2(FPDATD,fpdatd,STRING,PINT,cvalue,ierr)
-PROTOCCALLSFFUN0(STRING,FGDATD,fgdatd)
-#define FGDATD() CCALLSFFUN0(FGDATD,fgdatd)
 
 static int xs_set_datadir (char *name) /*{{{*/
 {
-   int ierr = -1;
    if (name == NULL)
      return -1;
-   /* FPDATD modifies ierr on return */
-   FPDATD(name, ierr);
-   return ierr ? -1 : 0;
+   FPDATD(name);
+   return 0;
 }
 
 /*}}}*/
@@ -1067,46 +1060,10 @@ static void xs_get_datadir (void) /*{{{*/
 
 /*}}}*/
 
-#if 0
-/* In the xspec source code,
- * fpslfn is defined in xspec/src/functions/fpunc.f
- * fgslfn is defined in xspec/src/functions/fgunc.f
- *
- * >>>  These routines aren't available in xspec12.
- */
-PROTOCCALLSFSUB2(FPSLFN,fpslfn,STRING,PINT)
-#define FPSLFN(cvalue,ierr) CCALLSFSUB2(FPSLFN,fpslfn,STRING,PINT,cvalue,ierr)
-PROTOCCALLSFFUN0(STRING,FGSLFN,fgslfn)
-#define FGSLFN() CCALLSFFUN0(FGSLFN,fgslfn)
-
-static int xs_set_abundance_table_filename (char *name) /*{{{*/
-{
-   int ierr = -1;
-   if (name == NULL)
-     return -1;
-   /* FPSLFN modifies ierr on return */
-   FPSLFN(name, ierr);
-   return ierr ? -1 : 0;
-}
-
-/*}}}*/
-
-static void xs_get_abundance_table_filename (void) /*{{{*/
-{
-   SLang_push_string (FGSLFN());
-}
-
-/*}}}*/
-#endif
-
 /* In the xspec source code,
  * fpsolr is defined in xspec/src/functions/fpunc.f
  * fgsolr is defined in xspec/src/functions/fgunc.f
  */
-PROTOCCALLSFSUB2(FPSOLR,fpsolr,STRING,PINT)
-#define FPSOLR(cvalue,ierr) CCALLSFSUB2(FPSOLR,fpsolr,STRING,PINT,cvalue,ierr)
-PROTOCCALLSFFUN0(STRING,FGSOLR,fgsolr)
-#define FGSOLR() CCALLSFFUN0(FGSOLR,fgsolr)
 
 static int xs_set_abundance_table (char *name) /*{{{*/
 {
@@ -1114,7 +1071,7 @@ static int xs_set_abundance_table (char *name) /*{{{*/
    if (name == NULL)
      return -1;
    /* FPSOLR modifies ierr on return */
-   FPSOLR(name, ierr);
+   FPSOLR(name, &ierr);
    return ierr ? -1 : 0;
 }
 
@@ -1131,10 +1088,6 @@ static void xs_get_abundance_table (void) /*{{{*/
  * fpxsct is defined in xspec/src/functions/fpunc.f
  * fgxsct is defined in xspec/src/functions/fgunc.f
  */
-PROTOCCALLSFSUB2(FPXSCT,fpxsct,STRING,PINT)
-#define FPXSCT(cvalue,ierr) CCALLSFSUB2(FPXSCT,fpxsct,STRING,PINT,cvalue,ierr)
-PROTOCCALLSFFUN0(STRING,FGXSCT,fgxsct)
-#define FGXSCT() CCALLSFFUN0(FGXSCT,fgxsct)
 
 static int xs_set_xsection_table (char *name) /*{{{*/
 {
@@ -1142,7 +1095,7 @@ static int xs_set_xsection_table (char *name) /*{{{*/
    if (name == NULL)
      return -1;
    /* FPXSCT modifies ierr on return */
-   FPXSCT(name, ierr);
+   FPXSCT(name, &ierr);
    return ierr ? -1 : 0;
 }
 
@@ -1155,9 +1108,6 @@ static void xs_get_xsection_table (void) /*{{{*/
 
 /*}}}*/
 
-PROTOCCALLSFSUB2(FPMSTR,fpmstr,STRING,STRING)
-#define FPMSTR(p,v) CCALLSFSUB2(FPMSTR,fpmstr,STRING,STRING,p,v)
-
 static void xs_fpmstr (char *p, char *v) /*{{{*/
 {
    if (p == NULL || v == NULL)
@@ -1167,13 +1117,6 @@ static void xs_fpmstr (char *p, char *v) /*{{{*/
 
 /*}}}*/
 
-PROTOCCALLSFSUB1(CSMPH0,csmph0,FLOAT)
-PROTOCCALLSFSUB1(CSMPQ0,csmpq0,FLOAT)
-PROTOCCALLSFSUB1(CSMPL0,csmpl0,FLOAT)
-#define CSMPH0(h) CCALLSFSUB1(CSMPH0,csmph0,FLOAT,h)
-#define CSMPQ0(q) CCALLSFSUB1(CSMPQ0,csmpq0,FLOAT,q)
-#define CSMPL0(l) CCALLSFSUB1(CSMPL0,csmpl0,FLOAT,l)
-
 #define XSPEC_DEFAULT_H0 70.0
 #define XSPEC_DEFAULT_Q0 0.0
 #define XSPEC_DEFAULT_L0 0.73
@@ -1181,41 +1124,31 @@ PROTOCCALLSFSUB1(CSMPL0,csmpl0,FLOAT)
 static void xs_set_cosmo_hubble (float *h0)
 {
    float h = h0 ? *h0 : XSPEC_DEFAULT_H0;
-   CSMPH0(h);
+   csmph0(h);
 }
 static void xs_set_cosmo_decel (float *q0)
 {
    float q = q0 ? *q0 : XSPEC_DEFAULT_Q0;
-   CSMPQ0(q);
+   csmpq0(q);
 }
 static void xs_set_cosmo_lambda (float *l0)
 {
    float l = l0 ? *l0 : XSPEC_DEFAULT_L0;
-   CSMPL0(l);
+   csmpl0(l);
 }
-
-PROTOCCALLSFFUN0(FLOAT,CSMGH0,csmgh0)
-PROTOCCALLSFFUN0(FLOAT,CSMGQ0,csmgq0)
-PROTOCCALLSFFUN0(FLOAT,CSMGL0,csmgl0)
-#define CSMGH0()  CCALLSFFUN0(CSMGH0,csmgh0)
-#define CSMGQ0()  CCALLSFFUN0(CSMGQ0,csmgq0)
-#define CSMGL0()  CCALLSFFUN0(CSMGL0,csmgl0)
 
 static double xs_get_cosmo_hubble (void)
 {
-   return (double) CSMGH0();
+   return (double) csmgh0();
 }
 static double xs_get_cosmo_decel (void)
 {
-   return (double) CSMGQ0();
+   return (double) csmgq0();
 }
 static double xs_get_cosmo_lambda (void)
 {
-   return (double) CSMGL0();
+   return (double) csmgl0();
 }
-
-PROTOCCALLSFFUN1(FLOAT,FGABND,fgabnd,STRING)
-#define FGABND(element) CCALLSFFUN1(FGABND,fgabnd,STRING,element)
 
 static double xs_get_element_solar_abundance (char *element) /*{{{*/
 {
@@ -1225,14 +1158,13 @@ static double xs_get_element_solar_abundance (char *element) /*{{{*/
 
 /*}}}*/
 
-PROTOCCALLSFFUN5(FLOAT,PHOTO,photo,FLOAT,FLOAT,INT,INT,LONG)
-#define       PHOTO(kev1,kev2,Z,versn,status) \
-  CCALLSFFUN5(PHOTO,photo,FLOAT,FLOAT,INT,INT,LONG,kev1,kev2,Z,versn,status)
+#define PHOTO_FC FC_FUNC(photo,PHOTO)
+extern float PHOTO_FC(float *kev1, float *kev2, int *Z, int *versn, long *status);
 
 static double xs_photo (float *kev1, float *kev2, int *Z, int *versn) /*{{{*/
 {
    long status = 0;
-   double xsect = (double) PHOTO(*kev1,*kev2,*Z,*versn,&status);
+   double xsect = (double) PHOTO_FC(kev1,kev2,Z,versn,&status);
    if (status)
      {
         SLang_set_error(Isis_Error);
@@ -1243,14 +1175,13 @@ static double xs_photo (float *kev1, float *kev2, int *Z, int *versn) /*{{{*/
 
 /*}}}*/
 
-PROTOCCALLSFFUN4(FLOAT,GPHOTO,gphoto,FLOAT,FLOAT,INT,LONG)
-#define       GPHOTO(kev1,kev2,Z,status) \
-  CCALLSFFUN4(GPHOTO,gphoto,FLOAT,FLOAT,INT,LONG,kev1,kev2,Z,status)
+#define GPHOTO_FC FC_FUNC(gphoto,GPHOTO)
+extern float GPHOTO_FC(float *kev1, float *kev2, int *Z, long *status);
 
 static double xs_gphoto (float *kev1, float *kev2, int *Z) /*{{{*/
 {
    long status = 0;
-   double xsect = (double) GPHOTO(*kev1,*kev2,*Z,&status);
+   double xsect = (double) GPHOTO_FC(kev1,kev2,Z,&status);
    if (status)
      {
         SLang_set_error(Isis_Error);
@@ -1261,21 +1192,20 @@ static double xs_gphoto (float *kev1, float *kev2, int *Z) /*{{{*/
 
 /*}}}*/
 
-PROTOCCALLSFSUB5(PHFIT2,phfit2,INT,INT,INT,FLOAT,PFLOAT)
-#define       PHFIT2(Nz,Ne,Is,E,S) \
-  CCALLSFSUB5(PHFIT2,phfit2,INT,INT,INT,FLOAT,PFLOAT,Nz,Ne,Is,E,S)
+#define PHFIT2_FC FC_FUNC(phfit2,PHFIT2)
+extern float PHFIT2_FC(int *nz, int *ne, int *is, float *e, float *s);
 
 static double xs_phfit2 (int *nz, int *ne, int *is, float *e) /*{{{*/
 {
    float s;
-   PHFIT2(*nz, *ne, *is, *e, s);
+   PHFIT2_FC(nz, ne, is, e, &s);
    return (double)s;
 }
 
 /*}}}*/
 
-PROTOCCALLSFSUB2(INITNEI,initnei,PINT,PINT)
-#define INITNEI(nionp,nzmax) CCALLSFSUB2(INITNEI,initnei,PINT,PINT,nionp,nzmax)
+#define INITNEI_FC FC_FUNC(initnei,INITNEI)
+extern void INITNEI_FC(int *ni, int *nz);
 
 static void xs_initnei (int *nionp,int *nzmax) /*{{{*/
 {
@@ -1283,7 +1213,7 @@ static void xs_initnei (int *nionp,int *nzmax) /*{{{*/
    static int ni, nz;
    if (nei_is_initialized == 0)
      {
-        INITNEI(ni,nz);
+        INITNEI_FC(&ni,&nz);
         nei_is_initialized = 1;
      }
    *nionp = ni;
@@ -1292,10 +1222,9 @@ static void xs_initnei (int *nionp,int *nzmax) /*{{{*/
 
 /*}}}*/
 
-PROTOCCALLSFSUB8(IONSNEQR,ionsneqr,FLOATV,FLOATV,INT,INT,INT,FLOATV,INTV,INTV)
-#define IONSNEQR(tmp,tau,n,nzmax,nionp,fout,ionel,ionstage) \
-   CCALLSFSUB8(IONSNEQR,ionsneqr,FLOATV,FLOATV,INT,INT,INT,FLOATV,INTV,INTV,\
-                 tmp,tau,n,nzmax,nionp,fout,ionel,ionstage)
+#define IONSNEQR_FC FC_FUNC(ionsneqr,IONSNEQR)
+extern void IONSNEQR_FC(float *tmp, float *tau, int *n, int*nzmax, int *nionp,
+                        float *fout, int *ionel, int *ionstage);
 
 static void xs_ionsneqr(void) /*{{{*/
 {
@@ -1327,7 +1256,7 @@ static void xs_ionsneqr(void) /*{{{*/
    ionel = (int *)sl_ionel->data;
    ionstage = (int *)sl_ionstage->data;
 
-   IONSNEQR(tmp, tau, n, nzmax, nionp, fout, ionel, ionstage);
+   IONSNEQR_FC(tmp, tau, &n, &nzmax, &nionp, fout, ionel, ionstage);
 
    push_results:
    SLang_free_array (sl_tmp);
@@ -1340,11 +1269,6 @@ static void xs_ionsneqr(void) /*{{{*/
 /*}}}*/
 
 #ifdef HAVE_XSPEC_12
-
-PROTOCCALLSFFUN0(INT,FGCHAT,fgchat)
-PROTOCCALLSFSUB1(FPCHAT,fpchat,INT)
-#define FGCHAT()  CCALLSFFUN0(FGCHAT,fgchat)
-#define FPCHAT(lev)  CCALLSFSUB1(FPCHAT,fpchat,INT,lev)
 static int xs_gchat (void)
 {
    return FGCHAT();
@@ -1355,15 +1279,15 @@ static void xs_pchat (int *lev)
 }
 #endif
 
-PROTOCCALLSFSUB0(FNINIT,fninit)
-#define FNINIT() CCALLSFSUB0(FNINIT,fninit)
 static int xs_init (void)
 {
-   FEWER_CFORTRAN_COMPILER_WARNINGS;
+   float h0=XSPEC_DEFAULT_H0;
+   float q0=XSPEC_DEFAULT_Q0;
+   float l0=XSPEC_DEFAULT_L0;
    FNINIT();
-   CSMPH0(XSPEC_DEFAULT_H0);
-   CSMPQ0(XSPEC_DEFAULT_Q0);
-   CSMPL0(XSPEC_DEFAULT_L0);
+   csmph0(h0);
+   csmpq0(q0);
+   csmpl0(l0);
    return 0;
 }
 
@@ -1462,20 +1386,11 @@ static int evaluate_table_model (Xspec_Fun_t *fun) /*{{{*/
 
 /*}}}*/
 
-#define XSPEC10_TABLE_FUN(name,xsname,XSNAME)                       \
-   PROTOCCALLSFSUB6(XSNAME,xsname,FLOATV,INT,FLOATV,PSTRING,INT,FLOATV) \
-   static void name (Xspec_Param_t *p)                                  \
-   {                                                                    \
-      CCALLSFSUB6(XSNAME,xsname,FLOATV,INT,FLOATV,PSTRING,INT,FLOATV,   \
-                     p->ear.f,p->ne,p->param.f,p->filename,p->ifl,p->photar.f);   \
-   }
-
 #define XSPEC11_TABLE_FUN(name,xsname,XSNAME)                              \
-   PROTOCCALLSFSUB7(XSNAME,xsname,FLOATV,INT,FLOATV,PSTRING,INT,FLOATV,FLOATV) \
+   extern void FC_FUNC(xsname,XSNAME)(float *,int *,float *,char *,int *,float *,float *); \
    static void name (Xspec_Param_t *p)                                         \
    {                                                                           \
-      CCALLSFSUB7(XSNAME,xsname,FLOATV,INT,FLOATV,PSTRING,INT,FLOATV,FLOATV,   \
-                     p->ear.f,p->ne,p->param.f,p->filename,p->ifl,p->photar.f,p->photer.f);   \
+      FC_FUNC(xsname,XSNAME)(p->ear.f,&p->ne,p->param.f,p->filename,&p->ifl,p->photar.f,p->photer.f);   \
    }
 
 /*}}}*/
@@ -1530,10 +1445,6 @@ static SLang_Intrin_Fun_Type Private_Intrinsics [] =
 {
    MAKE_INTRINSIC_S("_xs_set_datadir", xs_set_datadir, I),
    MAKE_INTRINSIC_0("_xs_get_datadir", xs_get_datadir, V),
-#if 0
-   MAKE_INTRINSIC_S("_xs_set_abundance_filename", xs_set_abundance_table_filename, I),
-   MAKE_INTRINSIC_0("_xs_get_abundance_filename", xs_get_abundance_table_filename, V),
-#endif
    MAKE_INTRINSIC_S("_xs_set_abundances", xs_set_abundance_table, I),
    MAKE_INTRINSIC_0("_xs_get_abundances", xs_get_abundance_table, V),
    MAKE_INTRINSIC_S("_xs_set_xsections", xs_set_xsection_table, I),
@@ -1641,8 +1552,6 @@ int init_xspec_module_ns (char *ns_name) /*{{{*/
 {
    SLang_Class_Type *cl;
    SLang_NameSpace_Type *ns;
-
-   FEWER_CFORTRAN_COMPILER_WARNINGS;
 
    if (NULL == (ns = SLns_create_namespace (ns_name)))
      return -1;

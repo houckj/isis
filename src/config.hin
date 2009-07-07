@@ -68,3 +68,5 @@
 
 /* Define this if you have isis extras */
 #undef HAVE_ISIS_EXTRAS
+
+#undef FC_FUNC

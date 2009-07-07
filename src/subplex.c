@@ -55,16 +55,13 @@
 
 #include "isis.h"
 #include "isismath.h"
-#include "cfortran.h"
 
-#define FEWER_CFORTRAN_COMPILER_WARNINGS \
-     (void)c2fstrv; (void)f2cstrv; (void)kill_trailing; (void)vkill_trailing; \
-     (void)num_elem
+#define SUBPLX_FC FC_FUNC(subplx,SUBPLX)
+typedef double subplx_fun_type (int *num, double *pars);
 
-PROTOCCALLSFSUB12(SUBPLX,subplx,ROUTINE,INT,DOUBLE,INT,INT,DOUBLEV,DOUBLEV,PDOUBLE,PINT,DOUBLEV,INTV,PINT)
-#define SUBPLX(f,n,tol,maxnfe,mode,scale,x,fx,nfe,work,iwork,iflag) \
-   CCALLSFSUB12(SUBPLX,subplx,ROUTINE,INT,DOUBLE,INT,INT,DOUBLEV,DOUBLEV,PDOUBLE,PINT,DOUBLEV,INTV,PINT,\
-                f,n,tol,maxnfe,mode,scale,x,fx,nfe,work,iwork,iflag)
+extern void SUBPLX_FC(subplx_fun_type *f, int *n, double *tol, int *maxnfe,
+                      int *mode, double *scale, double *x, double *fx,
+                      int *nfe, double *work, int *iwork, int *iflag);
 
 typedef struct
 {
@@ -207,8 +204,7 @@ static int call_subplx (Isis_Fit_Engine_Type *e, double *pars, int num_pars, dou
    if (setjmp (Jumpbuf))
      return -1;
 
-   SUBPLX(fun,num_pars,e->tol,e->maxnfe,e->mode,e->scale,pars,result,e->nfe,work,iwork,e->iflag);
-   FEWER_CFORTRAN_COMPILER_WARNINGS;
+   SUBPLX_FC(fun,&num_pars,&e->tol,&e->maxnfe,&e->mode,e->scale,pars,&result,&e->nfe,work,iwork,&e->iflag);
 
    *st = result;
 

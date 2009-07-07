@@ -217,7 +217,7 @@ private define emit_name_string (fp, m) %{{{
    else
      {
         variable s = symbol_name;
-        symbol_name = sprintf ("FORTRAN_FUNCTION(%s,%s)", strup(s), s);
+        symbol_name = sprintf ("FC_FUNC(%s,%s)", s, strup(s));
      }
 
    () = fprintf (fp.names, "%s\n", m.model_name);

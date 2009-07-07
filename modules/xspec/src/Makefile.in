@@ -60,14 +60,13 @@ ISISINC  = -I$(ISIS_ROOT)/src
 
 FC      = @FC@
 FCFLAGS = @FCFLAGS@
-FC_DEFS = @FC_DEFS@
 
 #---------------------------------------------------------------------------
 # All libraries and includes
 #---------------------------------------------------------------------------
 LIBS_FOR_MODULES = @ISIS_LIB_FOR_MODULES@ @SLANG_LIB_FOR_MODULES@
 LIBS = $(RPATH) $(LIBS_FOR_MODULES) $(XSPEC_LIBS) $(FCLIBS) $(X_LIBS) $(X_EXTRA_LIBS) $(SYS_EXTRA_LIBS)
-INCS = $(ISISINC) $(SLANG_INC) 
+INCS = $(ISISINC) $(SLANG_INC) -I$(HEA)/include
 
 #---------------------------------------------------------------------------
 # Set these values to ABSOLUTE path names
@@ -109,8 +108,8 @@ OTHERSTUFF 		=#
 THIS_LIB_DEFINES	=#
 
 CONFIG_H		= config.h
-ALL_CFLAGS		= $(CFLAGS) -Dunix $(FC_DEFS) $(X_CFLAGS) $(THIS_LIB_DEFINES) $(INCS)
-ALL_ELF_CFLAGS		= $(ELF_CFLAGS) -Dunix $(FC_DEFS) $(X_CFLAGS) $(THIS_LIB_DEFINES) $(INCS)
+ALL_CFLAGS		= $(CFLAGS) -Dunix $(X_CFLAGS) $(THIS_LIB_DEFINES) $(INCS)
+ALL_ELF_CFLAGS		= $(ELF_CFLAGS) -Dunix $(X_CFLAGS) $(THIS_LIB_DEFINES) $(INCS)
 COMPILE_CMD		= $(CC) -c $(ALL_CFLAGS)
 FC_COMPILE_CMD          = $(FC) -c $(FCFLAGS)
 

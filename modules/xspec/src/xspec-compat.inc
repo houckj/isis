@@ -116,17 +116,12 @@ MODSUB(xacnmod)
 MODSUB(xaddmod)
 MODSUB(xconmod)
 MODSUB(xmulmod)
-FCALLSCSUB7(xacnmod,ACNMOD,acnmod,INT,FLOATV,INT,FLOATV,INT,FLOATV,FLOATV)
-FCALLSCSUB7(xaddmod,ADDMOD,addmod,INT,FLOATV,INT,FLOATV,INT,FLOATV,FLOATV)
-FCALLSCSUB7(xconmod,CONMOD,conmod,INT,FLOATV,INT,FLOATV,INT,FLOATV,FLOATV)
-FCALLSCSUB7(xmulmod,MULMOD,mulmod,INT,FLOATV,INT,FLOATV,INT,FLOATV,FLOATV)
 
 static void xmixmod (int ikey, float *param, float *ear, int neear, int ne, float *flxar, float *flxer)
 {
    (void) ikey; (void) param; (void) ear; (void) neear; (void) ne; (void) flxar; (void) flxer;
    xspec_call_hook ();
 }
-FCALLSCSUB7(xmixmod,MIXMOD,mixmod,INT,FLOATV,FLOATV,INT,INT,FLOATV,FLOATV)
 
 static int isis_stub_old_result (char *s)
 {
@@ -134,7 +129,6 @@ static int isis_stub_old_result (char *s)
    xspec_call_hook();
    return 0;
 }
-FCALLSCFUN1(INT,isis_stub_old_result,OLD_RESULT,old_result,STRING)
 
 static int isis_stub_result (char *s)
 {
@@ -142,28 +136,24 @@ static int isis_stub_result (char *s)
    xspec_call_hook();
    return 0;
 }
-FCALLSCFUN1(INT,isis_stub_result,RESULT,result,STRING)
 
 static int xs_reset_result (void)
 {
    xspec_call_hook();
    return -1;
 }
-FCALLSCFUN0(INT,xs_reset_result,RERSLT,rerslt)
 
 static void xcramff(float fnum, int nspace, int ndig, char *cbuf, int lbuf)
 {
    (void) fnum; (void) nspace; (void) ndig; (void) cbuf; (void) lbuf;
    xspec_call_hook ();
 }
-FCALLSCSUB5(xcramff,CRAMFF,cramff,FLOAT,INT,INT,STRING,INT)
 
 static void xplt (float *y, int *iery, int mxrow, int npts, int nvec, char *cmd, int ncmd, int ier)
 {
    (void) y; (void) iery; (void) mxrow; (void) npts; (void) nvec; (void) cmd; (void) ncmd; (void) ier;
    xspec_call_hook ();
 }
-FCALLSCSUB8(xplt,PLT,plt,FLOATV,INTV,INT,INT,INT,STRING,INT,INT)
 
 int xs_append_old_result (char *s)
 {

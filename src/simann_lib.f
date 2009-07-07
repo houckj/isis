@@ -1,4 +1,4 @@
-      SUBROUTINE SIMANN(N,X,MAX,RT,EPS,NS,NT,NEPS,MAXEVL,LB,UB,C,
+      SUBROUTINE SIMANN(FCN,N,X,MAX,RT,EPS,NS,NT,NEPS,MAXEVL,LB,UB,C,
      &  IPRINT,
      1              ISEED1,ISEED2,T,VM,XOPT,FOPT,NACC,NFCNEV,NOBDS,IER,
      2              FSTAR,XP,NACP)
@@ -268,6 +268,8 @@ C  Type all internal variables.
 C  Type all functions.
       DOUBLE PRECISION  EXPREP
       REAL  RANMAR
+Cjch pass FCN as a parameter and declare external.
+      EXTERNAL FCN
 
 C  Initialize the random number generator RANMAR.
       CALL RMARIN(ISEED1,ISEED2)

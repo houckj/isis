@@ -17,3 +17,5 @@
 
 /* Define this for a static build */
 #undef ISIS_STATIC_BUILD
+
+#undef FC_FUNC

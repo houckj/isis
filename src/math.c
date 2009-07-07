@@ -963,7 +963,7 @@ static int pop_linear_system (Linear_System_Type *t) /*{{{*/
 
    n = sl_b->num_elements;
 
-   if (sl_a->num_elements != n*n)
+   if (sl_a->num_elements != (unsigned int) n*n)
      goto return_error;
 
    if ((NULL == (a = JDMdouble_matrix (n, n)))
