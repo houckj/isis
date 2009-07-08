@@ -17,6 +17,7 @@ pre1.5.0
      Parallelized conf_loop.
  8.  Use require.sl from slang distribution
  9.  Added parallel Levenberg-Marquardt optimization method (plm).
+10.  Removed cfortran.h.  Use autoconf C/Fortran interface.
 
 Changes since 1.4.9 (released Nov 2007)
 ---------------------------------------
