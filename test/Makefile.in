@@ -18,6 +18,7 @@ FCLIBS  = @FCLIBS@
 SLSH	= @SLANG_LIBDIR@/../bin/slsh
 
 WITH_HEADAS = @WITH_HEADAS@
+HEA = @HEADAS_DIR@
 
 SLANG_INC  = @SLANG_INC@
 SLANG_LIB  = @SLANG_LIB@ -lslang
@@ -43,9 +44,12 @@ check:	$(SHARED_LIBRARIES)
 		exit 1 ; \
 	    fi ;            \
 	 fi ; \
+	if test -f "$(HEA)/headas-init.sh" ; then \
+	    HEADAS="$(HEA)" ; export HEADAS ; . $$HEADAS/headas-init.sh ; \
+	fi ; \
 	$(SLSH) $(WITH_HEADAS) ./run_tests.sl $$TEST_ISIS $(prefix)
 	@echo ""
-        
+
 install-check:	$(SHARED_LIBRARIES)
 	@$(SLSH) $(WITH_HEADAS) ./run_tests.sl isis $(prefix)
 	@echo ""
