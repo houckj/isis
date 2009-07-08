@@ -175,7 +175,7 @@ static int lmdif (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
    fi->fx = NULL;
    Tmp_Params = NULL;
 
-   if ((NULL == (iwa = ISIS_MALLOC (npars * sizeof(double))))
+   if ((NULL == (iwa = ISIS_MALLOC (npars * sizeof(int))))
        || (NULL == (Tmp_Params = ISIS_MALLOC (npars * sizeof(double))))
        || (NULL == (wa = ISIS_MALLOC (lwa * sizeof(double))))
        || (NULL == (fi->fx = ISIS_MALLOC (npts * sizeof(double))))

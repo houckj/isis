@@ -571,7 +571,7 @@ int EM_get_abundance_table (EM_t *em, int k, char **name, float **a, int **z, in
 
    if ((NULL == (*name = isis_make_string (t->name)))
        || (NULL == (*a = ISIS_MALLOC (num * sizeof(float))))
-       || (NULL == (*z = ISIS_MALLOC (num * sizeof(float)))))
+       || (NULL == (*z = ISIS_MALLOC (num * sizeof(int)))))
      {
         ISIS_FREE (*z);
         ISIS_FREE (*a);
