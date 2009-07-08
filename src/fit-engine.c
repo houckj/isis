@@ -313,9 +313,9 @@ void isis_fit_free_fit_statistic (Isis_Fit_Statistic_Type *s) /*{{{*/
    if (s->deallocate != NULL)
      s->deallocate (s);
    if (s->sl_fun != NULL)
-     SLang_free_function ((SLang_Name_Type *)s->sl_fun);
+     SLang_free_function (s->sl_fun);
    if (s->sl_report != NULL)
-     SLang_free_function ((SLang_Name_Type *)s->sl_report);
+     SLang_free_function (s->sl_report);
 
    ISIS_FREE (s->symbol);   
    ISIS_FREE (s);
@@ -424,7 +424,7 @@ static int sl_statistic_function (Isis_Fit_Statistic_Type *s,/*{{{*/
      goto free_and_return;
    SLang_end_arg_list ();
 
-   if (-1 != SLexecute_function ((SLang_Name_Type *)s->sl_fun))
+   if (-1 != SLexecute_function (s->sl_fun))
      {
         (void) SLang_pop_double (&st);
 
@@ -519,8 +519,8 @@ static Isis_Fit_Statistic_Type *init_sl_statistic (void) /*{{{*/
 
    s->fun = sl_statistic_function;
    s->report = sl_report_function;
-   s->sl_fun = (isis_fptr_type) statistic_fun;
-   s->sl_report = (isis_fptr_type) report_fun;
+   s->sl_fun = statistic_fun;
+   s->sl_report = report_fun;
 
    return s;
 }

@@ -33,6 +33,8 @@ extern "C" {
 }
 #endif
 
+#include "slang.h"
+
 #define ISIS_VERSION          10500
 #define ISIS_VERSION_STRING  "pre1.5.0-10"
 #define ISIS_VERSION_PREFIX   1.5.0
@@ -432,10 +434,10 @@ typedef Isis_Fit_Statistic_Type *Isis_Fit_Statistic_Init_Type (void);
 struct Isis_Fit_Statistic_Type
 {
    Isis_Fit_Statistic_Fun_Type *fun;
-   isis_fptr_type sl_fun;
+   SLang_Name_Type *sl_fun;
 
    Isis_Fit_Statistic_Report_Type *report;
-   isis_fptr_type sl_report;
+   SLang_Name_Type *sl_report;
 
    int (*set_options)(Isis_Fit_Statistic_Type *, Isis_Option_Type *);
    void (*deallocate)(Isis_Fit_Statistic_Type *);
