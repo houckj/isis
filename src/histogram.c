@@ -3900,7 +3900,7 @@ int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins) /*{{{*/
 {
    double *bgd_cts = NULL;
    double *cts = NULL;
-   void *tmp;
+   void *tmp = NULL;
    int i;
 
    if ((h == NULL) || (lo == NULL) || (hi == NULL) || (nbins < 1))
@@ -3908,7 +3908,15 @@ int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins) /*{{{*/
 
    if (h->nbins != h->orig_nbins)
      {
-        isis_vmesg (FAIL, I_NOT_IMPLEMENTED, __FILE__, __LINE__, "please revert to the original input data grid");
+        isis_vmesg (FAIL, I_NOT_IMPLEMENTED, __FILE__, __LINE__,
+                    "please revert to the original input data grid");
+        return -1;
+     }
+
+   if (h->a_rsp.rmf->ref_count > 2)
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                    "rebin failed: RMF in use by multiple datasets");
         return -1;
      }
 
@@ -4026,9 +4034,17 @@ int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins) /*{{{*/
 
    return finish_hist_init (h);
 
-   error_return:
-   ISIS_FREE(cts);
-   ISIS_FREE(bgd_cts);
+error_return:
+   if (h->counts == cts || h->orig_bgd == bgd_cts)
+     {
+        isis_vmesg (FAIL, I_INTERNAL, __FILE__, __LINE__,
+                    "*** rebinned dataset was left in an inconsistent state");
+     }
+   else
+     {
+        ISIS_FREE(cts);
+        ISIS_FREE(bgd_cts);
+     }
    return -1;
 }
 

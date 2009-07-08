@@ -46,4 +46,43 @@ if (abs(m_ferr) > 1.e-6)
            m_ferr);
 }
 
+define error_handling_test ()
+{
+   % Code to test the error handling in rebin_dataset.
+   % This convoluted situation once caused a core dump.
+   delete_data (all_data);
+   delete_arf (all_arfs);
+   delete_rmf (all_rmfs);
+   () = load_rmf ("data/acismeg1D1999-07-22rmfN0002.fits");
+   assign_rmf (1,1);
+   assign_rmf (1,2);
+   variable lo, hi;
+   (lo,hi) = linear_grid (1,20,200);
+
+   % The damage was done here.  rebin_dataset rightfully
+   % failed because the RMF was in use elsewhere, but
+   % the error handling code freed memory that was used
+   % by h->counts and h->orig_bgd
+   try
+     {
+        rebin_dataset (1, lo, hi);
+     }
+   catch AnyError:
+     {
+     }
+
+   % accessing the counts data afterward caused a crash:
+   group_data(1,0);
+}
+
+try
+{
+   Isis_Verbose = -2;
+   error_handling_test ();
+}
+finally
+{
+   Isis_Verbose = 0;
+}
+
 msg ("ok\n");
