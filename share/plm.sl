@@ -117,6 +117,9 @@ private define perform_search_task (s, mmt)
      alpha = objs[2],
      beta = objs[3];
 
+   if (length(alpha) == 1)
+     alpha = _reshape (alpha, [1,1]);
+
    variable i, n = length(p);
    _for i (0, n-1, 1)
      {
@@ -323,7 +326,8 @@ private define search_recv_result (s)
         best_label = "B";
         x.best.chisqr = chisqr1;
         x.best.lambda = lambda;
-        x.best.params = p1;
+        % force typeof(params)=Array_Type
+        x.best.params = [p1];
      }
 
    if (Fit_Verbose > 0)
