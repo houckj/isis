@@ -8,64 +8,25 @@ This file describes how to install ISIS on a Unix system.  See
 the ISIS User's Guide for instructions on how to run ISIS.
 
 Contents:
-   I. Binary install
-  II. Installing from source code
+   I. Installing from source code
+  II. Binary install
  III. Spectroscopy database setup
   IV. Installation Suggestions for Specific Architectures
    V. Troubleshooting
 
-I. BINARY INSTALL
-=================
+I. INSTALLING FROM SOURCE CODE
+==============================
 
-1. Download the appropriate ISIS binary distribution from
-   http://space.mit.edu/cxc/isis/download.html:
+           >>>>  Quick Start Instructions <<<<
 
-    isis-$version.lin.tar.gz   (source code + Linux binaries)
-    isis-$version.sol.tar.gz   (source code + Solaris binaries)
-
-2. In the directory in which you want to install the software,
-   unpack the file you selected, e.g.
-
-    gunzip -C isis-$version.lin.tar.gz
-
-3. The ISIS binary installation relies on the environment
-   variable ISIS_SRCDIR.  This variable is used to locate
-   the files ISIS needs at run-time.  To run ISIS:
-
-   For C Shell variants (csh, tcsh):
-
-    setenv ISIS_SRCDIR /path/to/unpacked/isis
-    $ISIS_SRCDIR/bin/isis
-
-   For Bourne Shell (sh, ash, ksh, bash):
-
-    ISIS_SRCDIR=/path/to/installed/isis
-    export ISIS_SRCDIR
-    $ISIS_SRCDIR/bin/isis
-
-   Note that, if you wish to use the precompiled XSPEC module,
-   you must also initialize the HEADAS software (which must
-   be downloaded and installed separately).  At the time of
-   this writing, the HEADAS initialization procedure is very
-   similar, e.g. for Csh variants:
-
-    setenv HEADAS  /path/to/installed/headas/$ARCH
-    source $HEADAS/headas-init.csh
-
-4.  See section (III) for instructions on setting up the
-    spectroscopy database.
-
-II. INSTALLING FROM SOURCE CODE
-===============================
-
-Quick Start for Experts:
-------------------------
+            (The simplest way to compile isis)
 
 To build ISIS, the S-Lang, CFITSIO and PGPLOT libraries must be
 installed on your system.  Many ISIS users also make use of the
-XSPEC spectral model library.  If XSPEC is already installed,
-ISIS can use the PGPLOT and CFITSIO libraries included with
-XSPEC.
+XSPEC spectral model library.  If XSPEC is already installed on
+your system, ISIS can use the PGPLOT and CFITSIO libraries that
+are included with XSPEC (so you need not install them
+individually!).
 
 Assuming that S-Lang has been installed in a standard location
 such as /usr/local, the following commands will compile and
@@ -75,16 +36,29 @@ install ISIS in /usr/local:
     make
     make install
 
-HEADAS gives the path to your local HEASOFT installation.
+The HEADAS variable gives the path to your local HEASOFT
+installation, e.g.
+
+   HEADAS=/usr/local/headas/x86_64-unknown-linux-gnu-libc2.7/
 
 To make use of the APED spectroscopy database installed in
 $ATOMDB, include the configure option:
 
   --with-atomdb=$ATOMDB
 
-To install ISIS in DIR, include the configure option:
+To install ISIS in DIR instead of /usr/local, include the
+configure option:
 
   --prefix=DIR
+
+Putting it all together, you might configure, build, test and
+install ISIS using these steps:
+
+  ./configure --prefix=/opt --with-headas=$HEADAS \
+              --with-atomdb=$ATOMDB
+  make
+  make check
+  make install
 
 For help on other configure options, do:
 
@@ -93,22 +67,30 @@ For help on other configure options, do:
 For a much more detailed discussion of the installation
 procedure and the various configure options, see below.
 
-Software Requirements:
-----------------------
+Detailed Software Requirements:
+-------------------------------
 
 PGPLOT, CFITSIO and S-Lang must be installed before installing ISIS.  The
 following versions (or newer) are required:
 
    pgplot_5.2       (with C bindings installed)
    cfitsio_2.1
-   slang-2.0.0
+   slang-2.2.0
+
+If you follow the above "Quick Start" instructions for building
+isis, then pgplot and cfitsio will be obtained from your local
+HEASOFT installation, so there's no need for you to
+individually install these two libraries.  The "Quick Start"
+installation method is strongly preferred because it ensures
+that both HEASOFT and ISIS are linked to the same version of
+the cfitsio library.
 
 To obtain the newest versions of these packages see:
   (pgplot)   http://www.astro.caltech.edu/~tjp/pgplot/install.html
   (cfitsio)  http://heasarc.gsfc.nasa.gov/docs/software/fitsio/fitsio.html
   (slang)    http://www.s-lang.org/download.html
 
-IMPORTANT:  Shared libraries are preferred!
+IMPORTANT:  Shared libraries are preferred! (especially on Macs)
 
   To make full use of importable modules, shared libraries
   (e.g. libcfitsio.so or libcfitsio.dylib) should be installed
@@ -116,12 +98,11 @@ IMPORTANT:  Shared libraries are preferred!
   libcfitsio.a) the module functionality may not work properly
   on certain platforms (e.g. Mac OS X).
 
-   When building slang, use 'make elf install-elf'.
    When building cfitsio, use 'make shared'.
    When building pgplot, use 'make libpgplot.so'.
 
-Unix Installation:
-------------------
+Unix Installation Details:
+--------------------------
 
 0.  The steps below assume that the ISIS tar file was unpacked in
     isis-$version and that up-to-date versions of PGPLOT, CFITSIO and
@@ -299,6 +280,47 @@ First, cd to the ISIS source directory:
 
     At this point, ISIS installation is complete.
 
+II. BINARY INSTALL
+==================
+
+1. Download the appropriate ISIS binary distribution from
+   http://space.mit.edu/cxc/isis/download.html:
+
+    isis-$version.lin.tar.gz   (source code + Linux binaries)
+    isis-$version.sol.tar.gz   (source code + Solaris binaries)
+
+2. In the directory in which you want to install the software,
+   unpack the file you selected, e.g.
+
+    gunzip -C isis-$version.lin.tar.gz
+
+3. The ISIS binary installation relies on the environment
+   variable ISIS_SRCDIR.  This variable is used to locate
+   the files ISIS needs at run-time.  To run ISIS:
+
+   For C Shell variants (csh, tcsh):
+
+    setenv ISIS_SRCDIR /path/to/unpacked/isis
+    $ISIS_SRCDIR/bin/isis
+
+   For Bourne Shell (sh, ash, ksh, bash):
+
+    ISIS_SRCDIR=/path/to/installed/isis
+    export ISIS_SRCDIR
+    $ISIS_SRCDIR/bin/isis
+
+   Note that, if you wish to use the pre-compiled XSPEC module,
+   you must also initialize the HEADAS software (which must
+   be downloaded and installed separately).  At the time of
+   this writing, the HEADAS initialization procedure is very
+   similar, e.g. for Csh variants:
+
+    setenv HEADAS  /path/to/installed/headas/$ARCH
+    source $HEADAS/headas-init.csh
+
+4.  See section (III) for instructions on setting up the
+    spectroscopy database.
+
 III.  SPECTROSCOPY DATABASE SETUP
 =================================
 
@@ -331,33 +353,7 @@ libraries.  For example:
 
    ./configure ... --with-fclibs="-lg2c" ...
 
-AIX systems:
------------
-
-o The IBM compilers are preferred:  CC=xlc and FC=xlf
-
-Linux systems:
--------------
-
-o pre-installed versions of S-Lang which are ancient/incompatible
-
-  Some Linux distributions come with an older version of S-Lang
-  pre-installed, usually in /usr/lib and /usr/include.  Because
-  ISIS uses some newer features of S-Lang, compilation of ISIS
-  will fail if the compiler links to this old version of S-Lang
-  instead of the current version.  In particular, even if you
-  installed a new statically linked version of S-Lang
-  (/usr/lib/libslang.a), ISIS compilation can fail with complaints
-  about unresolved S-Lang symbols (e.g. SLang_pop_float()) if the
-  old dynamically linked S-Lang libraries (/usr/lib/libslang.so)
-  are still present.
-
-  To correct this problem, you should install the most recent
-  version of S-Lang including the new dynamically linked libraries
-  (e.g. "make elf" then "make install-elf" then "ldconfig").  If
-  you have properly installed a new version of S-Lang and still
-  cannot compile ISIS under Linux, please send us a bug report
-  describing the details of the problem.
+Note that g77 is no longer supported.
 
 Mac OS X systems:
 -----------------
@@ -375,9 +371,7 @@ o Dynamic Linking
 
   Dynamic linking to shared libraries behaves differently on
   the Mac than on a real unix system.  To avoid problems, be
-  sure to install shared libraries whenever possible.  In
-  particular, when you install the S-Lang library, be sure to
-  install libslang.dylib via 'make elf install-elf'.
+  sure to install shared libraries whenever possible.
 
   Its also a good idea to avoid having multiple copies of the
   same shared library if those copies are in directories that
@@ -400,8 +394,39 @@ o Missing libraries
   After you're finished editing src/Makefile, build and install
   ISIS as usual.
 
+Linux systems:
+-------------
+
+o pre-installed versions of S-Lang which are ancient/incompatible
+
+  Some Linux distributions come with an older version of S-Lang
+  pre-installed, usually in /usr/lib and /usr/include.  Because
+  ISIS uses some newer features of S-Lang, compilation of ISIS
+  will fail if the compiler links to this old version of S-Lang
+  instead of the current version.  In particular, even if you
+  installed a new statically linked version of S-Lang
+  (/usr/lib/libslang.a), ISIS compilation can fail with complaints
+  about unresolved S-Lang symbols (e.g. SLang_pop_float()) if the
+  old dynamically linked S-Lang libraries (/usr/lib/libslang.so)
+  are still present.
+
+  To correct this problem, you should install the most recent
+  version of S-Lang.  If you have properly installed a new
+  version of S-Lang and still cannot compile ISIS under Linux,
+  please send us a bug report describing the details of the
+  problem.
+
+AIX systems:
+-----------
+
+o The IBM compilers are preferred:  CC=xlc and FC=xlf
+
 V.  TROUBLESHOOTING
 ===================
+
+Answers to some frequently asked questions are available from the
+web site:
+  http://space.mit.edu/cxc/isis/faq.html
 
 If ISIS didn't compile:
 
@@ -424,8 +449,8 @@ If ISIS didn't compile:
   definition and provide the necessary run-time paths by editing
   your LD_LIBRARY_PATH environment variable.
 
-Known Bugs:
------------
+Known Bugs (ancient):
+--------------------
 
 o Some versions of the Linux rlogin program are buggy.  When using
   rlogin to connect to a Solaris 2.6 machine from a Linux machine,
