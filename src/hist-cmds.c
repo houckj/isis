@@ -996,7 +996,7 @@ static int pop_arf_info (Arf_Info_Type *info) /*{{{*/
         info->fracexpo_is_vector = 1;
         info->nbins = f->num_elements;
         size = info->nbins * sizeof(double);
-        if (NULL == (info->fracexpo.v = ISIS_MALLOC(size)))
+        if (NULL == (info->fracexpo.v = (double *) ISIS_MALLOC(size)))
           {
              SLang_free_array (f);
              return -1;
@@ -1789,7 +1789,7 @@ static void set_dataset_metadata (int *hist_index) /*{{{*/
      return;
 
    if ((-1 == SLang_pop_anytype (&meta))
-       || (-1 == Hist_set_metadata (h, (void *)meta)))
+       || (-1 == Hist_set_metadata (h, meta)))
      {
         isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__, "failed setting metadata for dataset %d", *hist_index);
      }
@@ -1823,8 +1823,7 @@ static void set_post_model_hook (void) /*{{{*/
    if (NULL == (h = find_hist (hist_index)))
      return;
 
-   (void) Hist_set_post_model_hook (h, post_model_hook,
-                                    (void (*)(void *))SLang_free_function);
+   (void) Hist_set_post_model_hook (h, post_model_hook, SLang_free_function);
 }
 
 /*}}}*/
@@ -2321,8 +2320,8 @@ static void _rebin_dataset (int *hist_index) /*{{{*/
         return;
      }
 
-   lo = sl_lo->data;
-   hi = sl_hi->data;
+   lo = (double *) sl_lo->data;
+   hi = (double *) sl_hi->data;
    nbins = sl_lo->num_elements;
 
    if (-1 == Hist_rebin (h, lo, hi, nbins))

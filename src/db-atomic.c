@@ -71,7 +71,7 @@ enum
    WARN_HASH_MISSES=128
 };
 
-static char *Element_Name[] =
+static const char *Element_Name[] =
 {
    "",
    "H" , "He", "Li", "Be", "B" , "C" , "N" , "O" , "F" , "Ne",
@@ -82,7 +82,7 @@ static char *Element_Name[] =
 
 int DB_Ion_Format = FMT_ROMAN;
 
-static char *Roman [] =
+static const char *Roman [] =
 {
    "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
    "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX",
@@ -266,7 +266,8 @@ static int get_branching_ratios (DB_t *db) /*{{{*/
    enum {NDOWN_SIZE_INCREMENT = 10};   /* wasting some memory ... */
    DB_level_t *level = NULL;
    DB_ion_t *ion = NULL;
-   void *tmp;        
+   DB_line_t **tmp;
+   size_t size, new_size;
    int i, k;
 
    if (NULL == db)
@@ -320,17 +321,16 @@ static int get_branching_ratios (DB_t *db) /*{{{*/
         if (level->ndown > 0
             && 0 == (level->ndown % NDOWN_SIZE_INCREMENT))
           {
-             int new_size = ((level->ndown + NDOWN_SIZE_INCREMENT)
-                             * sizeof (DB_line_t *));
-             tmp = ISIS_REALLOC (level->down, new_size);
-             if (tmp == NULL)
+             new_size = ((level->ndown + NDOWN_SIZE_INCREMENT)
+                         * sizeof (DB_line_t *));
+             if (NULL == (tmp = (DB_line_t **) ISIS_REALLOC (level->down, new_size)))
                return -1;
              level->down = tmp;
           }
         else if (level->ndown == 0)
           {
-             level->down = ISIS_MALLOC (NDOWN_SIZE_INCREMENT * sizeof(DB_line_t *));
-             if (NULL == level->down)
+             size = NDOWN_SIZE_INCREMENT * sizeof(DB_line_t *);
+             if (NULL == (level->down = (DB_line_t **) ISIS_MALLOC (size)))
                return -1;
           }
 
@@ -350,9 +350,8 @@ static int get_branching_ratios (DB_t *db) /*{{{*/
              level = &ion->level[k-1];
              if (level->ndown > 0)
                {
-                  int size = level->ndown * sizeof(DB_line_t *);
-                  tmp = ISIS_REALLOC (level->down, size);
-                  if (tmp == NULL)
+                  size = level->ndown * sizeof(DB_line_t *);
+                  if (NULL == (tmp = (DB_line_t **) ISIS_REALLOC (level->down, size)))
                     return -1;
                   level->down = tmp;
                }
@@ -457,8 +456,7 @@ static DB_level_t *new_level_list (int nlevels) /*{{{*/
    DB_level_t *p = NULL;
    int i;
 
-   p = ISIS_MALLOC (nlevels * sizeof(DB_level_t));
-   if (p == NULL)
+   if (NULL == (p = (DB_level_t *) ISIS_MALLOC (nlevels * sizeof(DB_level_t))))
      return NULL;
 
    for (i=0; i < nlevels; i++)
@@ -489,13 +487,13 @@ static char **new_label_list (int size, int n) /*{{{*/
    int i;
    char **p;
 
-   if (NULL == (p = ISIS_MALLOC (n * sizeof(char *))))
+   if (NULL == (p = (char **) ISIS_MALLOC (n * sizeof(char *))))
      return NULL;
    memset ((char *)p, 0, n * sizeof(char *));
 
    for (i=0; i < n; i++)
      {
-        if (NULL == (p[i] = ISIS_MALLOC (size * sizeof(char))))
+        if (NULL == (p[i] = (char *) ISIS_MALLOC (size * sizeof(char))))
           {
              free_label_list (p, n);
              break;
@@ -529,11 +527,11 @@ static int load_level_list (DB_level_t *level_list, int n_levels, cfitsfile *p) 
    if (NULL == level_list)
      return -1;
 
-   if (NULL == (energy = ISIS_MALLOC (n_levels * sizeof(float)))
-       || NULL == (stat_weight = ISIS_MALLOC (n_levels * sizeof(float)))
-       || NULL == (n_quan = ISIS_MALLOC (n_levels * sizeof(int)))
-       || NULL == (L_quan = ISIS_MALLOC (n_levels * sizeof(int)))
-       || NULL == (S_quan = ISIS_MALLOC (n_levels * sizeof(float))))
+   if (NULL == (energy = (float *) ISIS_MALLOC (n_levels * sizeof(float)))
+       || NULL == (stat_weight = (float *) ISIS_MALLOC (n_levels * sizeof(float)))
+       || NULL == (n_quan = (int *) ISIS_MALLOC (n_levels * sizeof(int)))
+       || NULL == (L_quan = (int *) ISIS_MALLOC (n_levels * sizeof(int)))
+       || NULL == (S_quan = (float *) ISIS_MALLOC (n_levels * sizeof(float))))
      goto free_and_return;
 
    if (NULL == (label = new_label_list (LEVEL_NAME_SIZE+1, n_levels)))
@@ -617,8 +615,7 @@ static DB_ion_t *new_ion (int nlevels) /*{{{*/
 {
    DB_ion_t *ion;
 
-   ion = ISIS_MALLOC (sizeof(DB_ion_t));
-   if (NULL == ion)
+   if (NULL == (ion = (DB_ion_t *) ISIS_MALLOC (sizeof(DB_ion_t))))
      return NULL;
    memset ((char *)ion, 0, sizeof (*ion));
 
@@ -866,7 +863,7 @@ static int build_hash_table (DB_t *db) /*{{{*/
      ;
    size = prime[k];
 
-   if (NULL == (t = ISIS_MALLOC (size * sizeof(DB_line_t *))))
+   if (NULL == (t = (DB_line_t **) ISIS_MALLOC (size * sizeof(DB_line_t *))))
      return -1;
    memset ((char *) t, 0, size * sizeof(DB_line_t *));
 
@@ -889,7 +886,7 @@ static int build_hash_table (DB_t *db) /*{{{*/
              h = (h + incr) % size;
              if (miss++ > db->nlines)
                {
-                  isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, 
+                  isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
                               "Database corruption? (problem building hash table, hash_misses = %d)",
                               miss);
                   ISIS_FREE (t);
@@ -909,7 +906,7 @@ static int build_hash_table (DB_t *db) /*{{{*/
 
    if (db->max_hash_misses > WARN_HASH_MISSES)
      {
-        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, 
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
                     "Database corruption? (problem building hash table, max_hash_misses = %d)",
                     db->max_hash_misses);
      }
@@ -933,17 +930,15 @@ int DB_merge_lines (DB_t *db, DB_Merge_Type *m) /*{{{*/
    if (NULL == db->line)
      {
         offset = 0;
-        db->line = ISIS_MALLOC (m->n * sizeof(DB_line_t));
-        if (NULL == db->line)
+        if (NULL == (db->line = (DB_line_t *) ISIS_MALLOC (m->n * sizeof(DB_line_t))))
           return -1;
      }
    else
      {
-        void *tmp;
+        DB_line_t *tmp;
         offset = db->nlines;
         len = (db->nlines + m->n) * sizeof(DB_line_t);
-        tmp = ISIS_REALLOC (db->line, len);
-        if (tmp == NULL)
+        if (NULL == (tmp = (DB_line_t *) ISIS_REALLOC (db->line, len)))
           return -1;
         db->line = tmp;
      }
@@ -1000,16 +995,14 @@ static int load_line_list_extension (DB_line_t **line, int *n, cfitsfile *fp) /*
 
    if (NULL == *line)
      {
-        *line = ISIS_MALLOC (nlines * sizeof(DB_line_t));
-        if (NULL == *line)
+        if (NULL == (*line = (DB_line_t *) ISIS_MALLOC (nlines * sizeof(DB_line_t))))
           return -1;
      }
    else
      {
-        void *tmp;
+        DB_line_t *tmp;
         len = (*n + nlines) * sizeof(DB_line_t);
-        tmp = ISIS_REALLOC (*line, len);
-        if (tmp == NULL)
+        if (NULL == (tmp = (DB_line_t *) ISIS_REALLOC (*line, len)))
           return -1;
         *line = tmp;
      }
@@ -1029,13 +1022,13 @@ static int load_line_list_extension (DB_line_t **line, int *n, cfitsfile *fp) /*
    if (-1 == (opt = cfits_optimal_numrows (fp)))
      goto free_and_return;
 
-  if (NULL == (wavelen = ISIS_MALLOC (opt * sizeof(float)))
-      || NULL == (wavelen_obs = ISIS_MALLOC (opt * sizeof(float)))
-      || NULL == (wavelen_err = ISIS_MALLOC (opt * sizeof(float)))
-      || NULL == (A_value = ISIS_MALLOC (opt * sizeof(float)))
-      || NULL == (A_err = ISIS_MALLOC (opt * sizeof(float)))
-      || NULL == (upper_lev = ISIS_MALLOC (opt * sizeof(int)))
-      || NULL == (lower_lev = ISIS_MALLOC (opt * sizeof(int))))
+  if (NULL == (wavelen = (float *) ISIS_MALLOC (opt * sizeof(float)))
+      || NULL == (wavelen_obs = (float *) ISIS_MALLOC (opt * sizeof(float)))
+      || NULL == (wavelen_err = (float *) ISIS_MALLOC (opt * sizeof(float)))
+      || NULL == (A_value = (float *) ISIS_MALLOC (opt * sizeof(float)))
+      || NULL == (A_err = (float *) ISIS_MALLOC (opt * sizeof(float)))
+      || NULL == (upper_lev = (int *) ISIS_MALLOC (opt * sizeof(int)))
+      || NULL == (lower_lev = (int *) ISIS_MALLOC (opt * sizeof(int))))
      goto free_and_return;
 
    crap = 0;
@@ -1150,7 +1143,7 @@ static int load_line_list (DB_t *db, char **files) /*{{{*/
 
    if (NULL == files)
      return 0;
-   
+
    if (NULL == db)
      return -1;
 
@@ -1242,7 +1235,7 @@ static int index_select_k_largest (int *idx, int *k_got, int k_want, int n, doub
    if (NULL == a || NULL == idx)
      return -1;
 
-   if (NULL == (t = ISIS_MALLOC (k * sizeof(int))))
+   if (NULL == (t = (int *) ISIS_MALLOC (k * sizeof(int))))
      return -1;
 
    /* Make a minimum-oriented heap of size k */
@@ -1303,8 +1296,8 @@ int DB_get_k_brightest (int *t, int *n, int k, int *list, int nlines, /*{{{*/
    *n = 0;
    memset ((char *)t, 0, k * sizeof(int));
 
-   if (NULL == (indx = ISIS_MALLOC (num_select * sizeof(int)))
-       || NULL == (flux = ISIS_MALLOC (nlines * sizeof(double))))
+   if (NULL == (indx = (int *) ISIS_MALLOC (num_select * sizeof(int)))
+       || NULL == (flux = (double *) ISIS_MALLOC (nlines * sizeof(double))))
      goto finish;
 
    for (i=0; i < nlines; i++)
@@ -1466,8 +1459,7 @@ static DB_line_group_t *new_line_group (void) /*{{{*/
 {
    DB_line_group_t *table;
 
-   table = ISIS_MALLOC (sizeof(DB_line_group_t));
-   if (NULL == table)
+   if (NULL == (table = (DB_line_group_t *) ISIS_MALLOC (sizeof(DB_line_group_t))))
      return NULL;
    memset ((char *)table, 0, sizeof (*table));
 
@@ -1666,8 +1658,8 @@ int DB_edit_group (DB_line_group_t **g, int *list, int n, int add, DB_t *db) /*{
    n_new = (*g)->nlines + (add ? n : 0);
 
    if (NULL == (g_new = new_line_group ())
-       || NULL == (t = ISIS_MALLOC (n_new * sizeof(DB_line_t *)))
-       || NULL == (flag = ISIS_MALLOC (db->nlines * sizeof(char))))
+       || NULL == (t = (DB_line_t **) ISIS_MALLOC (n_new * sizeof(DB_line_t *)))
+       || NULL == (flag = (char *) ISIS_MALLOC (db->nlines * sizeof(char))))
      {
         DB_free_line_group (g_new);
         ISIS_FREE (t);
@@ -1724,8 +1716,8 @@ int DB_edit_group (DB_line_group_t **g, int *list, int n, int add, DB_t *db) /*{
      }
    else if (k != n_new)
      {
-        void *tmp = ISIS_REALLOC (t, k * sizeof(DB_line_t *));
-        if (tmp == NULL)
+        DB_line_t **tmp;
+        if (NULL == (tmp = (DB_line_t **) ISIS_REALLOC (t, k * sizeof(DB_line_t *))))
           {
              ISIS_FREE (t);
              DB_free_line_group (g_new);
@@ -1736,12 +1728,12 @@ int DB_edit_group (DB_line_group_t **g, int *list, int n, int add, DB_t *db) /*{
 
    g_new->line = t;
    g_new->nlines = k;
-   
+
    /* keep old id number */
-   g_new->group = (*g)->group;         
+   g_new->group = (*g)->group;
 
    /* new group replaces old group */
-   DB_free_line_group (*g);             
+   DB_free_line_group (*g);
    *g = g_new;
 
    return 0;
@@ -1757,7 +1749,7 @@ char *DB_flag_array_from_list (int *list, int n, DB_t *db) /*{{{*/
    if (NULL == list || n <= 0 || NULL == db || db->nlines <= 0)
      return NULL;
 
-   if (NULL == (flag = ISIS_MALLOC (db->nlines * sizeof(char))))
+   if (NULL == (flag = (char *) ISIS_MALLOC (db->nlines * sizeof(char))))
      return NULL;
 
    memset (flag, 0, db->nlines * sizeof(char));
@@ -1780,8 +1772,8 @@ static DB_line_t **Group_Sort_Ptr = NULL;
 
 static int compare_wavelen2 (const void *a, const void *b) /*{{{*/
 {
-   const int *i = a;
-   const int *k = b;
+   const int *i = (const int *) a;
+   const int *k = (const int *) b;
    float wla = Group_Sort_Ptr[ *i ]->wavelen;
    float wlb = Group_Sort_Ptr[ *k ]->wavelen;
    if (wla > wlb) return +1;
@@ -1800,8 +1792,8 @@ static int sort_group (DB_line_t **g, int nlines) /*{{{*/
    if (NULL == g || nlines <= 0)
      return -1;
 
-   if (NULL == (index_array = ISIS_MALLOC (nlines * sizeof(int)))
-       || NULL == (tmp = ISIS_MALLOC (nlines * sizeof(DB_line_t *))))
+   if (NULL == (index_array = (int *) ISIS_MALLOC (nlines * sizeof(int)))
+       || NULL == (tmp = (DB_line_t **) ISIS_MALLOC (nlines * sizeof(DB_line_t *))))
      return -1;
 
    memcpy ((char *)tmp, (char *)g, nlines * sizeof(DB_line_t *));
@@ -1834,7 +1826,7 @@ DB_line_group_t *DB_make_group_from_list (int group, int *list, int n, DB_t *db)
      return NULL;
 
    if (NULL == (g = new_line_group ())
-       || NULL == (t = ISIS_MALLOC (n * sizeof(DB_line_t *)))
+       || NULL == (t = (DB_line_t **) ISIS_MALLOC (n * sizeof(DB_line_t *)))
        || NULL == (flag = DB_flag_array_from_list (list, n, db)))
      {
         DB_free_line_group (g);
@@ -1865,24 +1857,24 @@ DB_line_group_t *DB_make_group_from_list (int group, int *list, int n, DB_t *db)
         DB_free_line_group (g);
         return NULL;
      }
-   else if (k < n)      
+   else if (k < n)
      {
-        void *tmp = ISIS_REALLOC (t, k * sizeof(DB_line_t *));
-        if (tmp == NULL)
+        DB_line_t **tmp;
+        if (NULL == (tmp = (DB_line_t **) ISIS_REALLOC (t, k * sizeof(DB_line_t *))))
           {
              ISIS_FREE (t);
              DB_free_line_group (g);
              return NULL;
           }
-        t = tmp;               
+        t = tmp;
      }
-   
+
    if (-1 == sort_group (t, k))
      {
         ISIS_FREE (t);
         DB_free_line_group (g);
         return NULL;
-     }   
+     }
 
    g->line = t;
    g->nlines = k;
@@ -1931,7 +1923,7 @@ int DB_get_group_members (int **index_list, int *nmembers, int group, DB_t *db) 
 
    *nmembers = g->nlines;
 
-   if (NULL == (*index_list = ISIS_MALLOC (*nmembers * sizeof(int))))
+   if (NULL == (*index_list = (int *) ISIS_MALLOC (*nmembers * sizeof(int))))
      return -1;
 
    for (i=0; i < g->nlines; i++)
@@ -1961,8 +1953,7 @@ DB_line_filter_t *DB_new_line_filter (void) /*{{{*/
 {
    DB_line_filter_t *f;
 
-   f = ISIS_MALLOC (sizeof(DB_line_filter_t));
-   if (NULL == f)
+   if (NULL == (f = (DB_line_filter_t *) ISIS_MALLOC (sizeof(DB_line_filter_t))))
      return NULL;
    memset ((char *)f, 0, sizeof(*f));
 
@@ -2067,7 +2058,7 @@ static int *dup_int_list (int *from, int num) /*{{{*/
    if ((from == NULL) || (num <= 0))
      return NULL;
 
-   to = ISIS_MALLOC (num * sizeof(int));
+   to = (int *) ISIS_MALLOC (num * sizeof(int));
    if (to == NULL)
      return NULL;
 
@@ -2337,7 +2328,7 @@ static DB_t *new_db (void) /*{{{*/
 {
    DB_t *db = NULL;
 
-   if (NULL == (db = ISIS_MALLOC (sizeof(DB_t))))
+   if (NULL == (db = (DB_t *) ISIS_MALLOC (sizeof(DB_t))))
      return NULL;
    memset ((char *)db, 0, sizeof(*db));
 
@@ -2355,8 +2346,8 @@ static float *Sort_Ptr = NULL;    /* used by the sort routine */
 
 static int compare_wavelen (const void *a, const void *b) /*{{{*/
 {
-   const int *i = a;
-   const int *k = b;
+   const int *i = (const int *) a;
+   const int *k = (const int *) b;
    float wla = Sort_Ptr[*i];
    float wlb = Sort_Ptr[*k];
    if (wla > wlb) return +1;
@@ -2377,8 +2368,8 @@ int DB_sort_line_list (DB_t *db) /*{{{*/
    if (nlines <= 0)
      return -1;
 
-   if ((NULL == (index_array = ISIS_MALLOC (nlines * sizeof(int))))
-       || (NULL == (lambdas = ISIS_MALLOC (nlines * sizeof(float)))))
+   if ((NULL == (index_array = (int *) ISIS_MALLOC (nlines * sizeof(int))))
+       || (NULL == (lambdas = (float *) ISIS_MALLOC (nlines * sizeof(float)))))
      {
         ISIS_FREE(index_array);
         ISIS_FREE(lambdas);
@@ -2417,7 +2408,7 @@ static int build_internals (DB_t *db) /*{{{*/
         int imax = db->sorted_line_index[db->nlines-1];
         float lam_min = db->line[imin].wavelen;
         float lam_max = db->line[imax].wavelen;
-        isis_vmesg (WARN, I_INFO, __FILE__, __LINE__, 
+        isis_vmesg (WARN, I_INFO, __FILE__, __LINE__,
                     "Tables have %d lines between %0.4g and %0.4g Angstrom",
                     db->nlines, lam_min, lam_max);
      }

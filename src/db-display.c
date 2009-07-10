@@ -284,9 +284,9 @@ int DB_plot_line_group (DB_line_group_t *t,  Line_Label_Style_Type *s, float red
 
    label_size = s->label_length * sizeof(char);
 
-   if ((NULL == (lambda = ISIS_MALLOC (nlines * sizeof(float))))
-       || (NULL == (labels = ISIS_MALLOC (nlines * sizeof (char *))))
-       || (NULL == (label_text = ISIS_MALLOC (nlines * label_size))))
+   if ((NULL == (lambda = (float *) ISIS_MALLOC (nlines * sizeof(float))))
+       || (NULL == (labels = (char **) ISIS_MALLOC (nlines * sizeof (char *))))
+       || (NULL == (label_text = (char *) ISIS_MALLOC (nlines * label_size))))
      goto error_return;
 
    memset ((char *)label_text, 0, nlines * label_size);
@@ -423,7 +423,7 @@ static int get_levels_from_lines (int *lev, int *nplotlev, int nlevels, /*{{{*/
    int m, k, nlev;
    int *tlev = NULL;
 
-   if (NULL == (tlev = ISIS_MALLOC ((nlevels+1) * sizeof(int))))
+   if (NULL == (tlev = (int *) ISIS_MALLOC ((nlevels+1) * sizeof(int))))
      return -1;
 
    for (k=0; k <= nlevels; k++)
@@ -472,7 +472,7 @@ static int get_levels_from_lines (int *lev, int *nplotlev, int nlevels, /*{{{*/
 int DB_plot_levels (int Z, int q, int *line_idx, int nlines, int subset, /*{{{*/
                     int overlay, Plot_t *fmt, DB_t *db)
 {
-   static char *symbol = "SPDFGHIJKLMNOQRTUVWXY";  /* think that's enough? */
+   static const char *symbol = "SPDFGHIJKLMNOQRTUVWXY";  /* think that's enough? */
    DB_ion_t *ion = NULL;
    float *energy, *x, *spin;
    int *orb, *lev;
@@ -499,7 +499,7 @@ int DB_plot_levels (int Z, int q, int *line_idx, int nlines, int subset, /*{{{*/
         return -1;
      }
 
-   if (NULL == (lev = ISIS_MALLOC ((nlevels+1) * sizeof(int))))
+   if (NULL == (lev = (int *) ISIS_MALLOC ((nlevels+1) * sizeof(int))))
      return -1;
 
    if (subset)
@@ -522,10 +522,10 @@ int DB_plot_levels (int Z, int q, int *line_idx, int nlines, int subset, /*{{{*/
           lev[k] = k+1;                    /* ground = 1 */
      }
 
-   if (NULL == (energy = ISIS_MALLOC (nplotlev * sizeof(float)))
-       || NULL == (x = ISIS_MALLOC (nplotlev * sizeof(float)))
-       || NULL == (spin = ISIS_MALLOC (nplotlev * sizeof(float)))
-       || NULL == (orb = ISIS_MALLOC (nplotlev * sizeof(int))))
+   if (NULL == (energy = (float *) ISIS_MALLOC (nplotlev * sizeof(float)))
+       || NULL == (x = (float *) ISIS_MALLOC (nplotlev * sizeof(float)))
+       || NULL == (spin = (float *) ISIS_MALLOC (nplotlev * sizeof(float)))
+       || NULL == (orb = (int *) ISIS_MALLOC (nplotlev * sizeof(int))))
      goto fail;
 
    for (k=0; k < nplotlev; k++)

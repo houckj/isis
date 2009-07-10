@@ -58,7 +58,7 @@ static char **copy_string_array (SLang_Array_Type *s) /*{{{*/
    char **a;
    int i;
 
-   if (NULL == (a = ISIS_MALLOC ((s->num_elements + 1) * sizeof(char *))))
+   if (NULL == (a = (char **) ISIS_MALLOC ((s->num_elements + 1) * sizeof(char *))))
      return NULL;
 
    for (i = 0; i < (int) s->num_elements; i++)
@@ -71,7 +71,7 @@ static char **copy_string_array (SLang_Array_Type *s) /*{{{*/
      }
 
    /* ensure NULL terminated */
-   a[s->num_elements] = NULL;    
+   a[s->num_elements] = NULL;
 
    return a;
 }
@@ -98,7 +98,7 @@ static DB_t *try_loading_filemap (char *filemap) /*{{{*/
              SLang_free_array (sl_w);
              goto finish;
           }
-        
+
         /* NULL ok */
         elev_files = copy_string_array (sl_e);
         wavelen_files = copy_string_array (sl_w);
@@ -108,7 +108,7 @@ static DB_t *try_loading_filemap (char *filemap) /*{{{*/
 
    /* NULL ok */
    db = DB_start (elev_files, wavelen_files);
-   
+
    SLang_free_array (sl_e);
    SLang_free_array (sl_w);
    ISIS_FREE (elev_files);
@@ -118,8 +118,10 @@ static DB_t *try_loading_filemap (char *filemap) /*{{{*/
 }
 
 /*}}}*/
-
-int deinit_emis_module (void); 
+#ifdef __cplusplus
+extern "C"
+#endif
+void deinit_emis_module (void);
 void db_start (char *filemap) /*{{{*/
 {
    DB_t *db;
@@ -135,7 +137,7 @@ void db_start (char *filemap) /*{{{*/
 
    if (NULL != _ptr_to_emissivity_db ())
      {
-        isis_vmesg (WARN, I_WARNING, __FILE__, __LINE__, 
+        isis_vmesg (WARN, I_WARNING, __FILE__, __LINE__,
                     "Replaced internal data structures: please reload emissivity tables");
         (void) deinit_emis_module ();
      }
@@ -196,7 +198,7 @@ static void get_unblended (void) /*{{{*/
        || -1 == SLang_pop_float (&f))
      goto fail;
 
-   if (NULL == (t = ISIS_MALLOC (sllist->num_elements * sizeof(int))))
+   if (NULL == (t = (int *) ISIS_MALLOC (sllist->num_elements * sizeof(int))))
      goto fail;
 
    if (-1 == DB_get_unblended (t, &n, f, wl_f, type, (int *)sllist->data,
@@ -234,7 +236,7 @@ static void get_k_brightest_lines (void) /*{{{*/
        || k <= 0)
      goto fail;
 
-   if (NULL == (t = ISIS_MALLOC (k * sizeof(int))))
+   if (NULL == (t = (int *) ISIS_MALLOC (k * sizeof(int))))
      goto fail;
 
    if (-1 == DB_get_k_brightest (t, &n, k, (int *)sllist->data,
@@ -624,7 +626,7 @@ static void _save_line_list (void) /*{{{*/
    DB_free_line_group (g);
    SLang_free_array (at);
    SLfree (fname);
-   
+
    isis_fclose(fp);
 }
 
@@ -827,16 +829,16 @@ static void plot_line_list2 (void) /*{{{*/
      label_massage_hook = NULL;
 
    s.use_color = (use_color > 0) ? &use_color : NULL;
-   
+
    lambdas = (float *)sl_lambdas->data;
    nlines = sl_lambdas->num_elements;
-   
+
    label_size = s.label_length * sizeof(char);
-   
-   if ((NULL == (labels = ISIS_MALLOC (nlines * sizeof (char *))))
-       || (NULL == (label_text = ISIS_MALLOC (nlines * label_size))))
+
+   if ((NULL == (labels =(char **) ISIS_MALLOC (nlines * sizeof (char *))))
+       || (NULL == (label_text = (char *) ISIS_MALLOC (nlines * label_size))))
      goto finish;
-   
+
    memset ((char *)label_text, 0, nlines * label_size);
    for (i = 0; i < nlines; i++)
      {
@@ -849,7 +851,7 @@ static void plot_line_list2 (void) /*{{{*/
    Plot_auto_incr_line_type (fmt);
 
    finish:
-   
+
    ISIS_FREE(labels);
    ISIS_FREE(label_text);
    SLang_free_array (sl_labels);
@@ -962,26 +964,26 @@ static void _get_line_info (int *id) /*{{{*/
    int Z, q, up, lo;
    char upper_label[LEVEL_NAME_SIZE];
    char lower_label[LEVEL_NAME_SIZE];
-   
+
    if (NULL == db
        || NULL == (line = DB_get_line_from_index (*id, db)))
      goto finish;
-   
+
    Z = line->proton_number;
    q = line->ion_charge;
    up = line->upper_level;
    lo = line->lower_level;
-   
+
    copy_line_info (&li, line);
 
    (void) DB_get_level_label (upper_label, Z, q, up, db);
    (void) DB_get_level_label (lower_label, Z, q, lo, db);
-   
+
    li.upper_label = upper_label;
    li.lower_label = lower_label;
 
    finish:
-   
+
    if (-1 == SLang_push_cstruct ((VOID_STAR)&li, Line_Info_Table))
      {
         isis_vmesg (INTR, I_FAILED, __FILE__, __LINE__, "couldn't push cstruct");
@@ -1200,7 +1202,7 @@ static void _list_branching (int *Z, int *q) /*{{{*/
    if ((fp != NULL)
        && (0 != DB_print_branching_for_ion (fp, *Z, *q, db)))
      {
-        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, 
+        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__,
                     "listing branching ratios for Z=%d q=%d",
                     *Z, *q);
      }

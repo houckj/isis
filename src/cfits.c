@@ -67,7 +67,7 @@ static void cfits_report_error (int status)
 
 /*{{{ open, close, change extensions */
 
-static cfitsfile *cfits_open_file (char *filename, int iomode)
+static cfitsfile *cfits_open_file (const char *filename, int iomode)
 {
    int status = 0;
    fitsfile *fptr = NULL;
@@ -83,7 +83,7 @@ static cfitsfile *cfits_open_file (char *filename, int iomode)
    return (cfitsfile *) fptr;
 }
 
-cfitsfile *cfits_open_file_readonly_silent (char *filename)
+cfitsfile *cfits_open_file_readonly_silent (const char *filename)
 {
    int status = 0;
    fitsfile *fptr = NULL;
@@ -98,7 +98,7 @@ cfitsfile *cfits_open_file_readonly_silent (char *filename)
    return (cfitsfile *) fptr;
 }
 
-cfitsfile *cfits_open_file_readonly (char *filename)
+cfitsfile *cfits_open_file_readonly (const char *filename)
 {
    return cfits_open_file (filename, READONLY);
 }
@@ -142,20 +142,20 @@ int cfits_movrel_hdu (int nmove, cfitsfile *fptr)
    return 0;
 }
 
-int cfits_movnam_hdu (cfitsfile *fptr, char *extname)
+int cfits_movnam_hdu (cfitsfile *fptr, const char *extname)
 {
    int status = 0;
 
-   (void) fits_movnam_hdu((fitsfile *) fptr, ANY_HDU, extname, 0, &status);
+   (void) fits_movnam_hdu((fitsfile *) fptr, ANY_HDU, (char *)extname, 0, &status);
    cfits_report_error (status);
 
    if (status != 0) return -1;
    return 0;
 }
 
-static int move_to_matching_hdu (cfitsfile *fptr, char *extnames[])
+static int move_to_matching_hdu (cfitsfile *fptr, const char *extnames[])
 {
-   char **n;
+   const char **n;
 
    if (extnames == NULL)
      return -1;
@@ -169,7 +169,7 @@ static int move_to_matching_hdu (cfitsfile *fptr, char *extnames[])
    return -1;
 }
 
-static int move_to_hook_matched_hdu (cfitsfile *fptr, char *hook_name)
+static int move_to_hook_matched_hdu (cfitsfile *fptr, const char *hook_name)
 {
    SLang_Array_Type *as = NULL;
    int status = -1;
@@ -180,10 +180,10 @@ static int move_to_hook_matched_hdu (cfitsfile *fptr, char *hook_name)
      return -1;
 
    /* Does the user-defined hook exist? */
-   if (2 != SLang_is_defined (hook_name))
+   if (2 != SLang_is_defined ((char *) hook_name))
      return -1;
 
-   if ((-1 == SLang_run_hooks (hook_name, 0))
+   if ((-1 == SLang_run_hooks ((char *)hook_name, 0))
        || (-1 == SLang_pop_array_of_type (&as, SLANG_STRING_TYPE)))
      goto return_error;
 
@@ -205,8 +205,8 @@ return_error:
    return status;
 }
 
-int cfits_move_to_matching_hdu (cfitsfile *fptr, char *std_extnames[],
-                                char *nonstd_names_hook,
+int cfits_move_to_matching_hdu (cfitsfile *fptr, const char *std_extnames[],
+                                const char *nonstd_names_hook,
                                 int (*check_hdu)(cfitsfile *))
 {
    if ((0 == move_to_matching_hdu (fptr, std_extnames))
@@ -222,7 +222,7 @@ int cfits_move_to_matching_hdu (cfitsfile *fptr, char *std_extnames[],
 
 /*{{{ read and test keywords */
 
-int cfits_read_int_keyword (int *keyvalue, char *keyname, cfitsfile *fptr)
+int cfits_read_int_keyword (int *keyvalue, const char *keyname, cfitsfile *fptr)
 {
    int status = 0;
    int datatype = TINT;
@@ -236,7 +236,7 @@ int cfits_read_int_keyword (int *keyvalue, char *keyname, cfitsfile *fptr)
    return 0;
 }
 
-int cfits_read_long_keyword (long *keyvalue, char *keyname,
+int cfits_read_long_keyword (long *keyvalue, const char *keyname,
                              cfitsfile *fptr)
 {
    int status = 0;
@@ -251,7 +251,7 @@ int cfits_read_long_keyword (long *keyvalue, char *keyname,
    return 0;
 }
 
-int cfits_read_double_keyword (double *keyvalue, char *keyname,
+int cfits_read_double_keyword (double *keyvalue, const char *keyname,
                                 cfitsfile *fptr)
 {
    int status = 0;
@@ -266,7 +266,7 @@ int cfits_read_double_keyword (double *keyvalue, char *keyname,
    return 0;
 }
 
-int cfits_read_float_keyword (float *keyvalue, char *keyname,
+int cfits_read_float_keyword (float *keyvalue, const char *keyname,
                                 cfitsfile *fptr)
 {
    int status = 0;
@@ -281,7 +281,7 @@ int cfits_read_float_keyword (float *keyvalue, char *keyname,
    return 0;
 }
 
-int cfits_read_string_keyword (char *keyvalue, char *keyname,
+int cfits_read_string_keyword (char *keyvalue, const char *keyname,
                                 cfitsfile *fptr)
 {
    int status = 0;
@@ -302,8 +302,7 @@ int cfits_read_string_keyword (char *keyvalue, char *keyname,
  *returns  0 if the keyword value matches "test_value"
  */
 
-int cfits_test_keyword (char *test_value, char *keyword,
-                        cfitsfile *fptr)
+int cfits_test_keyword (const char *test_value, const char *keyword, cfitsfile *fptr)
 {
    char value[CFLEN_VALUE];
 
@@ -326,12 +325,12 @@ int cfits_test_keyword (char *test_value, char *keyword,
 
 /*{{{ get column info */
 
-static int cfits_get_colnum (int *colnum, char *col_name, cfitsfile *fptr)
+static int cfits_get_colnum (int *colnum, const char *col_name, cfitsfile *fptr)
 {
    int status = 0;
    int casesen = CASEINSEN;
 
-   (void) fits_get_colnum ((fitsfile *) fptr, casesen, col_name, colnum,
+   (void) fits_get_colnum ((fitsfile *) fptr, casesen, (char *) col_name, colnum,
                           &status);
    cfits_report_error (status);
 
@@ -339,7 +338,7 @@ static int cfits_get_colnum (int *colnum, char *col_name, cfitsfile *fptr)
    return 0;
 }
 
-int cfits_get_colunits (char *col_units, char *col_name, cfitsfile *fptr)
+int cfits_get_colunits (char *col_units, const char *col_name, cfitsfile *fptr)
 {
    int status = 0;
    int colnum;
@@ -359,7 +358,7 @@ int cfits_get_colunits (char *col_units, char *col_name, cfitsfile *fptr)
    return 0;
 }
 
-int cfits_col_exist (char *col_name, cfitsfile *fptr)
+int cfits_col_exist (const char *col_name, cfitsfile *fptr)
 {
    int status = 0;
    int casesen = CASEINSEN;
@@ -368,7 +367,7 @@ int cfits_col_exist (char *col_name, cfitsfile *fptr)
    if (NULL == col_name || NULL == fptr)
      return -1;
 
-   (void) fits_get_colnum ((fitsfile *) fptr, casesen, col_name, &colnum,
+   (void) fits_get_colnum ((fitsfile *) fptr, casesen, (char *)col_name, &colnum,
                            &status);
    if (status == 0)
      return 1;                /*yes, column exists */
@@ -379,7 +378,7 @@ int cfits_col_exist (char *col_name, cfitsfile *fptr)
      }
 }
 
-int cfits_get_repeat_count (int *nelems, char *colname, cfitsfile *fptr)
+int cfits_get_repeat_count (int *nelems, const char *colname, cfitsfile *fptr)
 {
    int status = 0, colnum;
    long ne;
@@ -412,8 +411,8 @@ long cfits_optimal_numrows (cfitsfile *fptr)
    return nrows;
 }
 
-int cfits_read_int_colkey (int *keyvalue, char *keyroot,
-                           char *colname, cfitsfile *fptr)
+int cfits_read_int_colkey (int *keyvalue, const char *keyroot,
+                           const char *colname, cfitsfile *fptr)
 {
    char keyname[CFLEN_KEYWORD];
    char comment[CFLEN_COMMENT];
@@ -443,7 +442,7 @@ int cfits_read_int_colkey (int *keyvalue, char *keyroot,
 }
 
 int cfits_read_double_col (double *column_values, long num_values,
-                           long firstrow, char *colname, cfitsfile *fptr)
+                           long firstrow, const char *colname, cfitsfile *fptr)
 {
    int datatype = TDOUBLE;
    double nulval = DBL_MIN;
@@ -468,7 +467,7 @@ int cfits_read_double_col (double *column_values, long num_values,
 }
 
 int cfits_read_float_col (float *column_values, long num_values,
-                         long firstrow, char *colname, cfitsfile *fptr)
+                         long firstrow, const char *colname, cfitsfile *fptr)
 {
    int datatype = TFLOAT;
    float nulval = FLT_MIN;
@@ -493,7 +492,7 @@ int cfits_read_float_col (float *column_values, long num_values,
 }
 
 int cfits_read_int_col (int *column_values, long num_values,
-                       long firstrow, char *colname, cfitsfile *fptr)
+                       long firstrow, const char *colname, cfitsfile *fptr)
 {
    int datatype = TINT;
    int nulval = 0;
@@ -518,7 +517,7 @@ int cfits_read_int_col (int *column_values, long num_values,
 }
 
 int cfits_read_string_col (char **array, long num_values,
-                           long firstrow, char *colname, cfitsfile *fptr)
+                           long firstrow, const char *colname, cfitsfile *fptr)
 {
    char nulval[CFLEN_VALUE];
 
@@ -544,7 +543,7 @@ int cfits_read_string_col (char **array, long num_values,
 
 /*}}}*/
 
-int cfits_locate_vextension (cfitsfile *ft, int argc, char **ext_names, /*{{{*/
+int cfits_locate_vextension (cfitsfile *ft, int argc, const char **ext_names, /*{{{*/
                              int (*fun) (cfitsfile *))
 {
    char buf[CFLEN_VALUE];
@@ -613,7 +612,7 @@ int cfits_read_column_floats (cfitsfile *ft, int col, long row, long ofs,
    return 0;
 }
 
-int cfits_get_column_numbers (cfitsfile *ft, unsigned int num, char **names, int *cols)
+int cfits_get_column_numbers (cfitsfile *ft, unsigned int num, const char **names, int *cols)
 {
    unsigned int i;
    int status = 0;
@@ -623,7 +622,7 @@ int cfits_get_column_numbers (cfitsfile *ft, unsigned int num, char **names, int
 
    for (i = 0; i < num; i++)
      {
-        if (fits_get_colnum ((fitsfile *)ft, 1, names[i], cols + i, &status))
+        if (fits_get_colnum ((fitsfile *)ft, 1, (char *)names[i], cols + i, &status))
           {
              status = 0;
              cols[i] = -1;
@@ -632,7 +631,7 @@ int cfits_get_column_numbers (cfitsfile *ft, unsigned int num, char **names, int
    return 0;
 }
 
-int cfits_read_optional_double_col (double *dat, int nbins, int k, char *name,
+int cfits_read_optional_double_col (double *dat, int nbins, int k, const char *name,
                                     cfitsfile *cfp)
 {
    if (!cfits_col_exist (name, cfp))
@@ -644,7 +643,7 @@ int cfits_read_optional_double_col (double *dat, int nbins, int k, char *name,
    return cfits_read_double_col (dat, nbins, k, name, cfp);
 }
 
-int cfits_read_optional_int_col (int *dat, int nbins, int k, char *name,
+int cfits_read_optional_int_col (int *dat, int nbins, int k, const char *name,
                                  cfitsfile *cfp)
 {
    if (!cfits_col_exist (name, cfp))

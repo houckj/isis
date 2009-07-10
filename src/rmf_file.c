@@ -195,11 +195,11 @@ static Rmf_File_t *open_rmf_file (char *file, Rmf_Client_Data_t *cd) /*{{{*/
    /* This routine is complicated by the fact that CAL/GEN/92-002 allows
     * columns to be specified as a keyword value.
     */
-   static char *names[6] =
+   static const char *names[6] =
      {
         "ENERG_LO", "ENERG_HI", "N_GRP", "F_CHAN", "N_CHAN", "MATRIX"
      };
-   static char *ext_list [] =
+   static const char *ext_list [] =
      {
         "SPECRESP MATRIX", "MATRIX", NULL
      };
@@ -210,7 +210,7 @@ static Rmf_File_t *open_rmf_file (char *file, Rmf_Client_Data_t *cd) /*{{{*/
    unsigned int i;
    int arf_status;
 
-   if (NULL == (rft = ISIS_MALLOC (sizeof (*rft))))
+   if (NULL == (rft = (Rmf_File_t *) ISIS_MALLOC (sizeof (*rft))))
      return NULL;
    memset ((char *) rft, 0, sizeof (*rft));
 
@@ -367,11 +367,11 @@ static int read_rmf_vector (Rmf_File_t *rft, int row, Rmf_Vector_t *v, /*{{{*/
    if (ngrps == 0)
      return 0;
 
-   if (NULL == (elem = ISIS_MALLOC (ngrps * sizeof(Rmf_Element_t))))
+   if (NULL == (elem = (Rmf_Element_t *) ISIS_MALLOC (ngrps * sizeof(Rmf_Element_t))))
      return -1;
    memset ((char *) elem, 0, ngrps * sizeof(*elem));
 
-   if (NULL == (nchan = ISIS_MALLOC (2*ngrps * sizeof(unsigned int))))
+   if (NULL == (nchan = (unsigned int *) ISIS_MALLOC (2*ngrps * sizeof(unsigned int))))
      {
         ISIS_FREE(elem);
         return -1;
@@ -433,7 +433,7 @@ static int read_rmf_vector (Rmf_File_t *rft, int row, Rmf_Vector_t *v, /*{{{*/
              chan_range[1] = (int)fchan[i] + (int)nchan[i] - 1;
           }
 
-        elem->response = ISIS_MALLOC (elem->num_channels * sizeof(float));
+        elem->response = (float *) ISIS_MALLOC (elem->num_channels * sizeof(float));
         if ((elem->response == NULL)
             || (-1 == cfits_read_column_floats (ft, matrix_col, row, offset,
                                                 elem->response, elem->num_channels)))
@@ -463,7 +463,7 @@ static int read_rmf_ebounds (cfitsfile *rmf_fp, int chan_range[2], Isis_Rmf_Grid
                              int *energy_ordered_ebounds, int *swap_channels,
                              int *min_chan, Rmf_Client_Data_t *cd)
 {
-   static char *ext_names[] = {"EBOUNDS", NULL};
+   static const char *ext_names[] = {"EBOUNDS", NULL};
    int num_channels, max_chan;
    int *channel = NULL;
    Isis_Rmf_Grid_Type *g = NULL;
@@ -499,7 +499,7 @@ static int read_rmf_ebounds (cfitsfile *rmf_fp, int chan_range[2], Isis_Rmf_Grid
    if (*gp == NULL) return -1;
    g = *gp;
 
-   if (NULL == (channel = ISIS_MALLOC (g->nbins * sizeof(int))))
+   if (NULL == (channel = (int *) ISIS_MALLOC (g->nbins * sizeof(int))))
      return -1;
 
    /* FIXME -- get units from header */
@@ -651,11 +651,11 @@ static int validate_rmf (Isis_Rmf_t *rmf) /*{{{*/
 
 static int read_order_keyword (Rmf_File_t *rft, int *order) /*{{{*/
 {
-   static char *keys[] =
+   static const char *keys[] =
      {
         "ORDER", "TG_M", "RFLORDER", NULL
      };
-   char **k;
+   const char **k;
    int ret = 0;
 
    for (k = keys; *k != NULL; k++)
@@ -712,7 +712,7 @@ static int read_rmf (Isis_Rmf_t *rmf, char *file) /*{{{*/
    /* FIXME - get arf_grid units from header */
    cd->arf->units = U_KEV;
 
-   if (NULL == (cd->v = ISIS_MALLOC (cd->num_ebins * sizeof(Rmf_Vector_t))))
+   if (NULL == (cd->v = (Rmf_Vector_t *) ISIS_MALLOC (cd->num_ebins * sizeof(Rmf_Vector_t))))
      goto finish;
    memset ((char *)cd->v, 0, cd->num_ebins * sizeof (Rmf_Vector_t));
 
@@ -854,7 +854,7 @@ static int set_noticed_model_bins (Isis_Rmf_t *rmf, int num_chan, int *chan_noti
 
    memset ((char *)model_notice, 0, num_model * sizeof(int));
 
-   undetected_model_bin = ISIS_MALLOC (num_model * sizeof(unsigned int));
+   undetected_model_bin = (unsigned int *) ISIS_MALLOC (num_model * sizeof(unsigned int));
    if (undetected_model_bin == NULL)
      return -1;
    for (e_model = 0; e_model < (unsigned int) num_model; e_model++)
@@ -902,8 +902,8 @@ static int get_wavelength_grid (Isis_Rmf_Grid_Type *g, double **lo, double **hi,
 {
    unsigned int i;
 
-   *lo = ISIS_MALLOC (g->nbins * sizeof(double));
-   *hi = ISIS_MALLOC (g->nbins * sizeof(double));
+   *lo = (double *) ISIS_MALLOC (g->nbins * sizeof(double));
+   *hi = (double *) ISIS_MALLOC (g->nbins * sizeof(double));
 
    if ((*lo == NULL) || (*hi == NULL))
      {
@@ -1058,18 +1058,16 @@ static int new_hist (unsigned int num, double **lop, double **hip, double **hp) 
 {
    double *lo, *hi, *h;
 
-   lo = ISIS_MALLOC (num * sizeof(double));
-   if (lo == NULL)
+   if (NULL == (lo = (double *) ISIS_MALLOC (num * sizeof(double))))
      return -1;
 
-   hi = ISIS_MALLOC (num * sizeof(double));
-   if (hi == NULL)
+   if (NULL == (hi = (double *) ISIS_MALLOC (num * sizeof(double))))
      {
         ISIS_FREE (lo);
         return -1;
      }
-   h = ISIS_MALLOC (num * sizeof(double));
-   if (h == NULL)
+
+   if (NULL == (h = (double *) ISIS_MALLOC (num * sizeof(double))))
      {
         ISIS_FREE (lo);
         ISIS_FREE (hi);
@@ -1148,7 +1146,7 @@ static int store_rmf_histogram (double *h, unsigned int num, unsigned int offset
         return 0;
      }
 
-   if (NULL == (elem = ISIS_MALLOC (n_grp * sizeof(Rmf_Element_t))))
+   if (NULL == (elem = (Rmf_Element_t *) ISIS_MALLOC (n_grp * sizeof(Rmf_Element_t))))
      return -1;
 
    memset ((char *) elem, 0, n_grp * sizeof (Rmf_Element_t));
@@ -1164,7 +1162,7 @@ static int store_rmf_histogram (double *h, unsigned int num, unsigned int offset
         elem->first_channel = f_chan[i] + offset;
         elem->num_channels = num_channels = n_chan[i];
 
-        if (NULL == (response = ISIS_MALLOC (num_channels * sizeof(float))))
+        if (NULL == (response = (float *) ISIS_MALLOC (num_channels * sizeof(float))))
           return -1;
         elem->response = response;
 
@@ -1235,17 +1233,17 @@ static int rebin_rmf (Isis_Rmf_t *rmf, double *wv_lo, double *wv_hi, unsigned in
    old_lo = ebounds->bin_lo;
    old_hi = ebounds->bin_hi;
 
-   if (NULL == (old_h = ISIS_MALLOC (old_num * sizeof(double))))
+   if (NULL == (old_h = (double *) ISIS_MALLOC (old_num * sizeof(double))))
      goto return_error;
    memset ((char *)old_h, 0, old_num * sizeof (double));
 
-   if ((NULL == (f_chan = ISIS_MALLOC (new_num * sizeof(int))))
-       || (NULL == (n_chan = ISIS_MALLOC (new_num * sizeof(int)))))
+   if ((NULL == (f_chan = (int *) ISIS_MALLOC (new_num * sizeof(int))))
+       || (NULL == (n_chan = (int *) ISIS_MALLOC (new_num * sizeof(int)))))
      goto return_error;
 
    num_rows = cd->num_ebins;
 
-   if (NULL == (new_v = ISIS_MALLOC (num_rows * sizeof(Rmf_Vector_t))))
+   if (NULL == (new_v = (Rmf_Vector_t *) ISIS_MALLOC (num_rows * sizeof(Rmf_Vector_t))))
      goto return_error;
    memset ((char *) new_v, 0, num_rows * sizeof (Rmf_Vector_t));
 
@@ -1469,7 +1467,7 @@ int Rmf_load_file (Isis_Rmf_t *rmf, char *options)  /*{{{*/
    rmf->factor_rsp = factor_rsp;
    rmf->delete_client_data = delete_client_data;
 
-   rmf->client_data = ISIS_MALLOC (sizeof(Rmf_Client_Data_t));
+   rmf->client_data = (Rmf_Client_Data_t *) ISIS_MALLOC (sizeof(Rmf_Client_Data_t));
    if (rmf->client_data == NULL)
      return -1;
    memset ((char *)rmf->client_data, 0, sizeof (Rmf_Client_Data_t));

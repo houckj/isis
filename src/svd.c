@@ -18,20 +18,20 @@
 /* This implementation of SVD, from NODElib by Gary William Flake,
    is a modification of the SVD routine from Nash (1990).
 
-   Copyright (c) 1992-2000 by Gary William Flake. 
+   Copyright (c) 1992-2000 by Gary William Flake.
 
    NODElib is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the
-   Free Software Foundation; either version 2 of the License, or (at your option) any later version. 
+   Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 
    This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. 
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 /* Original comments from Bryant Marks:
- 
+
    This SVD routine is based on pgs 30-48 of "Compact Numerical Methods
    for Computers" by J.C. Nash (1990), used to compute the pseudoinverse.
    Modifications include:
@@ -56,7 +56,7 @@
    the SVD of an (m x n) matrix, W must be ((m + n) x n) in size.
 
    12-26-96: I slightly rewrote things to include V so that the interface
-   could at least be close to a lapack-like routine. 
+   could at least be close to a lapack-like routine.
 
    01-02-97: Rewrote it so that U,S,V was actually returned.  V is now optional. */
 
@@ -164,7 +164,7 @@ static int zero_small_singular_values (double *s, int n) /*{{{*/
 {
    double cut, max;
    int j;
-   
+
    /* Find the largest singular value */
    max = fabs(s[0]);
    for (j = 1; j < n; j++)
@@ -172,21 +172,21 @@ static int zero_small_singular_values (double *s, int n) /*{{{*/
 	double a = fabs(s[j]);
 	if (a > max) max = a;
      }
-   
+
    /* LAPACK dgelss uses cut = rcond * max(s)
-    * where rcond = 1 / (norm(A) * norm(inv(A))) 
+    * where rcond = 1 / (norm(A) * norm(inv(A)))
     *               where A = original matrix
     *               or DBL_EPSILON if rcond < 0 on input
     *       max(s) = largest singular value */
    cut = 1.e4 * DBL_EPSILON * max;
-   
+
    /* Now zero out the "small" singular values */
    for (j = 0; j < n; j++)
      {
-	if (fabs(s[j]) < cut) 
+	if (fabs(s[j]) < cut)
 	  s[j] = 0.0;
      }
- 
+
    return 0;
 }
 
@@ -197,11 +197,10 @@ static int svd_bksb (int m, int n, double *b, double *u, double *s, double *v, d
    double *t;
    double sum;
    int j;
-   
-   t = ISIS_MALLOC (n * sizeof(*t));
-   if (t == NULL)
+
+   if (NULL == (t = (double *) ISIS_MALLOC (n * sizeof(*t))))
      return -1;
-   
+
    for (j = 0; j < n; j++)
      {
 	int i;
@@ -214,7 +213,7 @@ static int svd_bksb (int m, int n, double *b, double *u, double *s, double *v, d
 	  }
 	t[j] = sum;
      }
-   
+
    for (j = 0; j < n; j++)
      {
 	int k;
@@ -223,9 +222,9 @@ static int svd_bksb (int m, int n, double *b, double *u, double *s, double *v, d
 	  sum += v[j*n + k] * t[k];
 	x[j] = sum;
      }
-   
+
    ISIS_FREE (t);
-   
+
    return 0;
 }
 
@@ -238,9 +237,9 @@ int svd_solve (double *a, unsigned int m, unsigned int n, double *b, double *x) 
    if ((a==NULL) || (b == NULL) || (x == NULL) || (m > n))
      return -1;
 
-   u = ISIS_MALLOC (m * n * sizeof(*u));
-   v = ISIS_MALLOC (n * n * sizeof(*v));
-   s = ISIS_MALLOC (    n * sizeof(*s));
+   u = (double *) ISIS_MALLOC (m * n * sizeof(*u));
+   v = (double *) ISIS_MALLOC (n * n * sizeof(*v));
+   s = (double *) ISIS_MALLOC (    n * sizeof(*s));
    if (!(u && v && s))
      {
         ISIS_FREE(u); ISIS_FREE(v); ISIS_FREE(s);
@@ -277,7 +276,7 @@ static int init_random_matrix (double *a, int m, int n) /*{{{*/
 	     a[i * n + j] = (10.0 * rand ()) / (RAND_MAX + 1.0);
 	  }
      }
-   
+
    return 0;
 }
 
@@ -291,7 +290,7 @@ static int init_random_vector (double *b, int n) /*{{{*/
      {
 	b[j] = (10.0 * rand ()) / (RAND_MAX + 1.0);
      }
-   
+
    return 0;
 }
 
@@ -301,9 +300,9 @@ static int verify_svd (double *a, int m, int n, double *u, double *s, double *v)
 {
    int i, j, k;
    double tmp, max;
-   
+
    tmp = max = 0.0;
-      
+
    for (i = 0; i < n; i++)
      {
 	for (j = 0; j < m; j++)
@@ -324,7 +323,7 @@ static int verify_svd (double *a, int m, int n, double *u, double *s, double *v)
      fprintf (stdout, "failed:  *** Size mxn = %dx%d;   Norm of (A - U*s*transpose(V)) = %15.8e\n", m, n, max);
    else
      fputs ("ok:  SVD\n", stdout);
-   
+
    return 0;
 }
 
@@ -333,7 +332,7 @@ static int verify_svd (double *a, int m, int n, double *u, double *s, double *v)
 static int verify_solution (double *a, int m, int n, double *b, double *x) /*{{{*/
 {
    int i, j, flag;
-   
+
    flag = 0;
    for (j = 0; j < m; j++)
      {
@@ -351,10 +350,10 @@ static int verify_solution (double *a, int m, int n, double *b, double *x) /*{{{
 	     flag = 1;
 	  }
      }
-   
+
    if (flag == 0)
      fputs ("ok:  SVD solution\n", stdout);
-   else 
+   else
      fputs ("failed:  SVD solution\n", stdout);
 
    return 0;
@@ -366,38 +365,38 @@ int main (void) /*{{{*/
 {
    double *a, *b, *u, *s, *v, *x;
    int m, n;
-   
+
    m = n = 16;
-   
-   a = ISIS_MALLOC (m * n * sizeof(*a));
-   u = ISIS_MALLOC (m * n * sizeof(*u));
-   v = ISIS_MALLOC (n * n * sizeof(*v));
-   s = ISIS_MALLOC (    n * sizeof(*s));
-   b = ISIS_MALLOC (    m * sizeof(*b));   
-   x = ISIS_MALLOC (    n * sizeof(*b));
+
+   a = (double *) ISIS_MALLOC (m * n * sizeof(*a));
+   u = (double *) ISIS_MALLOC (m * n * sizeof(*u));
+   v = (double *) ISIS_MALLOC (n * n * sizeof(*v));
+   s = (double *) ISIS_MALLOC (    n * sizeof(*s));
+   b = (double *) ISIS_MALLOC (    m * sizeof(*b));
+   x = (double *) ISIS_MALLOC (    n * sizeof(*b));
    if (!(a && u && v && s && b && x))
      goto finish;
-   
+
    fprintf (stdout, "Tolerance = %15.8e\n", Tol);
-   
+
    (void) init_random_matrix (a, m, n);
-   memcpy ((char *)u, (char *)a, m * n * sizeof(double));   
+   memcpy ((char *)u, (char *)a, m * n * sizeof(double));
    svd (u, s, v, m, n);
    (void) verify_svd (a, m, n, u, s, v);
-   
+
    (void) init_random_matrix (a, m, n);
    (void) init_random_vector (b, m);
    (void) svd_solve (a, m, n, b, x);
-   (void) verify_solution (a, m, n, b, x);   
-   
+   (void) verify_solution (a, m, n, b, x);
+
    finish:
-   
-   ISIS_FREE (a); 
-   ISIS_FREE (b); 
-   ISIS_FREE (u);    
-   ISIS_FREE (v); 
+
+   ISIS_FREE (a);
+   ISIS_FREE (b);
+   ISIS_FREE (u);
+   ISIS_FREE (v);
    ISIS_FREE (s);
-   
+
    return 0;
 }
 

@@ -68,6 +68,7 @@ static int Isis_Active_Function_Id;
 
 static enum Mode_type
 {
+   INVALID_MODE   = -1,
    BIN_EVAL_MODE  = 0,
    INIT_MODE      = 1,
    DIFF_EVAL_MODE = 2,
@@ -303,7 +304,7 @@ static int push_kernel (Kernel_Table_t *t, unsigned int hist_index,
    if ((params != NULL) && (NULL == (s = isis_make_string (params))))
      return -1;
 
-   if (NULL == (p->saved = ISIS_MALLOC(sizeof(*saved))))
+   if (NULL == (p->saved = (Kernel_Info_t *) ISIS_MALLOC(sizeof(*saved))))
      return -1;
 
    saved = p->saved;
@@ -537,7 +538,7 @@ static int _copy_param_info (_Param_Info_Type *pi, unsigned int idx) /*{{{*/
      }
    else pi->fun_str = "";
 
-   if (NULL == (pi->name = ISIS_MALLOC(name_size)))
+   if (NULL == (pi->name = (char *) ISIS_MALLOC(name_size)))
      return -1;
 
    if (-1 == get_param_name (p->idx, pi->name, name_size))
@@ -613,7 +614,7 @@ static int run_set_par_hook (char *hook_name, _Param_Info_Type *pi) /*{{{*/
 
    if (pi->tie == NULL)
      {
-        if (NULL == (pi->tie = ISIS_MALLOC (1)))
+        if (NULL == (pi->tie = (char *) ISIS_MALLOC (1)))
           return -1;
         pi->tie[0] = 0;
      }
@@ -795,7 +796,7 @@ int Fit_copy_fun_params (char *fun_name, unsigned int fun_id, double **par, unsi
    if (ff->nparams == 0)
      return 0;
 
-   if (NULL == (p = ISIS_MALLOC (ff->nparams * sizeof(double))))
+   if (NULL == (p = (double *) ISIS_MALLOC (ff->nparams * sizeof(double))))
      return -1;
 
    if (-1 == Fit_get_fun_params (Param, fun_type, fun_id, p))
@@ -1072,7 +1073,7 @@ static int init_fun_params (Fit_Fun_t *ff, unsigned int fun_id) /*{{{*/
    if (NULL == ff->s.init_params_from_screen)
      return -1;
 
-   if (NULL == (par = ISIS_MALLOC (3 * ff->nparams * sizeof(double))))
+   if (NULL == (par = (double *) ISIS_MALLOC (3 * ff->nparams * sizeof(double))))
      goto finish;
 
    par_min = par + ff->nparams;
@@ -1105,10 +1106,10 @@ static int push_parameter_value_struct (Fit_Fun_t *ff, unsigned int fun_id) /*{{
 
    n = ff->nparams;
 
-   if ((NULL == (par = ISIS_MALLOC (n * sizeof(double))))
-       || (NULL == (names = ISIS_MALLOC (n * sizeof(char*))))
-       || (NULL == (types = ISIS_MALLOC (n * sizeof(SLtype))))
-       || (NULL == (pvalues = ISIS_MALLOC (n * sizeof(double *)))))
+   if ((NULL == (par = (double *) ISIS_MALLOC (n * sizeof(double))))
+       || (NULL == (names = (char **) ISIS_MALLOC (n * sizeof(char*))))
+       || (NULL == (types = (SLtype *) ISIS_MALLOC (n * sizeof(SLtype))))
+       || (NULL == (pvalues = (double **) ISIS_MALLOC (n * sizeof(double *)))))
      goto finish;
 
    memset ((char *)par, 0, n * sizeof(double));
@@ -1123,7 +1124,7 @@ static int push_parameter_value_struct (Fit_Fun_t *ff, unsigned int fun_id) /*{{
 
    finish:
 
-   (void) SLstruct_create_struct (n, names, types, (VOID_STAR) pvalues);
+   (void) SLstruct_create_struct (n, names, types, (void **) pvalues);
 
    ISIS_FREE (par);
    ISIS_FREE (names);
@@ -1191,7 +1192,7 @@ static int diff_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra
    if (ff == NULL)
      return -1;
 
-   if (NULL == (par = ISIS_MALLOC (ff->nparams * sizeof(double))))
+   if (NULL == (par = (double *) ISIS_MALLOC (ff->nparams * sizeof(double))))
      return -1;
 
    if (-1 == Fit_get_fun_params (Param, ff->fun_type, fun_id, par))
@@ -1238,7 +1239,7 @@ static int bin_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra_
 
    if (ff->nparams)
      {
-        par = ISIS_MALLOC (ff->nparams * sizeof(double));
+        par = (double *) ISIS_MALLOC (ff->nparams * sizeof(double));
         if (NULL == par)
           return -1;
 
@@ -1296,7 +1297,7 @@ static Mode_Task_Type Mode_Table[] =
      {bin_eval,   BIN_EVAL_MODE,  "function evaluation failed"},
      {diff_eval,  DIFF_EVAL_MODE, "function evaluation failed"},
      {name_eval,  NAME_EVAL_MODE, "failed retrieving function name"},
-     {NULL, 0, "internal error:  invalid mode in mode_switch"}
+     {NULL, INVALID_MODE, "internal error:  invalid mode in mode_switch"}
 };
 
 /* I'm told that this code is hard to understand. Is it? */
@@ -1408,7 +1409,7 @@ static SLang_Name_Type *create_registered_model (char *fun_name, char *fun_body)
    int model_size, status;
 
    model_size = strlen (fun_body) + strlen (fun_name) + sizeof(fmt);
-   if (NULL == (model = ISIS_MALLOC (model_size * sizeof(char))))
+   if (NULL == (model = (char *) ISIS_MALLOC (model_size * sizeof(char))))
      return NULL;
    sprintf (model, fmt, fun_name, fun_body);
 
@@ -1627,7 +1628,7 @@ int update_user_model (void) /*{{{*/
     * with user-defined kernels (like the grating pileup kernel).
     */
 
-   s = f->fun_string ? f->fun_string : "bin_width(1)";
+   s = f->fun_string ? f->fun_string : (char *) "bin_width(1)";
    if (NULL == (copy = isis_make_string (s)))
      return -1;
    ret = _define_user_model (copy);
@@ -1810,8 +1811,8 @@ static int allocate_notice_arrays (Isis_Hist_t *g) /*{{{*/
 
    g->n_notice = n;
 
-   if ((NULL == (g->notice = ISIS_MALLOC (n * sizeof(int))))
-       || (NULL == (g->notice_list = ISIS_MALLOC (n * sizeof(int)))))
+   if ((NULL == (g->notice = (int *) ISIS_MALLOC (n * sizeof(int))))
+       || (NULL == (g->notice_list = (int *) ISIS_MALLOC (n * sizeof(int)))))
      return -1;
 
    for (i = 0; i < n; i++)
@@ -1987,7 +1988,7 @@ static int compute_hist_model (Hist_t *h, double *bincts) /*{{{*/
 
    /* allocate space for the full-resolution result */
    if ((-1 == (orig_nbins = Hist_orig_hist_size (h)))
-       || (NULL == (cts = ISIS_MALLOC (orig_nbins * sizeof(double)))))
+       || (NULL == (cts = (double *) ISIS_MALLOC (orig_nbins * sizeof(double)))))
      return -1;
    memset ((char *)cts, 0, orig_nbins * sizeof(double));
 
@@ -2005,7 +2006,7 @@ static int compute_hist_model (Hist_t *h, double *bincts) /*{{{*/
     * (use temp_workspace_for_eval() to get a pointer to this space)
     */
 
-   if (NULL == (g->val = ISIS_MALLOC ((g->n_notice + g->nbins) * sizeof(double))))
+   if (NULL == (g->val = (double *) ISIS_MALLOC ((g->n_notice + g->nbins) * sizeof(double))))
      goto finish;
 
    if (-1 == apply_response (cts, g, h))
@@ -2368,7 +2369,7 @@ static int Fit_load_data (Fit_Data_t *d) /*{{{*/
    if (-1 == compute_dataset_combination_offsets (d))
      return -1;
 
-   if (NULL == (d->tmp = ISIS_MALLOC (d->nbins * sizeof(double))))
+   if (NULL == (d->tmp = (double *) ISIS_MALLOC (d->nbins * sizeof(double))))
      return -1;
 
    /* wt != 0 guaranteed elsewhere */
@@ -2436,7 +2437,7 @@ static Fit_Data_t *new_fit_data (int nbins) /*{{{*/
 {
    Fit_Data_t *d;
 
-   if (NULL == (d = ISIS_MALLOC (sizeof(Fit_Data_t))))
+   if (NULL == (d = (Fit_Data_t *) ISIS_MALLOC (sizeof(Fit_Data_t))))
      return NULL;
    memset ((char *)d, 0, sizeof (*d));
 
@@ -2444,11 +2445,11 @@ static Fit_Data_t *new_fit_data (int nbins) /*{{{*/
    d->num_datasets = Hist_num_noticed_histograms (get_histogram_list_head());
    d->tmp = NULL;
 
-   if (NULL == (d->data = ISIS_MALLOC (nbins * sizeof(double)))
-       || NULL == (d->weight = ISIS_MALLOC (nbins * sizeof(double)))
-       || NULL == (d->datasets = ISIS_MALLOC (d->num_datasets * sizeof(Hist_t *)))
-       || NULL == (d->offsets = ISIS_MALLOC (d->num_datasets * sizeof(int)))
-       || NULL == (d->offset_for_marked = ISIS_MALLOC (d->num_datasets * sizeof(int)))
+   if (NULL == (d->data = (double *) ISIS_MALLOC (nbins * sizeof(double)))
+       || NULL == (d->weight = (double *) ISIS_MALLOC (nbins * sizeof(double)))
+       || NULL == (d->datasets = (Hist_t **) ISIS_MALLOC (d->num_datasets * sizeof(Hist_t *)))
+       || NULL == (d->offsets = (int *) ISIS_MALLOC (d->num_datasets * sizeof(int)))
+       || NULL == (d->offset_for_marked = (int *) ISIS_MALLOC (d->num_datasets * sizeof(int)))
        )
      {
         free_fit_data (d);
@@ -2472,7 +2473,7 @@ static int grids_match_in_dataset_combinations (Fit_Data_t *d) /*{{{*/
    if (0 == Hist_any_noticed_dataset_combinations (head))
      return 1;
 
-   if (NULL == (ok = ISIS_MALLOC (d->num_datasets * sizeof(int))))
+   if (NULL == (ok = (int *) ISIS_MALLOC (d->num_datasets * sizeof(int))))
      return 0;
    memset ((char *)ok, 0, d->num_datasets * sizeof(int));
    n = 0;
@@ -2582,7 +2583,7 @@ static int make_cached_eval_grid (Hist_t *h, void *cl) /*{{{*/
    if (NULL != (m = find_cached_grid (d->cache, egm->type, egm->id)))
      return 0;
 
-   if (NULL == (m = ISIS_MALLOC(sizeof *m)))
+   if (NULL == (m = (Cached_Grid_Type *) ISIS_MALLOC(sizeof *m)))
      return -1;
 
    m->type = egm->type;
@@ -2894,7 +2895,7 @@ static void set_fit_statistic_name (char *name) /*{{{*/
 
 /*}}}*/
 
-void *current_fit_statistic (void) /*{{{*/
+Isis_Fit_Statistic_Type *current_fit_statistic (void) /*{{{*/
 {
    Isis_Fit_Statistic_Type *s;
    char *sname = Fit_Statistic;
@@ -2911,7 +2912,7 @@ void *current_fit_statistic (void) /*{{{*/
 
 /*}}}*/
 
-void *current_fit_method (void) /*{{{*/
+Isis_Fit_Engine_Type *current_fit_method (void) /*{{{*/
 {
    Isis_Fit_Engine_Type *e;
    char *name = Fit_Method;
@@ -3112,7 +3113,7 @@ static Fit_Object_Data_Type *setup_fit_object_data (Fit_Data_t *d) /*{{{*/
    if (d == NULL)
      return NULL;
 
-   if (NULL == (dt = ISIS_MALLOC (sizeof *dt)))
+   if (NULL == (dt = (Fit_Object_Data_Type *) ISIS_MALLOC (sizeof *dt)))
      return NULL;
 
    if (0 == Hist_any_noticed_dataset_combinations (get_histogram_list_head ()))
@@ -3127,8 +3128,8 @@ static Fit_Object_Data_Type *setup_fit_object_data (Fit_Data_t *d) /*{{{*/
         dt->malloced = 1;
         dt->num = d->nbins_after_datasets_combined;
 
-        if ((NULL == (dt->data = ISIS_MALLOC (dt->num * sizeof(double))))
-            || (NULL == (dt->weight = ISIS_MALLOC (dt->num * sizeof(double))))
+        if ((NULL == (dt->data = (double *) ISIS_MALLOC (dt->num * sizeof(double))))
+            || (NULL == (dt->weight = (double *) ISIS_MALLOC (dt->num * sizeof(double))))
             || (-1 == combine_datasets (d, d->data, d->weight, d->nbins,
                                         dt->data, dt->weight)))
           {
@@ -3223,11 +3224,11 @@ static Fit_Object_Type *fit_object_open (void) /*{{{*/
 
    SLang_run_hooks ("isis_prefit_hook", 0);
 
-   if (NULL == (fo = ISIS_MALLOC (sizeof *fo)))
+   if (NULL == (fo = (Fit_Object_Type *) ISIS_MALLOC (sizeof *fo)))
      return NULL;
    memset ((char *)fo, 0, sizeof *fo);
 
-   if (NULL == (fo->info = ISIS_MALLOC (sizeof (Fit_Info_Type))))
+   if (NULL == (fo->info = (Fit_Info_Type *) ISIS_MALLOC (sizeof (Fit_Info_Type))))
      goto return_error;
    memset ((char *)fo->info, 0, sizeof (Fit_Info_Type));
    info = fo->info;
@@ -3270,7 +3271,7 @@ static int eval_fit_stat2 (Isis_Fit_Statistic_Type *s,  int enable_copying, /*{{
 
    *stat = 0;
 
-   if (NULL == (fx = ISIS_MALLOC(2*n * sizeof(double))))
+   if (NULL == (fx = (double *) ISIS_MALLOC (2*n * sizeof(double))))
      return -1;
    vstat = fx + n;
 
@@ -3290,7 +3291,7 @@ static int eval_fit_stat2 (Isis_Fit_Statistic_Type *s,  int enable_copying, /*{{
         double *cpy;
         int i;
 
-        if (NULL == (cpy = ISIS_MALLOC (n * sizeof(double))))
+        if (NULL == (cpy = (double *) ISIS_MALLOC (n * sizeof(double))))
           {
              ISIS_FREE(fx);
              return -1;
@@ -3589,12 +3590,12 @@ Fit_Param_t *new_fit_param_type (unsigned int num) /*{{{*/
 {
    Fit_Param_t *p = NULL;
 
-   if (NULL == (p = ISIS_MALLOC (sizeof(Fit_Param_t))))
+   if (NULL == (p = (Fit_Param_t *) ISIS_MALLOC (sizeof(Fit_Param_t))))
      return NULL;
    memset ((char *)p, 0, sizeof (*p));
 
-   p->par = ISIS_MALLOC (num*3 * sizeof(double));
-   p->idx = ISIS_MALLOC (num * sizeof(int));
+   p->par = (double *) ISIS_MALLOC (num*3 * sizeof(double));
+   p->idx = (int *) ISIS_MALLOC (num * sizeof(int));
    if ((p->par == NULL) || (p->idx == NULL))
      {
         free_fit_param_type (p);
@@ -3625,7 +3626,7 @@ static void destroy_fit_object_mmt_type (SLtype type, VOID_STAR f) /*{{{*/
    (void) type;
    if (mt != NULL)
      fit_object_close (mt->fo);
-   SLfree (f);
+   SLfree ((char *)f);
 }
 
 /*}}}*/
@@ -4152,7 +4153,7 @@ int isis_eval_model_on_alt_grid (Isis_Hist_t *x) /*{{{*/
      {
         double *wrk, *x_wrk, *g_wrk;
         int wrk_size = g->nbins + x->nbins;
-        if (NULL == (wrk = ISIS_MALLOC(wrk_size * sizeof(double))))
+        if (NULL == (wrk = (double *) ISIS_MALLOC (wrk_size * sizeof(double))))
           return -1;
         x_wrk = wrk;
         g_wrk = x_wrk + x->nbins;
@@ -4588,7 +4589,11 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
 
 /*}}}*/
 
+#ifdef __cplusplus
+extern "C"
+#endif
 void deinit_fit_module (void);
+
 void deinit_fit_module (void) /*{{{*/
 {
    free_user_function ();

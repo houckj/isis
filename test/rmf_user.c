@@ -240,8 +240,8 @@ static int record_response (Elem_Type *e, float f, unsigned int ch) /*{{{*/
         unsigned int ch0 = e->chan.s;
         float f0 = e->resp.s;
 
-        e->resp.v = MALLOC (start_size * sizeof (float));
-        e->chan.v = MALLOC (start_size * sizeof (int));
+        e->resp.v = (float *) MALLOC (start_size * sizeof (float));
+        e->chan.v = (unsigned int *) MALLOC (start_size * sizeof (unsigned int));
         if (e->resp.v == NULL || e->chan.v == NULL)
           return -1;
 
@@ -252,18 +252,17 @@ static int record_response (Elem_Type *e, float f, unsigned int ch) /*{{{*/
 
    if (e->num_chan > e->size)
      {
-        void *tmp;
+        unsigned int *i_tmp;
+        float *f_tmp;
         e->size *= 2;
 
-        tmp = ISIS_REALLOC (e->chan.v, e->size * sizeof(unsigned int));
-        if (tmp == NULL)
+        if (NULL == (i_tmp = (unsigned int *) ISIS_REALLOC (e->chan.v, e->size * sizeof(unsigned int))))
           return -1;
-        e->chan.v = tmp;
+        e->chan.v = i_tmp;
 
-        tmp = ISIS_REALLOC (e->resp.v, e->size * sizeof(float));
-        if (tmp == NULL)
+        if (NULL == (f_tmp = (float *) ISIS_REALLOC (e->resp.v, e->size * sizeof(float))))
           return -1;
-        e->resp.v = tmp;
+        e->resp.v = f_tmp;
      }
 
    i = e->num_chan - 1;
@@ -286,8 +285,7 @@ static int init_client_data (Isis_Rmf_t *rmf) /*{{{*/
    unsigned int i, na, nd;
    double *alo, *ahi, *dlo, *dhi;
 
-   elem = MALLOC (arf->nbins * sizeof (*elem));
-   if (elem == NULL)
+   if (NULL == (elem = (Elem_Type *) MALLOC (arf->nbins * sizeof (*elem))))
      return -1;
    memset ((char *)elem, 0, arf->nbins * sizeof (*elem));
 
@@ -356,8 +354,8 @@ static int set_grid (Isis_Rmf_Grid_Type **g, double *lo, double *hi, unsigned in
 
 static int get_grid (Isis_Rmf_Grid_Type *g, double **lo, double **hi, unsigned int *n) /*{{{*/
 {
-   *lo = MALLOC (g->nbins * sizeof(double));
-   *hi = MALLOC (g->nbins * sizeof(double));
+   *lo = (double *) MALLOC (g->nbins * sizeof(double));
+   *hi = (double *) MALLOC (g->nbins * sizeof(double));
 
    if ((*lo == NULL) || (*hi == NULL))
      {
@@ -541,7 +539,7 @@ ISIS_RMF_METHOD(gauss_rmf, rmf, options)/*{{{*/
 
    rmf->delete_client_data = delete_client_data;
 
-   if (NULL == (cl = MALLOC (sizeof *cl)))
+   if (NULL == (cl = (Client_Data_t *) MALLOC (sizeof *cl)))
      return -1;
    memset ((char *)cl, 0, sizeof(*cl));
    rmf->client_data = (void *) cl;

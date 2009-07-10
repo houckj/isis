@@ -619,7 +619,7 @@ static void cl_add_component (void) /*{{{*/
    if (Model_Type_Id == SLang_peek_at_stack())
      {
         if ((NULL == (mmt = SLang_pop_mmt (Model_Type_Id)))
-            || (NULL == (mt = SLang_object_from_mmt (mmt))))
+            || (NULL == (mt = (Model_Type *) SLang_object_from_mmt (mmt))))
           goto return_error;
 
         m = mt->model;

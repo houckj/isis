@@ -48,61 +48,61 @@ extern int Cfits_Verbose;
 
 typedef void *cfitsfile;
 
-extern cfitsfile * cfits_open_file_readonly (char *filename);
-extern cfitsfile * cfits_open_file_readonly_silent (char *filename);
+extern cfitsfile *cfits_open_file_readonly (const char *filename);
+extern cfitsfile *cfits_open_file_readonly_silent (const char *filename);
 extern int cfits_close_file (cfitsfile *fptr);
 
 extern int cfits_movabs_hdu (int hdu_num, cfitsfile *fptr);
 extern int cfits_movrel_hdu (int nmove, cfitsfile *fptr);
-extern int cfits_movnam_hdu (cfitsfile *fptr, char *extname);
-extern int cfits_move_to_matching_hdu (cfitsfile *fptr, char *std_extnames[],
-                                       char *nonstd_names_hook, int (*check_hdu)(cfitsfile *));
+extern int cfits_movnam_hdu (cfitsfile *fptr, const char *extname);
+extern int cfits_move_to_matching_hdu (cfitsfile *fptr, const char *std_extnames[],
+                                       const char *nonstd_names_hook, int (*check_hdu)(cfitsfile *));
 
-extern int cfits_col_exist (char *col_name, cfitsfile *fptr);
+extern int cfits_col_exist (const char *col_name, cfitsfile *fptr);
 
-extern int cfits_read_int_keyword (int * keyvalue, char * keyname,
-                                   cfitsfile * fptr);
-extern int cfits_read_long_keyword (long * keyvalue, char * keyname,
-                                    cfitsfile * fptr);
-extern int cfits_read_float_keyword (float * keyvalue, char * keyname,
-                                     cfitsfile * fptr);
-extern int cfits_read_double_keyword (double * keyvalue, char * keyname,
-                                      cfitsfile * fptr);
-extern int cfits_read_string_keyword (char * keyvalue, char * keyname,
-                                      cfitsfile * fptr);
-extern int cfits_get_colunits (char * col_units, char * col_name,
-                               cfitsfile * fptr);
-extern int cfits_read_int_colkey (int * keyvalue, char * keyroot,
-                                  char * colname, cfitsfile *fptr);
+extern int cfits_read_int_keyword (int *keyvalue, const char *keyname,
+                                   cfitsfile *fptr);
+extern int cfits_read_long_keyword (long *keyvalue, const char *keyname,
+                                    cfitsfile *fptr);
+extern int cfits_read_float_keyword (float *keyvalue, const char *keyname,
+                                     cfitsfile *fptr);
+extern int cfits_read_double_keyword (double *keyvalue, const char *keyname,
+                                      cfitsfile *fptr);
+extern int cfits_read_string_keyword (char *keyvalue, const char *keyname,
+                                      cfitsfile *fptr);
+extern int cfits_get_colunits (char *col_units, const char *col_name,
+                               cfitsfile *fptr);
+extern int cfits_read_int_colkey (int *keyvalue, const char *keyroot,
+                                  const char *colname, cfitsfile *fptr);
 
-extern int cfits_test_keyword (char * test_value, char * keyword,
-                                cfitsfile * fptr);
+extern int cfits_test_keyword (const char *test_value, const char *keyword,
+                                cfitsfile *fptr);
 
-extern int cfits_get_repeat_count (int *nelems, char *colname, cfitsfile * fptr);
+extern int cfits_get_repeat_count (int *nelems, const char *colname, cfitsfile *fptr);
 
-extern int cfits_read_double_col (double * column_values, long num_values,
-                                  long firstrow, char * colname, cfitsfile * fptr);
-extern int cfits_read_float_col (float * column_values, long num_values,
-                                 long firstrow, char * colname, cfitsfile * fptr);
-extern int cfits_read_int_col (int * column_values, long num_values,
-                               long firstrow, char * colname, cfitsfile * fptr);
+extern int cfits_read_double_col (double *column_values, long num_values,
+                                  long firstrow, const char *colname, cfitsfile *fptr);
+extern int cfits_read_float_col (float *column_values, long num_values,
+                                 long firstrow, const char *colname, cfitsfile *fptr);
+extern int cfits_read_int_col (int *column_values, long num_values,
+                               long firstrow, const char *colname, cfitsfile *fptr);
 extern int cfits_read_string_col (char **column_values, long num_values,
-                                  long firstrow, char * colname, cfitsfile * fptr);
+                                  long firstrow, const char *colname, cfitsfile *fptr);
 
 extern long cfits_optimal_numrows (cfitsfile *fptr);
 
-extern int cfits_locate_vextension (cfitsfile *ft, int argc, char **ext_names,
+extern int cfits_locate_vextension (cfitsfile *ft, int argc, const char **ext_names,
                                     int (*fun) (cfitsfile *));
-extern int cfits_get_column_numbers (cfitsfile *ft, unsigned int num, char **names, int *cols);
+extern int cfits_get_column_numbers (cfitsfile *ft, unsigned int num, const char **names, int *cols);
 
 extern int cfits_read_column_uints (cfitsfile *ft, int col, int row, long ofs,
                                      unsigned int *data, int nrows);
 extern int cfits_read_column_floats (cfitsfile *ft, int col, long row, long ofs,
                                      float *data, int nrows);
 
-extern int cfits_read_optional_double_col (double * dat, int nbins,
-                                           int k, char *name, cfitsfile *cfp);
-extern int cfits_read_optional_int_col (int * dat, int nbins, int k, char *name,
+extern int cfits_read_optional_double_col (double *dat, int nbins,
+                                           int k, const char *name, cfitsfile *cfp);
+extern int cfits_read_optional_int_col (int *dat, int nbins, int k, const char *name,
                                         cfitsfile *cfp);
 
 #if 0

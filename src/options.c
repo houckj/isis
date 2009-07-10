@@ -145,7 +145,7 @@ Isis_Option_Type *isis_parse_option_string (char *str)
    Isis_Option_Type *t;
    char *estr;
 
-   if (NULL == (t = ISIS_MALLOC (sizeof(Isis_Option_Type))))
+   if (NULL == (t = (Isis_Option_Type *) ISIS_MALLOC (sizeof(Isis_Option_Type))))
      return NULL;
 
    memset ((char *) t, 0, sizeof (Isis_Option_Type));
@@ -175,13 +175,13 @@ Isis_Option_Type *isis_parse_option_string (char *str)
         estr++;
      }
 
-   if (NULL == (t->option_names = ISIS_MALLOC (num * sizeof(char *))))
+   if (NULL == (t->option_names = (char **) ISIS_MALLOC (num * sizeof(char *))))
      {
         isis_free_options (t);
         return NULL;
      }
 
-   if (NULL == (t->option_values = ISIS_MALLOC (num * sizeof(char *))))
+   if (NULL == (t->option_values = (char **) ISIS_MALLOC (num * sizeof(char *))))
      {
         isis_free_options (t);
         return NULL;
@@ -475,7 +475,7 @@ char *isis_add_option (char *subsystem, char *option)
      subsystem = "";
 
    len = strlen (subsystem) + strlen (option) + 2;
-   if (NULL == (s = ISIS_MALLOC (len * sizeof(char))))
+   if (NULL == (s = (char *) ISIS_MALLOC (len * sizeof(char))))
      return s;
 
    sprintf (s, "%s;%s", subsystem, option);
@@ -544,7 +544,7 @@ int isis_get_option_u (Isis_Option_Type *opt, char *option, unsigned int *d)
    return get_scalar_option (opt, option, (void *) d, "%d", "an unsigned int");
 }
 
-char *isis_make_default_option_string (char *subsystem, Isis_Option_Table_Type *table)
+char *isis_make_default_option_string (const char *subsystem, Isis_Option_Table_Type *table)
 {
    Isis_Option_Table_Type *t;
    char *s, *ps;
@@ -567,7 +567,7 @@ char *isis_make_default_option_string (char *subsystem, Isis_Option_Table_Type *
    /* trailing null */
    len += 1;
 
-   if (NULL == (s = ISIS_MALLOC(len*sizeof *s)))
+   if (NULL == (s = (char *) ISIS_MALLOC(len*sizeof *s)))
      return NULL;
 
    o = sprintf (s, "%s", subsystem);
@@ -608,7 +608,7 @@ int isis_update_option_string (char **optstring, char *optname, char *optvalue)
    len3 = optvalue ? strlen(optvalue) + 1 : 0;
    len4 = end ? strlen (end) + 1: 0;
 
-   if (NULL == (newstring = ISIS_MALLOC (len1 + len2 + len3 + len4 + 1)))
+   if (NULL == (newstring = (char *) ISIS_MALLOC (len1 + len2 + len3 + len4 + 1)))
      return -1;
 
    s = isis_strcpy (newstring, *optstring, len1);

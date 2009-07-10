@@ -75,7 +75,7 @@ static void free_param_function (Param_Info_t *p)
      return;
    SLang_free_function (p->fun_ptr);
    ISIS_FREE (p->fun_str);
-   p->fun_str = NULL;   
+   p->fun_str = NULL;
 }
 
 static void free_param_info (Param_Info_t *i, unsigned int num_params) /*{{{*/
@@ -101,7 +101,7 @@ static void free_param_info (Param_Info_t *i, unsigned int num_params) /*{{{*/
 
 static Param_Info_t *new_param_info (unsigned int num_params) /*{{{*/
 {
-   Param_Info_t *i = ISIS_MALLOC (num_params * sizeof(Param_Info_t));
+   Param_Info_t *i = (Param_Info_t *) ISIS_MALLOC (num_params * sizeof(Param_Info_t));
 
    if (i != NULL)
      memset ((char *)i, 0, num_params * sizeof (*i));
@@ -127,8 +127,9 @@ void Fit_free_param_table (Param_t *pt) /*{{{*/
 Param_t *Fit_new_param_table (unsigned int num_params,  /*{{{*/
                               unsigned int fun_type, unsigned int fun_id, unsigned int fun_version)
 {
-   Param_t *p = ISIS_MALLOC (sizeof(Param_t));
-   if (p == NULL)
+   Param_t *p;
+
+   if (NULL == (p = (Param_t *) ISIS_MALLOC (sizeof(Param_t))))
      return NULL;
    memset ((char *)p, 0, sizeof (*p));
 
@@ -180,7 +181,7 @@ static int map_table (Param_t *pt, int which, int (*fun)(Param_Info_t *, void *)
         for (i = 0; i < pt->num_params; i++)
           {
              Param_Info_t *p = &pt->info[i];
-             if ((which == ALL_PARS) 
+             if ((which == ALL_PARS)
                  || ((p->tie_param_name == NULL) && (p->freeze == 0)))
                {
                   if ((*fun)(p, cl))
@@ -248,7 +249,7 @@ Param_Info_t *Fit_param_info2 (Param_t *pt, unsigned int fun_type, unsigned int 
                   Param_Info_t *p = &pt->info[i];
                   if (p->in_use && (p->fun_par == fun_par))
                     return p;
-               }             
+               }
           }
         pt = pt->next_fun;
      }
@@ -263,23 +264,23 @@ Param_Info_t *Fit_find_param_info_by_full_name (Param_t *pt, char *name) /*{{{*/
    Fit_Fun_t *ff;
    char fun_name[MAX_NAME_SIZE], par_name[MAX_NAME_SIZE];
    int n, fun_type, fun_id, fun_par;
-   
+
    if (name == NULL)
      return NULL;
-   
+
    n = sscanf (name, "%[^(<]%*1[(<]%d%*1[)>].%s", fun_name, &fun_id, par_name);
    if (n != 3)
      return NULL;
-   
+
    if (-1 == (fun_type = Fit_get_fun_type (fun_name)))
      return NULL;
-   
+
    if (NULL == (ff = Fit_get_fit_fun (fun_type)))
      return NULL;
-   
+
    if (-1 == (fun_par = Fit_get_fun_par (ff, par_name)))
      return NULL;
-   
+
    return Fit_param_info2 (pt, fun_type, fun_id, fun_par);
 }
 
@@ -333,7 +334,7 @@ static int set_param_minmax (Param_Info_t *p, double p_min, double p_max) /*{{{*
      {
         p->min = -DBL_MAX;
         p->max =  DBL_MAX;
-     }   
+     }
 
    return 0;
 }
@@ -344,14 +345,14 @@ static int validate_param_minmax (Param_Info_t *p) /*{{{*/
 {
    if (p == NULL)
      return -1;
-   
+
    if ((p->value < p->min) || (p->max < p->value))
      {
         isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "invalid range for parameter %d: value=%g is outside [%g,%g)",
                     p->idx, p->value, p->min, p->max);
         return -1;
-     }   
-   
+     }
+
    return 0;
 }
 
@@ -366,7 +367,7 @@ static int init_parameter_of_type (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
      return 0;
 
    s = ff->name[p->fun_par+1];
-   ch = (*s != 0) ? '.' : ' ';   
+   ch = (*s != 0) ? '.' : ' ';
    sprintf (name, "%s(%d)%c%s", ff->name[0], p->fun_id, ch, s);
 
    if (NULL == (p->param_name = isis_make_string (name)))
@@ -378,9 +379,9 @@ static int init_parameter_of_type (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
    if ((-1 == set_param_minmax (p, p->min, p->max))
        ||(-1 == validate_param_minmax (p)))
      return -1;
-   
-   p->default_applied = 1;   
-   
+
+   p->default_applied = 1;
+
    return 0;
 }
 /*}}}*/
@@ -508,7 +509,7 @@ static int update_tie (Param_Info_t *p, void *cl) /*{{{*/
    if (p->in_use && p->tie_param_name)
      {
         Param_Info_t *tie_info;
-        
+
         tie_info = Fit_find_param_info_by_full_name (pt, p->tie_param_name);
         if ((NULL == tie_info)
             || (tie_info->in_use == 0))
@@ -538,7 +539,7 @@ static int update_derived (Param_Info_t *p, void *cl) /*{{{*/
 {
    int err = 0;
    (void) cl;
-   
+
    if (Isis_Evaluating_Derived_Param)
      return 0;
 
@@ -690,7 +691,7 @@ int Fit_tie (Param_t *pt, unsigned int idx_a, unsigned int idx_b) /*{{{*/
                     idx_a, idx_b);
         return -1;
      }
-   
+
    return 0;
 }
 
@@ -726,7 +727,7 @@ int Fit_set_param_function (Param_t *pt, unsigned int idx, char *str) /*{{{*/
      }
 
    len = strlen (fmt) + strlen (str) + 16;
-   if (NULL == (buf = ISIS_MALLOC (len * sizeof(char))))
+   if (NULL == (buf = (char *) ISIS_MALLOC (len * sizeof(char))))
      return -1;
    sprintf (buf, fmt, idx, str);
    sprintf (fun_name, "_pf_%u", idx);
@@ -793,7 +794,7 @@ double *Fit_get_kernel_params (Param_t *pt, int id, Isis_Kernel_Def_t *def) /*{{
    if (NULL == (fun = locate_fun_params (pt, def->fun_type, id)))
      return NULL;
 
-   if (NULL == (kp = ISIS_MALLOC (def->num_kernel_parms * sizeof(double))))
+   if (NULL == (kp = (double *) ISIS_MALLOC (def->num_kernel_parms * sizeof(double))))
      return NULL;
 
    for (i = 0; i < def->num_kernel_parms; i++)

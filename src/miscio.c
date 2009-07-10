@@ -119,7 +119,7 @@ static int init_buf (Buffer_Type *b) /*{{{*/
    if (b->bufsize)
      return 0;
 
-   b->buf = ISIS_MALLOC (DEFAULT_BUFSIZE * sizeof(char));
+   b->buf = (char *) ISIS_MALLOC (DEFAULT_BUFSIZE * sizeof(char));
    if (b->buf == NULL)
      return -1;
 
@@ -181,9 +181,8 @@ static int readline (FILE *fp, Buffer_Type *b) /*{{{*/
         if (b->len == b->bufsize)
           {
              unsigned int new_size = b->bufsize * 2 * sizeof(char);
-             void *tmp;
-             tmp = ISIS_REALLOC (b->buf, new_size);
-             if (tmp == NULL)
+             char *tmp;
+             if (NULL == (tmp = (char *) ISIS_REALLOC (b->buf, new_size)))
                return -1;
              b->buf = tmp;
              b->bufsize *= 2;
@@ -211,7 +210,7 @@ static int ascii_readcol (FILE *fp, unsigned int *cols, unsigned int ncols, /*{{
    if (ncols == 0)
      return -1;
 
-   if (NULL == (x = ISIS_MALLOC (nx * sizeof(double))))
+   if (NULL == (x = (double *) ISIS_MALLOC (nx * sizeof(double))))
      return -1;
 
    k = 0;
@@ -255,9 +254,8 @@ static int ascii_readcol (FILE *fp, unsigned int *cols, unsigned int ncols, /*{{
                   if (k >= nx)
                     {
                        unsigned int new_size = 2 * nx * sizeof(double);
-                       void *tmp;
-                       tmp = ISIS_REALLOC (x, new_size);
-                       if (tmp == NULL)
+                       double *tmp;
+                       if (NULL == (tmp = (double *) ISIS_REALLOC (x, new_size)))
                          goto finish;
                        x = tmp;
                        nx *= 2;
@@ -302,8 +300,8 @@ static int ascii_readcol (FILE *fp, unsigned int *cols, unsigned int ncols, /*{{
 
 static int uint_compar (const void *pa, const void *pb) /*{{{*/
 {
-   const unsigned int *a = pa;
-   const unsigned int *b = pb;
+   const unsigned int *a = (const unsigned int *) pa;
+   const unsigned int *b = (const unsigned int *) pb;
 
    if (*a < *b) return -1;
    else if (*a > *b) return 1;
@@ -352,7 +350,7 @@ static int push_cols (double *d, unsigned int n, unsigned int ncols) /*{{{*/
         if (at == NULL)
           return -1;
 
-        x = at->data;
+        x = (double *) at->data;
 
         i = 0;
         for (k = c; k < n; k += ncols)
@@ -383,7 +381,7 @@ static void _readcol (void) /*{{{*/
        || (sl_cols == NULL))
      goto finish;
 
-   cols = sl_cols->data;
+   cols = (unsigned int *) sl_cols->data;
    ncols = sl_cols->num_elements;
 
    fp = fopen (file, "r");

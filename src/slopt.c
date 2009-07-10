@@ -199,7 +199,7 @@ static Isis_Fit_Engine_Type *add_slang_fit_engine (char *eng_name, char *stat_na
 {
    Isis_Fit_Engine_Type *e;
 
-   if (NULL == (e = ISIS_MALLOC (sizeof(Isis_Fit_Engine_Type))))
+   if (NULL == (e = (Isis_Fit_Engine_Type *) ISIS_MALLOC (sizeof(Isis_Fit_Engine_Type))))
      return NULL;
    memset ((char *)e, 0, sizeof (*e));
 

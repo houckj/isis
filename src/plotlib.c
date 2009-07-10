@@ -182,7 +182,7 @@ int Plot_set_library_interface (void) /*{{{*/
    Plot_Library_Interface_Type *pli;
    int status = -1;
 
-   if (NULL == (pli = ISIS_MALLOC (sizeof *pli)))
+   if (NULL == (pli = (Plot_Library_Interface_Type *) ISIS_MALLOC (sizeof *pli)))
      return -1;
 
    if (-1 == SLang_pop_cstruct ((VOID_STAR)pli, Plot_Library_Interface_Table))

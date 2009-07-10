@@ -855,18 +855,14 @@ static void _pgerrx (double *len)
 static void _pgerrb (double *t)
 {
    SLang_Array_Type *x, *y, *e;
-   double dir;
+   int dir;
 
    if (-1 == pop_three_float_vectors (&x, &y, &e))
      return;
 
-#if SLANG_VERSION < 20000
-   if (-1 != SLang_pop_double (&dir, NULL, NULL))
-#else
-   if (-1 != SLang_pop_double (&dir))
-#endif
+   if (-1 != SLang_pop_integer (&dir))
      {
-	cpgerrb ((float) dir, (int)x->num_elements, 
+	cpgerrb (dir, (int)x->num_elements, 
 		 (float*)x->data, (float*)y->data, (float*)e->data, 
 		 (float) *t);
      }

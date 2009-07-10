@@ -58,7 +58,7 @@ static int cash_function (Isis_Fit_Statistic_Type *st, /*{{{*/
 
    sum = 0.0;
 
-   if (NULL == (val = ISIS_MALLOC (npts * sizeof(double))))
+   if (NULL == (val = (double *) ISIS_MALLOC (npts * sizeof(double))))
      return -1;
 
    /* The form of the statistic is modified according to the
@@ -125,7 +125,7 @@ ISIS_FIT_STATISTIC_METHOD (cash)
 {
    Isis_Fit_Statistic_Type *s;
 
-   if (NULL == (s = ISIS_MALLOC (sizeof(Isis_Fit_Statistic_Type))))
+   if (NULL == (s = (Isis_Fit_Statistic_Type *) ISIS_MALLOC (sizeof(Isis_Fit_Statistic_Type))))
      return NULL;
    memset ((char *)s, 0, sizeof (*s));
 

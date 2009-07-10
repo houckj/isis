@@ -224,7 +224,7 @@ static void free_abund_list (EM_abund_t *head) /*{{{*/
 static EM_abund_t *new_abund_table (void) /*{{{*/
 {
    EM_abund_t *t;
-   if (NULL != (t = ISIS_MALLOC(sizeof *t)))
+   if (NULL != (t = (EM_abund_t *) ISIS_MALLOC(sizeof *t)))
      {
         memset ((char *)t, 0, sizeof *t);
      }   
@@ -306,13 +306,13 @@ static char **new_string_array (int n, int len) /*{{{*/
    if (n <= 0 || len <= 0)
      return NULL;
 
-   if (NULL == (p = ISIS_MALLOC (n * sizeof(char *))))
+   if (NULL == (p = (char **) ISIS_MALLOC (n * sizeof(char *))))
      return NULL;
    memset ((char *)p, 0, n * sizeof(char *));
 
    for (i=0; i < n; i++)
      {
-        if (NULL == (p[i] = ISIS_MALLOC (len * sizeof(char))))
+        if (NULL == (p[i] = (char *) ISIS_MALLOC (len * sizeof(char))))
           {
              free_string_array (p, n);
              return NULL;
@@ -354,7 +354,7 @@ static EM_abund_t *load_abundance_file (char *path) /*{{{*/
         goto close_and_return;
      }
 
-   if (NULL == (tmp_abun = ISIS_MALLOC (nabund * sizeof(float)))
+   if (NULL == (tmp_abun = (float *) ISIS_MALLOC (nabund * sizeof(float)))
        || NULL == (tmp_name = new_string_array (nabund, ABUND_NAME_SIZE)))
      goto close_and_return;
 
@@ -570,8 +570,8 @@ int EM_get_abundance_table (EM_t *em, int k, char **name, float **a, int **z, in
    *z = NULL;
 
    if ((NULL == (*name = isis_make_string (t->name)))
-       || (NULL == (*a = ISIS_MALLOC (num * sizeof(float))))
-       || (NULL == (*z = ISIS_MALLOC (num * sizeof(int)))))
+       || (NULL == (*a = (float *) ISIS_MALLOC (num * sizeof(float))))
+       || (NULL == (*z = (int *) ISIS_MALLOC (num * sizeof(int)))))
      {
         ISIS_FREE (*z);
         ISIS_FREE (*a);
@@ -747,14 +747,14 @@ static EM_ioniz_table_t *new_ioniz_table (int num_ions, int num_td_pairs) /*{{{*
        || num_ions <= 0)
      return NULL;
 
-   if (NULL == (t = ISIS_MALLOC (sizeof(EM_ioniz_table_t))))
+   if (NULL == (t = (EM_ioniz_table_t *) ISIS_MALLOC (sizeof(EM_ioniz_table_t))))
      return NULL;
    memset ((char *)t, 0, sizeof (*t));
 
    t->num_td_pairs = num_td_pairs;
 
-   if (NULL == (t->offset = ISIS_MALLOC ((ISIS_MAX_PROTON_NUMBER + 1) * sizeof(int)))
-       || NULL == (t->ionfrac = ISIS_MALLOC (num_td_pairs * sizeof(EM_ionfrac_t *))))
+   if (NULL == (t->offset = (int *) ISIS_MALLOC ((ISIS_MAX_PROTON_NUMBER + 1) * sizeof(int)))
+       || NULL == (t->ionfrac = (EM_ionfrac_t **) ISIS_MALLOC (num_td_pairs * sizeof(EM_ionfrac_t *))))
      goto free_and_return;
    memset ((char *)t->ionfrac, 0, num_td_pairs * sizeof (EM_ionfrac_t *));
 
@@ -762,11 +762,11 @@ static EM_ioniz_table_t *new_ioniz_table (int num_ions, int num_td_pairs) /*{{{*
      {
         EM_ionfrac_t *p = NULL;
 
-           if (NULL == (p = ISIS_MALLOC (sizeof(EM_ionfrac_t))))
+           if (NULL == (p = (EM_ionfrac_t *) ISIS_MALLOC (sizeof(EM_ionfrac_t))))
           goto free_and_return;
         memset ((char *)p, 0, sizeof (*p));
 
-        if (NULL == (p->fraction = ISIS_MALLOC (num_ions * sizeof(float))))
+        if (NULL == (p->fraction = (float *) ISIS_MALLOC (num_ions * sizeof(float))))
           {
              free_ionfrac (p);
              goto free_and_return;
@@ -857,7 +857,7 @@ static EM_ioniz_table_t *load_ionization_table (char * filename) /*{{{*/
    /* Read the atomic numbers vector from the first row only,
       assuming all rows are identical */
 
-   if (NULL == (Z = ISIS_MALLOC (num_elements * sizeof(int)))
+   if (NULL == (Z = (int *) ISIS_MALLOC (num_elements * sizeof(int)))
        || -1 == cfits_read_int_col (Z, num_elements, 1, "Z_ELEMENT", fp))
      {
         isis_vmesg (FAIL, I_READ_COL_FAILED, __FILE__, __LINE__, "Z_ELEMENT => %s", filename);
@@ -1135,13 +1135,12 @@ static Hash_t *new_hash_table (unsigned int size) /*{{{*/
 {
    Hash_t *h;
 
-   h = ISIS_MALLOC (sizeof(Hash_t));
-   if (NULL == h)
+   if (NULL == (h = (Hash_t *) ISIS_MALLOC (sizeof(Hash_t))))
      return NULL;
    memset ((char *)h, 0, sizeof (*h));
 
-   h->table = ISIS_MALLOC (size * sizeof(Line_t));
-   h->entries = ISIS_MALLOC (size * sizeof(unsigned int));
+   h->table = (Line_t *) ISIS_MALLOC (size * sizeof(Line_t));
+   h->entries = (unsigned int *) ISIS_MALLOC (size * sizeof(unsigned int));
    if ((h->table == NULL) || (h->entries == NULL))
      {
         free_hash_table (h);
@@ -1277,14 +1276,14 @@ static int allocate_merge_space (DB_Merge_Type *m, unsigned int n) /*{{{*/
 
    memset ((char *)m, 0, sizeof(*m));
 
-   if (NULL == (m->lambda = ISIS_MALLOC (n * sizeof(float)))
-       || NULL == (m->lambda_err = ISIS_MALLOC (n * sizeof(float)))
-       || NULL == (m->A_value = ISIS_MALLOC (n * sizeof(float)))
-       || NULL == (m->A_err = ISIS_MALLOC (n * sizeof(float)))
-       || NULL == (m->upper_lev = ISIS_MALLOC (n * sizeof(int)))
-       || NULL == (m->lower_lev = ISIS_MALLOC (n * sizeof(int)))
-       || NULL == (m->proton_number = ISIS_MALLOC (n * sizeof(unsigned char)))
-       || NULL == (m->ion_charge = ISIS_MALLOC (n * sizeof(unsigned char))))
+   if (NULL == (m->lambda = (float *) ISIS_MALLOC (n * sizeof(float)))
+       || NULL == (m->lambda_err = (float *) ISIS_MALLOC (n * sizeof(float)))
+       || NULL == (m->A_value = (float *) ISIS_MALLOC (n * sizeof(float)))
+       || NULL == (m->A_err = (float *) ISIS_MALLOC (n * sizeof(float)))
+       || NULL == (m->upper_lev = (int *) ISIS_MALLOC (n * sizeof(int)))
+       || NULL == (m->lower_lev = (int *) ISIS_MALLOC (n * sizeof(int)))
+       || NULL == (m->proton_number = (unsigned char *) ISIS_MALLOC (n * sizeof(unsigned char)))
+       || NULL == (m->ion_charge = (unsigned char *) ISIS_MALLOC (n * sizeof(unsigned char))))
      {
         free_merge_space (m);
         return -1;
@@ -1381,7 +1380,7 @@ static EM_filemap_t *new_filemap (void) /*{{{*/
 {
    EM_filemap_t *map;
 
-   if (NULL == (map = ISIS_MALLOC (sizeof(EM_filemap_t))))
+   if (NULL == (map = (EM_filemap_t *) ISIS_MALLOC (sizeof(EM_filemap_t))))
      return NULL;
 
    map->densities = NULL;
@@ -1466,9 +1465,9 @@ static EM_filemap_t *get_filemap (char *filename, void *cl) /*{{{*/
    map->num_densities = num_densities;
    map->num_hdus = num_temps * num_densities;  /* initial guess */
 
-   if (NULL == (map->temps = ISIS_MALLOC (map->num_hdus * sizeof(float)))
-       || NULL == (map->densities = ISIS_MALLOC (map->num_hdus * sizeof(float)))
-       || NULL == (map->hdu = ISIS_MALLOC (map->num_hdus * sizeof(int))))
+   if (NULL == (map->temps = (float *) ISIS_MALLOC (map->num_hdus * sizeof(float)))
+       || NULL == (map->densities = (float *) ISIS_MALLOC (map->num_hdus * sizeof(float)))
+       || NULL == (map->hdu = (int *) ISIS_MALLOC (map->num_hdus * sizeof(int))))
      goto finish;
 
    if (-1 == cfits_read_float_col (map->temps, map->num_hdus, 1, "kT", fp)
@@ -1532,8 +1531,8 @@ int EM_get_filemap (EM_t *em, char *emis_file, void *cl, unsigned int *num_hdus,
 
    *num_hdus = map->num_hdus;
 
-   *temp = ISIS_MALLOC (map->num_hdus * sizeof(double));
-   *dens = ISIS_MALLOC (map->num_hdus * sizeof(double));
+   *temp = (double *) ISIS_MALLOC (map->num_hdus * sizeof(double));
+   *dens = (double *) ISIS_MALLOC (map->num_hdus * sizeof(double));
    if (*temp == NULL || *dens == NULL)
      {
         ISIS_FREE (*temp);
@@ -1576,12 +1575,12 @@ static EM_line_emis_t *new_line_emis_list (int nlines) /*{{{*/
 {
    EM_line_emis_t *emis = NULL;
 
-   if (NULL == (emis = ISIS_MALLOC (sizeof(EM_line_emis_t))))
+   if (NULL == (emis = (EM_line_emis_t *) ISIS_MALLOC (sizeof(EM_line_emis_t))))
      return NULL;
    memset ((char *)emis, 0, sizeof (*emis));
 
-   if (NULL == (emis->line = ISIS_MALLOC (nlines * sizeof(DB_line_t *)))
-       || NULL == (emis->emissivity = ISIS_MALLOC (nlines * sizeof(float))))
+   if (NULL == (emis->line = (DB_line_t **) ISIS_MALLOC (nlines * sizeof(DB_line_t *)))
+       || NULL == (emis->emissivity = (float *) ISIS_MALLOC (nlines * sizeof(float))))
      {
         EM_free_line_emis_list (emis);
         return NULL;
@@ -1644,12 +1643,12 @@ static int apply_to_linefile_hdu (cfitsfile *fp, DB_t *db, void **user_data, /*{
    if (-1 == (opt = cfits_optimal_numrows (fp)))
      goto free_and_return;
 
-   if (NULL == (x.lambda = ISIS_MALLOC (opt * sizeof(float)))
-       || NULL == (x.epsilon = ISIS_MALLOC (opt * sizeof(float)))
-       || NULL == (x.Z = ISIS_MALLOC (opt * sizeof(int)))
-       || NULL == (x.rmJ = ISIS_MALLOC (opt * sizeof(int)))
-       || NULL == (x.up = ISIS_MALLOC (opt * sizeof(int)))
-       || NULL == (x.lo = ISIS_MALLOC (opt * sizeof(int))))
+   if (NULL == (x.lambda = (float *) ISIS_MALLOC (opt * sizeof(float)))
+       || NULL == (x.epsilon = (float *) ISIS_MALLOC (opt * sizeof(float)))
+       || NULL == (x.Z = (int *) ISIS_MALLOC (opt * sizeof(int)))
+       || NULL == (x.rmJ = (int *) ISIS_MALLOC (opt * sizeof(int)))
+       || NULL == (x.up = (int *) ISIS_MALLOC (opt * sizeof(int)))
+       || NULL == (x.lo = (int *) ISIS_MALLOC (opt * sizeof(int))))
      goto free_and_return;
 
    k = 0;
@@ -1778,8 +1777,7 @@ static EM_line_data_t *new_line_data (EM_filemap_t *map) /*{{{*/
    if (map == NULL)
      return NULL;
 
-   ld = ISIS_MALLOC (sizeof(EM_line_data_t));
-   if (NULL == ld)
+   if (NULL == (ld = (EM_line_data_t *) ISIS_MALLOC (sizeof(EM_line_data_t))))
      return NULL;
    memset ((char *)ld, 0, sizeof (*ld));
 
@@ -1787,7 +1785,7 @@ static EM_line_data_t *new_line_data (EM_filemap_t *map) /*{{{*/
 
    if (EM_Load_Line_Emis)
      {
-        ld->emis = ISIS_MALLOC (map->num_hdus * sizeof(EM_line_emis_t *));
+        ld->emis = (EM_line_emis_t **) ISIS_MALLOC (map->num_hdus * sizeof(EM_line_emis_t *));
         if (ld->emis == NULL)
           {
              ISIS_FREE (ld);
@@ -1811,7 +1809,7 @@ static int update_line_atomic_data (EM_filemap_t *map, DB_t *db) /*{{{*/
    FILE *progress = stderr;
    cfitsfile *fp = NULL;
    int j, ret = -1;
-   static char *fmt = "hdu:  %d/%d\r";
+   static const char *fmt = "hdu:  %d/%d\r";
 
    if (db == NULL || map == NULL)
      return -1;
@@ -1908,7 +1906,7 @@ static int load_line_emissivity_data (EM_line_data_t *ld, DB_t *db) /*{{{*/
    EM_filemap_t *map = ld->map;
    cfitsfile *fp = NULL;
    int j, hdu, ret = -1;
-   static char *fmt = "hdu:  %d/%d\r";
+   static const char *fmt = "hdu:  %d/%d\r";
 
    if (NULL == (fp = cfits_open_file_readonly (map->filename)))
      {
@@ -2035,14 +2033,14 @@ static EM_cont_emis_t *new_cont_type (int ntrue_contin, int npseudo) /*{{{*/
    if (ntrue_contin <= 0 || npseudo <= 0)
      return NULL;
 
-   if (NULL == (p = ISIS_MALLOC (sizeof(EM_cont_emis_t))))
+   if (NULL == (p = (EM_cont_emis_t *) ISIS_MALLOC (sizeof(EM_cont_emis_t))))
      return NULL;
    memset ((char *)p, 0, sizeof (*p));
 
-   if (NULL == (p->g_true_contin = ISIS_MALLOC (ntrue_contin * sizeof(double)))
-       || NULL == (p->true_contin = ISIS_MALLOC (ntrue_contin * sizeof(double)))
-       || NULL == (p->g_pseudo = ISIS_MALLOC (npseudo * sizeof(double)))
-       || NULL == (p->pseudo = ISIS_MALLOC (npseudo * sizeof(double))))
+   if (NULL == (p->g_true_contin = (double *) ISIS_MALLOC (ntrue_contin * sizeof(double)))
+       || NULL == (p->true_contin = (double *) ISIS_MALLOC (ntrue_contin * sizeof(double)))
+       || NULL == (p->g_pseudo = (double *) ISIS_MALLOC (npseudo * sizeof(double)))
+       || NULL == (p->pseudo = (double *) ISIS_MALLOC (npseudo * sizeof(double))))
      {
         free_cont_type (p);
         return NULL;
@@ -2114,14 +2112,14 @@ EM_cont_type_t *EM_new_continuum (int nbins) /*{{{*/
 {
    EM_cont_type_t *p = NULL;
 
-   if (NULL == (p = ISIS_MALLOC (sizeof(EM_cont_type_t))))
+   if (NULL == (p = (EM_cont_type_t *) ISIS_MALLOC (sizeof(EM_cont_type_t))))
      return NULL;
    memset ((char *)p, 0, sizeof(*p));
 
-   if (NULL == (p->wlhi = ISIS_MALLOC (nbins * sizeof(double)))
-       || NULL == (p->wllo = ISIS_MALLOC (nbins * sizeof(double)))
-       || NULL == (p->pseudo = ISIS_MALLOC (nbins * sizeof(double)))
-       || NULL == (p->true_contin = ISIS_MALLOC (nbins * sizeof(double))))
+   if (NULL == (p->wlhi = (double *) ISIS_MALLOC (nbins * sizeof(double)))
+       || NULL == (p->wllo = (double *) ISIS_MALLOC (nbins * sizeof(double)))
+       || NULL == (p->pseudo = (double *) ISIS_MALLOC (nbins * sizeof(double)))
+       || NULL == (p->true_contin = (double *) ISIS_MALLOC (nbins * sizeof(double))))
      {
         EM_free_continuum (p);
         return NULL;
@@ -2239,8 +2237,7 @@ static EM_cont_data_t *new_cont_data (EM_filemap_t *map) /*{{{*/
    if (map == NULL)
      return NULL;
 
-   cd = ISIS_MALLOC (sizeof(EM_cont_data_t));
-   if (NULL == cd)
+   if (NULL == (cd = (EM_cont_data_t *) ISIS_MALLOC (sizeof(EM_cont_data_t))))
      return NULL;
    memset ((char *)cd, 0, sizeof (*cd));
 
@@ -2248,7 +2245,7 @@ static EM_cont_data_t *new_cont_data (EM_filemap_t *map) /*{{{*/
 
    if (EM_Load_Cont_Emis)
      {
-        cd->emis = ISIS_MALLOC (map->num_hdus * sizeof(EM_cont_emis_t *));
+        cd->emis = (EM_cont_emis_t **) ISIS_MALLOC (map->num_hdus * sizeof(EM_cont_emis_t *));
         if (cd->emis == NULL)
           {
              ISIS_FREE (cd);
@@ -2370,7 +2367,7 @@ static int load_cont_emissivity_data (EM_cont_data_t *cd, EM_t *em) /*{{{*/
    EM_filemap_t *map = cd->map;
    cfitsfile *fp = NULL;
    int j, hdu, ret = -1;
-   static char *fmt = "hdu:  %d/%d\r";
+   static const char *fmt = "hdu:  %d/%d\r";
 
    if (NULL == (fp = cfits_open_file_readonly (map->filename)))
      {
@@ -2618,7 +2615,7 @@ static int build_lookup_table (EM_line_emis_t *p, DB_t *db) /*{{{*/
      return -1;
 
    if (-1 == (nlines = DB_get_nlines (db))
-       || NULL == (lookup = ISIS_MALLOC (nlines * sizeof(int))))
+       || NULL == (lookup = (int *) ISIS_MALLOC (nlines * sizeof(int))))
      return -1;
 
    for (i=0; i < nlines; i++)        /* init to invalid values */
@@ -2718,7 +2715,7 @@ static EM_line_emis_t *interpolate_line_emis (char *flag, EM_line_emis_t **table
 
    if (-1 == (ntot = DB_get_nlines (db)))
      return NULL;
-   if (NULL == (t = ISIS_MALLOC (ntot * sizeof(struct line_interp_t))))
+   if (NULL == (t = (struct line_interp_t *) ISIS_MALLOC (ntot * sizeof(struct line_interp_t))))
      return NULL;
    memset ((char *)t, 0, ntot * sizeof(struct line_interp_t));
 
@@ -2930,9 +2927,9 @@ int EM_get_line_emissivity_function (float **emis, float **temps, float **densit
 
    *num_points = map->num_hdus;
 
-   if ((NULL == (*emis = ISIS_MALLOC (*num_points * sizeof(float))))
-       || (NULL == (*temps = ISIS_MALLOC (*num_points * sizeof(float))))
-       || (NULL == (*densities = ISIS_MALLOC (*num_points * sizeof(float)))))
+   if ((NULL == (*emis = (float *) ISIS_MALLOC (*num_points * sizeof(float))))
+       || (NULL == (*temps = (float *) ISIS_MALLOC (*num_points * sizeof(float))))
+       || (NULL == (*densities = (float *) ISIS_MALLOC (*num_points * sizeof(float)))))
      {
         ISIS_FREE (*emis);
         ISIS_FREE (*temps);
@@ -3070,8 +3067,8 @@ static int bin_xy (double *y, double *x, int npts, int want_avg, /*{{{*/
 
    k_lo = k_hi = NULL;
 
-   if (NULL == (k_lo = ISIS_MALLOC (nbins * sizeof(int)))
-       || NULL == (k_hi = ISIS_MALLOC (nbins * sizeof(int))))
+   if (NULL == (k_lo = (int *) ISIS_MALLOC (nbins * sizeof(int)))
+       || NULL == (k_hi = (int *) ISIS_MALLOC (nbins * sizeof(int))))
      goto finish;
 
    /*    AREA(a,b,i) computes
@@ -3144,7 +3141,7 @@ static int add_cont_contrib (EM_cont_type_t *r, EM_cont_emis_t *t, float weight)
    double wt = (double) weight;
    int k, ret = -1;
 
-   if (NULL == (tmp = ISIS_MALLOC (r->nbins * sizeof(double))))
+   if (NULL == (tmp = (double *) ISIS_MALLOC (r->nbins * sizeof(double))))
      goto finish;
 
    if (t->ntrue_contin > 0)
@@ -3450,7 +3447,7 @@ static EM_t *new_em (void) /*{{{*/
 {
    EM_t *em = NULL;
 
-   if (NULL == (em = ISIS_MALLOC (sizeof(EM_t))))
+   if (NULL == (em = (EM_t *) ISIS_MALLOC (sizeof(EM_t))))
      return NULL;
    memset ((char *)em, 0, sizeof(*em));
 

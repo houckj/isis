@@ -87,7 +87,7 @@ static unsigned int _ptrs (double rate)
         u -= 0.5;
         us = 0.5 - fabs(u);
         
-        k = floor ((2 * a / us + b) * u + rate + 0.43);
+        k = (int) floor ((2 * a / us + b) * u + rate + 0.43);
         
         if (us >= 0.07 && v <= vr)
           return k;

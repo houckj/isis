@@ -26,6 +26,13 @@
 
 /* $Id$ */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#if 0
+}
+#endif
+
 /* printing/plotting */
 
 extern void DB_list_line_group_stats (FILE * fp, DB_t *db);

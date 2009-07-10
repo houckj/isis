@@ -233,7 +233,7 @@ ISIS_FIT_STATISTIC_METHOD (chisqr)
 {
    Isis_Fit_Statistic_Type *s;
 
-   if (NULL == (s = ISIS_MALLOC (sizeof(Isis_Fit_Statistic_Type))))
+   if (NULL == (s = (Isis_Fit_Statistic_Type *) ISIS_MALLOC (sizeof(Isis_Fit_Statistic_Type))))
      return NULL;
    memset ((char *)s, 0, sizeof (*s));
 

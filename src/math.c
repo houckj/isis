@@ -467,7 +467,7 @@ static void make_1d_histogram (int *reverse) /*{{{*/
      r = NULL;
    else
      {
-        if (NULL == (r = ISIS_MALLOC (n * sizeof(int))))
+        if (NULL == (r = (int *) ISIS_MALLOC (n * sizeof(int))))
           {
              isis_throw_exception (Isis_Error);
              goto push_result;
@@ -555,7 +555,7 @@ static void make_2d_histogram (int *reverse) /*{{{*/
      r = NULL;
    else
      {
-        if (NULL == (r = ISIS_MALLOC (n * sizeof (int))))
+        if (NULL == (r = (int *) ISIS_MALLOC (n * sizeof (int))))
           {
              isis_throw_exception (Isis_Error);
              goto push_result;
@@ -724,8 +724,8 @@ static void _fft1d (int *isign, double *scaling) /*{{{*/
 
 static int dsort (const void *v1, const void *v2) /*{{{*/
 {
-   const double *a = v1;
-   const double *b = v2;
+   const double *a = (const double *) v1;
+   const double *b = (const double *) v2;
 
    if (*a < *b) return -1;
    else if (*a > *b) return 1;
@@ -852,7 +852,7 @@ static void rand_array (int num, double (*rand_fun)(void)) /*{{{*/
         return;
      }
 
-   ad = at->data;
+   ad = (double *) at->data;
    for (i = 0; i < num; i++)
      ad[i] = (*rand_fun) ();
 
@@ -927,7 +927,7 @@ static void prand_array (double *rate, unsigned int *num) /*{{{*/
         return;
      }
 
-   ai = at->data;
+   ai = (int *) at->data;
    for (i = 0; i < n; i++)
      ai[i] = prand (*rate);
 
@@ -1017,7 +1017,7 @@ static void lu_solve_intrin (void)
    unsigned int *piv = NULL;
 
    if ((-1 == pop_linear_system (&t))
-       || (NULL == (piv = ISIS_MALLOC (t.n * sizeof(unsigned int)))))
+       || (NULL == (piv = (unsigned int *) ISIS_MALLOC (t.n * sizeof(unsigned int)))))
      {
         isis_throw_exception (Isis_Error);
         goto the_return;

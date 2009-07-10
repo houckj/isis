@@ -36,7 +36,7 @@
 #include "util.h"
 #include "errors.h"
 
-static char *Msg[] = {
+static const char *Msg[] = {
 #include "errors.inc"
 };
 
@@ -45,8 +45,8 @@ static char *Msg[] = {
 int Isis_Error;
 int Isis_Trace;
 
-void isis_vmesg (int severity, unsigned int err, char *file, int line,
-                 char *fmt, ...)
+void isis_vmesg (int severity, unsigned int err, const char *file, int line,
+                 const char *fmt, ...)
 {
    char buf[4096];
 
@@ -72,7 +72,7 @@ void isis_vmesg (int severity, unsigned int err, char *file, int line,
              *b++ = ' ';
           }        
         va_start (ap, fmt);
-        SLvsnprintf (b, sizeof(buf)-1, fmt, ap);
+        SLvsnprintf (b, sizeof(buf)-1, (char *) fmt, ap);
         va_end (ap);
      }
 
@@ -98,7 +98,7 @@ void isis_vmesg (int severity, unsigned int err, char *file, int line,
      }
 }
 
-void _isis_throw_exception (int err, char *file, int line)
+void _isis_throw_exception (int err, const char *file, int line)
 {
    if ((SLang_Traceback != 0) && (file != NULL))
      {
@@ -107,7 +107,7 @@ void _isis_throw_exception (int err, char *file, int line)
    else SLang_set_error (err);
 }
 
-int _isis_trace_return (int status, char *file, int line)
+int _isis_trace_return (int status, const char *file, int line)
 {
    if ((Isis_Trace != 0) && (status != 0))
      {
@@ -116,7 +116,7 @@ int _isis_trace_return (int status, char *file, int line)
    return status;
 }
 
-void _isis_trace (char *file, int line)
+void _isis_trace (const char *file, int line)
 {
    if (Isis_Trace == 0)
      return;

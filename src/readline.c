@@ -57,9 +57,9 @@
 #endif
 
 #include <slang.h>
+#include "isis.h"
 #include "_isis.h"
 #include "util.h"
-#include "isis.h"
 #include "errors.h"
 
 #ifdef HAVE_GNU_READLINE
@@ -359,6 +359,13 @@ static void deinit_optional_modules (void) /*{{{*/
 
 /*}}}*/
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+#if 0
+}
+#endif
 extern int init_readline_module_ns (char *);
 extern int init_miscio_module_ns (char *);
 extern int init_math_module_ns (char *);
@@ -368,6 +375,12 @@ extern int init_atom_module_ns (char *);
 extern int init_emis_module_ns (char *);
 extern int init_fit_module_ns (char *);
 extern int init_model_module_ns (char *);
+#if 0
+{
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 static int sldb_load_hook (char *file) /*{{{*/
 {
@@ -426,6 +439,13 @@ int init_isis_intrinsics (char *ns_name) /*{{{*/
 
 /*}}}*/
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+#if 0
+}
+#endif
 extern void deinit_readline_module (void);
 extern void deinit_miscio_module (void);
 extern void deinit_math_module (void);
@@ -435,6 +455,12 @@ extern void deinit_atom_module (void);
 extern void deinit_emis_module (void);
 extern void deinit_fit_module (void);
 extern void deinit_model_module (void);
+#if 0
+{
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 static int Called_Quit_Isis = 0;
 

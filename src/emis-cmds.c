@@ -299,7 +299,7 @@ static int get_emissivity_fcn (float **emis, int *nemis, /*{{{*/
 
    *nemis = ntemp * ndens;
 
-   if (NULL == (*emis = ISIS_MALLOC (*nemis * sizeof(float))))
+   if (NULL == (*emis = (float *) ISIS_MALLOC (*nemis * sizeof(float))))
      return -1;
 
    memset ((char *) *emis, 0, *nemis * sizeof(float));
@@ -709,6 +709,10 @@ int init_emis_module_ns (char *ns_name) /*{{{*/
 
 /*}}}*/
 
+#ifdef __cplusplus
+extern "C"
+#endif
+void deinit_emis_module (void);
 void deinit_emis_module (void) /*{{{*/
 {
    quit_emis ();

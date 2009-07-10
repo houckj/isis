@@ -308,15 +308,15 @@ static Fit_Fun_t *new_fit_fun (unsigned int num_args) /*{{{*/
    unsigned int i;
    Fit_Fun_t *ff;
 
-   if (NULL == (ff = ISIS_MALLOC (sizeof(Fit_Fun_t))))
+   if (NULL == (ff = (Fit_Fun_t *) ISIS_MALLOC (sizeof(Fit_Fun_t))))
      return NULL;
    memset ((char *) ff, 0, sizeof (*ff));
 
    /* most common default */
    ff->s.category = ISIS_FUN_ADDMUL;
 
-   if ((NULL == (ff->name = ISIS_MALLOC ((num_args + 1) * sizeof(Fit_Fun_Name_t))))
-       ||(NULL == (ff->unit = ISIS_MALLOC (num_args * sizeof(Fit_Fun_Name_t)))))
+   if ((NULL == (ff->name = (Fit_Fun_Name_t *) ISIS_MALLOC ((num_args + 1) * sizeof(Fit_Fun_Name_t))))
+       ||(NULL == (ff->unit = (Fit_Fun_Name_t *) ISIS_MALLOC (num_args * sizeof(Fit_Fun_Name_t)))))
      {
         free_fit_fun (ff);
         return NULL;
@@ -698,7 +698,7 @@ static int set_slangfun_norms (Isis_User_Source_t *s, UDF_Info_Type *u) /*{{{*/
         unsigned int size = num * sizeof(unsigned int);
         void *data = u_sl_norm_ids->data;
 
-        if (NULL == (s->norm_indexes = ISIS_MALLOC (num * sizeof(unsigned int))))
+        if (NULL == (s->norm_indexes = (unsigned int *) ISIS_MALLOC (num * sizeof(unsigned int))))
           return -1;
 
         memcpy ((char *)s->norm_indexes, (char *)data, size);
@@ -713,7 +713,7 @@ static int set_slangfun_norms (Isis_User_Source_t *s, UDF_Info_Type *u) /*{{{*/
         if (0 == isis_strcasecmp (u->pnames[u_num], "norm"))
           {
              /* yuk */
-             if (NULL == (s->norm_indexes = ISIS_MALLOC (sizeof(unsigned int))))
+             if (NULL == (s->norm_indexes = (unsigned int *) ISIS_MALLOC (sizeof(unsigned int))))
                return -1;
 
              *s->norm_indexes = u_num;
@@ -979,8 +979,8 @@ static int pop_udf_info (UDF_Info_Type *u) /*{{{*/
 
    u->num = (int) u->sl_pnames->num_elements;
 
-   if ((NULL == (u->pnames = ISIS_MALLOC (u->num * sizeof(char *))))
-       || (NULL == (u->units = ISIS_MALLOC (u->num * sizeof(char *)))))
+   if ((NULL == (u->pnames = (char **) ISIS_MALLOC (u->num * sizeof(char *))))
+       || (NULL == (u->units = (char **) ISIS_MALLOC (u->num * sizeof(char *)))))
      {
         free_udf_info (u);
         return -1;

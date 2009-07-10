@@ -242,7 +242,7 @@ int JDM_ludecomp_inverse (double **a, unsigned int n)
    inv_a = NULL;
    ret = -1;
    
-   if ((NULL == (pivot = ISIS_MALLOC (n * sizeof(*pivot))))
+   if ((NULL == (pivot = (unsigned int *) ISIS_MALLOC (n * sizeof(*pivot))))
        || (NULL == (col = JDMdouble_vector (n)))
        || (NULL == (inv_a = JDMdouble_matrix (n, n))))
      goto return_error;

@@ -129,13 +129,13 @@ extern int Plot_get_yrange (Plot_t *fmt, float **ymin, float **ymax);
 extern void Plot_reset_xyranges (Plot_t *fmt);
 extern int Plot_set_fmt_charsize (Plot_t *fmt, float char_height);
 extern int Plot_set_labels (Plot_t *fmt,
-                            char * xlabel, char * ylabel, char * tlabel);
+                            const char *xlabel, const char *ylabel, const char *tlabel);
 extern int Plot_has_default_labels (Plot_t *fmt);
 extern int Plot_set_label_type (Plot_t *fmt, int type);
 
-extern int Plot_set_xlabel (Plot_t *fmt, char *xlabel);
-extern int Plot_set_ylabel (Plot_t *fmt, char *ylabel);
-extern int Plot_set_title (Plot_t *fmt, char *title);
+extern int Plot_set_xlabel (Plot_t *fmt, const char *xlabel);
+extern int Plot_set_ylabel (Plot_t *fmt, const char *ylabel);
+extern int Plot_set_title (Plot_t *fmt, const char *title);
 
 extern void Plot_set_linestyle (Plot_t *fmt);
 extern void Plot_set_line_width (Plot_t *fmt);
@@ -144,7 +144,7 @@ extern void Plot_set_color (Plot_t *fmt);
 extern void Plot_set_charsize (Plot_t *fmt);
 extern void Plot_label_box (Plot_t *fmt);
 extern void Plot_draw_box_opt (Plot_t *fmt, float xmin, float xmax, float ymin, float ymax);
-extern int Plot_set_axis_options (Plot_t *fmt, char *xopt, char *yopt);
+extern int Plot_set_axis_options (Plot_t *fmt, const char *xopt, const char *yopt);
 extern void Plot_set_axis_type (Plot_t *fmt, int axis);
 
 extern void Plot_auto_incr_line_type (Plot_t *fmt);

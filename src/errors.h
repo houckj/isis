@@ -90,10 +90,10 @@ enum
    FATAL = -INT_MAX
 };
 
-extern void isis_vmesg (int severity, unsigned int err, char *file, int line, char *fmt, ...);
-extern void _isis_throw_exception (int err, char *file, int line);
-extern int _isis_trace_return (int status, char *file, int line);
-extern void _isis_trace (char *file, int line);
+extern void isis_vmesg (int severity, unsigned int err, const char *file, int line, const char *fmt, ...);
+extern void _isis_throw_exception (int err, const char *file, int line);
+extern int _isis_trace_return (int status, const char *file, int line);
+extern void _isis_trace (const char *file, int line);
 
 #define isis_throw_exception(err)  _isis_throw_exception((err),__FILE__,__LINE__)
 #define isis_trace_return(s)       _isis_trace_return((s),__FILE__,__LINE__)

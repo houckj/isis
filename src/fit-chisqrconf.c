@@ -284,8 +284,8 @@ static int find_limit (double *conf_limit, unsigned int idx, /*{{{*/
 
    sinfo->find_best = (par->npars > 0) ? 1 : 0;
 
-   a.par = ISIS_MALLOC (par->npars * sizeof(double));
-   b.par = ISIS_MALLOC (par->npars * sizeof(double));
+   a.par = (double *) ISIS_MALLOC (par->npars * sizeof(double));
+   b.par = (double *) ISIS_MALLOC (par->npars * sizeof(double));
    if ((a.par == NULL) || (b.par == NULL))
      {
         status = EVAL_ERROR;

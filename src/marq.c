@@ -240,7 +240,7 @@ static int marquardt (Isis_Fit_Type *ft, void *clientdata, /*{{{*/
    if (NULL == (alpha_diag = JDMdouble_vector (nparms))
        || NULL == (alpha = JDMdouble_matrix (nparms,nparms))
        || NULL == (cov = JDMdouble_matrix (nparms,nparms))
-       || NULL == (piv = ISIS_MALLOC (nparms * sizeof (unsigned int)))
+       || NULL == (piv = (unsigned int *) ISIS_MALLOC (nparms * sizeof (unsigned int)))
        || NULL == (beta = JDMdouble_vector (nparms))
        || NULL == (a1 = JDMdouble_vector (nparms))
        || NULL == (y_1 = JDMdouble_vector (ny))
@@ -565,7 +565,7 @@ ISIS_FIT_ENGINE_METHOD(marquardt,name,sname)
 {
    Isis_Fit_Engine_Type *e;
 
-   if (NULL == (e = ISIS_MALLOC (sizeof(Isis_Fit_Engine_Type))))
+   if (NULL == (e = (Isis_Fit_Engine_Type *) ISIS_MALLOC (sizeof(Isis_Fit_Engine_Type))))
      return NULL;
    memset ((char *)e, 0, sizeof (*e));
 

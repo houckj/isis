@@ -56,12 +56,24 @@
 #include "isis.h"
 #include "isismath.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+#if 0
+}
+#endif
 #define SUBPLX_FC FC_FUNC(subplx,SUBPLX)
 typedef double subplx_fun_type (int *num, double *pars);
-
 extern void SUBPLX_FC(subplx_fun_type *f, int *n, double *tol, int *maxnfe,
                       int *mode, double *scale, double *x, double *fx,
                       int *nfe, double *work, int *iwork, int *iflag);
+#if 0
+{
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 typedef struct
 {
@@ -118,10 +130,10 @@ static int alloc_work (unsigned int npars, double **work, int **iwork) /*{{{*/
    nsmax = (npars < 5) ? npars : 5;
 
    worksize = 2*npars + nsmax * (nsmax + 4) + 1;
-   *work = malloc (worksize * sizeof(double));
+   *work = (double *) malloc (worksize * sizeof(double));
 
    iworksize = npars + npars / nsmin;
-   *iwork = malloc (iworksize * sizeof(int));
+   *iwork = (int *) malloc (iworksize * sizeof(int));
 
    if ((*work == NULL) || (*iwork == NULL))
      {
@@ -240,12 +252,12 @@ static int subplex (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
    fi->weights = weights;
    fi->npts = npts;
 
-   if ((NULL == (fi->fx = malloc (npts * sizeof(double))))
-       || (NULL == (Stat_Vec = malloc (npts * sizeof(double)))))
+   if ((NULL == (fi->fx = (double *) malloc (npts * sizeof(double))))
+       || (NULL == (Stat_Vec = (double *) malloc (npts * sizeof(double)))))
      goto finish;
    memset ((char *)fi->fx, 0, npts * sizeof(double));
 
-   if (NULL == (e->scale = malloc (npars * sizeof(double))))
+   if (NULL == (e->scale = (double *) malloc (npars * sizeof(double))))
      goto finish;
 
    set_initial_stepsizes (e, pars, npars);
@@ -418,7 +430,7 @@ ISIS_FIT_ENGINE_METHOD(subplex,name,sname)
 {
    Isis_Fit_Engine_Type *e;
 
-   if (NULL == (e = ISIS_MALLOC (sizeof(Isis_Fit_Engine_Type))))
+   if (NULL == (e = (Isis_Fit_Engine_Type *) ISIS_MALLOC (sizeof(Isis_Fit_Engine_Type))))
      return NULL;
    memset ((char *)e, 0, sizeof (*e));
 

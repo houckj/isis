@@ -41,8 +41,8 @@
 
 #include <slang.h>
 
-#include "_isis.h"
 #include "isis.h"
+#include "_isis.h"
 #include "util.h"
 #include "fit.h"
 #include "errors.h"
@@ -343,7 +343,7 @@ int isis_fit_add_statistic (char *name, Isis_Fit_Statistic_Init_Type *init) /*{{
        || (init == NULL))
      return -1;
 
-   if (NULL == (s = ISIS_MALLOC (sizeof *s)))
+   if (NULL == (s = (Statistic_List_Type *) ISIS_MALLOC (sizeof *s)))
      return -1;
    memset ((char *)s, 0, sizeof (*s));
 
@@ -492,7 +492,7 @@ static Isis_Fit_Statistic_Type *init_sl_statistic (void) /*{{{*/
    SLang_Name_Type *statistic_fun, *report_fun;
    Isis_Fit_Statistic_Type *s;
 
-   if (NULL == (s = ISIS_MALLOC (sizeof(Isis_Fit_Statistic_Type))))
+   if (NULL == (s = (Isis_Fit_Statistic_Type *) ISIS_MALLOC (sizeof(Isis_Fit_Statistic_Type))))
      return NULL;
    memset ((char *)s, 0, sizeof (*s));
 
@@ -612,7 +612,7 @@ Isis_Fit_Type *isis_fit_open_fit (char *name, char *sname, Isis_Fit_Fun_Type *fu
         return NULL;
      }
 
-   if (NULL == (f = ISIS_MALLOC (sizeof(Isis_Fit_Type))))
+   if (NULL == (f = (Isis_Fit_Type *) ISIS_MALLOC (sizeof(Isis_Fit_Type))))
      return NULL;
 
    /* When a constraint function is provided, we call it
@@ -699,7 +699,7 @@ int isis_fit_perform_fit (Isis_Fit_Type *f, void *clientdata, /*{{{*/
 
    e = f->engine;
 
-   if (NULL == (save_pars = ISIS_MALLOC (npars * sizeof(double))))
+   if (NULL == (save_pars = (double *) ISIS_MALLOC (npars * sizeof(double))))
      return -1;
    memcpy ((char *)save_pars, (char *)pars, npars * sizeof(double));
 

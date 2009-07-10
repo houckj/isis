@@ -62,16 +62,15 @@ Isis_Rmf_Grid_Type *Isis_new_rmf_grid (unsigned int nbins) /*{{{*/
 {
    Isis_Rmf_Grid_Type *g;
 
-   g = ISIS_MALLOC (sizeof(Isis_Rmf_Grid_Type));
-   if (NULL == g)
+   if (NULL == (g = (Isis_Rmf_Grid_Type *) ISIS_MALLOC (sizeof(Isis_Rmf_Grid_Type))))
      return NULL;
    memset ((char *)g, 0, sizeof (*g));
 
    g->nbins = nbins;
    g->units = -1;
 
-   if (NULL == (g->bin_lo = ISIS_MALLOC (nbins * sizeof(double)))
-       || NULL == (g->bin_hi = ISIS_MALLOC (nbins * sizeof(double))))
+   if (NULL == (g->bin_lo = (double *) ISIS_MALLOC (nbins * sizeof(double)))
+       || NULL == (g->bin_hi = (double *) ISIS_MALLOC (nbins * sizeof(double))))
      {
         Isis_free_rmf_grid (g);
         g = NULL;
@@ -150,7 +149,7 @@ static Isis_Rmf_t *new_rmf (void) /*{{{*/
 {
    Isis_Rmf_t *rmf;
 
-   if (NULL == (rmf = ISIS_MALLOC (sizeof(Isis_Rmf_t))))
+   if (NULL == (rmf = (Isis_Rmf_t *) ISIS_MALLOC (sizeof(Isis_Rmf_t))))
      return NULL;
    memset ((char *)rmf, 0, sizeof(*rmf));
 
@@ -395,7 +394,7 @@ int Rmf_id_list (Isis_Rmf_t *head, unsigned int **ids, unsigned int *num) /*{{{*
    if (*num == 0)
      return 0;
 
-   if (NULL == (*ids = ISIS_MALLOC (*num * sizeof (unsigned int))))
+   if (NULL == (*ids = (unsigned int *) ISIS_MALLOC (*num * sizeof (unsigned int))))
      return -1;
 
    n = 0;
@@ -456,9 +455,9 @@ int Rmf_find_peaks (Isis_Rmf_t *rmf, double **h_P, int *num) /*{{{*/
    
    *num = arf_n;
    
-   if ((NULL == (*h_P = ISIS_MALLOC (arf_n * sizeof(double))))
-       || (NULL == (indices = ISIS_MALLOC (ebounds_n * sizeof(int))))
-       || (NULL == (profile = ISIS_MALLOC (ebounds_n * sizeof(double)))))
+   if ((NULL == (*h_P = (double *) ISIS_MALLOC (arf_n * sizeof(double))))
+       || (NULL == (indices = (unsigned int *) ISIS_MALLOC (ebounds_n * sizeof(unsigned int))))
+       || (NULL == (profile = (double *) ISIS_MALLOC (ebounds_n * sizeof(double)))))
      goto return_error;
 
    /* For each arf wavelength, fold a delta-function source 
@@ -544,7 +543,7 @@ int Rmf_find_peaks (Isis_Rmf_t *rmf, double **h_P, int *num) /*{{{*/
 
 static Isis_Rmf_Load_Method_t *get_user_rmf_load_method (char *options) /*{{{*/
 {
-   static char *delim = ":;";
+   static const char *delim = ":;";
    Isis_Rmf_Load_Method_t *load_method;
    char *s, *file, *init_name;
 

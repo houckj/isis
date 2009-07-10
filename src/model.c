@@ -72,7 +72,7 @@ static Model_t *new_model_node (void) /*{{{*/
 {
    Model_t *m;
 
-   if (NULL == (m = ISIS_MALLOC (sizeof(Model_t))))
+   if (NULL == (m = (Model_t *) ISIS_MALLOC (sizeof(Model_t))))
      return NULL;
 
    memset ((char *) m, 0, sizeof(*m));
@@ -447,7 +447,7 @@ int Model_print_model (FILE *fp, Model_t *h) /*{{{*/
 
 void Model_set_profile_function (int idx) /*{{{*/
 {
-   char *msg;
+   const char *msg;
    switch (idx)
      {
       case 0:
@@ -612,7 +612,7 @@ static int add_spread_lines (double *val, double *wllo, double *wlhi, int nbins,
         SLang_Array_Type *pa = info->profile_params;
         if (pa != NULL)
           {
-             profile_params = pa->data;
+             profile_params = (double *) pa->data;
              num_profile_params = pa->num_elements;
           }
         map_profile = info->profile;
@@ -795,7 +795,7 @@ int Model_spectrum (Model_t *h, Model_Info_Type *info, /*{{{*/
 
    if ((info->line_list != NULL) && (info->line_list->data_type != SLANG_NULL_TYPE))
      {
-        int *line_list = info->line_list->data;
+        int *line_list = (int *) info->line_list->data;
         int num_lines = info->line_list->num_elements;
         if (num_lines > 0)
           {
@@ -806,7 +806,7 @@ int Model_spectrum (Model_t *h, Model_Info_Type *info, /*{{{*/
      }
 
    if ((NULL == (cont = EM_new_continuum (nbins)))
-       || (NULL == (tmp_val = ISIS_MALLOC (nbins * sizeof(double)))))
+       || (NULL == (tmp_val = (double *) ISIS_MALLOC (nbins * sizeof(double)))))
      goto finish;
 
    cont_nbins = cont->nbins;

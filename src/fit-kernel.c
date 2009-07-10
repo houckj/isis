@@ -53,7 +53,7 @@ Isis_Kernel_Def_t * Fit_new_kernel (void) /*{{{*/
 {
    Isis_Kernel_Def_t *def;
 
-   if (NULL == (def = ISIS_MALLOC (sizeof(Isis_Kernel_Def_t))))
+   if (NULL == (def = (Isis_Kernel_Def_t *) ISIS_MALLOC (sizeof(Isis_Kernel_Def_t))))
      return NULL;
 
    memset ((char *)def, 0, sizeof(*def));
@@ -189,7 +189,7 @@ static Kernel_Info_t *new_kernel_info (int hist_index) /*{{{*/
 {
    Kernel_Info_t *p;
 
-   p = ISIS_MALLOC (sizeof(Kernel_Info_t));
+   p = (Kernel_Info_t *) ISIS_MALLOC (sizeof(Kernel_Info_t));
    if (p)
      {
         p->next = NULL;
@@ -267,10 +267,23 @@ struct Static_Kernel_Table_t
 
 #define ISIS_KERNEL_NAME(s) Isis_##s##_kernel
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+#if 0
+}
+#endif
 extern int ISIS_KERNEL_NAME(std) (Isis_Kernel_Def_t *, char *);
 extern int ISIS_KERNEL_NAME(pileup) (Isis_Kernel_Def_t *, char *);
 extern int ISIS_KERNEL_NAME(yshift) (Isis_Kernel_Def_t *, char *);
 extern int ISIS_KERNEL_NAME(gainshift) (Isis_Kernel_Def_t *, char *);
+#if 0
+{
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 static Static_Kernel_Table_t Static_Kernels [] =
 {
@@ -311,9 +324,9 @@ static int init_static_kernels (Kernel_Table_t *t) /*{{{*/
 int init_kernel_table (Kernel_Table_t *t) /*{{{*/
 {
    Isis_Kernel_Def_t *def;
-   
+
    memset ((char *)t, 0, sizeof (*t));
-   
+
    if (-1 == init_static_kernels (t))
      return -1;
 
@@ -325,7 +338,7 @@ int init_kernel_table (Kernel_Table_t *t) /*{{{*/
              return -1;
           }
      }
-   
+
    return 0;
 }
 

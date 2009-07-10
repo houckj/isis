@@ -393,7 +393,7 @@ static Plot_t *new_fmt (void) /*{{{*/
 {
    Plot_t *p;
 
-   if (NULL == (p = ISIS_MALLOC (sizeof(Plot_t))))
+   if (NULL == (p = (Plot_t *) ISIS_MALLOC (sizeof(Plot_t))))
      return NULL;
    memset ((char *)p, 0, sizeof (*p));
 
@@ -515,7 +515,7 @@ static Plot_Node_t *alloc_node (void) /*{{{*/
 {
    Plot_Node_t *t = NULL;
 
-   if (NULL == (t = ISIS_MALLOC (sizeof(Plot_Node_t))))
+   if (NULL == (t = (Plot_Node_t *) ISIS_MALLOC (sizeof(Plot_Node_t))))
      return NULL;
    memset ((char *)t, 0, sizeof (*t));
 
@@ -571,8 +571,8 @@ static int realloc_node_formats (Plot_Node_t *t, int force, int nxpanes, int nyp
    if (t->window_type != PLOT_STD_WINDOW)
      {
         if ((NULL == ysizes)
-            || (NULL == (t->ysizes = ISIS_MALLOC (npanes * sizeof(int))))
-            || (NULL == (t->panes = ISIS_MALLOC (npanes * sizeof(Plot_Pane_Type)))))
+            || (NULL == (t->ysizes = (int *) ISIS_MALLOC (npanes * sizeof(int))))
+            || (NULL == (t->panes = (Plot_Pane_Type *) ISIS_MALLOC (npanes * sizeof(Plot_Pane_Type)))))
           return -1;
 
         memcpy ((char *)t->ysizes, (char *)ysizes, npanes * sizeof(int));
@@ -613,7 +613,7 @@ int Plot_set_outer_viewport (Plot_Node_t *n, float xmin, float xmax, float ymin,
    if (n->window_type == PLOT_STD_WINDOW)
      return 0;
 
-   if (NULL == (ysizes = ISIS_MALLOC (t->nypanes * sizeof (int))))
+   if (NULL == (ysizes = (int *) ISIS_MALLOC (t->nypanes * sizeof (int))))
      return -1;
 
    if (t->nypanes == 1)
@@ -760,7 +760,7 @@ static float *copy_float (float *f) /*{{{*/
 
    if (f != NULL)
      {
-        if (NULL != (c = ISIS_MALLOC (sizeof(float))))
+        if (NULL != (c = (float *) ISIS_MALLOC (sizeof(float))))
           *c = *f;
      }
 
@@ -916,7 +916,7 @@ void Plot_set_axis_type (Plot_t *fmt, int axis) /*{{{*/
 
 /*}}}*/
 
-int Plot_set_axis_options (Plot_t *fmt, char *xopt, char *yopt) /*{{{*/
+int Plot_set_axis_options (Plot_t *fmt, const char *xopt, const char *yopt) /*{{{*/
 {
    char *s = NULL;
 
@@ -1478,7 +1478,7 @@ int Plot_has_default_labels (Plot_t *fmt) /*{{{*/
 
 /*}}}*/
 
-int Plot_set_title (Plot_t *fmt, char *title) /*{{{*/
+int Plot_set_title (Plot_t *fmt, const char *title) /*{{{*/
 {
    isis_strcpy (fmt->tlabel, title, PLOT_LABEL_STRING_SIZE);
    return 0;
@@ -1486,7 +1486,7 @@ int Plot_set_title (Plot_t *fmt, char *title) /*{{{*/
 
 /*}}}*/
 
-int Plot_set_xlabel (Plot_t *fmt, char *xlabel) /*{{{*/
+int Plot_set_xlabel (Plot_t *fmt, const char *xlabel) /*{{{*/
 {
    isis_strcpy (fmt->xlabel, xlabel, PLOT_LABEL_STRING_SIZE);
    fmt->label_type = PLOT_USER_LABEL;
@@ -1495,7 +1495,7 @@ int Plot_set_xlabel (Plot_t *fmt, char *xlabel) /*{{{*/
 
 /*}}}*/
 
-int Plot_set_ylabel (Plot_t *fmt, char *ylabel) /*{{{*/
+int Plot_set_ylabel (Plot_t *fmt, const char *ylabel) /*{{{*/
 {
    isis_strcpy (fmt->ylabel, ylabel, PLOT_LABEL_STRING_SIZE);
    fmt->label_type = PLOT_USER_LABEL;
@@ -1504,8 +1504,8 @@ int Plot_set_ylabel (Plot_t *fmt, char *ylabel) /*{{{*/
 
 /*}}}*/
 
-int Plot_set_labels (Plot_t *fmt, char * xlabel, /*{{{*/
-                    char * ylabel, char * tlabel)
+int Plot_set_labels (Plot_t *fmt, const char *xlabel, /*{{{*/
+                     const char *ylabel, const char *tlabel)
 {
    if (xlabel != NULL)
      {
@@ -1565,7 +1565,7 @@ static int set_ptr_or_value (float **dest, float *value, int islog) /*{{{*/
      return -1;
 
    if ((NULL == *dest)
-       && (NULL == (*dest = ISIS_MALLOC (sizeof(float)))))
+       && (NULL == (*dest = (float *) ISIS_MALLOC (sizeof(float)))))
      return -1;
 
    if (islog)
@@ -2035,7 +2035,7 @@ int Plot_curve (float *x, float *y, int npts, int *symbol, /*{{{*/
    if (!overlay)
      _restart_style_cycle (fmt);
 
-   if (NULL == (px = ISIS_MALLOC (2 * npts * sizeof(float))))
+   if (NULL == (px = (float *) ISIS_MALLOC (2 * npts * sizeof(float))))
      return -1;
    memset ((char *)px, 0, 2 * npts * sizeof(float));
    py = px + npts;
@@ -2142,7 +2142,7 @@ static int plot_y_errorbars (Plot_t *fmt, int nbins, /*{{{*/
 
         step = abs(fmt->use_errorbars);
         n = nbins / step;
-        if (NULL == (x = ISIS_MALLOC (3 * n * sizeof(float))))
+        if (NULL == (x = (float *) ISIS_MALLOC (3 * n * sizeof(float))))
           return -1;
 
         xmid = x;
@@ -2192,14 +2192,14 @@ int Plot_hist (Plot_t *fmt, int *use_style, int overlay, Isis_Hist_t *h) /*{{{*/
 
    nbins = h->nbins;
 
-   if (NULL == (lo = ISIS_MALLOC (nbins * sizeof(float)))
-       || NULL == (hi = ISIS_MALLOC (nbins * sizeof(float)))
-       || NULL == (val = ISIS_MALLOC (nbins * sizeof(float)))
-       || NULL == (val_err = ISIS_MALLOC (nbins * sizeof(float)))
-       || NULL == (ytop = ISIS_MALLOC (nbins * sizeof(float)))
-       || NULL == (ybot = ISIS_MALLOC (nbins * sizeof(float)))
-       || NULL == (xmid = ISIS_MALLOC (nbins * sizeof(float)))
-       || NULL == (tmp = ISIS_MALLOC ((nbins+1) * sizeof(float))))
+   if (NULL == (lo = (float *) ISIS_MALLOC (nbins * sizeof(float)))
+       || NULL == (hi = (float *) ISIS_MALLOC (nbins * sizeof(float)))
+       || NULL == (val = (float *) ISIS_MALLOC (nbins * sizeof(float)))
+       || NULL == (val_err = (float *) ISIS_MALLOC (nbins * sizeof(float)))
+       || NULL == (ytop = (float *) ISIS_MALLOC (nbins * sizeof(float)))
+       || NULL == (ybot = (float *) ISIS_MALLOC (nbins * sizeof(float)))
+       || NULL == (xmid = (float *) ISIS_MALLOC (nbins * sizeof(float)))
+       || NULL == (tmp = (float *) ISIS_MALLOC ((nbins+1) * sizeof(float))))
      goto return_error;
 
    /*

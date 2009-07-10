@@ -596,7 +596,7 @@ static void _set_labels (char * xlabel, char * ylabel, char * tlabel) /*{{{*/
 
 /*}}}*/
 
-static void _set_axis_string (char *s, int (*setter)(Plot_t *, char *)) /*{{{*/
+static void _set_axis_string (char *s, int (*setter)(Plot_t *, const char *)) /*{{{*/
 {
    Plot_t *fmt;
 

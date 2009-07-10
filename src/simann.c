@@ -50,6 +50,13 @@
 
 #include "isis.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+#if 0
+}
+#endif
 #define SIMANN_FC FC_FUNC(simann,SIMANN)
 typedef void simann_fun_type (int npars, double *pars, double *val);
 extern void SIMANN_FC (simann_fun_type *fcn,
@@ -60,6 +67,12 @@ extern void SIMANN_FC (simann_fun_type *fcn,
                        double *t, double *vm, double *xopt, double *fopt,
                        int *nacc, int *nfcnev, int *nobds, int *ier,
                        double *fstar, double *xp, int *nacp);
+#if 0
+{
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 typedef struct
 {
@@ -189,14 +202,14 @@ static int simann (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
    fi->npars = npars;
    fi->fx = NULL;
 
-   if ((NULL == (Fvec = malloc (npts * sizeof(double))))
-       || (NULL == (fi->fx = malloc (npts * sizeof(double))))
-       || (NULL == (vm = malloc (npars * sizeof(double))))
-       || (NULL == (xopt = malloc (npars * sizeof(double))))
-       || (NULL == (c = malloc (npars * sizeof(double))))
-       || (NULL == (xp = malloc (npars * sizeof(double))))
-       || (NULL == (fstar = malloc (e->neps * sizeof(double))))
-       || (NULL == (nacp = malloc (npars * sizeof(int)))))
+   if ((NULL == (Fvec = (double *) malloc (npts * sizeof(double))))
+       || (NULL == (fi->fx = (double *) malloc (npts * sizeof(double))))
+       || (NULL == (vm = (double *) malloc (npars * sizeof(double))))
+       || (NULL == (xopt = (double *) malloc (npars * sizeof(double))))
+       || (NULL == (c = (double *) malloc (npars * sizeof(double))))
+       || (NULL == (xp = (double *) malloc (npars * sizeof(double))))
+       || (NULL == (fstar = (double *) malloc (e->neps * sizeof(double))))
+       || (NULL == (nacp = (int *) malloc (npars * sizeof(int)))))
      goto finish;
 
    if (e->nt > 0)
@@ -385,7 +398,7 @@ ISIS_FIT_ENGINE_METHOD(simann,name,sname)
 {
    Isis_Fit_Engine_Type *e;
 
-   if (NULL == (e = ISIS_MALLOC (sizeof(Isis_Fit_Engine_Type))))
+   if (NULL == (e = (Isis_Fit_Engine_Type *) ISIS_MALLOC (sizeof(Isis_Fit_Engine_Type))))
      return NULL;
    memset ((char *)e, 0, sizeof (*e));
 

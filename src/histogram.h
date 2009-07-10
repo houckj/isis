@@ -198,9 +198,9 @@ extern int Hist_set_background_from_file (Hist_t *h, char *file);
 extern int Hist_set_background_name (Hist_t *h, char *name);
 extern int Hist_copy_scaled_background (Hist_t *h, double **bgd);
 extern int Hist_set_instrumental_background_hook_name (Hist_t *h, char *hook_name);
-extern int Hist_set_instrumental_background_hook (Hist_t *h, void *hook);
+extern int Hist_set_instrumental_background_hook (Hist_t *h, SLang_Name_Type *hook);
 extern char *Hist_get_instrumental_background_hook_name (Hist_t *h);
-extern void *Hist_get_instrumental_background_hook(Hist_t *h);
+extern SLang_Name_Type *Hist_get_instrumental_background_hook(Hist_t *h);
 extern int Hist_define_background (Hist_t *h, double bgd_exposure, 
                                    double *bgd_area, int area_is_vector,
                                    double *bgd, unsigned int nbins);
@@ -275,13 +275,13 @@ extern int Hist_compute_flux (Isis_Kernel_t *k, Isis_Hist_t *counts, double thre
                               Isis_Hist_t *flux);
 
 /* post model hook */
-extern void *Hist_post_model_hook (Hist_t *h);
-extern int Hist_set_post_model_hook (Hist_t *h, void *hook, void (*delete_hook)(void *));
+extern SLang_Name_Type *Hist_post_model_hook (Hist_t *h);
+extern int Hist_set_post_model_hook (Hist_t *h, SLang_Name_Type *hook, void (*delete_hook)(SLang_Name_Type *));
 extern int Hist_run_post_model_hook (Hist_t *h, double *cts, SLang_Array_Type *sl_bgd);
 
 /* user-defined metadata */
-extern void *Hist_get_metadata (Hist_t *h);
-extern int Hist_set_metadata (Hist_t *h, void *meta);
+extern SLang_Any_Type *Hist_get_metadata (Hist_t *h);
+extern int Hist_set_metadata (Hist_t *h, SLang_Any_Type *meta);
 
 #if 0
 {

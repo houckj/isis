@@ -45,8 +45,8 @@
 
 #include <slang.h>
 
-#include "_isis.h"
 #include "isis.h"
+#include "_isis.h"
 #include "cfits.h"
 #include "util.h"
 #include "plot.h"
@@ -73,8 +73,8 @@ int Hist_Warn_Invalid_Uncertainties;
 Hist_Stat_Error_Hook_Type *Hist_Stat_Error_Hook;
 
 /* array must be NULL terminated */
-static char *Spectrum_Hdu_Names[] = {"SPECTRUM", NULL};
-static char *Spectrum_Hdu_Names_Hook = "_nonstandard_spectrum_hdu_names";
+static const char *Spectrum_Hdu_Names[] = {"SPECTRUM", NULL};
+static const char *Spectrum_Hdu_Names_Hook = "_nonstandard_spectrum_hdu_names";
 
 int Isis_List_Filenames = 1;
 double Hist_Min_Stat_Err = -1.0;        /* used only if > 0 */
@@ -130,16 +130,16 @@ struct _Hist_t
    Isis_Rsp_t a_rsp;             /* assigned response */
    Isis_Kernel_t *kernel;        /* fit kernel */
 
-   void *post_model_hook;
-   void (*post_model_hook_delete)(void *);
+   SLang_Name_Type *post_model_hook;
+   void (*post_model_hook_delete)(SLang_Name_Type *);
 
-   void *instrumental_background_hook;          /* instrumental background */
+   SLang_Name_Type *instrumental_background_hook;          /* instrumental background */
    char *instrumental_background_hook_name;
 
    void *stat_error_hook;
    void (*stat_error_hook_delete)(void *);
 
-   void *user_meta;              /* user-defined metadata (SLang_Any_Type) */
+   SLang_Any_Type *user_meta;    /* user-defined metadata */
 
    char *bgd_file;               /* name of background file */
    char *file;                   /* name of data file */
@@ -404,7 +404,7 @@ static int area_set_vector_copy (Area_Type *at, double *area, unsigned int nbins
    double *area_copy;
    unsigned int i;
 
-   if (NULL == (area_copy = ISIS_MALLOC(nbins * sizeof(double))))
+   if (NULL == (area_copy = (double *) ISIS_MALLOC (nbins * sizeof(double))))
      return -1;
 
    for (i = 0; i < nbins; i++)
@@ -484,7 +484,7 @@ static int area_get (Area_Type *at, double **area, int *nbins) /*{{{*/
    if (at == NULL)
      return -1;
 
-   if (NULL == (a = ISIS_MALLOC (at->n * sizeof(double))))
+   if (NULL == (a = (double *) ISIS_MALLOC (at->n * sizeof(double))))
      return -1;
 
    if (at->is_vector)
@@ -510,7 +510,7 @@ static int area_force_vector (Area_Type *a, int nbins) /*{{{*/
    if (a->is_vector)
      return 0;
 
-   if (NULL == (av = ISIS_MALLOC (nbins * sizeof(double))))
+   if (NULL == (av = (double *) ISIS_MALLOC (nbins * sizeof(double))))
      return -1;
 
    sa = a->value.s;
@@ -534,7 +534,7 @@ static Hist_t *Hist_new_hist (int nbins) /*{{{*/
    Hist_t *h = NULL;
    int i;
 
-   if (NULL == (h = ISIS_MALLOC (sizeof(Hist_t))))
+   if (NULL == (h = (Hist_t *) ISIS_MALLOC (sizeof(Hist_t))))
      return NULL;
    memset ((char *)h, 0, sizeof(*h));
 
@@ -586,26 +586,26 @@ static Hist_t *Hist_new_hist (int nbins) /*{{{*/
    if (nbins == 0)
      return h;
 
-   if ((NULL == (h->bin_lo = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (h->bin_hi = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (h->notice = ISIS_MALLOC (nbins * sizeof(int))))
-       || (NULL == (h->notice_list = ISIS_MALLOC (nbins * sizeof(int))))
-       || (NULL == (h->counts = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (h->model_counts = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (h->convolved_model_flux = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (h->model_flux.val = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (h->stat_err = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (h->flux = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (h->flux_err = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (h->rebin = ISIS_MALLOC (nbins * sizeof(int))))
-       || (NULL == (h->orig_bin_lo = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (h->orig_bin_hi = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (h->orig_counts = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (h->orig_stat_err = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (h->orig_notice = ISIS_MALLOC (nbins * sizeof(int))))
-       || (NULL == (h->quality = ISIS_MALLOC (nbins * sizeof(int))))
-       || (NULL == (h->orig_flux = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (h->orig_flux_err = ISIS_MALLOC (nbins * sizeof(double)))))
+   if ((NULL == (h->bin_lo = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (h->bin_hi = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (h->notice = (int *) ISIS_MALLOC (nbins * sizeof(int))))
+       || (NULL == (h->notice_list = (int *) ISIS_MALLOC (nbins * sizeof(int))))
+       || (NULL == (h->counts = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (h->model_counts = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (h->convolved_model_flux = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (h->model_flux.val = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (h->stat_err = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (h->flux = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (h->flux_err = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (h->rebin = (int *) ISIS_MALLOC (nbins * sizeof(int))))
+       || (NULL == (h->orig_bin_lo = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (h->orig_bin_hi = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (h->orig_counts = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (h->orig_stat_err = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (h->orig_notice = (int *) ISIS_MALLOC (nbins * sizeof(int))))
+       || (NULL == (h->quality = (int *) ISIS_MALLOC (nbins * sizeof(int))))
+       || (NULL == (h->orig_flux = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (h->orig_flux_err = (double *) ISIS_MALLOC (nbins * sizeof(double)))))
      {
         free_hist (h);
         return NULL;
@@ -1048,7 +1048,7 @@ static int get_canonical_hist_coordinates (Hist_t *h, int input_units) /*{{{*/
         int i;
         h->n_notice = 0;
         ISIS_FREE (h->notice_list);
-        h->notice_list = ISIS_MALLOC (h->nbins * sizeof(int));
+        h->notice_list = (int *) ISIS_MALLOC (h->nbins * sizeof(int));
         if (h->notice_list == NULL)
           return -1;
         h->n_notice = h->nbins;
@@ -1547,7 +1547,7 @@ static int redefine_fake_data_grid (Hist_t *head, Isis_Rmf_t *r, Hist_t **h) /*{
    int indx = (*h)->index;
    Isis_Rsp_t rsp;
    Isis_Arf_t *arf;
-   void *instrumental_background_hook;
+   SLang_Name_Type *instrumental_background_hook;
    char *instrumental_background_hook_name;
 
    /* preserve some of the existing configuration */
@@ -1683,7 +1683,7 @@ static double *background_scale_factor (Hist_t *h, int do_rebin) /*{{{*/
 
    n = do_rebin ? h->nbins : h->orig_nbins;
 
-   if (NULL == (s = ISIS_MALLOC (n * sizeof(double))))
+   if (NULL == (s = (double *) ISIS_MALLOC (n * sizeof(double))))
      return NULL;
 
    /* quick return for exact background */
@@ -1800,8 +1800,8 @@ static int scale_background (Hist_t *h, int do_rebin, /*{{{*/
 
    n = do_rebin ? h->nbins : h->orig_nbins;
 
-   if ((NULL == (b = ISIS_MALLOC (n * sizeof(double))))
-       || (NULL == (berr = ISIS_MALLOC (n * sizeof(double)))))
+   if ((NULL == (b = (double *) ISIS_MALLOC (n * sizeof(double))))
+       || (NULL == (berr = (double *) ISIS_MALLOC (n * sizeof(double)))))
      goto error_return;
 
    if (do_rebin)
@@ -1893,7 +1893,7 @@ int Hist_define_background (Hist_t *h, double bgd_exposure, /*{{{*/
         return -1;
      }
 
-   if (NULL == (bgd_copy = ISIS_MALLOC (nbins * sizeof(double))))
+   if (NULL == (bgd_copy = (double *) ISIS_MALLOC (nbins * sizeof(double))))
      {
         area_free (&at);
         return -1;
@@ -1926,8 +1926,8 @@ static int alloc_sys_err (Hist_t *h, int num) /*{{{*/
    ISIS_FREE(h->sys_err_frac);
    ISIS_FREE(h->orig_sys_err_frac);
 
-   if ((NULL == (h->sys_err_frac = ISIS_MALLOC (num * sizeof(double))))
-       || (NULL == (h->orig_sys_err_frac = ISIS_MALLOC (num * sizeof(double)))))
+   if ((NULL == (h->sys_err_frac = (double *) ISIS_MALLOC (num * sizeof(double))))
+       || (NULL == (h->orig_sys_err_frac = (double *) ISIS_MALLOC (num * sizeof(double)))))
      return -1;
 
    return 0;
@@ -2170,7 +2170,7 @@ static int read_fits_backscal_column (cfitsfile *fp, int k, Hist_t *h) /*{{{*/
    if ((num != 1) && (num != h->nbins))
      return -1;
 
-   if (NULL == (b = ISIS_MALLOC (h->nbins * sizeof(double))))
+   if (NULL == (b = (double *) ISIS_MALLOC (h->nbins * sizeof(double))))
      return -1;
 
    if (0 == cfits_read_optional_double_col (b, h->nbins, k, "BACKSCAL", fp))
@@ -2201,7 +2201,7 @@ static int read_fits_areascal_column (cfitsfile *fp, int k, Hist_t *h) /*{{{*/
    if ((num != 1) && (num != h->nbins))
      return -1;
 
-   if (NULL == (a = ISIS_MALLOC (h->nbins * sizeof(double))))
+   if (NULL == (a = (double *) ISIS_MALLOC (h->nbins * sizeof(double))))
      return -1;
 
    if (-1 == cfits_read_optional_double_col (a, h->nbins, k, "AREASCAL", fp))
@@ -2229,7 +2229,7 @@ static int read_fits_bg_area_column (cfitsfile *fp, int k, Hist_t *h) /*{{{*/
 {
    double *b = NULL;
 
-   if (NULL == (b = ISIS_MALLOC (h->nbins * sizeof(double))))
+   if (NULL == (b = (double *) ISIS_MALLOC (h->nbins * sizeof(double))))
      return -1;
 
    if (0 == cfits_read_optional_double_col (b, h->nbins, k, "BG_AREA", fp))
@@ -2252,7 +2252,7 @@ static int read_fits_bg_counts_column (cfitsfile *fp, int k, Hist_t *h) /*{{{*/
    Area_Type *a;
    double *bg_counts, *area;
 
-   if (NULL == (bg_counts = ISIS_MALLOC (h->nbins * sizeof(double))))
+   if (NULL == (bg_counts = (double *) ISIS_MALLOC (h->nbins * sizeof(double))))
      return -1;
 
    if (-1 == cfits_read_double_col (bg_counts, h->nbins, k, "BG_COUNTS", fp))
@@ -2292,7 +2292,7 @@ static int is_whitespace (const char *s) /*{{{*/
 
 /*}}}*/
 
-static char *read_file_keyword (cfitsfile *fp, char *keyname, char *filename) /*{{{*/
+static char *read_file_keyword (cfitsfile *fp, const char *keyname, const char *filename) /*{{{*/
 {
    char buf[CFLEN_FILENAME];
    char *path=NULL, *dir=NULL, *slash=NULL;
@@ -2697,7 +2697,7 @@ static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *n
         goto finish;
      }
 
-   if (NULL == (*indices = ISIS_MALLOC (*num_spectra * sizeof(int))))
+   if (NULL == (*indices = (int *) ISIS_MALLOC (*num_spectra * sizeof(int))))
      goto finish;
    memset ((char *) *indices, 0, (*num_spectra) * sizeof(int));
 
@@ -2715,7 +2715,7 @@ static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *n
 
    have_areascal_col = cfits_col_exist ("AREASCAL", cfp);
 
-   s = have_rate ? "RATE" : "COUNTS";
+   s = have_rate ? (char *) "RATE" : (char *) "COUNTS";
    if (-1 == cfits_get_repeat_count(&nbins, s, cfp))
      {
         isis_vmesg (FAIL, I_READ_KEY_FAILED, __FILE__, __LINE__, "%s repeat count => %s",
@@ -2944,7 +2944,7 @@ int Hist_read_fits (Hist_t *head, Isis_Arf_t *arf_head, Isis_Rmf_t *rmf_head, ch
      {
       case PHA_TYPE_I:
         *num_spectra = 1;
-        if (NULL == (*indices = ISIS_MALLOC (sizeof(int))))
+        if (NULL == (*indices = (int *) ISIS_MALLOC (sizeof(int))))
           return -1;
         return read_typeI_pha (head, arf_head, rmf_head, pha_filename, *indices, strict);
 
@@ -3107,7 +3107,7 @@ int Hist_set_instrumental_background_hook_name (Hist_t *h, char *name) /*{{{*/
 
 /*}}}*/
 
-void *Hist_get_instrumental_background_hook (Hist_t *h) /*{{{*/
+SLang_Name_Type *Hist_get_instrumental_background_hook (Hist_t *h) /*{{{*/
 {
    if (h == NULL)
      return NULL;
@@ -3116,7 +3116,7 @@ void *Hist_get_instrumental_background_hook (Hist_t *h) /*{{{*/
 
 /*}}}*/
 
-int Hist_set_instrumental_background_hook (Hist_t *h, void *hook) /*{{{*/
+int Hist_set_instrumental_background_hook (Hist_t *h, SLang_Name_Type *hook) /*{{{*/
 {
    if (h == NULL)
      return -1;
@@ -3130,7 +3130,7 @@ int Hist_set_instrumental_background_hook (Hist_t *h, void *hook) /*{{{*/
 
 /* user-defined metadata */
 
-void *Hist_get_metadata (Hist_t *h) /*{{{*/
+SLang_Any_Type *Hist_get_metadata (Hist_t *h) /*{{{*/
 {
    if (h == NULL)
      return NULL;
@@ -3139,7 +3139,7 @@ void *Hist_get_metadata (Hist_t *h) /*{{{*/
 
 /*}}}*/
 
-int Hist_set_metadata (Hist_t *h, void *meta) /*{{{*/
+int Hist_set_metadata (Hist_t *h, SLang_Any_Type *meta) /*{{{*/
 {
    if (h == NULL)
      return -1;
@@ -3153,7 +3153,7 @@ int Hist_set_metadata (Hist_t *h, void *meta) /*{{{*/
 
 /* post model-evaluation  hook */
 
-void *Hist_post_model_hook (Hist_t *h) /*{{{*/
+SLang_Name_Type *Hist_post_model_hook (Hist_t *h) /*{{{*/
 {
    if (h == NULL)
      return NULL;
@@ -3162,7 +3162,7 @@ void *Hist_post_model_hook (Hist_t *h) /*{{{*/
 
 /*}}}*/
 
-int Hist_set_post_model_hook (Hist_t *h, void *hook, void (*delete_hook)(void *)) /*{{{*/
+int Hist_set_post_model_hook (Hist_t *h, SLang_Name_Type *hook, void (*delete_hook)(SLang_Name_Type *)) /*{{{*/
 {
    if (h == NULL)
      return -1;
@@ -3236,8 +3236,8 @@ int Hist_get_rsp_list (Hist_t *h, int **arfs, int **rmfs, int *num) /*{{{*/
    if (n < 1)
      return -1;
 
-   a = ISIS_MALLOC (n * sizeof(int));
-   r = ISIS_MALLOC (n * sizeof(int));
+   a = (int *) ISIS_MALLOC (n * sizeof(int));
+   r = (int *) ISIS_MALLOC (n * sizeof(int));
    if ((a == NULL) || (r == NULL))
      {
         ISIS_FREE (a);
@@ -3278,8 +3278,8 @@ int Hist_get_info (Hist_t *h, Hist_Info_Type *info) /*{{{*/
    isis_strcpy (info->object, h->object, sizeof(info->object));
    isis_strcpy (info->instrument, h->instrument, sizeof(info->instrument));
    isis_strcpy (info->grating, h->grating, sizeof(info->grating));
-   info->file = h->file ? h->file : "";
-   info->bgd_file = h->bgd_file ? h->bgd_file : "";
+   info->file = h->file ? h->file : (char *) "";
+   info->bgd_file = h->bgd_file ? h->bgd_file : (char *) "";
 
    return 0;
 }
@@ -3800,7 +3800,7 @@ static int copy_d_array (double **to, double *from, int nbins) /*{{{*/
 {
    double *cpy;
 
-   if (NULL == (cpy = ISIS_MALLOC (nbins * sizeof(double))))
+   if (NULL == (cpy = (double *) ISIS_MALLOC (nbins * sizeof(double))))
      return -1;
 
    memcpy ((char *)cpy, (char *)from, nbins * sizeof(double));
@@ -3840,7 +3840,7 @@ static int rebin_backscale (Area_Type *at, Hist_t *h, double *lo, double *hi, in
    if (-1 == area_force_vector (at, h->nbins))
      return -1;
 
-   if (NULL == (v = ISIS_MALLOC (nbins * sizeof(double))))
+   if (NULL == (v = (double *) ISIS_MALLOC (nbins * sizeof(double))))
      return -1;
 
    if (-1 == rebin_histogram (at->value.v, h->bin_lo, h->bin_hi, h->nbins,
@@ -3864,8 +3864,8 @@ static double *rebin_sys_err_frac (Hist_t *h, double *lo, double *hi, int nbins)
    double *sys_err_frac_dlam=NULL, *sys_err_frac=NULL;
    int i;
 
-   if ((NULL == (sys_err_frac_dlam = ISIS_MALLOC (h->orig_nbins * sizeof(double))))
-       || (NULL == (sys_err_frac = ISIS_MALLOC (nbins * sizeof(double)))))
+   if ((NULL == (sys_err_frac_dlam = (double *) ISIS_MALLOC (h->orig_nbins * sizeof(double))))
+       || (NULL == (sys_err_frac = (double *) ISIS_MALLOC (nbins * sizeof(double)))))
      {
         ISIS_FREE(sys_err_frac_dlam);
         return NULL;
@@ -3900,7 +3900,7 @@ int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins) /*{{{*/
 {
    double *bgd_cts = NULL;
    double *cts = NULL;
-   void *tmp = NULL;
+   union {double *d; int *i;} tmp;
    int i;
 
    if ((h == NULL) || (lo == NULL) || (hi == NULL) || (nbins < 1))
@@ -3923,37 +3923,42 @@ int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins) /*{{{*/
    if (-1 == validate_wavelength_grid (nbins, lo, hi))
      return -1;
 
-#define REALLOC_OR_FAIL(x,n) \
-   if (NULL == (tmp = ISIS_REALLOC((x), (n)))) \
+#define D_REALLOC_OR_FAIL(x,n) \
+   if (NULL == (tmp.d = (double *) ISIS_REALLOC((x), (n) * sizeof(double)))) \
      return -1; \
-   else (x) = tmp;
+   else (x) = tmp.d;
 
-   REALLOC_OR_FAIL(h->notice, nbins * sizeof(int));
-   REALLOC_OR_FAIL(h->notice_list, nbins * sizeof(int));
-   REALLOC_OR_FAIL(h->model_counts, nbins * sizeof(double));
-   REALLOC_OR_FAIL(h->convolved_model_flux, nbins * sizeof(double));
-   REALLOC_OR_FAIL(h->model_flux.val, nbins * sizeof(double));
-   REALLOC_OR_FAIL(h->stat_err, nbins * sizeof(double));
-   REALLOC_OR_FAIL(h->flux, nbins * sizeof(double));
-   REALLOC_OR_FAIL(h->flux_err, nbins * sizeof(double));
-   REALLOC_OR_FAIL(h->orig_flux, nbins * sizeof(double));
-   REALLOC_OR_FAIL(h->orig_flux_err, nbins * sizeof(double));
+#define I_REALLOC_OR_FAIL(x,n) \
+   if (NULL == (tmp.i = (int *) ISIS_REALLOC((x), (n) * sizeof(int)))) \
+     return -1; \
+   else (x) = tmp.i;
+
+   I_REALLOC_OR_FAIL(h->notice, nbins);
+   I_REALLOC_OR_FAIL(h->notice_list, nbins);
+   D_REALLOC_OR_FAIL(h->model_counts, nbins);
+   D_REALLOC_OR_FAIL(h->convolved_model_flux, nbins);
+   D_REALLOC_OR_FAIL(h->model_flux.val, nbins);
+   D_REALLOC_OR_FAIL(h->stat_err, nbins);
+   D_REALLOC_OR_FAIL(h->flux, nbins);
+   D_REALLOC_OR_FAIL(h->flux_err, nbins);
+   D_REALLOC_OR_FAIL(h->orig_flux, nbins);
+   D_REALLOC_OR_FAIL(h->orig_flux_err, nbins);
    if (h->flux_weights != NULL)
      {
-        REALLOC_OR_FAIL(h->flux_weights, nbins * sizeof(double));
+        D_REALLOC_OR_FAIL(h->flux_weights, nbins);
      }
    if (h->sys_err_frac != NULL)
      {
-        REALLOC_OR_FAIL(h->sys_err_frac, nbins * sizeof(double));
-        REALLOC_OR_FAIL(h->orig_sys_err_frac, nbins * sizeof(double));
+        D_REALLOC_OR_FAIL(h->sys_err_frac, nbins);
+        D_REALLOC_OR_FAIL(h->orig_sys_err_frac, nbins);
      }
-   REALLOC_OR_FAIL(h->rebin, nbins * sizeof(int));
-   REALLOC_OR_FAIL(h->orig_bin_lo, nbins * sizeof(double));
-   REALLOC_OR_FAIL(h->orig_bin_hi, nbins * sizeof(double));
-   REALLOC_OR_FAIL(h->orig_counts, nbins * sizeof(double));
-   REALLOC_OR_FAIL(h->orig_stat_err, nbins * sizeof(double));
-   REALLOC_OR_FAIL(h->orig_notice, nbins * sizeof(int));
-   REALLOC_OR_FAIL(h->quality, nbins * sizeof(int));
+   I_REALLOC_OR_FAIL(h->rebin, nbins);
+   D_REALLOC_OR_FAIL(h->orig_bin_lo, nbins);
+   D_REALLOC_OR_FAIL(h->orig_bin_hi, nbins);
+   D_REALLOC_OR_FAIL(h->orig_counts, nbins);
+   D_REALLOC_OR_FAIL(h->orig_stat_err, nbins);
+   I_REALLOC_OR_FAIL(h->orig_notice, nbins);
+   I_REALLOC_OR_FAIL(h->quality, nbins);
 
    memset ((char *)h->stat_err, 0, nbins*sizeof(double));
    memset ((char *)h->quality, 0, nbins*sizeof(int));
@@ -3968,7 +3973,7 @@ int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins) /*{{{*/
         h->flux_err[i] = -1.0;
      }
 
-   if (NULL == (cts = ISIS_MALLOC (nbins * sizeof(double))))
+   if (NULL == (cts = (double *) ISIS_MALLOC (nbins * sizeof(double))))
      goto error_return;
 
    if (-1 == rebin_histogram (h->counts, h->bin_lo, h->bin_hi, h->nbins,
@@ -3977,7 +3982,7 @@ int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins) /*{{{*/
 
    if (h->orig_bgd != NULL)
      {
-        if (NULL == (bgd_cts = ISIS_MALLOC (nbins * sizeof(double))))
+        if (NULL == (bgd_cts = (double *) ISIS_MALLOC (nbins * sizeof(double))))
           goto error_return;
 
         if (-1 == rebin_histogram (h->orig_bgd, h->bin_lo, h->bin_hi, h->nbins,
@@ -4078,7 +4083,7 @@ int Hist_set_model (Hist_t *h, unsigned int version, double *model_value) /*{{{*
 
 int Hist_print_stats (FILE * fp, Hist_Stat_t *s) /*{{{*/
 {
-   static char *header =
+   static const char *header =
      "#   w_min           w_max       nbins     centroid     ctr_err      sum       sum_err      net       net_err      contin    con_slope      eq_width   eqw_err";
 
    if (NULL == fp)
@@ -4263,8 +4268,7 @@ int Hist_id_list (Hist_t *head, int noticed, unsigned int **ids, unsigned int *n
    if (*num == 0)
      return 0;
 
-   *ids = ISIS_MALLOC (*num * sizeof(unsigned int));
-   if (*ids == NULL)
+   if (NULL == (*ids = (unsigned int *) ISIS_MALLOC (*num * sizeof(unsigned int))))
      return -1;
 
    n = 0;
@@ -4538,7 +4542,7 @@ static int set_model_notice (Hist_t *h) /*{{{*/
    /* Apply current notice flags to original bins,
     * then map onto model grid using the RMF
     */
-   if (NULL == (notice = ISIS_MALLOC (h->orig_nbins * sizeof(int))))
+   if (NULL == (notice = (int *) ISIS_MALLOC (h->orig_nbins * sizeof(int))))
      return -1;
 
    memset ((char *)notice, 0, h->orig_nbins * sizeof(int));
@@ -4571,8 +4575,7 @@ static int set_model_notice (Hist_t *h) /*{{{*/
              px->nbins = arf->nbins;
              px->notice_list = NULL;
              px->n_notice = 0;
-             px->notice = ISIS_MALLOC (arf->nbins * sizeof(int));
-             if (px->notice == NULL)
+             if (NULL == (px->notice = (int *) ISIS_MALLOC (arf->nbins * sizeof(int))))
                goto finish;
              malloced_px = 1;
           }
@@ -4900,7 +4903,7 @@ int Hist_set_color (Hist_t *h, int color) /*{{{*/
 
    if (h->color == NULL)
      {
-        if (NULL == (h->color = ISIS_MALLOC (sizeof(int))))
+        if (NULL == (h->color = (int *) ISIS_MALLOC (sizeof(int))))
           return -1;
      }
 
@@ -4915,7 +4918,7 @@ static int set_default_labels (unsigned int version, Hist_Plot_Tune_Type *info, 
 {
    char xlabel[PLOT_LABEL_STRING_SIZE], ylabel[PLOT_LABEL_STRING_SIZE];
    char xunit[PLOT_LABEL_STRING_SIZE], yunit[PLOT_LABEL_STRING_SIZE];
-   char *rtype, *ytype, *xlog, *ylog;
+   const char *rtype, *ytype, *xlog, *ylog;
    int x_unit_id = Plot_x_unit (fmt);
    int x_unit_is_wavelength = unit_is_wavelength (x_unit_id);
 
@@ -5009,11 +5012,11 @@ static int make_plot_copy (Isis_Hist_t *src, Isis_Hist_t *dest) /*{{{*/
    if ((NULL == src) || (NULL == dest))
      return -1;
 
-   if (NULL == (dest->val = ISIS_MALLOC (src->nbins * sizeof(double)))
-       || NULL == (dest->bin_lo = ISIS_MALLOC (src->nbins * sizeof(double)))
-       || NULL == (dest->bin_hi = ISIS_MALLOC (src->nbins * sizeof(double)))
-       || NULL == (dest->val_err = ISIS_MALLOC (src->nbins * sizeof(double)))
-       || ((src->notice != NULL) && (NULL == (dest->notice = ISIS_MALLOC (src->nbins * sizeof(int))))))
+   if (NULL == (dest->val = (double *) ISIS_MALLOC (src->nbins * sizeof(double)))
+       || NULL == (dest->bin_lo = (double *) ISIS_MALLOC (src->nbins * sizeof(double)))
+       || NULL == (dest->bin_hi = (double *) ISIS_MALLOC (src->nbins * sizeof(double)))
+       || NULL == (dest->val_err = (double *) ISIS_MALLOC (src->nbins * sizeof(double)))
+       || ((src->notice != NULL) && (NULL == (dest->notice = (int *) ISIS_MALLOC (src->nbins * sizeof(int))))))
      {
         free_plot_copy (dest);
         return -1;
@@ -5658,8 +5661,8 @@ int Hist_do_rebin (Hist_t *h, int (*rebin_fcn)(Hist_t *, void *), void *s)  /*{{
 
 static int cmp_doubles (const void *va, const void *vb) /*{{{*/
 {
-   const double *a = va;
-   const double *b = vb;
+   const double *a = (const double *) va;
+   const double *b = (const double *) vb;
 
    if (*a < *b) return -1;
    else if (*a > *b) return 1;
@@ -5742,7 +5745,7 @@ static int set_model_grid (Hist_t *h) /*{{{*/
         num += r->arf->nbins + 1;
      }
 
-   if (NULL == (y = ISIS_MALLOC (num * sizeof(double))))
+   if (NULL == (y = (double *) ISIS_MALLOC (num * sizeof(double))))
      return -1;
 
    min_dy = DBL_MAX;
@@ -6364,8 +6367,7 @@ int Hist_assign_rsp_list (Hist_t *hhead, int hist_index, /*{{{*/
 
    for (i = 0; i < num; i++)
      {
-        rsp = ISIS_MALLOC (sizeof(Isis_Rsp_t));
-        if (rsp == NULL)
+        if (NULL == (rsp = (Isis_Rsp_t *) ISIS_MALLOC (sizeof(Isis_Rsp_t))))
           goto fail;
 
         rsp->next = NULL;
@@ -6483,7 +6485,7 @@ static int merge_model_grids (Hist_t *head, unsigned int *indices, unsigned int 
         num += h->model_flux.nbins + 1;
      }
 
-   if (NULL == (y = ISIS_MALLOC (num * sizeof(double))))
+   if (NULL == (y = (double *) ISIS_MALLOC (num * sizeof(double))))
      return -1;
 
    min_dy = DBL_MAX;
@@ -6539,11 +6541,10 @@ static int merge_model_grids (Hist_t *head, unsigned int *indices, unsigned int 
 
 static int allocate_temporary_workspace (Isis_Hist_t *g) /*{{{*/
 {
-   void *tmp;
+   double *tmp;
    if (g == NULL)
      return -1;
-   tmp = ISIS_REALLOC (g->val, 2*g->nbins*sizeof(double));
-   if (tmp == NULL)
+   if (NULL == (tmp = (double *) ISIS_REALLOC (g->val, 2*g->nbins*sizeof(double))))
      return -1;
    g->val = tmp;
    memset ((char *)g->val, 0, 2*g->nbins*sizeof(double));
@@ -6564,7 +6565,7 @@ int Hist_make_merged_eval_grid (Hist_t *head, int eval_grid_id, Isis_Hist_t *gri
    if (0 == (num = Hist_num_noticed_histograms (head)))
      return -1;
 
-   if (NULL == (id = ISIS_MALLOC(num * sizeof(unsigned int))))
+   if (NULL == (id = (unsigned int *) ISIS_MALLOC (num * sizeof(unsigned int))))
      return -1;
 
    num = 0;
@@ -6734,7 +6735,7 @@ int Hist_apply_rebin (double *x, Hist_t *h, double **rebinned, int *nbins) /*{{{
    if (h == NULL)
      return -1;
 
-   if (NULL == (xn = ISIS_MALLOC (h->nbins * sizeof(double))))
+   if (NULL == (xn = (double *) ISIS_MALLOC (h->nbins * sizeof(double))))
      return -1;
 
    if (-1 == apply_rebin (x, h->orig_nbins, h->rebin, h->nbins, xn))
@@ -6810,7 +6811,7 @@ Isis_Kernel_t *isis_init_kernel (Isis_Kernel_t *k, unsigned int sizeof_kernel, /
 
    if (k == NULL)
      {
-        if (NULL == (k = ISIS_MALLOC (sizeof_kernel)))
+        if (NULL == (k = (Isis_Kernel_t *) ISIS_MALLOC (sizeof_kernel)))
           return NULL;
         memset ((char *) k, 0, sizeof_kernel);
      }
@@ -6994,7 +6995,7 @@ int Hist_get_flux_corr_weights (Hist_t *h, double **weights, int *num_weights) /
      }
 
    len = h->orig_nbins * sizeof(double);
-   if (NULL == (*weights = ISIS_MALLOC (len)))
+   if (NULL == (*weights = (double *) ISIS_MALLOC (len)))
      return -1;
    *num_weights = h->orig_nbins;
 
@@ -7039,9 +7040,9 @@ static int setup_flux_correct (Hist_t *h, int using_model, Isis_Hist_t *c, /*{{{
         return -1;
      }
 
-   if ((NULL == (f = ISIS_MALLOC(n * sizeof(double))))
-       || (NULL == (f_err = ISIS_MALLOC(n * sizeof(double))))
-       || (NULL == (c->val_err = ISIS_MALLOC (n*sizeof(double)))))
+   if ((NULL == (f = (double *) ISIS_MALLOC (n * sizeof(double))))
+       || (NULL == (f_err = (double *) ISIS_MALLOC (n * sizeof(double))))
+       || (NULL == (c->val_err = (double *) ISIS_MALLOC (n* sizeof(double)))))
      {
         ISIS_FREE(f);
         ISIS_FREE(f_err);
@@ -7080,7 +7081,7 @@ static int set_flux_floor (Hist_t *h, double frac, double *flux) /*{{{*/
         if (-1 == scale_background (h, 1, &b, &berr))
           return -1;
 
-        if (NULL == (net = ISIS_MALLOC(2 * h->nbins * sizeof(double))))
+        if (NULL == (net = (double *) ISIS_MALLOC (2 * h->nbins * sizeof(double))))
           {
              ISIS_FREE(b);
              ISIS_FREE(berr);
@@ -7142,7 +7143,7 @@ double *isis_unit_source_response (Isis_Kernel_t *k) /*{{{*/
    arf = arft->arf;
    arf_nbins = arft->nbins;
 
-   if (NULL == (arf_dlam = ISIS_MALLOC (arf_nbins * sizeof(double))))
+   if (NULL == (arf_dlam = (double *) ISIS_MALLOC (arf_nbins * sizeof(double))))
      return NULL;
 
    for (i = 0; i < arf_nbins; i++)
@@ -7151,7 +7152,7 @@ double *isis_unit_source_response (Isis_Kernel_t *k) /*{{{*/
      }
 
    n = k->num_orig_data;
-   if (NULL == (arf_rmf_dlam = ISIS_MALLOC (n * sizeof(double))))
+   if (NULL == (arf_rmf_dlam = (double *) ISIS_MALLOC (n * sizeof(double))))
      {
         ISIS_FREE (arf_dlam);
         return NULL;

@@ -45,7 +45,7 @@ typedef struct _Keyword_t Keyword_t;
 
 struct _Keyword_t
 {
-   char *name;
+   const char *name;
    int required;                /* complain if missing */
 #define OPTIONAL_KEY  0
 #define REQUIRED_KEY  1
@@ -65,8 +65,8 @@ extern int Key_read_header_keywords (void *fp, char *ptr, Keyword_t *k, int meth
 extern Ascii_Keybuf_t * Key_ascii_allocate_keybuf (unsigned int num_keys);
 extern void Key_ascii_free_keybuf (Ascii_Keybuf_t *buf);
 extern int Key_ascii_load_keybuf (FILE *fp, Ascii_Keybuf_t *buf);
-extern int Key_ascii_read_string_keyword (char *key, char *name, Ascii_Keybuf_t *buf);
-extern int Key_ascii_read_double_keyword (double *key, char *name, Ascii_Keybuf_t *buf);
+extern int Key_ascii_read_string_keyword (char *key, const char *name, Ascii_Keybuf_t *buf);
+extern int Key_ascii_read_double_keyword (double *key, const char *name, Ascii_Keybuf_t *buf);
 
 #if 0
 {

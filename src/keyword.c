@@ -75,8 +75,8 @@ Ascii_Keybuf_t * Key_ascii_allocate_keybuf (unsigned int num_keys) /*{{{*/
    Ascii_Keybuf_t *p;
    unsigned int i;
 
-   if (NULL == (p = ISIS_MALLOC (sizeof(Ascii_Keybuf_t)))
-       || NULL == (p->keyword_line = ISIS_MALLOC (num_keys * sizeof(char *))))
+   if (NULL == (p = (Ascii_Keybuf_t *) ISIS_MALLOC (sizeof(Ascii_Keybuf_t)))
+       || NULL == (p->keyword_line = (char **) ISIS_MALLOC (num_keys * sizeof(char *))))
      {
         Key_ascii_free_keybuf (p);
         return NULL;
@@ -86,7 +86,7 @@ Ascii_Keybuf_t * Key_ascii_allocate_keybuf (unsigned int num_keys) /*{{{*/
 
    for (i=0; i < num_keys; i++)
      {
-        if (NULL == (p->keyword_line[i] = ISIS_MALLOC (KEYLINE_SIZE * sizeof(char))))
+        if (NULL == (p->keyword_line[i] = (char *) ISIS_MALLOC (KEYLINE_SIZE * sizeof(char))))
           {
              Key_ascii_free_keybuf (p);
              return NULL;
@@ -130,14 +130,14 @@ int Key_ascii_load_keybuf (FILE *fp, Ascii_Keybuf_t *p) /*{{{*/
 
 /*}}}*/
 
-static char * ascii_get_keyword_value (char *keyname, Ascii_Keybuf_t *p) /*{{{*/
+static char *ascii_get_keyword_value (const char *keyname, Ascii_Keybuf_t *p) /*{{{*/
 {
    unsigned int i;
 
    for (i=0; i < p->num_keys; i++)
      {
         char *k = p->keyword_line[i];     /* with no leading whitespace */
-        char *n = keyname;
+        const char *n = keyname;
 
         while (tolower((unsigned char)*k) == tolower((unsigned char)*n))
           {
@@ -191,7 +191,7 @@ static int ascii_read_float_keyword (float *key, char *name, Ascii_Keybuf_t *buf
 
 /*}}}*/
 
-int Key_ascii_read_double_keyword (double *key, char *name, Ascii_Keybuf_t *buf) /*{{{*/
+int Key_ascii_read_double_keyword (double *key, const char *name, Ascii_Keybuf_t *buf) /*{{{*/
 {
    char *value;
 
@@ -206,7 +206,7 @@ int Key_ascii_read_double_keyword (double *key, char *name, Ascii_Keybuf_t *buf)
 
 /*}}}*/
 
-int Key_ascii_read_string_keyword (char *key, char *name, Ascii_Keybuf_t *buf) /*{{{*/
+int Key_ascii_read_string_keyword (char *key, const char *name, Ascii_Keybuf_t *buf) /*{{{*/
 {
    char *value, *h, *t, *s;
    int len;
@@ -238,7 +238,7 @@ int Key_ascii_read_string_keyword (char *key, char *name, Ascii_Keybuf_t *buf) /
 
    /* copy trimmed string */
 
-   len = MIN(t-h+1, CFLEN_VALUE);
+   len = MIN(t-h+1, (int) CFLEN_VALUE);
    isis_strcpy (key, h, len);
 
    return 0;
@@ -260,7 +260,7 @@ int Key_ascii_read_string_keyword (char *key, char *name, Ascii_Keybuf_t *buf) /
  *      (Int_Method, etc.) are set correctly.
  */
 
-typedef int method_t(void *, char *, void *);
+typedef int method_t(void *, const char *, void *);
 
 typedef struct
 {

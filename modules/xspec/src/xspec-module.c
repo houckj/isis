@@ -154,12 +154,12 @@ static Xspec_Info_Type *new_##s##_xspec_info_type (int nbins) \
    if (nbins <= 0) \
      return NULL; \
  \
-   if (NULL == (x = ISIS_MALLOC (sizeof *x))) \
+   if (NULL == (x = (Xspec_Info_Type *) ISIS_MALLOC (sizeof *x))) \
      return NULL; \
  \
-   if (NULL == (x->ebins.s = ISIS_MALLOC ((nbins+1) * sizeof(type))) \
-       || NULL == (x->photar.s = ISIS_MALLOC (nbins * sizeof(type))) \
-       || NULL == (x->keep = ISIS_MALLOC (nbins * sizeof(int)))) \
+   if (NULL == (x->ebins.s = (type *) ISIS_MALLOC ((nbins+1) * sizeof(type))) \
+       || NULL == (x->photar.s = (type *) ISIS_MALLOC (nbins * sizeof(type))) \
+       || NULL == (x->keep = (int *) ISIS_MALLOC (nbins * sizeof(int)))) \
      { \
         free_##s##_xspec_info_type (x); \
         return NULL; \
@@ -296,7 +296,7 @@ static int eval_##s##_xspec_fun (Xspec_Fun_t *fun, double *val, Isis_Hist_t *g, 
    p.param.s = param; \
    p.ifl = 0; \
    p.photar.s = x->photar.s; \
-   p.photer.s = ISIS_MALLOC (x->nbins * sizeof(type)); \
+   p.photer.s = (type *) ISIS_MALLOC (x->nbins * sizeof(type)); \
    memset ((char *)p.photer.f, 0, x->nbins * sizeof(type)); \
  \
    p.filename = Table_Model_Filename; \
@@ -418,7 +418,7 @@ static int mul_f (double *val, Isis_Hist_t *g, double *par, unsigned int npar) /
      {
         unsigned int i;
 
-        if (NULL == (param = ISIS_MALLOC (npar * sizeof(float))))
+        if (NULL == (param = (float *) ISIS_MALLOC (npar * sizeof(float))))
           return -1;
 
         for (i = 0; i < npar; i++)
@@ -442,7 +442,7 @@ static int con_f (double *val, Isis_Hist_t *g, double *par, unsigned int npar) /
      {
         unsigned int i;
 
-        if (NULL == (param = ISIS_MALLOC (npar * sizeof(float))))
+        if (NULL == (param = (float *) ISIS_MALLOC (npar * sizeof(float))))
           return -1;
 
         for (i = 0; i < npar; i++)
@@ -466,7 +466,7 @@ static int add_f (double *val, Isis_Hist_t *g, double *par, unsigned int npar) /
 
    if (npar > 2)
      {
-        if (NULL == (param = ISIS_MALLOC (npar * sizeof(float))))
+        if (NULL == (param = (float *) ISIS_MALLOC (npar * sizeof(float))))
           return -1;
         malloced = 1;
      }
@@ -493,7 +493,7 @@ static int mul_fn (double *val, Isis_Hist_t *g, double *par, unsigned int npar) 
      {
         unsigned int i;
 
-        if (NULL == (param = ISIS_MALLOC (npar * sizeof(float))))
+        if (NULL == (param = (float *) ISIS_MALLOC (npar * sizeof(float))))
           return -1;
 
         for (i = 0; i < npar; i++)
@@ -517,7 +517,7 @@ static int con_fn (double *val, Isis_Hist_t *g, double *par, unsigned int npar) 
      {
         unsigned int i;
 
-        if (NULL == (param = ISIS_MALLOC (npar * sizeof(float))))
+        if (NULL == (param = (float *) ISIS_MALLOC (npar * sizeof(float))))
           return -1;
 
         for (i = 0; i < npar; i++)
@@ -541,7 +541,7 @@ static int add_fn (double *val, Isis_Hist_t *g, double *par, unsigned int npar) 
 
    if (npar > 2)
      {
-        if (NULL == (param = ISIS_MALLOC (npar * sizeof(float))))
+        if (NULL == (param = (float *) ISIS_MALLOC (npar * sizeof(float))))
           return -1;
         malloced = 1;
      }
@@ -588,7 +588,7 @@ static int add_F (double *val, Isis_Hist_t *g, double *par, unsigned int npar) /
 
    if (npar > 2)
      {
-        if (NULL == (param = ISIS_MALLOC (npar * sizeof(double))))
+        if (NULL == (param = (double *) ISIS_MALLOC (npar * sizeof(double))))
           return -1;
         malloced = 1;
      }
@@ -635,7 +635,7 @@ static int add_C (double *val, Isis_Hist_t *g, double *par, unsigned int npar) /
 
    if (npar > 2)
      {
-        if (NULL == (param = ISIS_MALLOC (npar * sizeof(double))))
+        if (NULL == (param = (double *) ISIS_MALLOC (npar * sizeof(double))))
           return -1;
         malloced = 1;
      }
@@ -725,7 +725,7 @@ static void _xspec_hook (Xspec_Type *xt, Hook_Type *hook) /*{{{*/
 
    nbins = sl_lo->num_elements;
 
-   if (NULL == (notice_list = ISIS_MALLOC (nbins * sizeof(int))))
+   if (NULL == (notice_list = (int *) ISIS_MALLOC (nbins * sizeof(int))))
      goto finish;
    for (i = 0; i < nbins; i++)
      notice_list[i] = i;
@@ -870,10 +870,10 @@ static int load_xspec_fun (SLang_Ref_Type *ref, char *file, char *fun_name) /*{{
    if (-1 == SLang_assign_to_ref (ref, SLANG_NULL_TYPE, NULL))
      return -1;
 
-   if (NULL == (fptr = load_function (file, fun_name)))
+   if (NULL == (fptr = (fptr_type *) load_function (file, fun_name)))
      return -1;
 
-   if (NULL == (xt = ISIS_MALLOC (sizeof(Xspec_Type))))
+   if (NULL == (xt = (Xspec_Type *) ISIS_MALLOC (sizeof(Xspec_Type))))
      return -1;
 
    xt->symbol = (fptr_type *)fptr;
@@ -897,6 +897,14 @@ static int load_xspec_fun (SLang_Ref_Type *ref, char *file, char *fun_name) /*{{
 
 /*}}}*/
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+#if 0
+}
+#endif
+
 #if defined(HAVE_XSPEC_11)
 # include "_model_externs_xspec11.inc"
 # define XSPEC_MODEL_NAMES_FILE "_names_xspec11.dat"
@@ -916,6 +924,13 @@ static Xspec_Type Static_Fun_Table[] =
 #endif
      {NULL, NULL, NULL, NULL}
 };
+
+#if 0
+{
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 static void find_xspec_fun (SLang_Ref_Type *ref, char *fun_name) /*{{{*/
 {
@@ -1158,8 +1173,47 @@ static double xs_get_element_solar_abundance (char *element) /*{{{*/
 
 /*}}}*/
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+#if 0
+}
+#endif
+
 #define PHOTO_FC FC_FUNC(photo,PHOTO)
 extern float PHOTO_FC(float *kev1, float *kev2, int *Z, int *versn, long *status);
+
+#define GPHOTO_FC FC_FUNC(gphoto,GPHOTO)
+extern float GPHOTO_FC(float *kev1, float *kev2, int *Z, long *status);
+
+#define PHFIT2_FC FC_FUNC(phfit2,PHFIT2)
+extern float PHFIT2_FC(int *nz, int *ne, int *is, float *e, float *s);
+
+#define INITNEI_FC FC_FUNC(initnei,INITNEI)
+extern void INITNEI_FC(int *ni, int *nz);
+
+#define IONSNEQR_FC FC_FUNC(ionsneqr,IONSNEQR)
+extern void IONSNEQR_FC(float *tmp, float *tau, int *n, int*nzmax, int *nionp,
+                        float *fout, int *ionel, int *ionstage);
+
+#define XSPEC11_TABLE_FUN(name,xsname,XSNAME)                              \
+   extern void FC_FUNC(xsname,XSNAME)(float *,int *,float *,char *,int *,float *,float *); \
+   static void name (Xspec_Param_t *p)                                         \
+   {                                                                           \
+      FC_FUNC(xsname,XSNAME)(p->ear.f,&p->ne,p->param.f,p->filename,&p->ifl,p->photar.f,p->photer.f);   \
+   }
+
+XSPEC11_TABLE_FUN(xs_atbl,xsatbl,XSATBL)
+XSPEC11_TABLE_FUN(xs_mtbl,xsmtbl,XSMTBL)
+XSPEC11_TABLE_FUN(xs_etbl,xsetbl,XSETBL)
+
+#if 0
+{
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 static double xs_photo (float *kev1, float *kev2, int *Z, int *versn) /*{{{*/
 {
@@ -1175,9 +1229,6 @@ static double xs_photo (float *kev1, float *kev2, int *Z, int *versn) /*{{{*/
 
 /*}}}*/
 
-#define GPHOTO_FC FC_FUNC(gphoto,GPHOTO)
-extern float GPHOTO_FC(float *kev1, float *kev2, int *Z, long *status);
-
 static double xs_gphoto (float *kev1, float *kev2, int *Z) /*{{{*/
 {
    long status = 0;
@@ -1192,9 +1243,6 @@ static double xs_gphoto (float *kev1, float *kev2, int *Z) /*{{{*/
 
 /*}}}*/
 
-#define PHFIT2_FC FC_FUNC(phfit2,PHFIT2)
-extern float PHFIT2_FC(int *nz, int *ne, int *is, float *e, float *s);
-
 static double xs_phfit2 (int *nz, int *ne, int *is, float *e) /*{{{*/
 {
    float s;
@@ -1203,9 +1251,6 @@ static double xs_phfit2 (int *nz, int *ne, int *is, float *e) /*{{{*/
 }
 
 /*}}}*/
-
-#define INITNEI_FC FC_FUNC(initnei,INITNEI)
-extern void INITNEI_FC(int *ni, int *nz);
 
 static void xs_initnei (int *nionp,int *nzmax) /*{{{*/
 {
@@ -1221,10 +1266,6 @@ static void xs_initnei (int *nionp,int *nzmax) /*{{{*/
 }
 
 /*}}}*/
-
-#define IONSNEQR_FC FC_FUNC(ionsneqr,IONSNEQR)
-extern void IONSNEQR_FC(float *tmp, float *tau, int *n, int*nzmax, int *nionp,
-                        float *fout, int *ionel, int *ionstage);
 
 static void xs_ionsneqr(void) /*{{{*/
 {
@@ -1304,8 +1345,7 @@ static void set_table_model_filename (char *filename) /*{{{*/
         return;
      }
 
-   t = ISIS_MALLOC (1 + strlen(filename));
-   if (t == NULL)
+   if (NULL == (t = (char *) ISIS_MALLOC (1 + strlen(filename))))
      {
         fputs ("Filename not set", stderr);
         return;
@@ -1347,9 +1387,9 @@ static int evaluate_table_model (Xspec_Fun_t *fun) /*{{{*/
    if (nbins != (int) sl_hi->num_elements)
      goto finish;
 
-   notice_list = ISIS_MALLOC (nbins * sizeof (int));
-   notice = ISIS_MALLOC (nbins * sizeof (int));
-   val = ISIS_MALLOC (nbins * sizeof (double));
+   notice_list = (int *) ISIS_MALLOC (nbins * sizeof (int));
+   notice = (int *) ISIS_MALLOC (nbins * sizeof (int));
+   val = (double *) ISIS_MALLOC (nbins * sizeof (double));
    if ((notice == NULL) || (notice_list == NULL) || (val == NULL))
      goto finish;
 
@@ -1386,18 +1426,7 @@ static int evaluate_table_model (Xspec_Fun_t *fun) /*{{{*/
 
 /*}}}*/
 
-#define XSPEC11_TABLE_FUN(name,xsname,XSNAME)                              \
-   extern void FC_FUNC(xsname,XSNAME)(float *,int *,float *,char *,int *,float *,float *); \
-   static void name (Xspec_Param_t *p)                                         \
-   {                                                                           \
-      FC_FUNC(xsname,XSNAME)(p->ear.f,&p->ne,p->param.f,p->filename,&p->ifl,p->photar.f,p->photer.f);   \
-   }
-
 /*}}}*/
-
-XSPEC11_TABLE_FUN(xs_atbl,xsatbl,XSATBL)
-XSPEC11_TABLE_FUN(xs_mtbl,xsmtbl,XSMTBL)
-XSPEC11_TABLE_FUN(xs_etbl,xsetbl,XSETBL)
 
 static int atbl (void) /*{{{*/
 {
@@ -1538,7 +1567,10 @@ static char *copy_and_set_env (char *env_name, char *env_builtin_value) /*{{{*/
 
 /*}}}*/
 
-extern void deinit_xspec_module (void);
+#ifdef __cplusplus
+extern "C"
+#endif
+void deinit_xspec_module (void);
 void deinit_xspec_module (void) /*{{{*/
 {
    ISIS_FREE (Table_Model_Filename);

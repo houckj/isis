@@ -86,9 +86,9 @@ static int match_arf_grid (Isis_Kernel_t *k, Isis_Rsp_t *rsp, Isis_Hist_t *g, Is
    m->val = NULL;
    m->notice = NULL;
    m->notice_list = NULL;
-   if ((NULL == (m_val = ISIS_MALLOC (m->nbins * sizeof(double))))
-       || (NULL == (m->notice = ISIS_MALLOC (m->nbins * sizeof(int))))
-       || (NULL == (g_val = ISIS_MALLOC (g->nbins * sizeof(double)))))
+   if ((NULL == (m_val = (double *) ISIS_MALLOC (m->nbins * sizeof(double))))
+       || (NULL == (m->notice = (int *) ISIS_MALLOC (m->nbins * sizeof(int))))
+       || (NULL == (g_val = (double *) ISIS_MALLOC (g->nbins * sizeof(double)))))
      {
         goto fail;
      }
@@ -108,7 +108,7 @@ static int match_arf_grid (Isis_Kernel_t *k, Isis_Rsp_t *rsp, Isis_Hist_t *g, Is
      }
 
    /* Finish by packing according to the notice list */
-   if (NULL == (m->val = ISIS_MALLOC (m->n_notice * sizeof(double))))
+   if (NULL == (m->val = (double *) ISIS_MALLOC (m->n_notice * sizeof(double))))
      goto fail;
 
    for (i = 0; i < m->n_notice; i++)
@@ -377,7 +377,7 @@ static int compute_yshift_kernel (Isis_Kernel_t *k, double *result, Isis_Hist_t 
         unsigned int i, len;
 
         len = 3 * n * sizeof(double);
-        if (NULL == (tmp = ISIS_MALLOC (len)))
+        if (NULL == (tmp = (double *) ISIS_MALLOC (len)))
           goto return_error;
         shift_lo  = tmp + n;
         shift_hi  = tmp + 2*n;
@@ -490,7 +490,7 @@ static int compute_gainshift_kernel (Isis_Kernel_t *k, double *result, Isis_Hist
      return -1;
 
    len = 3 * n * sizeof(double);
-   if (NULL == (tmp = ISIS_MALLOC (len)))
+   if (NULL == (tmp = (double *) ISIS_MALLOC (len)))
      goto return_error;
    shift_lo  = tmp + n;
    shift_hi  = tmp + 2*n;

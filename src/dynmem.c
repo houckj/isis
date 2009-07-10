@@ -24,7 +24,7 @@
 
 double *JDMdouble_vector (unsigned int n)
 {
-   return ISIS_MALLOC (n * sizeof(double));
+   return (double *) ISIS_MALLOC (n * sizeof(double));
 }
 
 void JDMfree_double_matrix (double **matrix, unsigned int n)
@@ -44,8 +44,7 @@ double **JDMdouble_matrix (unsigned int n, unsigned int m)
    double **matrix;
    unsigned int i;
 
-   matrix = ISIS_MALLOC (n * sizeof (double *));
-   if (matrix == NULL)
+   if (NULL == (matrix = (double **) ISIS_MALLOC (n * sizeof (double *))))
      return NULL;
 
    /* initialize everything to NULL */

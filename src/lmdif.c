@@ -46,12 +46,25 @@
 
 #include "isis.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+#if 0
+}
+#endif
 #define LMDIF_FC FC_FUNC(lmdif1,LMDIF1)
 typedef void lmdif_fun_type
        (int *npts, int *npars, double *pars, double *fvec, int *iflag);
 extern void LMDIF_FC(lmdif_fun_type *fun, int *npts, int *npars, double *pars,
                      double *y, double *stat, double *tol, double *epsfcn, int *maxfev,
                      int *info, int *iwa, double *wa, int *lwa);
+#if 0
+{
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 typedef struct
 {
@@ -117,7 +130,7 @@ static void fun (int *npts, int *npars, double *pars, double *fvec, int *iflag) 
 
 static void print_status (unsigned int info) /*{{{*/
 {
-   char *messages[] = {
+   const char *messages[] = {
     "improper input parameters."
   , "algorithm estimates that the relative error in the sum of squares is at most tol."
   , "algorithm estimates that the relative error between x and the solution is at most tol."
@@ -127,7 +140,7 @@ static void print_status (unsigned int info) /*{{{*/
   , "tol is too small. no further reduction in the sum of squares is possible."
   , "tol is too small. no further improvement in the approximate solution x is possible."
    };
-   char *msg;
+   const char *msg;
 
    if (info == INT_MAX)
      return;
@@ -175,11 +188,11 @@ static int lmdif (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
    fi->fx = NULL;
    Tmp_Params = NULL;
 
-   if ((NULL == (iwa = ISIS_MALLOC (npars * sizeof(int))))
-       || (NULL == (Tmp_Params = ISIS_MALLOC (npars * sizeof(double))))
-       || (NULL == (wa = ISIS_MALLOC (lwa * sizeof(double))))
-       || (NULL == (fi->fx = ISIS_MALLOC (npts * sizeof(double))))
-       || (NULL == (fvec = ISIS_MALLOC (npts * sizeof(double)))))
+   if ((NULL == (iwa = (int *) ISIS_MALLOC (npars * sizeof(int))))
+       || (NULL == (Tmp_Params = (double *) ISIS_MALLOC (npars * sizeof(double))))
+       || (NULL == (wa = (double *) ISIS_MALLOC (lwa * sizeof(double))))
+       || (NULL == (fi->fx = (double *) ISIS_MALLOC (npts * sizeof(double))))
+       || (NULL == (fvec = (double *) ISIS_MALLOC (npts * sizeof(double)))))
      goto finish;
 
    Error_Occurred = 0;
@@ -331,7 +344,7 @@ ISIS_FIT_ENGINE_METHOD(lmdif,name,sname)
 {
    Isis_Fit_Engine_Type *e;
 
-   if (NULL == (e = ISIS_MALLOC (sizeof(Isis_Fit_Engine_Type))))
+   if (NULL == (e = (Isis_Fit_Engine_Type *) ISIS_MALLOC (sizeof(Isis_Fit_Engine_Type))))
      return NULL;
    memset ((char *)e, 0, sizeof (*e));
 

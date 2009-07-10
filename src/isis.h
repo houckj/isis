@@ -80,17 +80,17 @@ extern void * _isis_malloc (size_t);
 #define _x_(a,b)   _x_0(a,b)
 
 typedef void (*isis_fptr_type)(void);
-extern isis_fptr_type isis_load_function (char *path, char *name, char *type);
+extern isis_fptr_type isis_load_function (const char *path, const char *name, const char *type);
 
 /*}}}*/
 
 extern double isis_gpf (double x);
 
-extern int isis_strcasecmp (char * pa, char * pb);
-extern char *isis_strcpy (char *dest, char *src, int size);
+extern int isis_strcasecmp (const char *pa, const char *pb);
+extern char *isis_strcpy (char *dest, const char *src, int size);
 extern int isis_strcat (char *dest, int size, ...);
-extern char *isis_mkstrcat (char *arg, ...);
-extern char *isis_make_string (char *str);
+extern char *isis_mkstrcat (const char *arg, ...);
+extern char *isis_make_string (const char *str);
 
 /*{{{ RMFs */
 
@@ -357,7 +357,7 @@ extern int isis_get_option_i (Isis_Option_Type *opt, char *option, int *d);
 extern int isis_get_option_u (Isis_Option_Type *opt, char *option, unsigned int *d);
 
 extern int isis_update_option_string (char **optstring, char *optname, char *optvalue);
-extern char *isis_make_default_option_string (char *subsystem, Isis_Option_Table_Type *table);
+extern char *isis_make_default_option_string (const char *subsystem, Isis_Option_Table_Type *table);
 
 /*}}}*/
 

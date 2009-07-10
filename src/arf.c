@@ -50,8 +50,8 @@
 /* Effective area curves (ARFs) */
 
 /* array must be NULL terminated */
-static char *Arf_Hdu_Names[] = {"SPECRESP", NULL};
-static char *Arf_Hdu_Names_Hook = "_nonstandard_arf_hdu_names";
+static const char *Arf_Hdu_Names[] = {"SPECRESP", NULL};
+static const char *Arf_Hdu_Names_Hook = "_nonstandard_arf_hdu_names";
 
 /*{{{ new/free */
 
@@ -82,7 +82,7 @@ static Isis_Arf_t *new_arf (int nbins) /*{{{*/
 {
    Isis_Arf_t *a;
 
-   if (NULL == (a = ISIS_MALLOC (sizeof(Isis_Arf_t))))
+   if (NULL == (a = (Isis_Arf_t *) ISIS_MALLOC (sizeof(Isis_Arf_t))))
      return NULL;
    memset ((char *) a, 0, sizeof(*a));
 
@@ -98,10 +98,10 @@ static Isis_Arf_t *new_arf (int nbins) /*{{{*/
    if (nbins == 0)        /* allowed for null head node */
      return a;
 
-   if ((NULL == (a->bin_lo = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (a->bin_hi = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (a->arf = ISIS_MALLOC (nbins * sizeof(double))))
-       || (NULL == (a->arf_err = ISIS_MALLOC (nbins * sizeof(double)))))
+   if ((NULL == (a->bin_lo = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (a->bin_hi = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (a->arf = (double *) ISIS_MALLOC (nbins * sizeof(double))))
+       || (NULL == (a->arf_err = (double *) ISIS_MALLOC (nbins * sizeof(double)))))
      {
         Arf_free_arf (a);
         return NULL;
@@ -242,7 +242,7 @@ int Arf_id_list (Isis_Arf_t *head, unsigned int **ids, unsigned int *num) /*{{{*
    if (*num == 0)
      return 0;
    
-   if (NULL == (*ids = ISIS_MALLOC (*num * sizeof (unsigned int))))
+   if (NULL == (*ids = (unsigned int *)ISIS_MALLOC (*num * sizeof (unsigned int))))
      return -1;
    
    n = 0;
@@ -363,7 +363,7 @@ static int read_fexp_info (Isis_Arf_t *a, cfitsfile *fp) /*{{{*/
         return 0;
      }
 
-   a->fracexpo.v = ISIS_MALLOC (a->nbins * sizeof(double));
+   a->fracexpo.v = (double *) ISIS_MALLOC (a->nbins * sizeof(double));
    if (NULL == a->fracexpo.v)
      return -1;
 
@@ -649,7 +649,7 @@ int Arf_set_arf_info (Isis_Arf_t *a, Arf_Info_Type *ai) /*{{{*/
           ISIS_FREE(a->fracexpo.v);
 
         size = ai->nbins * sizeof(double);
-        if (NULL == (a->fracexpo.v = ISIS_MALLOC (size)))
+        if (NULL == (a->fracexpo.v = (double *) ISIS_MALLOC (size)))
           return -1;
         memcpy ((char *)a->fracexpo.v, (char *)ai->fracexpo.v, size);
      }
@@ -687,7 +687,7 @@ int Arf_get_arf_info (Isis_Arf_t *a, Arf_Info_Type *ai) /*{{{*/
    if (a->fracexpo_is_vector)
      {
         int size = a->nbins * sizeof(double);
-        if (NULL == (ai->fracexpo.v = ISIS_MALLOC (size)))
+        if (NULL == (ai->fracexpo.v = (double *) ISIS_MALLOC (size)))
           return -1;
         memcpy ((char *)ai->fracexpo.v, (char *)a->fracexpo.v, size);
         ai->nbins = a->nbins;

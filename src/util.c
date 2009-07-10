@@ -30,7 +30,7 @@
 #include "config.h"
 
 /* Need this to get NAN and INFINITY definitions from glibc math.h */
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(_GNU_SOURCE)
 #define _GNU_SOURCE
 #endif
 
@@ -286,7 +286,7 @@ int isis_lu_solve (double **matrix, unsigned int n, unsigned int *piv, double *b
 
 /*{{{ strings */
 
-char *isis_make_string (char *str) /*{{{*/
+char *isis_make_string (const char *str) /*{{{*/
 {
    int len;
    char *cpy;
@@ -295,7 +295,7 @@ char *isis_make_string (char *str) /*{{{*/
      return NULL;
 
    len = strlen(str) + 1;
-   if (NULL == (cpy = ISIS_MALLOC (len * sizeof(char))))
+   if (NULL == (cpy = (char *) ISIS_MALLOC (len * sizeof(char))))
      return NULL;
    isis_strcpy (cpy, str, len);
 
@@ -304,7 +304,7 @@ char *isis_make_string (char *str) /*{{{*/
 
 /*}}}*/
 
-int isis_strcasecmp (char * pa, char * pb) /*{{{*/
+int isis_strcasecmp (const char *pa, const char *pb) /*{{{*/
 {
    /* NULL matches nothing */
    if (NULL == pa || NULL == pb)
@@ -331,7 +331,7 @@ int isis_strcasecmp (char * pa, char * pb) /*{{{*/
  *  3) it has some tolerance for NULL ptrs
  */
 
-char *isis_strcpy (char *dest, char *src, int size) /*{{{*/
+char *isis_strcpy (char *dest, const char *src, int size) /*{{{*/
 {
    if (NULL == dest || NULL == src || size < 1)
      return NULL;
@@ -394,11 +394,11 @@ int isis_strcat (char *dest, int size, ...) /*{{{*/
 
 /*}}}*/
 
-char *isis_mkstrcat (char *arg, ...) /*{{{*/
+char *isis_mkstrcat (const char *arg, ...) /*{{{*/
 {
    va_list ap;
    enum {MAX_ARGS = 20};
-   char *s[MAX_ARGS];
+   const char *s[MAX_ARGS];
    char *p = NULL;
    char *t;
    int i, n, len;
@@ -421,7 +421,7 @@ char *isis_mkstrcat (char *arg, ...) /*{{{*/
         n++;
      }
 
-   if (NULL != (p = ISIS_MALLOC ((len + 1) * sizeof(char))))
+   if (NULL != (p = (char *) ISIS_MALLOC ((len + 1) * sizeof(char))))
      {
         t = p;
         for (i = 0; i < n; i++)
@@ -575,7 +575,7 @@ static int edit_file (char *fname) /*{{{*/
 {
    static char editor[] = "${EDITOR:-vi}";     /* environment or default */
    char *cmd = NULL;
-   char *msg = NULL;
+   const char *msg = NULL;
    int len, ret = -1;
 
    if (NULL == fname)
@@ -583,7 +583,7 @@ static int edit_file (char *fname) /*{{{*/
 
    len = strlen (editor) + strlen (fname) + 3;
 
-   cmd = ISIS_MALLOC (len * sizeof(char));
+   cmd = (char *) ISIS_MALLOC (len * sizeof(char));
    if (NULL == cmd)
      return -1;
 
@@ -890,7 +890,7 @@ typedef struct _Unit_t
    double cgs_value;    /* e.g. cm/angstrom or erg/eV */
    int unit;            /* integer key */
    int is_wavelength;   /* 1 if yes, 0 if no */
-   char *name;
+   const char *name;
 }
 Unit_t;
 
@@ -1668,7 +1668,7 @@ int _update_notice_list (int *notice, int **notice_list, int *n_notice, int nbin
    if (n == 0)
      return 0;
 
-   *notice_list = ISIS_MALLOC (n * sizeof(int));
+   *notice_list = (int *) ISIS_MALLOC (n * sizeof(int));
    if (NULL == *notice_list)
      return -1;
    memset ((char *)*notice_list, 0, n * sizeof(int));
@@ -1748,7 +1748,7 @@ int apply_rebin_weights (double *x, double *wt, unsigned int moment, /*{{{*/
 
    linear = (moment == 2) ? 0 : 1;
 
-   if (NULL == (xwt = ISIS_MALLOC (num_orig_data * sizeof(double))))
+   if (NULL == (xwt = (double *) ISIS_MALLOC (num_orig_data * sizeof(double))))
      return -1;
 
    if (linear)
@@ -1838,12 +1838,12 @@ int Isis_Hist_allocate (unsigned int n, Isis_Hist_t *x) /*{{{*/
    if (x == NULL)
      return -1;
 
-   if (NULL == (x->val = ISIS_MALLOC (n * sizeof(double)))
-       || NULL == (x->val_err = ISIS_MALLOC (n * sizeof(double)))
-       || NULL == (x->bin_lo = ISIS_MALLOC (n * sizeof(double)))
-       || NULL == (x->bin_hi = ISIS_MALLOC (n * sizeof(double)))
-       || NULL == (x->notice = ISIS_MALLOC (n * sizeof(int)))
-       || NULL == (x->notice_list = ISIS_MALLOC (n * sizeof(int))))
+   if (NULL == (x->val = (double *) ISIS_MALLOC (n * sizeof(double)))
+       || NULL == (x->val_err = (double *) ISIS_MALLOC (n * sizeof(double)))
+       || NULL == (x->bin_lo = (double *) ISIS_MALLOC (n * sizeof(double)))
+       || NULL == (x->bin_hi = (double *) ISIS_MALLOC (n * sizeof(double)))
+       || NULL == (x->notice = (int *) ISIS_MALLOC (n * sizeof(int)))
+       || NULL == (x->notice_list = (int *) ISIS_MALLOC (n * sizeof(int))))
      {
         Isis_Hist_free (x);
         return -1;
@@ -2018,7 +2018,7 @@ int Isis_pop_double_array (double *x, int n) /*{{{*/
 #define NO_DYNAMIC_LINKING \
    "Error:  ISIS was not compiled with support for dynamic linking\n"
 
-static void handle_link_error (char *path, char *name) /*{{{*/
+static void handle_link_error (const char *path, const char *name) /*{{{*/
 {
 #ifndef HAVE_DLFCN_H
    (void) path;  (void) name;
@@ -2041,7 +2041,7 @@ static void handle_link_error (char *path, char *name) /*{{{*/
 
 /*}}}*/
 
-static int is_wrong_abi (void *handle, char *path, char *name) /*{{{*/
+static int is_wrong_abi (void *handle, const char *path, const char *name) /*{{{*/
 {
    unsigned int *pv;
    char *s;
@@ -2067,7 +2067,7 @@ static int is_wrong_abi (void *handle, char *path, char *name) /*{{{*/
 
 /*}}}*/
 
-isis_fptr_type isis_load_function (char *path, char *name, char *isis_type) /*{{{*/
+isis_fptr_type isis_load_function (const char *path, const char *name, const char *isis_type) /*{{{*/
 {
 #ifndef HAVE_DLFCN_H
 
@@ -2151,7 +2151,7 @@ void isis_free_args (Isis_Arg_Type *at) /*{{{*/
 static Isis_Arg_Type *new_arg (void) /*{{{*/
 {
    Isis_Arg_Type *at;
-   if (NULL == (at = ISIS_MALLOC (sizeof *at)))
+   if (NULL == (at = (Isis_Arg_Type *) ISIS_MALLOC (sizeof *at)))
      return NULL;
    at->next = NULL;
    at->arg = NULL;
