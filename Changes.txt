@@ -18,6 +18,7 @@ pre1.5.0
  8.  Use require.sl from slang distribution
  9.  Added parallel Levenberg-Marquardt optimization method (plm).
 10.  Removed cfortran.h.  Use autoconf C/Fortran interface.
+11.  Changes to support compiling isis with a C++ compiler.
 
 Changes since 1.4.9 (released Nov 2007)
 ---------------------------------------
