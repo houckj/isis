@@ -126,7 +126,9 @@ static int append_node (Model_t *m, Model_t *h) /*{{{*/
    if (h == NULL || m == NULL)
      return -1;
 
-   for (p = h; p->next != NULL; p = p->next);
+   for (p = h; p->next != NULL; p = p->next)
+     {
+     }
 
    p->next = m;
    m->next = NULL;

@@ -99,7 +99,9 @@ static void unescape_and_trim_string (char *s)
              p++;
           }
      }
-   while (ch != 0);
+   while (ch != 0)
+     {
+     }
 
    /* Now p is at the end of the string, and p1 marks the last escaped
     * character (or NULL).  So, trim back to it.

@@ -1552,7 +1552,9 @@ static void append_group(DB_line_group_t *table, DB_line_group_t *head) /*{{{*/
 {
    DB_line_group_t *t;
 
-   for (t=head; t->next != NULL; t=t->next);
+   for (t=head; t->next != NULL; t=t->next)
+     {
+     }
 
    t->next = table;
    table->next = NULL;
