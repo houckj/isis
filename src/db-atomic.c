@@ -1787,8 +1787,8 @@ static int compare_wavelen2 (const void *a, const void *b) /*{{{*/
 
 static int sort_group (DB_line_t **g, int nlines) /*{{{*/
 {
-   int *index_array;
-   DB_line_t **tmp;
+   int *index_array = NULL;
+   DB_line_t **tmp = NULL;
    int k;
 
    if (NULL == g || nlines <= 0)
@@ -1796,7 +1796,11 @@ static int sort_group (DB_line_t **g, int nlines) /*{{{*/
 
    if (NULL == (index_array = (int *) ISIS_MALLOC (nlines * sizeof(int)))
        || NULL == (tmp = (DB_line_t **) ISIS_MALLOC (nlines * sizeof(DB_line_t *))))
-     return -1;
+     {
+        ISIS_FREE(index_array);
+        ISIS_FREE(tmp);
+        return -1;
+     }
 
    memcpy ((char *)tmp, (char *)g, nlines * sizeof(DB_line_t *));
 
