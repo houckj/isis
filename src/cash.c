@@ -70,11 +70,11 @@ static int cash_function (Isis_Fit_Statistic_Type *st, /*{{{*/
         double fxi = fx[i];
         double yi = y[i];
         double log_fxi;
-        
-        /* Want sum += (yi - fxi) +  yi * log (fxi/yi); 
+
+        /* Want sum += (yi - fxi) +  yi * log (fxi/yi);
          * but must avoid log(0) and f/0
          */
-        
+
         if (yi <= 0) yi = 1.e-5;
         log_fxi = (fxi > 0) ? log(fxi) : DBL_MIN_10_EXP;
 
@@ -94,7 +94,7 @@ static int cash_function (Isis_Fit_Statistic_Type *st, /*{{{*/
      sum = DBL_MAX;
 
    *stat = sum;
-   
+
    return 0;
 }
 
@@ -135,17 +135,19 @@ ISIS_FIT_STATISTIC_METHOD (cash)
    s->deallocate = deallocate;
    if (NULL == (s->symbol = isis_make_string ("Cash")))
      {
-        ISIS_FREE(s);
+        deallocate (s);
+        ISIS_FREE (s);
         return NULL;
      }
-   
+
    s->option_string = isis_make_string ("cash");
    if (s->option_string == NULL)
      {
         deallocate (s);
+        ISIS_FREE (s);
         return NULL;
      }
-   
+
    return s;
 }
 

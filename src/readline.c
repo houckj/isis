@@ -641,6 +641,7 @@ static int source_file (char *file) /*{{{*/
    memset ((char *) sf, 0, sizeof (Sourced_File_Type));
    if (NULL == (sf->file = SLang_create_slstring (file)))
      {
+        (void) fclose (fp);
         delete_sourced_file_type (sf);
         return -1;
      }

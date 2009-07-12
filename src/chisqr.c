@@ -246,6 +246,7 @@ ISIS_FIT_STATISTIC_METHOD (chisqr)
    if (NULL == (s->symbol = isis_make_string ("\\gD\\gx")))
      {
         deallocate (s);
+        ISIS_FREE (s);
         return NULL;
      }
 
@@ -253,6 +254,7 @@ ISIS_FIT_STATISTIC_METHOD (chisqr)
    if (s->option_string == NULL)
      {
         deallocate (s);
+        ISIS_FREE (s);
         return NULL;
      }
 
