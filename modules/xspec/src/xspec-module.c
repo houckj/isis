@@ -296,7 +296,8 @@ static int eval_##s##_xspec_fun (Xspec_Fun_t *fun, double *val, Isis_Hist_t *g, 
    p.param.s = param; \
    p.ifl = 0; \
    p.photar.s = x->photar.s; \
-   p.photer.s = (type *) ISIS_MALLOC (x->nbins * sizeof(type)); \
+   if (NULL == (p.photer.s = (type *) ISIS_MALLOC (x->nbins * sizeof(type)))) \
+     goto finish;  \
    memset ((char *)p.photer.f, 0, x->nbins * sizeof(type)); \
  \
    p.filename = Table_Model_Filename; \
@@ -1387,10 +1388,9 @@ static int evaluate_table_model (Xspec_Fun_t *fun) /*{{{*/
    if (nbins != (int) sl_hi->num_elements)
      goto finish;
 
-   notice_list = (int *) ISIS_MALLOC (nbins * sizeof (int));
-   notice = (int *) ISIS_MALLOC (nbins * sizeof (int));
-   val = (double *) ISIS_MALLOC (nbins * sizeof (double));
-   if ((notice == NULL) || (notice_list == NULL) || (val == NULL))
+   if ((NULL == (notice_list = (int *) ISIS_MALLOC (nbins * sizeof (int))))
+       || (NULL == (notice = (int *) ISIS_MALLOC (nbins * sizeof (int))))
+       || (NULL == (val = (double *) ISIS_MALLOC (nbins * sizeof (double)))))
      goto finish;
 
    for (i = 0; i < nbins; i++)
