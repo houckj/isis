@@ -654,17 +654,6 @@ static int add_C (double *val, Isis_Hist_t *g, double *par, unsigned int npar) /
 
 /*}}}*/
 
-#if (SLANG_VERSION<20000)
-static void SLang_set_error (int err) /*{{{*/
-{
-   if ((err != 0) && (SLang_Error != 0))
-     return;
-   SLang_Error = err;
-}
-
-/*}}}*/
-#endif
-
 static int pop_2_matched_arrays (int type, SLang_Array_Type **ap, SLang_Array_Type **bp) /*{{{*/
 {
    SLang_Array_Type *a, *b;

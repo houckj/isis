@@ -107,115 +107,7 @@ static void check_fpe (void);
 
 /*{{{ slang2 compatibility */
 
-#if (SLANG_VERSION<20000)
-enum {RLI_BUFSIZE = 256};
-static unsigned char RLI_Buf[RLI_BUFSIZE];
-static SLang_RLine_Info_Type _RLI;
-static SLang_RLine_Info_Type *RLI = &_RLI;
-#else
 static SLang_RLine_Info_Type *RLI;
-#endif
-
-#if (SLANG_VERSION<20000)
-int SLang_get_error (void) /*{{{*/
-{
-   return SLang_Error;
-}
-
-/*}}}*/
-#endif
-
-#if (SLANG_VERSION<20000)
-void SLang_set_error (int err) /*{{{*/
-{
-   if ((err != 0) && (SLang_Error != 0))
-     return;
-   SLang_Error = err;
-}
-
-/*}}}*/
-#endif
-
-#if (SLANG_VERSION<20000)
-static int SLrline_set_display_width (SLang_RLine_Info_Type *rl, int width) /*{{{*/
-{
-   rl->edit_width = width - 1;
-   if (rl->edit_width > rl->buf_len)
-     rl->edit_width = rl->buf_len;
-   return 0;
-}
-
-/*}}}*/
-#endif
-
-#if (SLANG_VERSION<20000)
-static char *SLrline_read_line (SLang_RLine_Info_Type *rl, char *prompt, unsigned int *n) /*{{{*/
-{
-   rl->prompt = prompt;
-   rl->buf[0] = 0;
-   *n = SLang_read_line (rl);
-   if ((*n == 0) && (SLang_Last_Key_Char == SLang_RL_EOF_Char))
-     return NULL;
-   return (char *)rl->buf;
-}
-
-/*}}}*/
-#endif
-
-#if (SLANG_VERSION<20000)
-static void SLrline_save_line (SLang_RLine_Info_Type *rl) /*{{{*/
-{
-   (void) SLang_rline_save_line (rl);
-}
-
-/*}}}*/
-#endif
-
-#if (SLANG_VERSION<20000)
-static void SLrline_close (SLang_RLine_Info_Type *rl) /*{{{*/
-{
-   (void) rl;
-}
-
-/*}}}*/
-#endif
-
-#if (SLANG_VERSION<20000)
-static SLang_RLine_Info_Type *SLrline_open (int width, int flags) /*{{{*/
-{
-   (void) width;
-
-   RLI->buf = RLI_Buf;
-   RLI->buf_len = RLI_BUFSIZE-1;
-   RLI->tab = 8;
-   RLI->edit_width = 79;
-   RLI->dhscroll = 20;
-   RLI->prompt = "RLI> ";
-   RLI->getkey = isis_getkey;  /* SLang_getkey; */
-   RLI->flags = flags;
-   RLI->input_pending = SLang_input_pending;
-
-   if (-1 == SLang_init_readline (RLI))
-     {
-        close_readline ();
-        fputs ("Couldn't init readline\n", stderr);
-        return NULL;
-     }
-
-   return RLI;
-}
-
-/*}}}*/
-#endif
-
-#if (SLANG_VERSION<20000)
-static int SLang_handle_interrupt (void) /*{{{*/
-{
-   return 0;
-}
-
-/*}}}*/
-#endif
 
 /*}}}*/
 
@@ -851,10 +743,7 @@ static int handle_fgets_error (char *line) /*{{{*/
 #endif
 
    fflush (stdout);
-
-#if (SLANG_VERSION>=20000)
    SLfree (line);
-#endif
 
    return -1;
 }
@@ -866,6 +755,7 @@ static char *read_line_stdin (SLang_RLine_Info_Type *rl, char *prompt, unsigned 
    char *line;
    unsigned int bufsize;
 
+   (void) rl;
    *n = 0;
 
    if (isatty (fileno(stdin)))
@@ -874,15 +764,9 @@ static char *read_line_stdin (SLang_RLine_Info_Type *rl, char *prompt, unsigned 
         fflush (stdout);
      }
 
-#if (SLANG_VERSION<20000)
-   line = (char *) rl->buf;
-   bufsize = RLI_BUFSIZE*sizeof(char);
-#else
-   (void) rl;
    if (NULL == (line = SLmalloc (BUFSIZE*sizeof(char))))
      return NULL;
    bufsize = BUFSIZE*sizeof(char);
-#endif
 
    if (NULL == fgets (line, bufsize, stdin))
      {
@@ -1032,13 +916,8 @@ static void new_slrline_intrinsic (char *name) /*{{{*/
    SLang_RLine_Info_Type *rli;
    SLang_MMT_Type *mmt;
 
-#if (SLANG_VERSION>=20100)
    if (NULL == (rli = SLrline_open2 (name, SLtt_Screen_Cols, SL_RLINE_BLINK_MATCH)))
      return;
-#else
-   if (NULL == (rli = SLrline_open (SLtt_Screen_Cols, SL_RLINE_BLINK_MATCH)))
-     return;
-#endif
 
    if (NULL == (mmt = SLang_create_mmt (Rline_Type_Id, (VOID_STAR) rli)))
      {
@@ -1067,10 +946,8 @@ static int init_readline (char *appname) /*{{{*/
 	inited = 1;
 	return 0;
      }
-#if (SLANG_VERSION>=20100)
    if (-1 == SLrline_init (appname, NULL, NULL))
      return -1;
-#endif
 #endif
 
    inited = 1;
@@ -1154,7 +1031,6 @@ static char *get_input_line (SLang_Load_Type *x) /*{{{*/
 
    line = read_input_line (RLI, prompt);
 
-#if (SLANG_VERSION>=20100)
    if (line == NULL)
      {
         int err = SLang_get_error ();
@@ -1165,10 +1041,6 @@ static char *get_input_line (SLang_Load_Type *x) /*{{{*/
         (void) fprintf (stderr, "Error Occurred: %s\n", SLerr_strerror (err));
         return NULL;
      }
-#else
-   if (line == NULL)
-     exit_isis (0);
-#endif
 
    (void) SLang_run_hooks ("_isis->isis_readline_hook", 1, line);
 
@@ -1186,11 +1058,7 @@ static char *read_using_readline (SLang_Load_Type *x) /*{{{*/
 
    if (last_s != NULL)
      {
-#if (SLANG_VERSION<20000)
-        SLang_free_slstring (last_s);
-#else
         SLfree (last_s);
-#endif
         last_s = NULL;
      }
 
@@ -1209,27 +1077,18 @@ static char *read_using_readline (SLang_Load_Type *x) /*{{{*/
    if ((x->parse_level == 0)
        && (1 == SLang_run_hooks ("_isis->isis_massage_input_hook", 1, s)))
      {
-#if (SLANG_VERSION<20000)
-        if (0 == SLang_pop_slstring (&last_s))
-          s = last_s;
-#else
         SLfree (s);
         if (-1 == SLpop_string (&s))
           return NULL;
-#endif
      }
 
    if (SLang_get_error())
      {
-#if (SLANG_VERSION>=20000)
         SLfree (s);
-#endif
         return NULL;
      }
 
-#if (SLANG_VERSION>=20000)
    last_s = s;
-#endif
 
    return s;
 }
@@ -1381,15 +1240,10 @@ int open_readline (char *namespace_name) /*{{{*/
      }
    else
      {
-#if (SLANG_VERSION>=20100)
         if (-1 == SLrline_init ("ISIS", NULL, NULL))
           return -1;
         if (NULL == (RLI = SLrline_open2 ("isis", SLtt_Screen_Cols, SL_RLINE_BLINK_MATCH)))
           return -1;
-#else
-        if (NULL == (RLI = SLrline_open (SLtt_Screen_Cols, SL_RLINE_BLINK_MATCH)))
-          return -1;
-#endif
      }
 
    if (*Isis_Readline_Namespace_Name == 0)
@@ -1491,13 +1345,8 @@ void error_hook (char *err) /*{{{*/
      {
         if (Isis_Batch_Mode == 0)
           {
-#if (SLANG_VERSION>=20000)
              if (0 == strncmp (err, "<stdin>:", 8))
                return;
-#else
-             if (NULL != strstr (err, "<stdin>"))
-               return;
-#endif
           }
         print_error_message (err);
         return;

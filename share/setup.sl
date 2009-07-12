@@ -169,10 +169,7 @@ private define setup_slang_paths (dir) %{{{
 {
    append_to_isis_load_path (dir + "/share/slsh");
    append_to_isis_load_path (dir + "/share/slsh/local-packages");
-   if (_slang_version < 20000)
-     append_to_isis_module_path (dir + "/lib/slang/modules");
-   else
-     append_to_isis_module_path (dir + "/lib/slang/v2/modules");
+   append_to_isis_module_path (dir + "/lib/slang/v2/modules");
 }
 
 %}}}

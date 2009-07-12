@@ -94,13 +94,6 @@ extern int init_fit_module_internals (void);
 extern Isis_Fit_Statistic_Type *current_fit_statistic (void);
 extern Isis_Fit_Engine_Type *current_fit_method (void);
 
-/* slang2 compatibility */
-#if (SLANG_VERSION<20000)
-#define SLang_pop_double(a) SLang_pop_double((a),NULL,NULL)
-extern int SLang_get_error (void);
-extern void SLang_set_error (int err);
-#endif
-
 #if 0
 {
 #endif

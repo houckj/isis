@@ -32,7 +32,6 @@ define isis_get_pager ();
 #ifnexists source
 define source ()
 {
-#ifeval _slang_version >= 20000
    variable append_semicolon = Isis_Append_Semicolon;
    try
      {
@@ -43,9 +42,6 @@ define source ()
      {
         Isis_Append_Semicolon = append_semicolon;
      }
-#else
-   return _isis->_source ();
-#endif
 }
 #endif
 
@@ -166,9 +162,7 @@ private define show_doc (help_file, topic) %{{{
      doc = get_doc_string_from_file (help_file, topic);
    else
      {
-        if (_slang_version >= 20000)
-          doc = get_doc_string_from_file (topic);
-        else return -1;
+        doc = get_doc_string_from_file (topic);
      }
 
    if (doc != NULL)
@@ -232,10 +226,8 @@ define add_help_hook () %{{{
 
 %}}}
 
-#ifeval _slang_version >= 20100
 require ("slshhelp");
 add_help_hook ("slsh_get_doc_string");
-#endif
 
 define add_help_file () %{{{
 {

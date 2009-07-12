@@ -268,52 +268,6 @@ static void moment (void) /*{{{*/
 
 /*}}}*/
 
-#if (SLANG_VERSION<20000)
-static void _hypot (void) /*{{{*/
-{
-   SLang_Array_Type *sx = NULL;
-   SLang_Array_Type *sy = NULL;
-   SLang_Array_Type *sr = NULL;
-   double *x, *y, *r;
-   int i, n;
-
-   if ((-1 == SLang_pop_array_of_type (&sy, SLANG_DOUBLE_TYPE))
-       || (sy == NULL)
-       || (-1 == SLang_pop_array_of_type (&sx, SLANG_DOUBLE_TYPE))
-       || (sx == NULL)
-       || (sx->num_elements != sy->num_elements))
-     {
-        isis_throw_exception (Isis_Error);
-        goto finish;
-     }
-
-   x = (double *)sx->data;
-   y = (double *)sy->data;
-   n = sx->num_elements;
-
-   sr = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &n, 1);
-   if (sr == NULL)
-     {
-        isis_throw_exception (Isis_Error);
-        goto finish;
-     }
-
-   r = (double *)sr->data;
-
-   for (i = 0; i < n; i++)
-     {
-        r[i] = isis_hypot (x[i], y[i]);
-     }
-
-   finish:
-   SLang_free_array (sx);
-   SLang_free_array (sy);
-   SLang_push_array (sr, 1);
-}
-
-/*}}}*/
-#endif
-
 static void finite_intrin (void) /*{{{*/
 {
    SLang_Array_Type *sx = NULL;
@@ -1080,9 +1034,6 @@ static SLang_Intrin_Fun_Type Math_Intrinsics [] =
    MAKE_INTRINSIC("_moment", moment, V, 0),
    MAKE_INTRINSIC("_median", median, V, 0),
    MAKE_INTRINSIC_1("_cumsum", cumsum, V, I),
-#if (SLANG_VERSION<20000)
-   MAKE_INTRINSIC("_hypot", _hypot, V, 0),
-#endif
    MAKE_INTRINSIC("_finite", finite_intrin, V, 0),
    MAKE_INTRINSIC("_ks_difference", ks_difference, D, 0),
    MAKE_INTRINSIC_1("_ks_probability", ks_probability, D, D),

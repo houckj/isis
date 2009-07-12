@@ -276,10 +276,7 @@ private define init_search_paths () %{{{
 init_search_paths ();
 private define init_search_paths ();
 
-if (_slang_version >= 20000)
-{
-  require ("glob");
-}  
+require ("glob");
   
 private define load_site_config() %{{{
 {
