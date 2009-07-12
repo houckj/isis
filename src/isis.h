@@ -59,7 +59,6 @@ extern int Isis_Trace;
 
 extern void (*Isis_Errno_Hook)(int);
 extern int isis_user_break (void);
-extern void (*Isis_Malloc_Error_Hook)(void);
 
 extern char *Isis_Srcdir;
 extern char *Isis_Pager;
@@ -67,8 +66,7 @@ extern char *Isis_Public_Namespace_Name;
 
 /*{{{ memory handling */
 
-extern void * _isis_malloc (size_t);
-#define ISIS_MALLOC  _isis_malloc
+#define ISIS_MALLOC  malloc
 #define ISIS_REALLOC  realloc
 #define ISIS_FREE(p) do {if (p) free ((char *)p); p = NULL;} while (0)
 

@@ -3473,23 +3473,11 @@ static void set_memory_usage_level (void) /*{{{*/
 
 /*}}}*/
 
-static void malloc_error_hook (void) /*{{{*/
-{
-   static char msg[] =
-"\n==> To reduce run-time memory usage, consider setting Use_Memory=1 or 0\n"
-  "==> See the ISIS manual for details.\n\n";
-
-   fputs (msg, stderr);
-}
-
-/*}}}*/
-
 EM_t *EM_start (EM_File_Type *f, void *cl, DB_t *db)
 {
    EM_t *em = NULL;
    int ret = -1;
 
-   Isis_Malloc_Error_Hook = &malloc_error_hook;
    set_memory_usage_level ();
 
    isis_vmesg (WARN, I_INITIALIZING, __FILE__, __LINE__, "emissivity data");
@@ -3556,8 +3544,6 @@ EM_t *EM_start (EM_File_Type *f, void *cl, DB_t *db)
         EM_end (em);
         em = NULL;
      }
-
-   Isis_Malloc_Error_Hook = NULL;
 
    return em;
 }

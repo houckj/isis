@@ -83,7 +83,6 @@ char *Isis_Pager;
 char *Isis_Srcdir;
 void (*Isis_Errno_Hook)(int);
 int (*Isis_User_Break_Hook)(void);
-void (*Isis_Malloc_Error_Hook)(void);
 
 FILE *pMessage_File;
 
@@ -140,29 +139,6 @@ int isis_fclose (FILE *fp) /*{{{*/
 
    return ret;
 }
-
-/*}}}*/
-
-/*{{{ malloc */
-
-void *_isis_malloc (size_t size) /*{{{*/
-{
-   void *b = NULL;
-
-   /* on some machines, malloc(0) == NULL */
-   if (size == 0) size++;
-
-   if (NULL == (b = malloc ((size_t) size)))
-     {
-        isis_set_errno (I_MALLOC_FAILED);
-        isis_vmesg (FAIL, I_MALLOC_FAILED, __FILE__, __LINE__, "allocating %ld bytes", size);
-        if (Isis_Malloc_Error_Hook) (*Isis_Malloc_Error_Hook)();
-     }
-
-   return b;
-}
-
-/*}}}*/
 
 /*}}}*/
 
