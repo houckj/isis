@@ -33,7 +33,7 @@ extern "C" {
 }
 #endif
 
-#include "slang.h"
+#include <slang.h>
 
 #define ISIS_VERSION          10500
 #define ISIS_VERSION_STRING  "pre1.5.0-11"
