@@ -68,7 +68,7 @@ extern char *Isis_Public_Namespace_Name;
 
 #define ISIS_MALLOC  malloc
 #define ISIS_REALLOC  realloc
-#define ISIS_FREE(p) do {if (p) free ((char *)p); p = NULL;} while (0)
+#define ISIS_FREE(p) do {if (p) free ((void *)p); p = NULL;} while (0)
 
 /*}}}*/
 
