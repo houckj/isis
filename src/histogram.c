@@ -3925,12 +3925,12 @@ int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins) /*{{{*/
 
 #define D_REALLOC_OR_FAIL(x,n) \
    if (NULL == (tmp.d = (double *) ISIS_REALLOC((x), (n) * sizeof(double)))) \
-     return -1; \
+       goto error_return; \
    else (x) = tmp.d;
 
 #define I_REALLOC_OR_FAIL(x,n) \
    if (NULL == (tmp.i = (int *) ISIS_REALLOC((x), (n) * sizeof(int)))) \
-     return -1; \
+       goto error_return; \
    else (x) = tmp.i;
 
    I_REALLOC_OR_FAIL(h->notice, nbins);
