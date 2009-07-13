@@ -19,6 +19,7 @@ pre1.5.0
  9.  Added parallel Levenberg-Marquardt optimization method (plm).
 10.  Removed cfortran.h.  Use autoconf C/Fortran interface.
 11.  Changes to support compiling isis with a C++ compiler.
+12.  Look in RMF primary header for XMM/RGS RFLORDER keyword.
 
 Changes since 1.4.9 (released Nov 2007)
 ---------------------------------------
