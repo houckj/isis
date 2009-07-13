@@ -133,6 +133,7 @@ struct Rmf_File_t
 /*}}}*/
 
 static int print_options_help (Rmf_Client_Data_t *cd);
+static int read_order_keyword (cfitsfile *ft, int *order);
 
 static Rmf_Client_Data_t *get_client_data (Isis_Rmf_t *rmf) /*{{{*/
 {
@@ -190,7 +191,7 @@ static int check_rmf_extension (cfitsfile *ft) /*{{{*/
 
 /*}}}*/
 
-static Rmf_File_t *open_rmf_file (char *file, Rmf_Client_Data_t *cd) /*{{{*/
+static Rmf_File_t *open_rmf_file (char *file, Isis_Rmf_t *rmf) /*{{{*/
 {
    /* This routine is complicated by the fact that CAL/GEN/92-002 allows
     * columns to be specified as a keyword value.
@@ -207,6 +208,7 @@ static Rmf_File_t *open_rmf_file (char *file, Rmf_Client_Data_t *cd) /*{{{*/
    int columns[6];
    long allow_as_keyword [6];
    Rmf_File_t *rft = NULL;
+   Rmf_Client_Data_t *cd = NULL;
    unsigned int i;
    int arf_status;
 
@@ -216,6 +218,11 @@ static Rmf_File_t *open_rmf_file (char *file, Rmf_Client_Data_t *cd) /*{{{*/
 
    if (NULL == (ft = cfits_open_file_readonly (file)))
      goto return_error;
+
+   /* XMM RMFs keep the order keyword *only* in the primary header */
+   (void) read_order_keyword (ft, &rmf->order);
+
+   cd = (Rmf_Client_Data_t *) rmf->client_data;
 
    if (cd->matrix_extname)
      {
@@ -649,7 +656,7 @@ static int validate_rmf (Isis_Rmf_t *rmf) /*{{{*/
 
 /*}}}*/
 
-static int read_order_keyword (Rmf_File_t *rft, int *order) /*{{{*/
+static int read_order_keyword (cfitsfile *ft, int *order) /*{{{*/
 {
    static const char *keys[] =
      {
@@ -660,7 +667,7 @@ static int read_order_keyword (Rmf_File_t *rft, int *order) /*{{{*/
 
    for (k = keys; *k != NULL; k++)
      {
-        if (0 == (ret = cfits_read_int_keyword (order, *k, rft->ft)))
+        if (0 == (ret = cfits_read_int_keyword (order, *k, ft)))
           break;
      }
 
@@ -675,7 +682,7 @@ static int read_rmf (Isis_Rmf_t *rmf, char *file) /*{{{*/
    Rmf_File_t *rft = NULL;
    Isis_Rmf_Grid_Type *g = NULL;
    int row, ret = -1;
-   int reversed, min_chan;
+   int reversed, min_chan, rmf_order;
    int chan_range[2];
 
    if ((file == NULL) || (rmf == NULL))
@@ -686,7 +693,7 @@ static int read_rmf (Isis_Rmf_t *rmf, char *file) /*{{{*/
 
    cd = (Rmf_Client_Data_t *) rmf->client_data;
 
-   if (NULL == (rft = open_rmf_file (file, cd)))
+   if (NULL == (rft = open_rmf_file (file, rmf)))
      {
         isis_vmesg (FAIL, I_READ_OPEN_FAILED, __FILE__, __LINE__, "%s", file);
         return -1;
@@ -701,7 +708,8 @@ static int read_rmf (Isis_Rmf_t *rmf, char *file) /*{{{*/
    if (-1 == cfits_read_string_keyword (rmf->instrument, "DETNAM", rft->ft))
      isis_vmesg (INFO, I_KEY_NOT_FOUND, __FILE__, __LINE__, "DETNAM");
 
-   (void) read_order_keyword (rft, &rmf->order);
+   if (0 == read_order_keyword (rft->ft, &rmf_order))
+     rmf->order = rmf_order;
 
    if (-1 == cfits_read_double_keyword (&cd->threshold, "LO_THRES", rft->ft))
      cd->threshold = 1.e-6;
