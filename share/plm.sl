@@ -117,8 +117,8 @@ private define perform_search_task (s, mmt)
      alpha = objs[2],
      beta = objs[3];
 
-   if (length(alpha) == 1)
-     alpha = _reshape (alpha, [1,1]);
+   if (typeof(alpha) != Array_Type)
+     alpha = alpha[[0],[0]];
 
    variable i, n = length(p);
    _for i (0, n-1, 1)
