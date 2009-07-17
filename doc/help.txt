@@ -9832,7 +9832,7 @@ fit_search
     Search the fit-parameter space
 
  USAGE
-    best = fit_search (num, &ref [,"dir" [,save_all]])
+    best = fit_search (num, &ref [; qualifiers])
 
  DESCRIPTION
     Use this function to automate the process of exploring the
@@ -9840,45 +9840,53 @@ fit_search
     Monte-Carlo trials. The second argument provides a reference to
     a function which will be used to test each randomly generated
     parameter set. This function may simply evaluate the model for
-    that parameter set or it may search for the best fit given that
-    starting point. The optional third argument provides a
-    directory in which to save parameter sets which improve the
-    fit.
+    that parameter set (e.g. &eval_counts) or it may search for the
+    best fit given that starting point (e.g. &fit_counts).
 
     For each Monte-Carlo trial, random parameter values are
     selected from within the [min, max) range for each parameter.
     The test function, ref, is then applied using those parameter
-    values.  When the result yields the best fit so far, the
-    resulting parameters are saved (if the test function performs a
-    fit, the best-fit parameters are saved -- not the initial
-    guess).
+    values.
 
-    If dir has been specified, the saved parameters are also
-    written to a new file in that directory.  Additional output
-    information may recorded in a user-defined format by defining
-    an isis_save_par_hook which uses the fit_search_info function
-    (See save_par and fit_search_info for more information).  If
-    save_all is non-zero, parameter files for all fit-trials will
-    be saved in a subdirectory of the specified directory.
+    Intermediate results of the search may be saved in a
+    subdirectory specified by the dir qualifier.  If the qualifier
+    save_all is present, a parameter file will be saved for every
+    trial.  Otherwise, a parameter file will be saved each time a
+    new best-fit is encountered.
+
+    Each saved parameter file will include a comment line giving
+    the associated fit-statistic. Additional output information may
+    recorded in a user-defined format by defining an
+    isis_save_par_hook which uses the fit_search_info function (See
+    save_par and fit_search_info for more information).
 
     For example, to carry out 100 Monte-Carlo trials fitting counts
     data, saving each successive best-fit in a sub-directory called
     "trials":
 
-       stat = fit_search (100, &fit_counts, "trials");
+       stat = fit_search (100, &fit_counts; dir="trials");
 
     Each improved parameter set will be saved in files named
 
-       trials/best.0
-       trials/best.1
-       trials/best.2
+       trials/best.$pid.0
+       trials/best.$pid.1
+       trials/best.$pid.2
        etc.
+
+    where pid is the process id.
 
     To carry out 50 Monte-Carlo trials simply evaluating
     flux-corrected data (not attempting to find the best fit for
     each trial), and without saving any parameter files to disk:
 
        stat = fit_search (50, &eval_counts);
+
+    On multi-core computers, this function runs in parallel on all
+    available compute cores.  To specify the number of compute
+    slaves, use the num_slaves qualifier.  To run the slave
+    processes at lower priority, include a qualifier of the form
+    nice=n, where n is an integer in the range 1-19.  To force
+    serial execution, use the serial qualifier.
 
 
  SEE ALSO

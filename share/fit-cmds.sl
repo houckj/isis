@@ -874,13 +874,14 @@ define list_free () %{{{
 
 %}}}
 
+private variable __isis_save_par_hook = NULL;
 define save_par () %{{{
 {
    if (_NARGS == 0)
      {
         usage ("%s (filename)", _function_name);
      }
-   variable file = ();
+   variable s, file = ();
    variable fp = fopen (file, "w");
    if (fp == NULL)
      throw IsisError, "Failed opening $file for writing"$;
@@ -888,7 +889,12 @@ define save_par () %{{{
    if (2 == is_defined ("isis_save_par_hook"))
      {
         eval ("isis_save_par_hook (\"$file\")"$);
-        variable s = ();
+        s = ();
+        () = fputs (s, fp);
+     }
+   else if (__isis_save_par_hook != NULL)
+     {
+        s = (@__isis_save_par_hook)();
         () = fputs (s, fp);
      }
    if (-1 == fclose (fp))
@@ -2690,41 +2696,137 @@ private define random_params (p) %{{{
 
 %}}}
 
+private variable Fit_Search_Ctrl = NULL;
 private variable _Fit_Search_Info = NULL;
 define fit_search_info ()
 {
    return _Fit_Search_Info;
 }
 
-private define test_params (p, func_ref, trial, dir, save_all) %{{{
+private define fit_search_save_par_hook () %{{{
 {
+   variable info = _Fit_Search_Info;
+   if (info == NULL)
+     return "";
+
+   return sprintf ("#  statistic = %20.15e  num_vary = %d  num_bins = %d",
+                   info.statistic, info.num_variable_params, info.num_bins);
+}
+
+%}}}
+
+define save_search_pars (dir, prefix, suffix) %{{{
+{
+   variable file = sprintf ("%s.%d.%S", prefix, getpid(), suffix);
+   save_par (path_concat (dir, file));
+}
+
+%}}}
+
+private define test_params (p, trial) %{{{
+{
+   variable
+     func_ref = Fit_Search_Ctrl.method,
+     dir = Fit_Search_Ctrl.dir,
+     save_all = Fit_Search_Ctrl.save_all;
+
    variable info;
 
    set_params (p);
-   () = (@func_ref) (&info);
+   () = (@func_ref)(&info);
 
    _Fit_Search_Info = @info;
 
-   if (save_all != 0)
-     save_par (sprintf ("%s/all/fit.%d", dir, trial));
+   if (save_all)
+     {
+        save_search_pars (dir, "all/fit", trial);
+     }
 
    return info.statistic;
 }
 
 %}}}
 
-private define iterate_func_ref (num, func_ref, dir, save_all) %{{{
+private define search_loop (trials, seed, best) %{{{
 {
-   variable bkp_verbose, p, best_p, best_stat, stat, k;
-   variable i = 0;
+   variable
+     forked = (getpid() != Fit_Search_Ctrl.master_pid),
+     verbose = qualifier_exists ("verbose") && not forked;
 
-   bkp_verbose = Fit_Verbose;
-   ERROR_BLOCK
+   variable
+     dir = qualifier ("dir", NULL),
+     save_all = qualifier_exists ("save_all");
+
+   seed_random (seed);
+
+   variable k, i = 0,
+     p = best.p,
+     num = length(trials);
+
+   foreach k (trials)
      {
-	Fit_Verbose = bkp_verbose;
+	if (verbose)
+	  () = fprintf (stderr, "fit_search:  %3d/%3d\tbest=%7.3f\r",
+			i, num, best.stat);
+
+	variable stat = test_params (random_params (p), i);
+
+	if (stat < best.stat)
+	  {
+	     best.stat = stat;
+	     best.p = get_params ();
+	     if (dir != NULL)
+	       {
+                  k++;
+                  save_search_pars (dir, "best", k);
+	       }
+	  }
+
+	i++;
      }
-   if (Fit_Verbose == 0)
-     Fit_Verbose = -1;
+
+   return best;
+}
+
+%}}}
+
+private define fit_search_slave (s, trials, seed, best) %{{{
+{
+   best = search_loop (trials, seed, best ;; __qualifiers);
+
+   send_msg (s, SLAVE_RESULT);
+   send_objs (s, best);
+
+   return 0;
+}
+
+%}}}
+
+private define fit_search_handler (s, msg) %{{{
+{
+   switch (msg.type)
+     {
+      case SLAVE_RESULT:
+        s.data = recv_objs (s);
+     }
+}
+
+%}}}
+
+private define iterate_func_ref (num, func_ref) %{{{
+{
+   variable
+     dir = qualifier ("dir", NULL),
+     save_all = qualifier_exists ("save_all"),
+     seed = qualifier ("seed", _time);
+
+   Fit_Search_Ctrl = struct
+     {
+        method = func_ref,
+        dir = dir,
+        save_all = save_all,
+        master_pid = getpid()
+     };
 
    if (dir != NULL)
      {
@@ -2733,48 +2835,63 @@ private define iterate_func_ref (num, func_ref, dir, save_all) %{{{
 	  () = mkdir (dir + "/all", 0777);
      }
 
-   p = get_params ();
-   best_stat = test_params (p, func_ref, i, dir, save_all);
-   best_p = get_params ();
+   variable i = 0, best = struct {p, stat};
 
-   k = 0;
+   best.p = get_params ();
+   best.stat = test_params (best.p, i);
+   best.p = get_params ();
+
+   variable trials = [0:num-1];
    if (dir != NULL)
-     save_par (sprintf ("%s/best.%d", dir, k));
-
-   loop (num)
      {
-	if (bkp_verbose >= 0 and Isis_Batch_Mode == 0)
-	  () = fprintf (stderr, "fit_search:  %3d/%3d\tbest=%7.3f\r",
-			i, num, best_stat);
-
-	stat = test_params (random_params (p), func_ref, i, dir, save_all);
-
-	if (stat < best_stat)
-	  {
-	     best_stat = stat;
-	     best_p = get_params ();
-	     if (dir != NULL)
-	       {
-		  k++;
-		  save_par (sprintf ("%s/best.%d", dir, k));
-	       }
-	  }
-
-	i++;
+        save_search_pars (dir, "best", trials[0]);
      }
 
-   if (bkp_verbose >= 0 and Isis_Batch_Mode == 0)
-     vmessage ("\nbest statistic = %g", best_stat);
+   variable serial = qualifier_exists ("serial");
+   variable num_slaves = qualifier ("num_slaves", _num_cpus());
+   variable parallel = (serial == 0) && (num_slaves > 1);
 
-   set_params (best_p);
+   ifnot (parallel)
+     {
+        best = search_loop (trials, seed, best ;; __qualifiers);
+     }
+   else
+     {
+        variable slave_trials = partition_indices (num, num_slaves);
+        variable ii = 0, s, slaves = new_slave_list ();
+        loop (num_slaves)
+          {
+             variable slave_seed = int (urand() * INT_MAX);
+             s = fork_slave (&fit_search_slave, slave_trials[ii], slave_seed, best ;; __qualifiers);
+             append_slave (slaves, s);
+             ii++;
+          }
+
+        manage_slaves (slaves, &fit_search_handler);
+        foreach s (slaves)
+          {
+             variable b = s.data;
+             if (b == NULL)
+               continue;
+             if (b.stat < best.stat)
+               {
+                  best.stat = b.stat;
+                  best.p = @b.p;
+               }
+          }
+     }
+
+   if (qualifier_exists ("verbose"))
+     vmessage ("\nbest statistic = %g", best.stat);
+
+   set_params (best.p);
 
    if (func_ref == __get_reference ("fit_counts"))
      () = eval_counts;
    else if (func_ref == __get_reference ("fit_flux"))
      () = eval_flux;
 
-   Fit_Verbose = bkp_verbose;
-   return best_stat;
+   return best;
 }
 
 %}}}
@@ -2782,20 +2899,29 @@ private define iterate_func_ref (num, func_ref, dir, save_all) %{{{
 define fit_search () %{{{
 {
    _isis->error_if_fit_in_progress (_function_name);
-   variable num, func_ref, save_all = 0;
-   variable dir = NULL;
-   variable msg = "best = fit_search (num, &func [, \"dir\" [, save_all]])";
+   variable num, func_ref;
+   variable msg = "best = fit_search (num, &func [; qualifiers])";
 
-   if (_isis->get_varargs (&num, &func_ref, &dir, &save_all, _NARGS, 2, msg))
+   if (_isis->chk_num_args (_NARGS, 2, msg))
      return;
 
-   ERROR_BLOCK
+   (num, func_ref) = ();
+
+   variable stat, bkp_fit_verbose;
+   try
      {
-	_Fit_Search_Info = NULL;
+        bkp_fit_verbose = Fit_Verbose;
+        if (Fit_Verbose == 0) Fit_Verbose = -1;
+        _Fit_Search_Info = NULL;
+        __isis_save_par_hook = &fit_search_save_par_hook;
+        stat = iterate_func_ref (num, func_ref ;; __qualifiers);
      }
-   _Fit_Search_Info = NULL;
-   variable stat = iterate_func_ref (num, func_ref, dir, save_all);
-   _Fit_Search_Info = NULL;
+   finally
+     {
+        _Fit_Search_Info = NULL;
+        __isis_save_par_hook = NULL;
+        Fit_Verbose = bkp_fit_verbose;
+     }
 
    return stat;
 }
