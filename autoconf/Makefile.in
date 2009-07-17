@@ -27,7 +27,7 @@ BUILD_ISIS_EXTRAS=@BUILD_ISIS_EXTRAS@
 LINK_XSPEC_STATIC = @LINK_XSPEC_STATIC@
 HEADAS_DIR = @HEADAS_DIR@
 
-all:
+all:	makefiles
 	cd src; $(MAKE) all
 	cd modules; $(MAKE) all
 	@if test "$(BUILD_ISIS_EXTRAS)" = "yes" ; then \
@@ -60,9 +60,31 @@ install:	test_install_dir
 	@echo "   make clean"
 	@echo ""
 
-elf:
+elf:	makefiles
 	cd src; $(MAKE) elf
 	cd modules; $(MAKE) elf
+
+makefiles:	Makefile src/Makefile modules/Makefile modules/xspec/Makefile modules/xspec/src/Makefile
+Makefile:	configure autoconf/Makefile.in
+	@echo "Makefile is older than the configure script."
+	@echo "Please re-run the configure script."
+	@exit 1
+src/Makefile:	configure src/Makefile.in
+	@echo "src/Makefile is older than the configure script."
+	@echo "Please re-run the configure script."
+	@exit 1
+modules/Makefile:	configure modules/Makefile.in
+	@echo "modules/Makefile is older than the configure script."
+	@echo "Please re-run the configure script."
+	@exit 1
+modules/xspec/Makefile:	configure modules/xspec/autoconf/Makefile.in
+	@echo "modules/xspec/Makefile is older than the configure script."
+	@echo "Please re-run the configure script."
+	@exit 1
+modules/xspec/src/Makefile:	configure modules/xspec/src/Makefile.in
+	@echo "modules/xspec/src/Makefile is older than the configure script."
+	@echo "Please re-run the configure script."
+	@exit 1
 
 install-elf:	test_install_dir
 	cd src; $(MAKE) install-elf
