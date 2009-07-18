@@ -52,7 +52,7 @@ define try2_cols (file, c1, c2)
 }
 
 variable file, nrows, ncols;
-file = "/tmp/isis_readcol.test";
+file = "isis_readcol.test";
 nrows = 10;
 ncols = 100;
 

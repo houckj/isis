@@ -95,7 +95,7 @@ define test_basic_ops (freeze_par, tie_par, test_name) %{{{
    set_par (tie_par, save_tie_par);
 
    % save and restore
-   variable par_file = "/tmp/.isis." + string(getpid());
+   variable par_file = ".isis." + string(getpid());
    () = remove (par_file);
    save_par (par_file);
    old_pars = get_params();

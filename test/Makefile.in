@@ -30,7 +30,7 @@ INCS = -I$(config_dir)/src $(SLANG_INC)
 
 SHARED_LIBRARIES = rmf_user.so example-profile.so
 
-check:	$(SHARED_LIBRARIES)
+check:	write-permission $(SHARED_LIBRARIES)
 	@if test -x "../src/$(ARCH)objs/isis"; then \
 	    TEST_ISIS="../src/$(ARCH)objs/isis"; \
 	    ISIS_SRCDIR=".."; \
@@ -54,12 +54,20 @@ install-check:	$(SHARED_LIBRARIES)
 	@$(SLSH) $(WITH_HEADAS) ./run_tests.sl isis $(prefix)
 	@echo ""
 
+write-permission:
+	@if ! test -w "$(config_dir)/test" ; then \
+	   echo "" ; \
+	   echo "***  Cannot run regression tests:  no write permission for directory $(config_dir)/test" ; \
+	   echo "" ; \
+	   exit 1; \
+	fi
+
 rmf_user.so:
 	$(CC_SHARED) -o rmf_user.so $(INCS) rmf_user.c $(LIBS_FOR_MODULES)
 
 example-profile.so:
 	$(CC_SHARED) -o example-profile.so $(INCS) example-profile.c
-	
+
 clean:
 	$(RM) .##* *.log *.so *.o
 	cd uncon ; make clean
