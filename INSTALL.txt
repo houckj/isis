@@ -145,7 +145,7 @@ First, cd to the ISIS source directory:
     example:
 
       setenv CC gcc-4.0
-      setenv FC g95-4.0
+      setenv FC gfortran-4.0
 
     Note that if you want to use the XSPEC module, it may
     be necessary to compile ISIS using the same C compiler
