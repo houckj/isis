@@ -42,7 +42,7 @@ scripts = contin.sl crude_dem.sl custom1.sl data.sl elev.sl \
 figs:
 	-mkdir figures
 	cd figures; for s in $(scripts) ; do \
-	   echo "Doing $$s"; ../../bin/$(ARCH)/isis --batch ../scripts/$$s; \
+	   echo "Doing $$s"; isis --batch ../scripts/$$s; \
 	done
 
 fignames = contin data_flx line_id crude_dem elev profile_fit \

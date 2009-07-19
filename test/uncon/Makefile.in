@@ -24,7 +24,7 @@ CC_SHARED = @CC_SHARED@
 
 SLANG_INC  = @SLANG_INC@
 
-OBJDIR     = $(ARCH)objs
+OBJDIR     = objs
 MODULE_LIB = src/libuncon.so
 
 LIBS = $(SLANG_LIB) $(RPATH) $(DL_LIB) $(FCLIBS) -lm

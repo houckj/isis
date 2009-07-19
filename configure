@@ -4706,7 +4706,7 @@ case "$host_os" in
     ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
     CC_SHARED="\$(CC) \$(CFLAGS) -shared"
     ELF_FC_FCFLAGS=""
-    ISIS_LIB_FOR_MODULES="-L\$(config_dir)/src/\$(ARCH)objs -lisis"
+    ISIS_LIB_FOR_MODULES="-L\$(config_dir)/src/objs -lisis"
     SLANG_LIB_FOR_MODULES="\$(SLANG_LIB)"
     CFITSIO_LIB_FOR_MODULES="\$(CFITSIO_LIB)"
     INSTALL_MODULE="\$(INSTALL)"
@@ -11657,7 +11657,7 @@ _ACEOF
    WITH_HEADAS="-DWITH_HEADAS"
 
 
-   XSPEC_MODULE_LIBS="-L\$(config_dir)/modules/xspec/src/\$(ARCH)objs -lxspec-module \$(XS_LIBS)"
+   XSPEC_MODULE_LIBS="-L\$(config_dir)/modules/xspec/src/objs -lxspec-module \$(XS_LIBS)"
 
 
    CFITSIO_INC="-I$HEADAS/include"
@@ -13611,8 +13611,8 @@ then
   fi
 fi
 
-OBJDIR=$SRCDIR/"$ARCH"objs
-ELFDIR=$SRCDIR/elf"$ARCH"objs
+OBJDIR=$SRCDIR/objs
+ELFDIR=$SRCDIR/elfobjs
 
 
 # Check whether --enable-warnings was given.

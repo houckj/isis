@@ -56,8 +56,8 @@ host_os = @host_os@
 config_dir = @CONFIG_DIR@
 
 SRCDIR = $(config_dir)/src
-OBJDIR = $(config_dir)/src/$(ARCH)objs
-ELFDIR = $(config_dir)/src/$(ARCH)elfobjs
+OBJDIR = $(config_dir)/src/objs
+ELFDIR = $(config_dir)/src/elfobjs
 
 #---------------------------------------------------------------------------
 # Install information
@@ -315,11 +315,11 @@ distclean: clean
 	-$(RM) -r $(OBJDIR) $(ELFDIR) $(config_dir)/share/*.slc Makefile config.h
 
 symlinks:
-	-$(RM) $(ARCH)objs $(ARCH)elfobjs
-	-mkdir -p $(HOME)/sys/$(ARCH)/objs/$(PKG_NAME)
-	-mkdir -p $(HOME)/sys/$(ARCH)/elfobjs/$(PKG_NAME)
-	ln -s $(HOME)/sys/$(ARCH)/objs/$(PKG_NAME) $(ARCH)objs
-	ln -s $(HOME)/sys/$(ARCH)/elfobjs/$(PKG_NAME) $(ARCH)elfobjs
+	-$(RM) objs elfobjs
+	-mkdir -p $(HOME)/sys/$(CSR_ARCH)/objs/$(PKG_NAME)
+	-mkdir -p $(HOME)/sys/$(CSR_ARCH)/elfobjs/$(PKG_NAME)
+	ln -s $(HOME)/sys/$(CSR_ARCH)/objs/$(PKG_NAME) objs
+	ln -s $(HOME)/sys/$(CSR_ARCH)/elfobjs/$(PKG_NAME) elfobjs
 
 #---------------------------------------------------------------------------
 # Everything else from configure script

@@ -804,7 +804,7 @@ AC_DEFUN(JH_LIST_ELFOBJECTS, dnl#{{{
    other_elfobjects="$other_elfobjects \$(ELFDIR_$2)/$other_module.o"
  done
 ELFOBJECTS_$2="$other_elfobjects"
-ELFDIR_$2="\$(config_dir)/$1/\$(ARCH)elfobjs"
+ELFDIR_$2="\$(config_dir)/$1/elfobjs"
 AC_SUBST(ELFOBJECTS_$2)dnl
 AC_SUBST(ELFDIR_$2)dnl
 ])
@@ -1167,7 +1167,7 @@ then
 else
    HEADAS=$jh_use_xspec_static
    LINK_XSPEC_STATIC="yes"
-   XSPEC_MODULE_LIBS="-L\$(config_dir)/modules/xspec/src/\$(ARCH)objs -lxspec-module \$(XS_LIBS)"
+   XSPEC_MODULE_LIBS="-L\$(config_dir)/modules/xspec/src/objs -lxspec-module \$(XS_LIBS)"
    AC_SUBST(XSPEC_MODULE_LIBS)
    AC_DEFINE(WITH_XSPEC_STATIC_LINKED)
    PGPLOT_LIB="-L$HEADAS/lib"

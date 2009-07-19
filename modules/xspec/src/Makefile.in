@@ -72,8 +72,8 @@ INCS = $(ISISINC) $(SLANG_INC) -I$(HEA)/include
 # Set these values to ABSOLUTE path names
 #---------------------------------------------------------------------------
 SRCDIR = $(config_dir)/modules/xspec/src# Location of sources
-OBJDIR = $(SRCDIR)/$(ARCH)objs# Location of objects
-ELFDIR = $(SRCDIR)/$(ARCH)elfobjs# Location of elf objects
+OBJDIR = $(SRCDIR)/objs# Location of objects
+ELFDIR = $(SRCDIR)/elfobjs# Location of elf objects
 
 #---------------------------------------------------------------------------
 # Directory where library is going to go when installed
@@ -225,12 +225,11 @@ distclean: clean
 	-$(RM_R) $(OBJDIR) $(ELFDIR) $(CONFIG_H) Makefile xspec_libs config-xspec-libs config-xspec-version
 
 symlinks:
-	-mkdir -p $(HOME)/sys/$(ARCH)/objs/$(THIS_LIB)
-	-$(RM) $(ELFDIR)
-	ln -s $(HOME)/sys/$(ARCH)/objs/$(THIS_LIB) $(ELFDIR)
-	-mkdir -p $(HOME)/sys/$(ARCH)/elfobjs/$(THIS_LIB)
-	-$(RM) $(ARCH)objs
-	ln -s $(HOME)/sys/$(ARCH)/objs/$(THIS_LIB) $(ARCH)objs
+	-$(RM) $(ELFDIR) objs
+	-mkdir -p $(HOME)/sys/$(CSR_ARCH)/objs/$(THIS_LIB)
+	-mkdir -p $(HOME)/sys/$(CSR_ARCH)/elfobjs/$(THIS_LIB)
+	ln -s $(HOME)/sys/$(CSR_ARCH)/objs/$(THIS_LIB) objs
+	ln -s $(HOME)/sys/$(CSR_ARCH)/elfobjs/$(THIS_LIB) $(ELFDIR)
 
 $(OBJDIR)/xspec-module.o : $(SRCDIR)/xspec-module.c $(DOT_O_DEPS) $(xspec-module_O_DEP)
 	cd $(OBJDIR); $(COMPILE_CMD) $(xspec-module_C_FLAGS) $(SRCDIR)/xspec-module.c

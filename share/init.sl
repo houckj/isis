@@ -139,8 +139,6 @@ private define init_xspec_autoload () %{{{
         variable p = path_concat (_isis_srcdir, "modules/xspec/src");
         prepend_to_isis_load_path (p);
         variable d = "elfobjs";
-        variable arch = getenv ("ARCH");
-        if (arch != NULL) d = arch + d;
         prepend_to_isis_module_path (path_concat (p, d));
      }
 

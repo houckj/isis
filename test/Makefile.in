@@ -31,8 +31,8 @@ INCS = -I$(config_dir)/src $(SLANG_INC)
 SHARED_LIBRARIES = rmf_user.so example-profile.so
 
 check:	write-permission $(SHARED_LIBRARIES)
-	@if test -x "../src/$(ARCH)objs/isis"; then \
-	    TEST_ISIS="../src/$(ARCH)objs/isis"; \
+	@if test -x "../src/objs/isis"; then \
+	    TEST_ISIS="../src/objs/isis"; \
 	    ISIS_SRCDIR=".."; \
 	    export ISIS_SRCDIR ; \
 	 else \

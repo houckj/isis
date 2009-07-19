@@ -32,7 +32,7 @@ JD_Above_Dir2=`cd ..;pwd`
 dnl#}}}
 
 dnl# This function expand the "prefix variables.  For example, it will expand
-dnl# values such as ${exec_prefix}/foo when ${exec_prefix} itself has a 
+dnl# values such as ${exec_prefix}/foo when ${exec_prefix} itself has a
 dnl# of ${prefix}.  This function produces the shell variables:
 dnl# jd_prefix_libdir, jd_prefix_incdir
 AC_DEFUN(JD_EXPAND_PREFIX, dnl#{{{
@@ -49,7 +49,7 @@ AC_DEFUN(JD_EXPAND_PREFIX, dnl#{{{
     then
       jd_exec_prefix="$exec_prefix"
     fi
-  
+
     dnl#Unfortunately, exec_prefix may have a value like ${prefix}, etc.
     dnl#Let the shell expand those.  Yuk.
     eval `sh <<EOF
@@ -82,8 +82,8 @@ then
   fi
 fi
 
-OBJDIR=$SRCDIR/"$ARCH"objs
-ELFDIR=$SRCDIR/elf"$ARCH"objs
+OBJDIR=$SRCDIR/objs
+ELFDIR=$SRCDIR/elfobjs
 AC_SUBST(SRCDIR)dnl
 AC_SUBST(OBJDIR)dnl
 AC_SUBST(ELFDIR)dnl
@@ -158,7 +158,7 @@ changequote([, ])dnl
 AC_DEFUN(JD_SIMPLE_LIB_DIR, dnl#{{{
 [
 JD_UPPERCASE($1,JD_UP_NAME)
-JD_UP_NAME[]_LIB_DIR=$JD_Above_Dir/$1/src/"$ARCH"objs
+JD_UP_NAME[]_LIB_DIR=$JD_Above_Dir/$1/src/objs
 JD_UP_NAME[]_INCLUDE=$JD_Above_Dir/$1/src
 
 if test -z "[$]JD_UP_NAME[]_INCLUDE"
@@ -186,22 +186,22 @@ AC_DEFUN(JD_FIND_GENERIC, dnl#{{{
 #JD_UP_NAME[]_LIB_DIR=""
 
 # This list consists of "include,lib include,lib ..."
-JD_Search_Dirs="$JD_Above_Dir2/$1/libsrc,$JD_Above_Dir2/$1/libsrc/"$ARCH"objs \
-                $JD_Above_Dir/$1/libsrc,$JD_Above_Dir/$1/libsrc/"$ARCH"objs \
-		$JD_Above_Dir2/$1/src,$JD_Above_Dir2/$1/src/"$ARCH"objs \
-                $JD_Above_Dir/$1/src,$JD_Above_Dir/$1/src/"$ARCH"objs"
+JD_Search_Dirs="$JD_Above_Dir2/$1/libsrc,$JD_Above_Dir2/$1/libsrc/objs \
+                $JD_Above_Dir/$1/libsrc,$JD_Above_Dir/$1/libsrc/objs \
+		$JD_Above_Dir2/$1/src,$JD_Above_Dir2/$1/src/objs \
+                $JD_Above_Dir/$1/src,$JD_Above_Dir/$1/src/objs"
 
 JD_Search_Dirs="$JD_Search_Dirs \
                 $jd_prefix_incdir,$jd_prefix_libdir \
 		$HOME/include,$HOME/lib"
 
-if test -n "$ARCH"
-then
- JD_Search_Dirs="$JD_Search_Dirs $HOME/include,$HOME/$ARCH/lib"
- JD_Search_Dirs="$JD_Search_Dirs $HOME/include,$HOME/sys/$ARCH/lib"
-fi
+dnl if test -n "$ARCH"
+dnl then
+dnl  JD_Search_Dirs="$JD_Search_Dirs $HOME/include,$HOME/$ARCH/lib"
+dnl  JD_Search_Dirs="$JD_Search_Dirs $HOME/include,$HOME/sys/$ARCH/lib"
+dnl fi
 
-# Now add the standard system includes.  The reason for doing this is that 
+# Now add the standard system includes.  The reason for doing this is that
 # the other directories may have a better chance of containing a more recent
 # version.
 
@@ -241,10 +241,10 @@ if test -n "[$]JD_UP_NAME[]_LIB_DIR"
 then
     jd_have_$1="yes"
 else
-    echo Unable to find the $JD_UP_NAME library.  
+    echo Unable to find the $JD_UP_NAME library.
     echo You may have to edit $CONFIG_DIR/src/Makefile.
     JD_UP_NAME[]_INCLUDE=$JD_Above_Dir/$1/src
-    JD_UP_NAME[]_LIB_DIR=$JD_Above_Dir/$1/src/"$ARCH"objs
+    JD_UP_NAME[]_LIB_DIR=$JD_Above_Dir/$1/src/objs
     jd_have_$1="no"
 fi
 
@@ -278,7 +278,6 @@ AC_SUBST(JD_UP_NAME[]_INCLUDE)dnl
 dnl AC_SUBST(RPATH_[]JD_UP_NAME)dnl
 undefine([JD_UP_NAME])dnl
 ])
-
 
 dnl#}}}
 
@@ -499,7 +498,7 @@ AC_DEFUN(JD_WITH_LIBRARY_PATHS, dnl#{{{
  AC_ARG_WITH($1,
   [  --with-$1=DIR      Use DIR/lib and DIR/include for $1],
   [jd_with_$1_arg=$withval], [jd_with_$1_arg=unspecified])
-  
+
  case "x$jd_with_$1_arg" in
    xno)
      jd_with_$1_library="no"
@@ -533,7 +532,7 @@ AC_DEFUN(JD_WITH_LIBRARY_PATHS, dnl#{{{
     ;;
  esac
 
- AC_ARG_WITH($1inc, 
+ AC_ARG_WITH($1inc,
   [  --with-$1inc=DIR   $1 include files in DIR],
   [jd_with_$1inc_arg=$withval], [jd_with_$1inc_arg=unspecified])
  case "x$jd_with_$1inc_arg" in
@@ -553,8 +552,8 @@ dnl#}}}
 
 dnl# This function checks for the existence of the specified library $1 with
 dnl# header file $2.  If the library exists, then the shell variables will
-dnl# be created: 
-dnl#  jd_with_$1_library=yes/no, 
+dnl# be created:
+dnl#  jd_with_$1_library=yes/no,
 dnl#  jd_$1_inc_file
 dnl#  jd_$1_include_dir
 dnl#  jd_$1_library_dir
@@ -588,7 +587,7 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
   	  /opt/include/$1 \
   	  /opt/$1/include \
   	  /opt/include"
-  
+
        for X in $lib_include_dirs
        do
           if test -r "$X/$jd_$1_inc_file"
@@ -602,7 +601,7 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
          jd_with_$1_library="no"
        fi
     fi
-   
+
     if test X"$jd_$1_library_dir" = X
     then
        lib_library_dirs="\
@@ -629,7 +628,7 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
 	 * )
 	   exts="so a"
        esac
-   
+
        found=0
        for X in $lib_library_dirs
        do
@@ -826,7 +825,7 @@ AC_DEFUN(JH_LIST_ELFOBJECTS, dnl#{{{
    other_elfobjects="$other_elfobjects \$(ELFDIR_$2)/$other_module.o"
  done
 ELFOBJECTS_$2="$other_elfobjects"
-ELFDIR_$2="\$(config_dir)/$1/\$(ARCH)elfobjs"
+ELFDIR_$2="\$(config_dir)/$1/elfobjs"
 AC_SUBST(ELFOBJECTS_$2)dnl
 AC_SUBST(ELFDIR_$2)dnl
 ])
@@ -1024,7 +1023,7 @@ case "$host_os" in
        ELF_LINK_CMD="\$(ELF_LINK),\$(ELFLIB_MAJOR)"
        ELF_DEP_LIBS=
        CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
-       ELF_FC_FCFLAGS="-fPIC"       
+       ELF_FC_FCFLAGS="-fPIC"
      else
        DYNAMIC_LINK_FLAGS=""
        ELF_CC="\$(CC)"
@@ -1070,7 +1069,7 @@ case "$host_os" in
     CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
     ELF_FC_FCFLAGS="-fPIC"
     ;;
-    
+
   *cygwin* )
     DYNAMIC_LINK_FLAGS=""
     ELF_CC="\$(CC)"
@@ -1081,12 +1080,12 @@ case "$host_os" in
     ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
     CC_SHARED="\$(CC) \$(CFLAGS) -shared"
     ELF_FC_FCFLAGS=""
-    ISIS_LIB_FOR_MODULES="-L\$(config_dir)/src/\$(ARCH)objs -lisis"
+    ISIS_LIB_FOR_MODULES="-L\$(config_dir)/src/objs -lisis"
     SLANG_LIB_FOR_MODULES="\$(SLANG_LIB)"
     CFITSIO_LIB_FOR_MODULES="\$(CFITSIO_LIB)"
     INSTALL_MODULE="\$(INSTALL)"
     ;;
-    
+
   * )
     echo "Note: ELF compiler for host_os=$host_os may be wrong"
     ELF_CC="\$(CC)"
@@ -1125,7 +1124,7 @@ then
    then
       FCLIBS="-lg2c"
    fi
-fi   
+fi
 ])
 
 dnl#}}}
@@ -1289,14 +1288,14 @@ else
    HEADAS_DIR=$jh_use_xspec_static
    AC_SUBST(HEADAS_DIR)
    HEADAS=$jh_use_xspec_static
-   
+
    HEADAS_LIBDIR="${HEADAS}/lib"
    AC_SUBST(HEADAS_LIBDIR)
-   
-   WITH_HEADAS="-DWITH_HEADAS"
-   AC_SUBST(WITH_HEADAS)   
 
-   XSPEC_MODULE_LIBS="-L\$(config_dir)/modules/xspec/src/\$(ARCH)objs -lxspec-module \$(XS_LIBS)"
+   WITH_HEADAS="-DWITH_HEADAS"
+   AC_SUBST(WITH_HEADAS)
+
+   XSPEC_MODULE_LIBS="-L\$(config_dir)/modules/xspec/src/objs -lxspec-module \$(XS_LIBS)"
    AC_SUBST(XSPEC_MODULE_LIBS)
 
    CFITSIO_INC="-I$HEADAS/include"
@@ -1421,7 +1420,7 @@ AC_DEFUN(JH_HANDLE_PACKAGE_OPTIONS, dnl#{{{
 
   JH_WITH_HEADAS
   JH_WITH_XSPEC_STATIC
-  
+
   AC_ARG_ENABLE(xspec_tables,
     [  --disable-xspec_tables  Compile without XSPEC table models],
     [ ],
@@ -1447,13 +1446,13 @@ dnl#}}}
 
 AC_DEFUN(JH_FORCE_UNDEFINED_SYMBOLS, dnl#{{{
 [
-# If we're using g77 and the GNU loader, force loading 
-# of libg2c symbols so they're available in case a user 
+# If we're using g77 and the GNU loader, force loading
+# of libg2c symbols so they're available in case a user
 # dynamically links to an XSPEC local model
 FORCE_UNDEFINED_SYMBOLS=""
 dnl  Note that the G77 macro is probably no longer available..
 if test "$G77" = yes
-then  
+then
    AC_CHECK_PROG(have_loader,ld,"yes")
    if test "$have_loader" = yes
    then
@@ -1462,7 +1461,7 @@ then
      then
        FORCE_UNDEFINED_SYMBOLS="-Wl,--undefined=s_rnge"
      fi
-   fi     
+   fi
 fi
 AC_SUBST(FORCE_UNDEFINED_SYMBOLS)
 ])
