@@ -8943,11 +8943,10 @@ conf_loop
     has the form DIR/string, then a subdirectory named DIR will be
     created to contain output files prefixed with string.
 
-    By default, the computations are done in parallel, with the
-    number of slave processes specified by the global variable
-    Isis_Num_Slaves or by the num_slaves qualifier (the qualifier
-    takes precedence).  Use the serial qualifier to force the
-    computations to be performed on a single CPU core.
+    By default, the computations are done in parallel; use the
+    serial qualifier to force the computations to be performed on a
+    single CPU. See multicore for more details on controlling
+    parallel processes.
 
     For example, this:
 
@@ -8958,7 +8957,7 @@ conf_loop
     parameters, saving output in the specified directory.
 
  SEE ALSO
-    conf
+    conf, multicore
 
 ------------------------------------------------------------------------
 conf_map_counts
@@ -8977,11 +8976,10 @@ conf_map_counts
     contours drawn vs. the log of the parameter rather than the
     parameter value itself).
 
-    By default, the computations are done in parallel, with the
-    number of slave processes specified by the global variable
-    Isis_Num_Slaves or by the num_slaves qualifier (the qualifier
-    takes precedence).  Use the serial qualifier to force the
-    computations to be performed on a single CPU core.
+    By default, the computations are done in parallel; use the
+    serial qualifier to force the computations to be performed on a
+    single CPU.  See multicore for more details on controlling
+    parallel processes.
 
     The parameter indices and an associated uniform grid of values
     should be specified using a structure of the form:
@@ -9196,7 +9194,7 @@ conf_map_counts
 
 
  SEE ALSO
-    conf_grid, plot_conf, save_conf, load_conf, conf_map_flux
+    conf_grid, plot_conf, save_conf, load_conf, conf_map_flux, multicore
 
 ------------------------------------------------------------------------
 conf_map_flux
@@ -9882,15 +9880,13 @@ fit_search
        stat = fit_search (50, &eval_counts);
 
     On multi-core computers, this function runs in parallel on all
-    available compute cores.  To specify the number of compute
-    slaves, use the num_slaves qualifier.  To run the slave
-    processes at lower priority, include a qualifier of the form
-    nice=n, where n is an integer in the range 1-19.  To force
-    serial execution, use the serial qualifier.
+    available compute cores. To force serial execution, use the
+    serial qualifier. See multicore for more details on controlling
+    parallel processes.
 
 
  SEE ALSO
-    fit_counts, eval_counts, fit_flux, eval_flux, save_par, fit_search_info
+    fit_counts, eval_counts, fit_flux, eval_flux, save_par, fit_search_info, multicore
 
 ------------------------------------------------------------------------
 fit_search_info
@@ -11015,6 +11011,9 @@ plm
 
       set_fit_method ("plm;num_slaves=4;max_loops=200");
 
+    See multicore for more details on controlling parallel
+    processes.
+
     To see a list of optional parameters, use
 
       set_fit_method ("plm;help");
@@ -11022,7 +11021,7 @@ plm
 
 
  SEE ALSO
-    marquardt, lmdif, simann, subplex, set_fit_method
+    marquardt, lmdif, simann, subplex, set_fit_method, multicore
 
 ------------------------------------------------------------------------
 simann
@@ -12585,6 +12584,41 @@ yshift
 
  SEE ALSO
     set_kernel, fit_fun
+
+------------------------------------------------------------------------
+multicore
+
+ SYNOPSIS
+    Controlling multi-core parallel processes
+
+ USAGE
+    :
+
+ DESCRIPTION
+    A number of aspects of multi-core parallel processing can be
+    controlled by setting fields in the Isis_Slaves structure.  The
+    fields of this structure are interpreted as follows:
+
+      __name__          __meaning__
+      num_slaves        Default number of slave processes to create
+      num_slave_slaves  Default maximum number of slave processes that a
+                        slave process can create (default = 0).
+      nice              Default nice level or execution priority, in the
+                        range 0-19, for slave processes (default = 0).
+
+    These control values apply to all multi-core parallel
+    functions.
+
+    Some of these parameters may be set temporarily by using
+    qualifiers with individual function calls.  For example, this:
+
+       (pmin, pmax) = conf_loop ([1:4]; num_slaves=2, nice=10);
+
+    runs conf_loop with two slaves at nice=10 without modifying the
+    values of the Isis_Slaves structure.
+
+ SEE ALSO
+    fork_slave, manage_slaves
 
 ------------------------------------------------------------------------
 _num_cpus

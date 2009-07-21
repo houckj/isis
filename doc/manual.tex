@@ -10363,7 +10363,7 @@ Example:
 {conf\_loop} %name
 {Generate single-parameter confidence limits for specified parameters} %purpose
 {(min[], max[]) = conf\_loop (params[] [, level [, tolerance]][; qualifiers])} %usage
-{conf}
+{conf, multicore}
 
 This function calls \verb|conf| to determine single parameter
 confidence limits for a specified list of fit parameters; for
@@ -10380,12 +10380,10 @@ prefix has the form \verb|DIR/string|, then a subdirectory
 named \verb|DIR| will be created to contain output files
 prefixed with \verb|string|.
 
-By default, the computations are done in parallel, with the
-number of slave processes specified by the global variable
-\verb|Isis_Num_Slaves| or by the \verb|num_slaves| qualifier
-(the qualifier takes precedence).  Use the \verb|serial|
-qualifier to force the computations to be performed on a single
-CPU core.
+By default, the computations are done in parallel; use the
+\verb|serial| qualifier to force the computations to be
+performed on a single CPU. See \verb|multicore| for more
+details on controlling parallel processes.
 
 For example, this:
 \begin{verbatim}
@@ -10400,7 +10398,7 @@ parameters, saving output in the specified directory.
 {conf\_map\_counts} %name
 {Generate a 2D chi-square map for counts data} %purpose
 {Struct\_Type = conf\_map\_counts (Struct\_Type x, Struct\_Type y [, info])} %usage
-{conf\_grid, plot\_conf, save\_conf, load\_conf, conf\_map\_flux}
+{conf\_grid, plot\_conf, save\_conf, load\_conf, conf\_map\_flux, multicore}
 \index{Confidence Limits!2D maps}
 \index{Confidence Limits!2D maps, log axes}
 
@@ -10411,12 +10409,10 @@ contour plots which include fairly arbitrary coordinate
 transformations (e.g. contours drawn vs. the log of the
 parameter rather than the parameter value itself).
 
-By default, the computations are done in parallel, with the
-number of slave processes specified by the global variable
-\verb|Isis_Num_Slaves| or by the \verb|num_slaves| qualifier
-(the qualifier takes precedence).  Use the \verb|serial|
-qualifier to force the computations to be performed on a single
-CPU core.
+By default, the computations are done in parallel; use the
+\verb|serial| qualifier to force the computations to be
+performed on a single CPU.  See \verb|multicore| for more
+details on controlling parallel processes.
 
 The parameter indices and an associated uniform grid of values
 should be specified using a structure of the form:
@@ -11162,7 +11158,7 @@ See \verb|eval_fun2| for a usage example.
 {fit\_search} %name
 {Search the fit-parameter space} %purpose
 {best = fit\_search (num, \&ref [; qualifiers])} %usage
-{fit\_counts, eval\_counts, fit\_flux, eval\_flux, save\_par, fit\_search\_info}
+{fit\_counts, eval\_counts, fit\_flux, eval\_flux, save\_par, fit\_search\_info, multicore}
 
 Use this function to automate the process of exploring the
 fit-parameter space. The first argument specifies the number of
@@ -11214,11 +11210,9 @@ trial), and without saving any parameter files to disk:
 \end{verbatim}
 
 On multi-core computers, this function runs in parallel on all
-available compute cores.  To specify the number of compute
-slaves, use the \verb|num_slaves| qualifier.  To run the slave
-processes at lower priority, include a qualifier of the form
-\verb|nice=n|, where n is an integer in the range 1-19.  To
-force serial execution, use the \verb|serial| qualifier.
+available compute cores. To force serial execution, use the
+\verb|serial| qualifier. See \verb|multicore| for more details
+on controlling parallel processes.
 
 \end{isisfunction}
 
@@ -12120,7 +12114,7 @@ To see a list of optional parameters, use
 {plm} %name
 {Parallel Levenberg-Marquardt optimization method} %purpose
 {set\_fit\_method ("plm")} %usage
-{marquardt, lmdif, simann, subplex, set\_fit\_method}
+{marquardt, lmdif, simann, subplex, set\_fit\_method, multicore}
 
 This is a parallelized version of the Levenberg-Marquardt
 optimization method. The basic algorithm was derived under the
@@ -12142,10 +12136,10 @@ shrink_factor (0.1)    lambda decreases by lambda *= shrink_factor
 
 The number of compute slaves may be specified using the
 \verb|num_slaves| option.  For example:
-
 \begin{verbatim}
   set_fit_method ("plm;num_slaves=4;max_loops=200");
 \end{verbatim}
+See \verb|multicore| for more details on controlling parallel processes.
 
 To see a list of optional parameters, use
 \begin{verbatim}
@@ -13568,6 +13562,36 @@ be structured as follows:
 \end{verbatim}
 Interface details for the functions \verb|task| and
 \verb|message\_handler| are defined below.
+
+\begin{isisfunction}
+{multicore}
+{Controlling multi-core parallel processes} %purpose
+{:} %usage
+{fork\_slave, manage\_slaves}
+
+A number of aspects of multi-core parallel processing can be
+controlled by setting fields in the \verb|Isis_Slaves|
+structure.  The fields of this structure are interpreted as
+follows:
+\begin{verbatim}
+  __name__          __meaning__
+  num_slaves        Default number of slave processes to create
+  num_slave_slaves  Default maximum number of slave processes that a
+                    slave process can create (default = 0).
+  nice              Default nice level or execution priority, in the
+                    range 0-19, for slave processes (default = 0).
+\end{verbatim}
+These control values apply to all multi-core parallel functions.
+
+Some of these parameters may be set temporarily by using
+qualifiers with individual function calls.  For example, this:
+\begin{verbatim}
+   (pmin, pmax) = conf_loop ([1:4]; num_slaves=2, nice=10);
+\end{verbatim}
+runs \verb|conf_loop| with two slaves at \verb|nice=10|
+without modifying the values of the \verb|Isis_Slaves|
+structure.
+\end{isisfunction}
 
 \begin{isisfunction}
 {\_num\_cpus} %name
