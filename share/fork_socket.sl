@@ -38,15 +38,12 @@ require ("select");
 %     status = write_array (fp, array);
 %     pid_vmessage (...)
 
-public variable Isis_Num_Slaves;
-public variable Isis_Nice_Slaves = 0;
-
-private variable User_Message_Handler;
-private variable Slaves_Running;
-private variable Slaves_Were_Replaced;
-private variable Sigchld_Received;
-private variable Verbose = 0;
-private variable Parent_Pid = getpid();
+variable Isis_Slaves = struct
+{
+   num_slaves,            % number of slaves I can create
+   num_slave_slaves = 0,  % number of slaves each slave can create
+   nice = 0               % slaves run at this nice level
+};
 
 variable
    SLAVE_EXITED  = -101,
@@ -55,6 +52,12 @@ variable
    SLAVE_RUNNING =  101,
    SLAVE_READY   =  102,
    SLAVE_RESULT  =  103;
+
+private variable User_Message_Handler;
+private variable Slaves_Running;
+private variable Slaves_Were_Replaced;
+private variable Sigchld_Received;
+private variable Verbose = 0;
 
 define pid_vmessage ();
 
@@ -345,6 +348,22 @@ private define renice (dp)
    return getpriority (PRIO_PROCESS, 0);
 }
 
+private variable Initial_Pid = getpid();
+private define check_fork_permission (pid)
+{
+   % is this a child process?
+   if (pid == Initial_Pid)
+     return;
+
+   % we're child process:  can we fork?
+   if (Slaves_Running < Isis_Slaves.num_slave_slaves)
+     return;
+
+   vmessage ("\n*** Error: slave %d cannot fork (Isis_Slaves.num_slave_slaves = %d)\n",
+             pid, Isis_Slaves.num_slave_slaves);
+   throw ApplicationError;
+}
+
 define fork_slave ()
 {
    variable args = NULL;
@@ -352,6 +371,9 @@ define fork_slave ()
      args = __pop_args (_NARGS-1);
 
    variable func_ref = ();
+
+   variable parent_pid = getpid();
+   check_fork_permission (parent_pid);
 
    variable s1, s2, e;
    try (e)
@@ -376,7 +398,7 @@ define fork_slave ()
    if (pid == 0)
      {
         % child
-        () = setpgid (getpid(), Parent_Pid);
+        () = setpgid (getpid(), parent_pid);
         signal (SIGINT, SIG_DFL);
         signal (SIGCHLD, SIG_DFL);
         if (Do_Sigtest) catch_sigusr1();
@@ -386,7 +408,7 @@ define fork_slave ()
              if (close (s1) != 0)
                throw IOError, errno_string();
              variable p = process_struct (0, s2);
-             () = renice (typecast (qualifier ("nice", Isis_Nice_Slaves), Integer_Type));
+             () = renice (typecast (qualifier ("nice", Isis_Slaves.nice), Integer_Type));
              if (args != NULL)
                status = (@func_ref)(p, __push_args(args) ;; __qualifiers);
              else
@@ -690,8 +712,8 @@ require ("sysconf");
 require ("glob");
 define _num_cpus ()
 {
-   if (__is_initialized (&Isis_Num_Slaves) && Isis_Num_Slaves >= 0)
-     return Isis_Num_Slaves;
+   if (Isis_Slaves.num_slaves != NULL && Isis_Slaves.num_slaves >= 0)
+     return Isis_Slaves.num_slaves;
 
    variable num_slaves = sysconf ("_SC_NPROCESSORS_ONLN");
    if (num_slaves != NULL)
