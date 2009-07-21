@@ -398,7 +398,9 @@ define fork_slave ()
    if (pid == 0)
      {
         % child
-        () = setpgid (getpid(), parent_pid);
+        if (parent_pid == Initial_Pid)
+          () = setpgid (0, 0);
+        else () = setpgid (0, parent_pid);
         signal (SIGINT, SIG_DFL);
         signal (SIGCHLD, SIG_DFL);
         if (Do_Sigtest) catch_sigusr1();
