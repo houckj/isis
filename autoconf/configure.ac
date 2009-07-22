@@ -234,8 +234,10 @@ if test "x$HEADAS_DIR" != "x" ; then
     echo "XSPEC module configuration:"
     echo "    --with-xspec-version = ${with_xspec_version}"
     echo "    --with-headas = $HEADAS_DIR"
+    ./autoconf/compiler_check.sh "$CC" "$FC" "$HEADAS_DIR"
 else
     echo "The XSPEC module will not be compiled."
+    ./autoconf/compiler_check.sh "$CC" "$FC"
 fi
     echo ""
 echo "isis will be installed in" "$prefix"
