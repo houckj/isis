@@ -9,6 +9,9 @@ the ISIS User's Guide for instructions on how to run ISIS.
 
 Contents:
    I. Installing from source code
+          a.  choosing compilers
+          b.  quick start
+          c.  detailed software requirements
   II. Binary install
  III. Spectroscopy database setup
   IV. Installation Suggestions for Specific Architectures
@@ -17,16 +20,53 @@ Contents:
 I. INSTALLING FROM SOURCE CODE
 ==============================
 
-           >>>>  Quick Start Instructions <<<<
+==================================================================
+Ia.                Choosing Compilers.
+==================================================================
 
-            (The simplest way to compile isis)
+IMPORTANT: Build isis and S-Lang using the same C and
+           Fortran compilers that were used to build XSPEC!
+
+For this reason, the description of HEASoft supported platforms
+is generally applicable to isis as well. For details, see:
+
+http://heasarc.gsfc.nasa.gov/docs/software/lheasoft/supported_platforms.html
+    and
+http://heasarc.gsfc.nasa.gov/docs/software/lheasoft/install.html
+
+Ideally, the C and Fortran compilers should be part of a
+matched set and their version numbers should match exactly. For
+example, using the C compiler 'gcc' and the Fortran compiler
+'gfortran', one can check the version numbers like so:
+
+  > gcc --version
+  gcc (Debian 4.3.2-1.1) 4.3.2
+  ...
+  > gfortran --version
+  GNU Fortran (Debian 4.3.2-1.1) 4.3.2
+  ...
+
+The compilers shown in this example are likely to be compatible
+because they have the same version number, "4.3.2".
+
+To specify what compilers to use when building isis, set the CC
+and FC environment variables.  For example:
+
+  setenv CC gcc-4.0
+  setenv FC gfortran-4.0
+
+==================================================================
+Ib.                Quick Start Instructions.
+
+              (The simplest way to compile isis)
+==================================================================
 
 To build ISIS, the S-Lang, CFITSIO and PGPLOT libraries must be
 installed on your system.  Many ISIS users also make use of the
 XSPEC spectral model library.  If XSPEC is already installed on
 your system, ISIS can use the PGPLOT and CFITSIO libraries that
-are included with XSPEC (so you need not install them
-individually!).
+are included with XSPEC, so you need not install them
+individually.
 
 Assuming that S-Lang has been installed in a standard location
 such as /usr/local, the following commands will compile and
@@ -60,6 +100,13 @@ install ISIS using these steps:
   make check
   make install
 
+If S-Lang has been installed in a non-standard location it may
+be necessary to specify its location when running the configure
+script:
+
+  ./configure --prefix=/opt --with-slang=DIR --with-headas=$HEADAS \
+              --with-atomdb=$ATOMDB
+
 For help on other configure options, do:
 
   ./configure --help
@@ -67,8 +114,9 @@ For help on other configure options, do:
 For a much more detailed discussion of the installation
 procedure and the various configure options, see below.
 
-Detailed Software Requirements:
--------------------------------
+==================================================================
+Ic.                Detailed Software Requirements:
+==================================================================
 
 PGPLOT, CFITSIO and S-Lang must be installed before installing ISIS.  The
 following versions (or newer) are required:
@@ -90,8 +138,7 @@ To obtain the newest versions of these packages see:
   (cfitsio)  http://heasarc.gsfc.nasa.gov/docs/software/fitsio/fitsio.html
   (slang)    http://www.s-lang.org/download.html
 
-IMPORTANT:  Shared libraries are preferred! (especially on Macs)
-
+  Shared libraries are preferred, especially on Macs.
   To make full use of importable modules, shared libraries
   (e.g. libcfitsio.so or libcfitsio.dylib) should be installed
   whenever possible.  If static libraries are installed (e.g.
@@ -106,7 +153,9 @@ Unix Installation Details:
 
 0.  The steps below assume that the ISIS tar file was unpacked in
     isis-$version and that up-to-date versions of PGPLOT, CFITSIO and
-    S-Lang are installed somewhere on your system.
+    S-Lang are installed somewhere on your system *and* that all
+    were compiled using a "compatible" set of compilers as
+    discussed above.
 
 Here's a quick summary of the minimum required installation steps,
 which will install isis into /usr/local/isis by default.
@@ -127,7 +176,7 @@ First, cd to the ISIS source directory:
 
     cd isis-$version
 
-0.  Its usually a good idea to unset the LD_LIBRARY_PATH
+0.  It is usually a good idea to unset the LD_LIBRARY_PATH
     environment variable when building ISIS:
 
     unsetenv LD_LIBRARY_PATH
@@ -137,22 +186,26 @@ First, cd to the ISIS source directory:
 
 1.  Choose compilers.
 
-    If you wish to use the default compilers (cc, f77) and they
-    are available in your environment, proceed to step 2.
+    You must choose a C compiler and a Fortran compiler.
 
-    If you want to use a different compiler, the simplest way is
-    to specify the compiler using environment variables. For
-    example:
+    If you want to use the XSPEC module, it is strongly
+    recommended that to compile ISIS using the same C and
+    Fortran compilers that were used to compile XSPEC.
+
+    To specify compilers, set the CC and FC environment
+    variables.  For example:
 
       setenv CC gcc-4.0
       setenv FC gfortran-4.0
 
-    Note that if you want to use the XSPEC module, it may
-    be necessary to compile ISIS using the same C compiler
-    that was used to compile XSPEC.  See modules/xspec/README
-    for details.
-
 2.  Locate required packages and determine the configure options:
+
+    This step is simpler if you use the
+       --with-headas=$HEADAS
+    configure option, so that CFITSIO and PGPLOT are obtained
+    from your local HEADAS installation.  With this approach,
+    you need not use the --with-cfitsio and --with-pgplot
+    configure options at all.
 
     If the required libraries are not installed in standard
     locations, e.g. /usr/lib, their locations must be provided
@@ -190,10 +243,11 @@ First, cd to the ISIS source directory:
 
     where is the path to your local 'headas' installation.
 
-    If you wish to compile the XSPEC module and statically link
-    it with ISIS (instead of loading the module via dynamic
-    linking at ISIS run-time), add the configure option
-    --with-xspec-static=$HEADAS (This option is not recommended.)
+    If you wish to statically link the XSPEC module with ISIS
+    (instead of loading the module via dynamic linking at ISIS
+    run-time), add the configure option
+          --with-xspec-static=$HEADAS
+    (This option is not recommended.)
 
     If you wish to specify the location of your spectroscopy
     database at this time, use the '--with-atomdb' configure
@@ -342,19 +396,6 @@ III.  SPECTROSCOPY DATABASE SETUP
 IV. Installation Suggestions for Specific Architectures
 =======================================================
 
-gfortran:
---------
-
-When mixing code compiled with g77 and gfortran, it may be
-necessary to include additional libraries. If you encounter
-problems with missing symbols like 's_copy', you might try
-using the --with-fclibs configure option to provide the extra
-libraries.  For example:
-
-   ./configure ... --with-fclibs="-lg2c" ...
-
-Note that g77 is no longer supported.
-
 Mac OS X systems:
 -----------------
 
@@ -426,28 +467,15 @@ V.  TROUBLESHOOTING
 
 Answers to some frequently asked questions are available from the
 web site:
+
   http://space.mit.edu/cxc/isis/faq.html
 
-If ISIS didn't compile:
+If ISIS did not compile:
 
-  If compilation fails because of undefined symbols or missing
-  libraries, you may need to provide additional libraries by
-  editing the definition of FLIBS in src/Makefile.  If some
-  necessary header files were missing, you may also need to edit
-  src/Makefile to provide the necessary directory paths.
-  After editing the Makefile(s), repeat step 4 above.
-
-  If your compiler doesn't understand "-Wl," or if your link
-  editor doesn't understand "-R", the RPATH definition in
-  src/Makefile may cause problems.  The purpose of that
-  declaration is to store the path to the dynamically linked SLANG
-  and PGPLOT libraries (libslang.so and libpgplot.so) within the
-  ISIS executable so that they are available at run-time.  If
-  you're using dynamically linked libraries and the RPATH
-  definition, you should try to provide the equivalent declaration
-  for your compiler. Failing that, you can comment out the RPATH
-  definition and provide the necessary run-time paths by editing
-  your LD_LIBRARY_PATH environment variable.
+  Does your C compiler have the same version number as
+  your Fortran compiler?
+  Did you build ISIS using exactly the same C and Fortran
+  compilers that were used to build the XSPEC libraries?
 
 Known Bugs (ancient):
 --------------------

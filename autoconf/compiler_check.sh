@@ -44,11 +44,12 @@ explain=`cat <<EOF
 
 Explanation:
   Mismatched compilers can cause the isis build to fail.
-  Although this script attempts to detect a compiler mismatch,
+  This script attempts to detect a compiler mismatch, but
   it is not infallible. If you think your compilers are compatible,
   then continue with the installation. If the build fails,
   it might be because your compilers are mismatched.
-  For suggestions on how to solve some common problems, see:
+  For suggestions on how to solve some common installation
+  problems, see:
       http://space.mit.edu/cxc/isis/faq.html
 
 EOF`
