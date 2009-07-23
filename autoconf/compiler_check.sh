@@ -10,10 +10,8 @@ user_fc="$2"
 
 user_cc_version=`$user_cc -dumpversion 2>&1`
 if test $? -eq 0 ; then
-  cc_dumpversion_worked=1
   user_cc_version_string=`$user_cc --version 2>&1 | head -1`
 else
-  cc_dumpversion_worked=0
   user_cc_version=`$user_cc -V 2>&1`
   if test $? -eq 0 ; then
     user_cc_version=`$user_cc -V 2>&1 | head -1`
@@ -42,28 +40,20 @@ printed_warning=0
 line='----------------------------------------------------------'
 explain=`cat <<EOF
 
-Explanation:
-  Mismatched compilers can cause the isis build to fail.
-  This script attempts to detect a compiler mismatch, but
-  it is not infallible. If you think your compilers are compatible,
-  then continue with the installation. If the build fails,
-  it might be because your compilers are mismatched.
-  For suggestions on how to solve some common installation
-  problems, see:
-      http://space.mit.edu/cxc/isis/faq.html
+ If the build fails, this may be the cause.
+ For help resolving common installation problems, see:
+    http://space.mit.edu/cxc/isis/faq.html
 
 EOF`
 
-if test $cc_dumpversion_worked -eq 1 ; then
-   user_cc_fc_match=`echo $user_fc_version | sed s,"$user_cc_version",XXXXX,g | grep XXXXX`
-   if test x"$user_cc_fc_match" = x"" ; then
-      echo ""
-      echo "$line"
-      echo "WARNING: mismatched C and Fortran compilers?"
-      echo "        CC version = $user_cc_version_string"
-      echo "        FC version = $user_fc_version"
-      printed_warning=1
-   fi
+user_cc_fc_match=`echo $user_fc_version | sed s,"$user_cc_version",XXXXX,g | grep XXXXX`
+if test x"$user_cc_fc_match" = x"" ; then
+   echo ""
+   echo "$line"
+   echo "WARNING: possibly mismatched C and Fortran compilers:"
+   echo "        CC version = $user_cc_version_string"
+   echo "        FC version = $user_fc_version"
+   printed_warning=1
 fi
 
 if test $# -lt 3 ; then
@@ -88,10 +78,8 @@ headas_fc=`grep @FC@ $headas_config_status | cut -d, -f3`
 
 headas_cc_version=`$headas_cc -dumpversion 2>&1`
 if test $? -eq 0 ; then
-  cc_dumpversion_worked=1
   headas_cc_version_string=`$headas_cc --version 2>&1 | head -1`
 else
-  cc_dumpversion_worked=0
   headas_cc_version=`$headas_cc -V 2>&1`
   if test $? -eq 0 ; then
     headas_cc_version=`$headas_cc -V 2>&1 | head -1`
@@ -121,7 +109,7 @@ if test ! x"$user_cc_version" = x"$headas_cc_version" ; then
    else
       echo ""
    fi
-   echo "WARNING: C compiler differs from HEADAS C compiler?"
+   echo "WARNING: C compiler does not match HEADAS C compiler:"
    echo "           CC version = $user_cc_version"
    echo "    HEADAS CC version = $headas_cc_version"
    printed_warning=1
@@ -134,7 +122,7 @@ if test ! x"$user_fc_version" = x"$headas_fc_version" ; then
    else
       echo ""
    fi
-   echo "WARNING: Fortran compiler differs from HEADAS Fortran compiler?"
+   echo "WARNING: Fortran compiler does not match HEADAS Fortran compiler:"
    echo "           FC version = $user_fc_version"
    echo "    HEADAS FC version = $headas_fc_version"
    printed_warning=1
