@@ -915,15 +915,18 @@ mode. The command-line is available as an array of strings
 arguments are most conveniently handled when the first line of
 the script is
 \begin{verbatim}
-    #! /usr/bin/env isis-script
+    #! /usr/bin/env isis
 \end{verbatim}
 For example, consider this script:
 \begin{verbatim}
-  #! /usr/bin/env isis-script
-  vmessage (" _debug_info = %d", _debug_info);
-  vmessage ("__argc = %d", __argc);
-  message ("__argv:");
-  print (__argv);
+  #! /usr/bin/env isis
+  define isis_main ()
+  {
+     vmessage (" _debug_info = %d", _debug_info);
+     vmessage ("__argc = %d", __argc);
+     message ("__argv:");
+     print (__argv);
+  }
 \end{verbatim}
 as command-line arguments (note that \verb|_debug_info| is a
 \slang\ intrinsic variable).  Invoking this script (named 'doit')
