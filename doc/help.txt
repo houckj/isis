@@ -12691,6 +12691,10 @@ fork_slave
     qualifier to provide a priority value in the range 0-19, with
     19 being the lowest priority.
 
+    Note that the manage_slaves function should always be called at
+    some point after slave processes are created by calls to
+    fork_slave.
+
 
  SEE ALSO
     append_slave, manage_slaves, _num_cpus, send_msg, recv_msg, send_objs, recv_objs
@@ -12717,13 +12721,13 @@ manage_slaves
     Manage a list of running slave processes
 
  USAGE
-    manage_slaves (List_Type, Ref_Type message_handler
+    manage_slaves (List_Type, Ref_Type message_handler [; qualifiers])
 
  DESCRIPTION
     This function uses the provided message handler to manage
     communications between the master and slave processes until all
-    the slave processes exit.  The message handler function should
-    have the form:
+    the slave processes exit.  If non-NULL, the message handler
+    function should have the form:
 
        define message_handler (slave, message)
        {
@@ -12753,6 +12757,45 @@ manage_slaves
     recv_result function represents a user-defined function that
     might use the ISIS intrinsic recv_msg and recv_objs to receive
     data structures sent to the master by a slave process.
+
+    The message handler function reference may be NULL in a case
+    where no master-slave communication is required.  For example,
+    the slave process may perform some computation and simply write
+    the results out to disk.  Note that the manage_slaves function
+    should always be called after fork_slave is called, even if the
+    message handler function reference is NULL. Otherwise, system
+    data structures associated with the exiting slave processes
+    will not be promptly released and the defunct slave processes
+    will linger on as "zombies" (and you don't want that to happen,
+    do you?).
+
+    In some situations, it is desirable to cause the manage_slaves
+    function to return without waiting for all the slaves to exit.
+    For example, suppose the computation of interest can be
+    naturally partitioned into two parallel sections separated by a
+    serial section, and that these three sections occur within a
+    loop so that it would be useful to avoid the overhead of
+    forking slaves numerous times.
+
+    The while_ qualifier provides a reference to a function of the
+    form
+
+       define while_function ()
+       {
+          return boolean_flag;
+       }
+
+    This function is called by the master process each time it
+    loops over the list of slave processes listening for messages.
+    That loop will continue as long as slave processes are running
+    and the while_ function returns non-zero.  When the while_
+    function returns zero, that loop will end and the manage_slaves
+    function will return, leaving the slave processes running.
+
+    For a detailed example of how the while_ qualifier can be used
+    to implement the three-section loop described above, look at
+    the implementation of the plm fit-method (isis/share/plm.sl).
+
 
  SEE ALSO
     append_slave, _num_cpus, fork_slave, manage_slaves

@@ -13651,6 +13651,10 @@ To run the new \isisx processes at lower priority, use the
 \verb|nice| qualifier to provide a priority value in the range
 0-19, with 19 being the lowest priority.
 
+Note that the \verb|manage_slaves| function should always be
+called at some point after slave processes are created by calls
+to \verb|fork_slave|.
+
 \end{isisfunction}
 
 \begin{isisfunction}
@@ -13663,13 +13667,13 @@ To run the new \isisx processes at lower priority, use the
 \begin{isisfunction}
 {manage\_slaves} %name
 {Manage a list of running slave processes} %purpose
-{manage\_slaves (List\_Type, Ref\_Type message\_handler} %usage
+{manage\_slaves (List\_Type, Ref\_Type message\_handler [; qualifiers])} %usage
 {append\_slave, \_num\_cpus, fork\_slave, manage\_slaves}
 
 This function uses the provided message handler to manage
 communications between the master and slave processes until all
-the slave processes exit.  The message handler function should
-have the form:
+the slave processes exit.  If non-\verb|NULL|, the message
+handler function should have the form:
 \begin{verbatim}
    define message_handler (slave, message)
    {
@@ -13702,6 +13706,48 @@ slave process.  Similarly, the \verb|recv_result| function
 represents a user-defined function that might use the \isisx
 intrinsic \verb|recv_msg| and \verb|recv_objs| to receive data
 structures sent to the master by a slave process.
+
+The message handler function reference may be \verb|NULL| in a
+case where no master-slave communication is required.  For
+example, the slave process may perform some computation and
+simply write the results out to disk.  Note that the
+\verb|manage_slaves| function should always be called after
+\verb|fork_slave| is called, even if the message handler
+function reference is \verb|NULL|. Otherwise, system data
+structures associated with the exiting slave processes will not
+be promptly released and the defunct slave processes will
+linger on as ``zombies'' (and you don't want that to happen, do
+you?).
+
+In some situations, it is desirable to cause the
+\verb|manage_slaves| function to return without waiting for all
+the slaves to exit.  For example, suppose the computation of
+interest can be naturally partitioned into two parallel
+sections separated by a serial section, and that these three
+sections occur within a loop so that it would be useful to
+avoid the overhead of forking slaves numerous times.
+
+The \verb|while_| qualifier provides a reference to a function
+of the form
+\begin{verbatim}
+   define while_function ()
+   {
+      return boolean_flag;
+   }
+\end{verbatim}
+This function is called by the master process each time it
+loops over the list of slave processes listening for messages.
+That loop will continue as long as slave processes are running
+and the \verb|while_| function returns non-zero.  When the
+\verb|while_| function returns zero, that loop will end and
+the \verb|manage_slaves| function will return, leaving the
+slave processes running.
+
+For a detailed example of how the \verb|while_| qualifier
+can be used to implement the three-section loop described
+above, look at the implementation of the \verb|plm|
+fit-method (\verb|isis/share/plm.sl|).
+
 \end{isisfunction}
 
 \begin{isisfunction}
