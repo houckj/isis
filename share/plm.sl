@@ -410,7 +410,7 @@ private define plmfit (mmt, p, pmin, pmax)
 
         matrix_queue_setup (mmt);
         foreach s (slaves) {matrix_send_next (s);}
-        manage_slaves (slaves, &matrix_handler; _while=&computing_matrix);
+        manage_slaves (slaves, &matrix_handler; while_=&computing_matrix);
 
         variable
           chisqr = State.chisqr,
@@ -425,7 +425,7 @@ private define plmfit (mmt, p, pmin, pmax)
 
              search_queue_setup (lambdas, chisqr, p, alpha, beta);
              foreach s (slaves) {search_send_next (s);}
-             manage_slaves (slaves, &search_handler; _while=&performing_search);
+             manage_slaves (slaves, &search_handler; while_=&performing_search);
 
              variable b = State.search.best;
              p1 = b.params;

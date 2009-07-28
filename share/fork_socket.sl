@@ -569,7 +569,7 @@ private variable Current_Slave_List;
 
 private define handler_condition ()
 {
-   variable condition = qualifier ("_while", NULL);
+   variable condition = qualifier ("while_", NULL);
 
    if (condition == NULL)
      return Slaves_Running;
@@ -617,7 +617,7 @@ define manage_slaves (slaves, mesg_handler)
      }
    finally
      {
-        ifnot (qualifier_exists ("_while"))
+        ifnot (qualifier_exists ("while_"))
           kill_slaves (slaves);
         if (Do_Sigtest) () = list_pop (slaves, -1);
      }
