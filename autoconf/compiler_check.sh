@@ -44,7 +44,8 @@ explain=`cat <<EOF
  For help resolving common installation problems, see:
     http://space.mit.edu/cxc/isis/faq.html
 
-EOF`
+EOF
+`
 
 user_cc_fc_match=`echo $user_fc_version | sed s,"$user_cc_version",XXXXX,g | grep XXXXX`
 if test x"$user_cc_fc_match" = x"" ; then
