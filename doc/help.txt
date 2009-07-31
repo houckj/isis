@@ -2799,9 +2799,9 @@ list_arf
     isis> list_arf;
 
     Current ARF List:
-     id grating detector   m prt src   nbins  exp(ksec)  target
-      1    HETG     ACIS   1  1   1     8192    89.88     mysrc
-      2    HETG     ACIS   1  2   1     8192    89.88     src2
+     id grating detector  part/m src   nbins  exp(ksec)  target
+      1    HETG     ACIS  heg+1   1     8192    89.88     mysrc
+      2    HETG     ACIS  heg+2   1     8192    89.88     src2
 
     where the columns are defined as
 
@@ -2809,7 +2809,7 @@ list_arf
      grating = e.g. HETG or LETG
     detector = e.g. ACIS-S or HRC-S
            m = diffraction order (TG_M)
-         prt = e.g. HEG or MEG, (TG_PART)
+        part = e.g. HEG or MEG, (TG_PART)
          src = source index (TG_SRCID)
        nbins = total number of bins
          exp = Exposure time [ksec]
@@ -2846,18 +2846,18 @@ list_data
     refers to spectrum number 2.  The spectrum list looks like
     this:
 
-    id instrument  m prt src  use/nbins A  R     totcts exp(ksec) target
-     1  HETG-ACIS -3  1   1  6972/ 6972 -  - 4.8000e+01    0.00   src1
-     2x HETG-ACIS -2  1   1  6972/ 6972 1  1 2.2700e+02    0.00   src1
-     3  HETG-ACIS -1  2   1  6972/ 6972 -  - 6.2870e+03    0.00   src1
+    id instrument  part/m src  use/nbins A  R     totcts exp(ksec) target
+     1  HETG-ACIS  heg-3   1  6972/ 6972 -  - 4.8000e+01    0.00   src1
+     2x HETG-ACIS  heg-2   1  6972/ 6972 1  1 2.2700e+02    0.00   src1
+     3  HETG-ACIS  meg-1   1  6972/ 6972 -  - 6.2870e+03    0.00   src1
 
     where the columns are defined as
 
            id = integer data set id number ['x' => excluded from fit]
       grating = e.g. HETG or LETG
      detector = e.g. ACIS-S or HRC-S
+         part = e.g. HEG or MEG, (TG_PART)
             m = diffraction order (TG_M)
-          prt = e.g. HEG or MEG, (TG_PART)
           src = source index (TG_SRCID)
     use/nbins = number of noticed bins/ (total number of bins)
             A = index of assigned ARF ("-" if none assigned)
@@ -3020,13 +3020,25 @@ load_data
     Warn_Invalid_Uncertainties=0.
 
     If the SYS_ERR column or header keyword is present, a
-    systematic error is added in quadrature so that the uncertainty
-    on each data bin becomes
+    systematic error is always added in quadrature so that the
+    uncertainty on each data bin becomes
 
          sigma = sqrt ( sigma_stat^2 + (D * sys_err)^2 ),
 
     where sigma_stat is the statistical uncertainty, and D is the
-    corresponding data value.
+    corresponding data value.  This default behavior can be altered
+    by using the set_sys_err_frac function to set the systematic
+    errors to 0.
+
+    When the data are rebinned, isis uses the mean systematic error
+    in each new bin.  The mean systematic error in each new bin is
+    computed using
+
+       syserr =  (\sum_k syserr_k  dy_k ) / (y_hi - y_lo)
+
+    where the new bin spans the wavelength interval [y_lo,y_hi),
+    and includes contributions from full-resolution bins with
+    systematic error syserr_k and width dy_k.
 
     If the input data are in flux units (photons/cm**2/sec/bin) and
     non-positive uncertainties are encountered, the uncertainty is
@@ -4020,8 +4032,8 @@ set_arf_info
     isis> list_arf;
 
     Current ARF List:
-     id grating detector   m prt src   nbins  exp(ksec)  target
-      1                   -1  2   0     8192    30.00
+     id grating detector part/m  src   nbins  exp(ksec)  target
+      1                   meg-1   0     8192    30.00
 
 
  SEE ALSO

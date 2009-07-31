@@ -465,7 +465,8 @@ definitions.
 \label{subsec:simpleexample}
 
 For this example, we will use the sample data available from the
-\isisx web page.
+\isisx source code distribution (see the \verb|isis/test/data|
+subdirectory).
 
 First, load the spectra:
 \begin{verbatim}
@@ -473,42 +474,48 @@ isis> load_data ("acisf01318N003_pha2.fits.gz");
 Reading: ............
 Integer_Type[12]
 isis> list_data;
-
 Current Spectrum List:
- id  instrument   m prt src    use/nbins   A   R     totcts   exp(ksec) clr  target
-  1   HETG-ACIS  -3  1   1    8192/ 8192   -   -  2.1000e+01    26.701   -   CAPELLA
-  2   HETG-ACIS  -2  1   1    8192/ 8192   -   -  2.7000e+02    26.701   -   CAPELLA
-  3   HETG-ACIS  -1  1   1    8192/ 8192   -   -  5.8410e+03    26.701   -   CAPELLA
-  4   HETG-ACIS   1  1   1    8192/ 8192   -   -  5.0670e+03    26.701   -   CAPELLA
-  5   HETG-ACIS   2  1   1    8192/ 8192   -   -  1.0300e+02    26.701   -   CAPELLA
-  6   HETG-ACIS   3  1   1    8192/ 8192   -   -  8.0000e+00    26.701   -   CAPELLA
-  7   HETG-ACIS  -3  2   1    8192/ 8192   -   -  9.0000e+02    26.701   -   CAPELLA
-  8   HETG-ACIS  -2  2   1    8192/ 8192   -   -  8.6200e+02    26.701   -   CAPELLA
-  9   HETG-ACIS  -1  2   1    8192/ 8192   -   -  2.5683e+04    26.701   -   CAPELLA
- 10   HETG-ACIS   1  2   1    8192/ 8192   -   -  2.0369e+04    26.701   -   CAPELLA
- 11   HETG-ACIS   2  2   1    8192/ 8192   -   -  6.3900e+02    26.701   -   CAPELLA
- 12   HETG-ACIS   3  2   1    8192/ 8192   -   -  5.7000e+02    26.701   -   CAPELLA
+ id    instrument part/m  src    use/nbins   A   R     totcts   exp(ksec)  target
+  1     HETG-ACIS  heg-3   1    8192/ 8192   -   -  2.1000e+01    26.701  CAPELLA
+  2     HETG-ACIS  heg-2   1    8192/ 8192   -   -  2.7000e+02    26.701  CAPELLA
+  3     HETG-ACIS  heg-1   1    8192/ 8192   -   -  5.8410e+03    26.701  CAPELLA
+  4     HETG-ACIS  heg+1   1    8192/ 8192   -   -  5.0670e+03    26.701  CAPELLA
+  5     HETG-ACIS  heg+2   1    8192/ 8192   -   -  1.0300e+02    26.701  CAPELLA
+  6     HETG-ACIS  heg+3   1    8192/ 8192   -   -  8.0000e+00    26.701  CAPELLA
+  7     HETG-ACIS  meg-3   1    8192/ 8192   -   -  9.0000e+02    26.701  CAPELLA
+  8     HETG-ACIS  meg-2   1    8192/ 8192   -   -  8.6200e+02    26.701  CAPELLA
+  9     HETG-ACIS  meg-1   1    8192/ 8192   -   -  2.5683e+04    26.701  CAPELLA
+ 10     HETG-ACIS  meg+1   1    8192/ 8192   -   -  2.0369e+04    26.701  CAPELLA
+ 11     HETG-ACIS  meg+2   1    8192/ 8192   -   -  6.3900e+02    26.701  CAPELLA
+ 12     HETG-ACIS  meg+3   1    8192/ 8192   -   -  5.7000e+02    26.701  CAPELLA
 
 isis>
 \end{verbatim}
 \isisx prints a dot (.) as each spectrum is read from the data
-file.  By default, \isisx loads all the data in the specified file.  By
-specifying the row index, it is also possible to load a single
-spectrum from a Type II PHA file.  Once the data is loaded, \verb|list_data|
-shows a list of data sets.  Each data set is identified by an index ({\bf
-id}); as we will see below, this index is used to refer to an
-individual data set.  The columns labeled {\bf m}, {\bf prt} and
-{\bf src} indicate the dispersion order ({\bf m}), the spectrum
-"part" ({\bf prt}) (e.g. the HEG is {\tt prt=1} and the MEG is
-{\tt prt=2}), and the source index ({\bf src}).  The next two
-columns show the number of bins in the data set ({\bf nbins}) and
-the number currently noticed for fitting ({\bf nbins}). The
-columns labeled {\bf A} and {\bf R} indicate the index of the
-assigned ARF and RMF respectively; a dash (-) indicates that no
-response function has been assigned. The last four columns give
-the total number of counts in the spectrum ({\bf totcts}), the
-exposure time ({\bf exp}), a plot color index ({\bf clr}) and the
-target name.
+file.  By default, \isisx loads all the data in the specified
+file.  By specifying the row index, it is also possible to load
+a single spectrum from a Type II PHA file.  Once the data is
+loaded, \verb|list_data| shows a list of data sets.  Each data
+set is identified by an index ({\bf id}); as we will see below,
+this index is used to refer to an individual data set.  The
+columns labeled {\bf part/m}, and {\bf src} indicate the
+spectrum "part" (e.g. the HEG is {\verb|tg_part=1| and
+the MEG is \verb|tg_part=2|), the dispersion order ({\bf m}), and
+the source index ({\bf src}).  The next two columns show the
+number of bins in the data set ({\bf nbins}) and the number
+currently noticed for fitting ({\bf nbins}). The columns
+labeled {\bf A} and {\bf R} indicate the index of the assigned
+ARF and RMF respectively; a dash (-) indicates that no response
+function has been assigned. The last four columns give the
+total number of counts in the spectrum ({\bf totcts}), the
+exposure time ({\bf exp}), a plot color index ({\bf clr}) and
+the target name.
+
+For brevity, the above example listing was generated with the
+global variable \verb|Isis_List_Filenames=0|.  By default, this
+variable is non-zero, causing the names of associated spectrum
+and background files to be printed along with the other
+information for each dataset.
 
 The line \verb|Integer_Type[12]| indicates that the {\bf
 load\_data} function returned a 12 element integer array
@@ -546,11 +553,10 @@ Next we load the ARF and assign it to the appropriate data set:
 \begin{verbatim}
 isis> () = load_arf ("acisf01318_000N001MEG_-1_garf.fits.gz");
 isis> list_arf;
-
 Current ARF List:
- id grating detector   m prt src   nbins  exp(ksec)  target
-  1    HETG     ACIS  -1  2   0     8192    28.12  CAPELLA
-
+ id grating detector part/m  src   nbins  exp(ksec)  target
+  1    HETG     ACIS meg-1    0     8192    28.12  CAPELLA
+file:  acisf01318_000N001MEG_-1_garf.fits.gz
 isis> assign_arf(1,9);
 isis>
 \end{verbatim}
@@ -1129,8 +1135,9 @@ do not illustrate everything \isisx can do and do not provide a complete
 description in any sense.  For full details on all \isisx functions, see the
 \isisx Function Reference in chapter \ref{chap:funcref}.
 
-The following examples use sample data files which are available
-from the \isisx web page.
+The following examples use sample data files which are
+available from the \isisx source code distribution (see the
+\verb|isis/test/data| subdirectory).
 \begin{enumerate}
 
 \item a Type II pha file called \verb|acisf01318N003_pha2.fits|
@@ -4747,9 +4754,9 @@ refers to ARF number 2.  The ARF list looks like this:
 isis> list_arf;
 
 Current ARF List:
- id grating detector   m prt src   nbins  exp(ksec)  target
-  1    HETG     ACIS   1  1   1     8192    89.88     mysrc
-  2    HETG     ACIS   1  2   1     8192    89.88     src2
+ id grating detector  part/m src   nbins  exp(ksec)  target
+  1    HETG     ACIS  heg+1   1     8192    89.88     mysrc
+  2    HETG     ACIS  heg+2   1     8192    89.88     src2
 
 \end{verbatim}
 where the columns are defined as
@@ -4759,7 +4766,7 @@ where the columns are defined as
  grating = e.g. HETG or LETG
 detector = e.g. ACIS-S or HRC-S
        m = diffraction order (TG_M)
-     prt = e.g. HEG or MEG, (TG_PART)
+    part = e.g. HEG or MEG, (TG_PART)
      src = source index (TG_SRCID)
    nbins = total number of bins
      exp = Exposure time [ksec]
@@ -4791,18 +4798,18 @@ the spectra in this list ({\tt id} column) are used in other
 commands to refer to individual spectra; e.g. {\tt plot\_data (2)}
 refers to spectrum number 2.  The spectrum list looks like this:
 \begin{verbatim}
-id instrument  m prt src  use/nbins A  R     totcts exp(ksec) target
- 1  HETG-ACIS -3  1   1  6972/ 6972 -  - 4.8000e+01    0.00   src1
- 2x HETG-ACIS -2  1   1  6972/ 6972 1  1 2.2700e+02    0.00   src1
- 3  HETG-ACIS -1  2   1  6972/ 6972 -  - 6.2870e+03    0.00   src1
+id instrument  part/m src  use/nbins A  R     totcts exp(ksec) target
+ 1  HETG-ACIS  heg-3   1  6972/ 6972 -  - 4.8000e+01    0.00   src1
+ 2x HETG-ACIS  heg-2   1  6972/ 6972 1  1 2.2700e+02    0.00   src1
+ 3  HETG-ACIS  meg-1   1  6972/ 6972 -  - 6.2870e+03    0.00   src1
 \end{verbatim}
 where the columns are defined as
 \begin{verbatim}
        id = integer data set id number ['x' => excluded from fit]
   grating = e.g. HETG or LETG
  detector = e.g. ACIS-S or HRC-S
+     part = e.g. HEG or MEG, (TG_PART)
         m = diffraction order (TG_M)
-      prt = e.g. HEG or MEG, (TG_PART)
       src = source index (TG_SRCID)
 use/nbins = number of noticed bins/ (total number of bins)
         A = index of assigned ARF ("-" if none assigned)
@@ -4963,13 +4970,26 @@ replaced, set \verb|Warn_Invalid_Uncertainties=0|.
 \index{Warn\_Invalid\_Uncertainties@{\tt Warn\_Invalid\_Uncertainties}}
 
 If the \verb|SYS_ERR| column or header keyword is present, a
-systematic error is added in quadrature so that the uncertainty
-on each data bin becomes
+systematic error is always added in quadrature so that the
+uncertainty on each data bin becomes
 \begin{verbatim}
      sigma = sqrt ( sigma_stat^2 + (D * sys_err)^2 ),
 \end{verbatim}
-where \verb|sigma_stat| is the statistical uncertainty,
-and \verb|D| is the corresponding data value.
+where \verb|sigma_stat| is the statistical uncertainty, and
+\verb|D| is the corresponding data value.  This default
+behavior can be altered by using the \verb|set_sys_err_frac|
+function to set the systematic errors to 0.
+
+When the data are rebinned, isis uses the mean systematic error
+in each new bin.  The mean systematic error in each new bin is
+computed using
+\begin{verbatim}
+   syserr =  (\sum_k syserr_k  dy_k ) / (y_hi - y_lo)
+\end{verbatim}
+where the new bin spans the wavelength interval
+\verb|[y_lo,y_hi)|, and includes contributions from
+full-resolution bins with systematic error \verb|syserr_k| and
+width \verb|dy_k|.
 
 If the input data are in flux units (photons/cm**2/sec/bin) and
 non-positive uncertainties are encountered, the uncertainty is
@@ -5814,8 +5834,8 @@ isis> set_arf_info(1,s);     % update the internal value
 isis> list_arf;
 
 Current ARF List:
- id grating detector   m prt src   nbins  exp(ksec)  target
-  1                   -1  2   0     8192    30.00
+ id grating detector part/m  src   nbins  exp(ksec)  target
+  1                   meg-1   0     8192    30.00
 \end{verbatim}
 \end{isisfunction}
 
