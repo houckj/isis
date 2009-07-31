@@ -19,7 +19,8 @@ fi
 
 string=`$ISIS -n - <<EOT
 () = fprintf(stdout,"just testing");
-EOT`
+EOT
+`
 
 if test "$string" = "just testing" ; then
   echo "testing here documents.... ok"
