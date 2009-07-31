@@ -3859,7 +3859,7 @@ static int rebin_backscale (Area_Type *at, Hist_t *h, double *lo, double *hi, in
 
 /*}}}*/
 
-static double *rebin_sys_err_frac (Hist_t *h, double *lo, double *hi, int nbins)
+static double *rebin_sys_err_frac (Hist_t *h, double *lo, double *hi, int nbins) /*{{{*/
 {
    double *sys_err_frac_dlam=NULL, *sys_err_frac=NULL;
    int i;
@@ -3895,6 +3895,8 @@ static double *rebin_sys_err_frac (Hist_t *h, double *lo, double *hi, int nbins)
 
    return sys_err_frac;
 }
+
+/*}}}*/
 
 int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins) /*{{{*/
 {
@@ -7093,14 +7095,14 @@ static int set_flux_floor (Hist_t *h, double frac, double *flux) /*{{{*/
         for (i = 0; i < h->nbins; i++)
           {
              net[i] = h->counts[i] - b[i];
-             err[i] = hypot (h->stat_err[i], berr[i]);
+             err[i] = isis_hypot (h->stat_err[i], berr[i]);
           }
 
         if (h->sys_err_frac)
           {
              for (i = 0; i < h->nbins; i++)
                {
-                  err[i] = hypot (err[i], h->sys_err_frac[i] * h->counts[i]);
+                  err[i] = isis_hypot (err[i], h->sys_err_frac[i] * h->counts[i]);
                }
           }
 
