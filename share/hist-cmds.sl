@@ -45,6 +45,7 @@ _V.convolved_model_flux = _isis->_Flux | _isis->_Convolved;
 define get_data_counts ();
 define get_data_exposure ();
 define get_data_info ();
+define get_sys_err_frac ();
 define all_data ();
 private define massage_data_info_struct (s) %{{{
 {
@@ -58,10 +59,25 @@ private define massage_data_info_struct (s) %{{{
 
 %}}}
 
+private define instrument_part_label (instrument, part, order)
+{
+   variable grating_name = ["   ", "heg", "meg", "leg"];
+
+   % background
+   if (part == 99)
+     return sprintf ("back%+2d", order);
+   else if (order == 0)
+     return "      ";
+   else if (order < length(grating_name))
+     return sprintf ("%3s%-+3d", grating_name[part], order);
+   else
+     return sprintf ("%2d/%-3d", part, order);
+}
+
 private define dataset_string (s, i, width) %{{{
 {
    variable fmt =
-     "%3u %c %*s %3d %2d  %2d   %5d/%5d  %s  %s  %10.4e   %7.3f  %s";
+     "%3u %c %*s  %6s %2d   %5d/%5d  %s  %s  %10.4e   %7.3f  %s";
 
    variable d = get_data_counts(i);
 
@@ -84,13 +100,21 @@ private define dataset_string (s, i, width) %{{{
      exclude_char = ' ';
    else exclude_char = 'x';
 
+   variable part_label = instrument_part_label (s.instrument, s.part, s.order);
+
    variable str;
    str = sprintf (fmt, i, exclude_char, width, s.instrument,
-                  s.order, s.part, s.srcid,
+                  part_label, s.srcid,
                   length(s.notice_list), length(s.notice),
                   arf_id, rmf_id,
                   sum(d.value), get_data_exposure(i)/1.e3,
                   s.target);
+
+   variable sys_err = get_sys_err_frac (i);
+   if (any (sys_err != 0))
+     {
+        str += sprintf ("\nsys_err:  on");
+     }
 
    if (Isis_List_Filenames)
      {
@@ -139,7 +163,7 @@ private define list_data_string () %{{{
         blanks[*] = ' ';
      }
    variable colheads = " id " + blanks +
-     "   instrument   m prt src    use/nbins   A   R     totcts   exp(ksec)  target";
+     "   instrument part/m  src    use/nbins   A   R     totcts   exp(ksec)  target";
 
    variable s;
    s = array_map (String_Type, &dataset_string, info, ids, width);
@@ -163,14 +187,16 @@ define get_arf_info ();
 define all_arfs ();
 private define arf_string (i) %{{{
 {
-   variable fmt = "%3u %7s %8s %3d %2d  %2d    %5d  %7.2f  %s";
+   variable fmt = "%3u %7s %8s %6s  %2d    %5d  %7.2f  %s";
 
    variable arf = get_arf(i);
    variable a = get_arf_info(i);
 
+   variable part_label = instrument_part_label (a.instrument, a.part, a.order);
+
    variable str;
    str = sprintf (fmt, i, a.grating, a.instrument,
-                  a.order, a.part, a.srcid,
+                  part_label, a.srcid,
                   length(arf.value), a.exposure/1.e3, a.object);
 
    if (Isis_List_Filenames)
@@ -191,7 +217,7 @@ private define list_arf_string () %{{{
      return NULL;
    variable title = "Current ARF List:";
    variable colheads =
-     " id grating detector   m prt src   nbins  exp(ksec)  target";
+     " id grating detector part/m  src   nbins  exp(ksec)  target";
    variable s = array_map (String_Type, &arf_string, ids);
    return strjoin ([title, colheads, s], "\n");
 }
