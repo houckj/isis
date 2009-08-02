@@ -21,6 +21,7 @@ pre1.5.0
 11.  Changes to support compiling isis with a C++ compiler.
 12.  Look in RMF primary header for XMM/RGS RFLORDER keyword.
 13.  Parallelized fit_search
+14.  Adjust formatting of list_data, list_arf output
 
 Changes since 1.4.9 (released Nov 2007)
 ---------------------------------------
