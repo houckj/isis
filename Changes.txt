@@ -22,6 +22,8 @@ pre1.5.0
 12.  Look in RMF primary header for XMM/RGS RFLORDER keyword.
 13.  Parallelized fit_search
 14.  Adjust formatting of list_data, list_arf output
+15.  Fix for table model interface bug introduced by #10
+     (passing strings from C to Fortran)
 
 Changes since 1.4.9 (released Nov 2007)
 ---------------------------------------
