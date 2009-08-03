@@ -1191,11 +1191,15 @@ extern void INITNEI_FC(int *ni, int *nz);
 extern void IONSNEQR_FC(float *tmp, float *tau, int *n, int*nzmax, int *nionp,
                         float *fout, int *ionel, int *ionstage);
 
+/* To pass a C string to Fortran:  for each string, append to the Fortran
+ * function's parameter list a 'long' containing the length of the string.
+ * This works with gcc/gfortran, but may not be totally portable.
+ */
 #define XSPEC11_TABLE_FUN(name,xsname,XSNAME)                              \
-   extern void FC_FUNC(xsname,XSNAME)(float *,int *,float *,char *,int *,float *,float *); \
+   extern void FC_FUNC(xsname,XSNAME)(float *,int *,float *,char *,int *,float *,float *,long); \
    static void name (Xspec_Param_t *p)                                         \
    {                                                                           \
-      FC_FUNC(xsname,XSNAME)(p->ear.f,&p->ne,p->param.f,p->filename,&p->ifl,p->photar.f,p->photer.f);   \
+      FC_FUNC(xsname,XSNAME)(p->ear.f,&p->ne,p->param.f,p->filename,&p->ifl,p->photar.f,p->photer.f,(long)strlen(p->filename));   \
    }
 
 XSPEC11_TABLE_FUN(xs_atbl,xsatbl,XSATBL)
