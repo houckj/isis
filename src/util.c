@@ -84,8 +84,6 @@ char *Isis_Srcdir;
 void (*Isis_Errno_Hook)(int);
 int (*Isis_User_Break_Hook)(void);
 
-FILE *pMessage_File;
-
 /*}}}*/
 
 /*{{{ Retrieving NaN */
