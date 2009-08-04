@@ -76,7 +76,7 @@ static int cash_function (Isis_Fit_Statistic_Type *st, /*{{{*/
          */
 
         if (yi <= 0) yi = 1.e-5;
-        log_fxi = (fxi > 0) ? log(fxi) : DBL_MIN_10_EXP;
+        log_fxi = (fxi > 0) ? log(fxi) : (double) DBL_MIN_10_EXP;
 
         s = (yi - fxi);
         s += yi * (log_fxi - log (yi));

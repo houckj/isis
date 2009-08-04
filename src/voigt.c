@@ -260,7 +260,7 @@ static int wofz (double xi, double yi, double *u, double *v) /*{{{*/
         b = h > 0.0;
 
         if (b)
-          qlambda = pow(h2, kapn);
+          qlambda = pow(h2, (double) kapn);
 
         rx = 0.0;
         ry = 0.0;
