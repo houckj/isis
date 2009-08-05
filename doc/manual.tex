@@ -11083,9 +11083,8 @@ preserved. For example:
 {fit\_fun("function\_string")} %usage
 {get\_fit\_fun, ifit\_fun, Lorentz, gauss, load\_par, set\_par, set\_par\_fun}
 
-The function definition string must be a valid \slang\ expression
-containing only constant expressions and \isisx intrinsic
-fit-functions.  For example, to fit a sum of two Gaussians
+The function definition string must be a valid \slang\
+expression.  For example, to fit a sum of two Gaussians
 use
 \begin{verbatim}
      isis> fit_fun("gauss(1) + gauss(2)");
@@ -11097,8 +11096,10 @@ to all currently noticed bins in all loaded datasets.
 Fit-function parameters may be defined as functions of other
 fit-parameters (see \verb|set_par_fun|).
 
-Fit-functions may also take additional arguments (see
-\verb|add_slang_function|).
+Fit-functions may take additional arguments (see
+\verb|add_slang_function|), and may even return additional
+arguments, with the restriction that the model string must
+ultimately evaluate to a \verb|Double_Type| array.
 
 A fit-function which evaluates differently for different datasets
 may be defined using the \isisx intrinsic variable
@@ -11164,6 +11165,9 @@ is syntactically correct, but analytically inconsistent because
 Utility functions {\tt bin\_width} and {\tt bin\_center} are
 available to support fitting and evaluating bin-averaged and
 bin-centered functions.
+
+If the model string is either \verb|NULL| or the empty string,
+then the current model definition, if any, is deleted.
 
 \end{isisfunction}
 

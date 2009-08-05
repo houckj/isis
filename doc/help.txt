@@ -9733,9 +9733,7 @@ fit_fun
 
  DESCRIPTION
     The function definition string must be a valid S-Lang
-    expression containing only constant expressions and ISIS
-    intrinsic fit-functions.  For example, to fit a sum of two
-    Gaussians use
+    expression.  For example, to fit a sum of two Gaussians use
 
          isis> fit_fun("gauss(1) + gauss(2)");
 
@@ -9746,8 +9744,10 @@ fit_fun
     Fit-function parameters may be defined as functions of other
     fit-parameters (see set_par_fun).
 
-    Fit-functions may also take additional arguments (see
-    add_slang_function).
+    Fit-functions may take additional arguments (see
+    add_slang_function), and may even return additional arguments,
+    with the restriction that the model string must ultimately
+    evaluate to a Double_Type array.
 
     A fit-function which evaluates differently for different
     datasets may be defined using the ISIS intrinsic variable
@@ -9814,6 +9814,9 @@ fit_fun
     Utility functions bin_width and bin_center are available to
     support fitting and evaluating bin-averaged and bin-centered
     functions.
+
+    If the model string is either NULL or the empty string, then
+    the current model definition, if any, is deleted.
 
 
  SEE ALSO
