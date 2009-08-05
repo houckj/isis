@@ -397,6 +397,14 @@ static void free_user_function (void) /*{{{*/
 
 /*}}}*/
 
+static void delete_user_model (void) /*{{{*/
+{
+   ISIS_FREE(User_Function.fun_string);
+   User_Function.fun_ptr = NULL;
+}
+
+/*}}}*/
+
 static int reset_param_lookup_table (Param_t **pt) /*{{{*/
 {
    if (pt == NULL)
@@ -1606,7 +1614,11 @@ static void define_user_model (int *interactive, char *fun_body) /*{{{*/
    if (interactive)
      Use_Interactive_Param_Init = *interactive ? 1 : 0;
 
-   _define_user_model (fun_body);
+   if (*fun_body != 0)
+     _define_user_model (fun_body);
+   else
+     delete_user_model ();
+
    Use_Interactive_Param_Init = 0;
 }
 

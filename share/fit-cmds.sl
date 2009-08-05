@@ -512,10 +512,12 @@ define get_par () %{{{
 
 %}}}
 
-define get_fit_fun ()
+define get_fit_fun () %{{{
 {
    return _isis->_get_fit_fun();
 }
+
+%}}}
 
 define get_fun_info () %{{{
 {
@@ -949,6 +951,8 @@ private define do_fit_fun (num, interactive, msg)
      return;
 
    def = ();
+   if (def == NULL) def = "";
+
    _isis->_set_fit_fun (interactive, def);
 }
 
