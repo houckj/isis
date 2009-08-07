@@ -2665,6 +2665,7 @@ Fit_Data_t *get_fit_data (void) /*{{{*/
 
    if (0 == grids_match_in_dataset_combinations (d))
      {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "combined datasets have mismatched grids");
         free_fit_data (d);
         return NULL;
      }
