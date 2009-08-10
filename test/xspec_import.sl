@@ -1,3 +1,11 @@
+
+private variable headas = getenv("HEADAS");
+if (headas == NULL || NULL == stat_file (headas))
+{
+   () = fprintf (stderr, "skipping xspec module import\n");
+   exit(0);
+}
+
 () = fprintf (stderr, "testing xspec module import.... ");
 require ("xspec");
 fit_fun ("mekal");

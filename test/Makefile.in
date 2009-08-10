@@ -15,7 +15,7 @@ FC      = @FC@
 FCFLAGS = @FCFLAGS@
 FCLIBS  = @FCLIBS@
 
-SLSH	= @SLANG_LIBDIR@/../bin/slsh
+SLSH_PATH = @SLANG_LIBDIR@/../bin/slsh
 
 WITH_HEADAS = @WITH_HEADAS@
 HEA = @HEADAS_DIR@
@@ -31,10 +31,23 @@ INCS = -I$(config_dir)/src $(SLANG_INC)
 SHARED_LIBRARIES = rmf_user.so example-profile.so
 
 check:	write-permission $(SHARED_LIBRARIES)
-	@if test -x "../src/objs/isis"; then \
+	@if test -f "../.binary" ; then \
+	    TEST_ISIS="../bin/isis"; \
+	    ISIS_SRCDIR=".."; \
+	    export ISIS_SRCDIR ; \
+	    SLSH="../opt/bin/slsh"; \
+	    SLSH_PATH="../opt/share/slsh" ; \
+	    export SLSH SLSH_PATH ; \
+	    LD_LIBRARY_PATH="../opt/lib" ; \
+	    export LD_LIBRARY_PATH ; \
+	    DYLD_LIBRARY_PATH=$$LD_LIBRARY_PATH ; \
+	    export DYLD_LIBRARY_PATH ; \
+	elif test -x "../src/objs/isis"; then \
 	    TEST_ISIS="../src/objs/isis"; \
 	    ISIS_SRCDIR=".."; \
 	    export ISIS_SRCDIR ; \
+	    SLSH=$(SLSH_PATH); \
+	    export SLSH ; \
 	 else \
 	    TEST_ISIS="`which isis`" ; \
 	    if test ! -x "$$TEST_ISIS" ; then \
@@ -47,17 +60,19 @@ check:	write-permission $(SHARED_LIBRARIES)
 	if test -f "$(HEA)/headas-init.sh" ; then \
 	    HEADAS="$(HEA)" ; export HEADAS ; . $$HEADAS/headas-init.sh ; \
 	fi ; \
-	$(SLSH) $(WITH_HEADAS) ./run_tests.sl $$TEST_ISIS $(prefix)
+	$$SLSH -n $(WITH_HEADAS) ./run_tests.sl $$TEST_ISIS $$ISIS_SRCDIR ; \
+	$$SLSH -n ./module_import.sl $$ISIS_SRCDIR
 	@echo ""
 
 install-check:	$(SHARED_LIBRARIES)
-	@$(SLSH) $(WITH_HEADAS) ./run_tests.sl isis $(prefix)
+	@$(SLSH_PATH) -n $(WITH_HEADAS) ./run_tests.sl isis $(prefix) ; \
+	@$(SLSH_PATH) -n ./module_import $(prefix)
 	@echo ""
 
 write-permission:
-	@if ! test -w "$(config_dir)/test" ; then \
+	@if ! test -w "." ; then \
 	   echo "" ; \
-	   echo "***  Cannot run regression tests:  no write permission for directory $(config_dir)/test" ; \
+	   echo "***  Cannot run regression tests:  no write permission in test directory" ; \
 	   echo "" ; \
 	   exit 1; \
 	fi

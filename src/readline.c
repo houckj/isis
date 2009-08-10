@@ -222,7 +222,13 @@ static void sig_sigtstp (int sig) /*{{{*/
 
 /*{{{ init/exit functions */
 
-#ifdef WITH_XSPEC_STATIC_LINKED
+#if !defined(MODULE) && defined(WITH_XSPEC_STATIC_LINKED)
+# define INIT_XSPEC_MODULE
+#else
+# undef  INIT_XSPEC_MODULE
+#endif
+
+#ifdef INIT_XSPEC_MODULE
 extern int init_xspec_module_ns (char *);
 extern void deinit_xspec_module (void);
 #endif
@@ -231,7 +237,7 @@ static int init_optional_modules (char *ns_name) /*{{{*/
 {
    (void) ns_name;
 
-#ifdef WITH_XSPEC_STATIC_LINKED
+#ifdef INIT_XSPEC_MODULE
    if (-1 == init_xspec_module_ns (Isis_Public_Namespace_Name))
      return isis_trace_return(-1);
    (void) SLdefine_for_ifdef ("__XSPEC_IS_STATIC__");
@@ -244,7 +250,7 @@ static int init_optional_modules (char *ns_name) /*{{{*/
 
 static void deinit_optional_modules (void) /*{{{*/
 {
-#ifdef WITH_XSPEC_STATIC_LINKED
+#ifdef INIT_XSPEC_MODULE
    deinit_xspec_module ();
 #endif
 }

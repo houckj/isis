@@ -29,7 +29,5 @@ define slsh_main ()
 
    if (system (sprintf ("./here_doc.sh %s", test_pgm)))
      exit(1);
-   if (system (sprintf ("./module_import.sl %s", prefix)))
-     exit(1);
 }
 

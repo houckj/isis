@@ -23,9 +23,20 @@
 %    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 %
 
+private define is_binary ()
+{
+   variable file = path_concat (path_dirname (__FILE__), "../.binary");
+   return stat_file (file) != NULL;
+}
+
 #ifnexists require
 $1 = _slang_install_prefix + "/share/slsh/require.sl";
-if (stat_file($1) == NULL)  $1 = "require";
+if (stat_file($1) == NULL)
+{
+   if (is_binary())
+     $1 = path_dirname (__FILE__) + "/../opt/share/slsh/require.sl";
+   else $1 = "require";
+}
 () = evalfile ($1, _isis->Isis_Public_Namespace_Name);
 #endif
 
@@ -178,6 +189,14 @@ private define init_slang_paths () %{{{
 {
    variable p;
 
+   % isis binary distribution?
+   if (is_binary())
+     {
+        p = path_concat (getenv ("ISIS_SRCDIR"), "opt");
+        setup_slang_paths (p);
+        return;
+     }
+
 #ifnexists _slang_install_prefix
    variable _slang_install_prefix = "/usr/local";
 #endif
@@ -197,31 +216,6 @@ private define init_slang_paths () %{{{
         (p,) = strreplace (p, "/lib", "", 1);
         setup_slang_paths (p);
         return;
-     }
-
-   % isis binary distribution?
-   p = getenv ("ISIS_SRCDIR");
-   if (NULL != p)
-     {
-        p = path_concat (p, "opt");
-        if (NULL != stat_file (p))
-          {
-             setup_slang_paths (p);
-             return;
-          }
-     }
-
-   % some other kind of binary installation?
-   variable env;
-   foreach env (["SLSH_PATH", "CIAO_SLSH_PATH"])
-     {
-        p = getenv (env);
-        if (NULL != p)
-          {
-             (p,) = strreplace (p, "/share/slsh", "", 1);
-             setup_slang_paths (p);
-             return;
-          }
      }
 
    vmessage ("Warning:  trouble setting up slang search paths");
