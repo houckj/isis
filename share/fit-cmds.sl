@@ -3136,7 +3136,7 @@ define set_eval_grid_method () %{{{
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "set_eval_grid_method (method, datasets[][, &hook[, cache_model_values]]);\n     method = SEPARATE_GRID | MERGED_GRID | USER_GRID";
-   variable method, ids, ref = "", cache_model_values = 0;
+   variable method, ids, ref = NULL, cache_model_values = 0;
 
    if (_isis->get_varargs (&method, &ids, &ref, &cache_model_values, _NARGS, 2, msg))
      return;
