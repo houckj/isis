@@ -205,7 +205,14 @@ define write_array (fp, array)
      throw IOError, sprintf ("-%d- %s:  %s",
                              getpid(), _function_name, errno_string());
 
-   return fflush (fp);
+   if (-1 == fflush(fp))
+     {
+        throw IOError, sprintf ("-%d- %s: fflush failed: errno=%d (%s)",
+                                getpid(), _function_name,
+                                errno, errno_string());
+     }
+
+   return 0;
 }
 
 define _recv_msg (fp)
