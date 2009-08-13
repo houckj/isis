@@ -1,5 +1,3 @@
-#
-
 This file describes how to install isis on a Unix operating
 system.
 
@@ -35,9 +33,10 @@ Table of Contents:
    I. Installing from source code
           a.  choosing compilers
           b.  recommended installation method
-          c.  configure options
-          d.  (site-specific) making a custom xspec module
-          e.  (optional) installing modules
+          c.  INSTALLATION EXAMPLE
+          d.  configure options
+          e.  (site-specific) making a custom xspec module
+          f.  (optional) installing modules
   II. Installing binaries
  III. Installation suggestions for specific architectures
   IV. Troubleshooting
@@ -72,10 +71,19 @@ because they have the same version number and because they came
 from the same Linux distribution (Debian).
 
 To specify which compilers to use when building isis, set the
-CC and FC environment variables.  For example:
+CC and FC environment variables.  For example, to set these
+environment variables, (t)csh users should type:
 
   setenv CC gcc-4.3
   setenv FC gfortran-4.3
+
+while bash, ksh, etc. users should type:
+
+  CC=gcc-4.3
+  export CC
+
+  FC=gfortran-4.3
+  export FC
 
 Ib.  Recommended installation method
 ------------------------------------
@@ -92,10 +100,19 @@ If S-Lang has been installed in a standard location such as
     make check
     make install
 
-The HEADAS variable gives the path to your local HEASoft
-installation, e.g.
+The HEADAS environment variable gives the path to your local
+HEASoft installation.  To set it, (t)csh users should type
+something like:
+
+   setenv HEADAS /usr/local/headas/x86_64-unknown-linux-gnu-libc2.7/
+
+while users of bash, ksh, etc.. should type something like:
 
    HEADAS=/usr/local/headas/x86_64-unknown-linux-gnu-libc2.7/
+   export HEADAS
+
+Note that the exact directory path depends on the details of
+your system.
 
 By default, isis files will be installed in /usr/local/isis and
 a symbolic link to the isis executable will be placed in
@@ -116,64 +133,123 @@ script:
 
   --with-slang=DIR
 
-To make use of the APED spectroscopy database installed in
-$ATOMDB, include the configure option:
+To make use of the APED spectroscopy database, include the
+configure option,
 
   --with-atomdb=$ATOMDB
+
+where the ATOMDB environment variable provides the path to the
+top-level directory containing the spectroscopy database. To
+set this environment variable, (t)csh users should type
+
+   setenv ATOMDB /path/to/atomdb
+
+while users of bash, ksh, etc. should type:
+
+   ATOMDB=/path/to/atomdb
+   export ATOMDB
+
+Ic. INSTALLATION EXAMPLE
+------------------------
 
 To walk through a complete installation example, suppose that
 your compilers are in /usr/local/bin, you want to unpack the
 source code in /soft/src, and you want to install everything in
-/soft, with HEASoft in /soft/headas and isis in /soft/isis. To
-create that setup, perform the following steps:
+/soft, with HEASoft in /soft/headas and isis in /soft/isis.  To
+create this setup, perform the following steps:
 
-   Create the /soft/src directory:
+   NOTE: To make this example concrete, specific software
+         version numbers appear in the relevant URLs and
+         command-lines. When performing a new installation, it
+         is usually best to choose the newest available version
+         of each package.
+
+   1. Create the /soft/src directory:
 
       mkdir -p /soft/src
 
-   Download S-Lang, HEASoft, and isis:
+      Note that creating the directory chosen for this example
+      requires root permission.  However, it is unwise to
+      compile software as root.  Only the last step (make install)
+      should be performed as root.
 
-      cd /soft/src
-      wget ftp://slang.tar.gz
-      wget ftp://isis.tar.gz
+      If you do not have root permission and cannot create the
+      /soft/src directory, that's ok, just install somewhere
+      where you have write permission, and enough space to
+      hold everything.  The disk space requirement is primarily
+      determined by the size of HEASoft;  S-Lang and ISIS require
+      very little space in comparison.
 
-      Visit http://heasarc.gsfc.nasa.gov/lheasoft/download.html
-         and download heasoft.tar.gz to /soft/src
+   2. Download S-Lang, isis, and HEASoft:
 
-   Choose compilers:
+      S-Lang source code is available from:
+         ftp://space.mit.edu/pub/davis/slang/v2.2/
 
-      setenv CC /usr/local/bin/gcc
-      setenv FC /usr/local/bin/gfortran
-      setenv CXX /usr/local/bin/g++          # HEASoft requires a C++ compiler
+      ISIS source code is available from:
+         ftp://space.mit.edu/pub/cxc/isis/
 
-   Install HEASoft:
+      HEASoft source code is available from:
+         http://heasarc.gsfc.nasa.gov/lheasoft/download.html
 
-      cd /soft/src
-      gunzip -c heasoft.tar.gz | tar xf -
-      cd heasoft/BUILD_DIR
-      ./configure --prefix=/soft/headas  >& config.out &
-      make >& build.log &
-      make install >& install.log &
+      After downloading the source code tar files, move the
+      files to /soft/src:
 
-   Install S-Lang:
+          mv slang-2.2.0.tar.gz /soft/src
+          mv isis-1.5.0.tar.gz /soft/src
+          mv heasoft-6.6.3.tar.gz /soft/src
 
-      cd /soft/src
-      gunzip -c slang.tar.gz | tar xf -
-      cd slang
-      ./configure --prefix=/soft
-      make
-      make install
+   3. Choose compilers:
 
-   Install isis:
+      In C shell variants, such as csh, tcsh, type:
 
-      cd /soft/src
-      gunzip -c isis.tar.gz | tar xf -
-      cd isis
-      ./configure --prefix=/soft --with-slang=/soft \
-                  --with-headas=/soft/headas/x86_64-unknown-linux-gnu-libc2.7/
-      make
-      make check
-      make install
+          setenv CC /usr/local/bin/gcc
+          setenv FC /usr/local/bin/gfortran
+          setenv CXX /usr/local/bin/g++
+
+      In Bourne shell variants, such as bash, ksh, etc.  type:
+
+          CC=/usr/local/bin/gcc
+          export CC
+
+          FC=/usr/local/bin/gfortran
+          export FC
+
+          CXX=/usr/local/bin/g++
+          export CXX
+
+   4. Install S-Lang:
+
+          cd /soft/src
+          gunzip -c slang-2.2.0.tar.gz | tar xf -
+          cd slang-2.2.0
+          ./configure --prefix=/soft
+          make
+          make install
+
+   5. Install HEASoft:
+
+          cd /soft/src
+
+          Follow the installation instructions in
+            http://heasarc.gsfc.nasa.gov/docs/software/lheasoft/install.html
+
+          Be sure to run the HEASoft configure script with the
+          appropriate --prefix option so that the HEASoft will
+          be installed in the directory chosen for this
+          example, /soft/src/headas:
+
+             ./configure --prefix=/soft/src/headas ...
+
+   6. Install isis:
+
+          cd /soft/src
+          gunzip -c isis-1.5.0.tar.gz | tar xf -
+          cd isis-1.5.0
+          ./configure --prefix=/soft --with-slang=/soft \
+                      --with-headas=/soft/headas/x86_64-unknown-linux-gnu-libc2.7/
+          make
+          make check
+          make install
 
 At this point, /soft/bin/isis should be a symbolic link to the
 isis executable.
@@ -185,7 +261,7 @@ For a complete list of supported configure options, do:
 Many of these configure options are described in the next
 section.
 
-Ic. Configure options
+Id. Configure options
 ---------------------
 
 --with-prefix=DIR
@@ -284,7 +360,7 @@ Ic. Configure options
     choose to compile isis with a C++ compiler (not recommended),
     you may need to use --with-fclibs="-lstdc++".
 
-Id.  (site-specific) Making a custom xspec module
+Ie.  (site-specific) Making a custom xspec module
 -------------------------------------------------
 
 Part of the source code for the xspec module that is included
@@ -301,10 +377,10 @@ If you have already run the isis configure script as described
 above, you can run the code generator like so:
 
    cd modules/xspec/src
-   ./code_gen.sl 12 /soft/headas/src/headas
+   ./code_gen.sl 12 /soft/src/headas-6.6.3
 
 where, in this example, '12' refers to the xspec version number
-(e.g. 12 for xspec12) and '/soft/headas/src/headas' is the
+(e.g. 12 for xspec12) and '/soft/src/headas-6.6.3' is the
 top-level directory containing the HEASoft source code
 distribution.
 
@@ -316,7 +392,7 @@ top-level isis directory and type:
    make check
    make install
 
-Ie.  (optional) Installing modules
+If.  (optional) Installing modules
 ----------------------------------
 
 If you choose to install any other isis- or slang-related
@@ -333,10 +409,13 @@ described in the above example, where isis and slang were
 installed in /soft.  To install the histogram module, do the
 following:
 
+   Download the module source code from:
+     http://space.mit.edu/CXC/software/slang/modules/hist/src/
+   and move the tar file to /soft/src.
+
    cd /soft/src
-   wget http://slhist.tar.gz
-   gunzip -c slhist.tar.gz | tar xf -
-   cd slhist
+   gunzip -c slhist-0.3.2a.tar.gz | tar xf -
+   cd slhist-0.3.2a
    ./configure --prefix=/soft --with-slang=/soft
    make
    make install
