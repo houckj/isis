@@ -3,6 +3,10 @@ doc/figures
 doc/manual.pdf
 doc/manual.ps
 
+INSTALL.html
+INSTALL.pdf
+INSTALL.xml
+
 Makefile
 
 config.h

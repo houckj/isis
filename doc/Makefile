@@ -1,4 +1,3 @@
-
 .PHONY:	all postscript patch_index ascii figs pdffigs pdf tpdf clean veryclean world
 
 DOC = manual
@@ -6,13 +5,21 @@ DOC = manual
 all:	$(DOC).tex
 	make ascii postscript
 
-world:	$(DOC).tex
+world:	$(DOC).tex install-doc
 	make veryclean
 	make tpdf
 	make clean
 	make postscript
 	make clean
 	make ascii
+
+install-doc:	../INSTALL.html ../INSTALL.xml ../INSTALL.pdf
+../INSTALL.html:	../INSTALL.txt
+	asciidoc -a "localdate=`date +'%Y %b %d'`" ../INSTALL.txt
+../INSTALL.xml:	../INSTALL.txt
+	asciidoc -b docbook ../INSTALL.txt
+../INSTALL.pdf:	../INSTALL.txt
+	dblatex -T simple ../INSTALL.xml
 
 TOC=\\begin{theindex}\\label{chap:index}\\ifpdf\\pdfbookmark[-1]{Index}{chap:index}\\fi
 
@@ -29,7 +36,7 @@ old-postscript:	$(DOC).tex
 	makeindex $(DOC).idx
 	make patch_index
 	latex -output-format=dvi $(DOC).tex
-	latex -output-format=dvi $(DOC).tex	
+	latex -output-format=dvi $(DOC).tex
 	dvips -o $(DOC).ps $(DOC)
 
 ascii:	$(DOC).tex
@@ -38,7 +45,7 @@ ascii:	$(DOC).tex
 scripts = contin.sl crude_dem.sl custom1.sl data.sl elev.sl \
           ion_curves.sl line_id.sl profile_fit.sl xspec.sl \
 	  residuals.sl contour.sl
-  
+
 figs:
 	-mkdir figures
 	cd figures; for s in $(scripts) ; do \
@@ -53,7 +60,7 @@ pdffigs:
 	   ps2epsi $$s.ps ; epstopdf $$s.epsi ;\
 	done
 
-pdf:	
+pdf:
 	pdflatex $(DOC)
 	pdflatex $(DOC)
 	makeindex $(DOC).idx
@@ -69,12 +76,12 @@ $(DOC).pdf:
 	make pdf
 
 clean:
-	rm -f $(DOC).aux $(DOC).dvi $(DOC).idx $(DOC).ilg $(DOC).out \
-              $(DOC).ind $(DOC).lof $(DOC).log $(DOC).lot $(DOC).toc \
-	      $(DOC).tpt thumb*.??? index.log
-      
+	/bin/rm -f $(DOC).aux $(DOC).dvi $(DOC).idx $(DOC).ilg $(DOC).out \
+                $(DOC).ind $(DOC).lof $(DOC).log $(DOC).lot $(DOC).toc \
+	        $(DOC).tpt thumb*.??? index.log
+
 veryclean:
 	make clean
-	rm -f $(DOC).ps $(DOC).pdf help.txt
-
+	/bin/rm -f $(DOC).ps $(DOC).pdf help.txt
+	/bin/rm -f ../INSTALL.html ../INSTALL.pdf ../INSTALL.xml
 

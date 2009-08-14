@@ -1,58 +1,83 @@
-This file describes how to install isis on a Unix operating
-system.
+ISIS Installation Guide
+=======================
+John C. Houck <houck&#64;space&#46;mit&#46;edu>
+{backend@xhtml11:Last updated\: {localdate}}
 
-For more information on isis, see:
-    http://space.mit.edu/cxc/isis/
+For more information about isis, see: http://space.mit.edu/cxc/isis/
 
 Send bug reports, comments and suggestions to:
-    isis-users@space.mit.edu
+isis-users@space.mit.edu
 
------------------------------------------------------------------------
-                          Prerequisites
-
+Prerequisites
+-------------
+=======================================================================
 The S-Lang library is required (version 2.2 or newer).
-This library is available from:
-   http://www.jedsoft.org/slang/
+This library is available from: +
+  http://www.jedsoft.org/slang/
 
 To build isis with support for fitting XSPEC spectral models,
 the XSPEC spectral model library must be installed somewhere on
-your system.  This library is part of HEASoft:
+your system.  This library is part of HEASoft, which is available
+from: +
    http://heasarc.gsfc.nasa.gov/docs/software/lheasoft/
+
 Along with the spectral model library, the HEASoft installation
 also provides the cfitsio and pgplot libraries; if you choose
-not to install HEASoft, then pgplot and cfitsio must be
+not to install HEASoft, then cfitsio and pgplot must be
 installed.
 
 If you want to make use of the ATOMDB spectroscopy database,
 then this database must be installed on your system.
-The database is available from:
-   http://cxc.harvard.edu/atomdb/
------------------------------------------------------------------------
+The database is available from: +
+  http://cxc.harvard.edu/atomdb/
+=======================================================================
 
-Table of Contents:
-   I. Installing from source code
-          a.  choosing compilers
-          b.  recommended installation method
-          c.  INSTALLATION EXAMPLE
-          d.  configure options
-          e.  (site-specific) making a custom xspec module
-          f.  (optional) installing modules
-  II. Installing binaries
- III. Installation suggestions for specific architectures
-  IV. Troubleshooting
+Optional Software
+-----------------
+=======================================================================
+A growing collection of modules and data analysis packages is
+available from: +
+  http://space.mit.edu/cxc/isis/modules.html
 
-I. Installing from source code
-==============================
+The available data analysis packages provide support for timing
+analysis, automated processing of Chandra grating data, and
+analysis of density-dependent line ratios from He-like triplet
+lines.
 
-Ia. Choosing compilers
-----------------------
+The available modules provide support for low-level I/O
+of FITS and HDF5 files, interaction with the ds9 image viewer,
+an interface to the GSL scientific library, 3D visualization,
+PVM-based parallel processing, and more.
+=======================================================================
 
+Table of Contents
+-----------------
+
+. <<X1,Installing from source code>>
+  a. <<Xa,Choosing compilers>>
+  b. <<Xb,Recommended installation method>>
+  c. <<Xc,INSTALLATION EXAMPLE>>
+  d. <<Xd,Configure options>>
+  e. <<Xe,(site-specific) Making a custom xspec module>>
+  f. <<Xf,(optional) Installing modules>>
+. <<X2,Installation suggestions for specific architectures>>
+. <<X3,TROUBLESHOOTING>>
+. <<X5,Appendix>>
+
+[[X1]]
+1. Installing from source code
+-------------------------------
+
+[[Xa]]
+a. Choosing compilers
+~~~~~~~~~~~~~~~~~~~~
 It is important to build isis and S-Lang using the same C and
 Fortran compilers that were used to build XSPEC. For this
 reason, the HEASoft compiler recommendations also apply to
 isis.  For details, see:
 
 http://heasarc.gsfc.nasa.gov/docs/software/lheasoft/supported_platforms.html
+
 http://heasarc.gsfc.nasa.gov/docs/software/lheasoft/install.html
 
 Ideally, your C and Fortran compilers should be part of a
@@ -60,11 +85,13 @@ matched set and their version numbers should match exactly.
 For example, using the C compiler 'gcc' and the Fortran
 compiler 'gfortran', one can check the version numbers like so:
 
+.................................................................
   > gcc --version
   gcc (Debian 4.3.2-1.1) 4.3.2
 
   > gfortran --version
   GNU Fortran (Debian 4.3.2-1.1) 4.3.2
+.................................................................
 
 The compilers shown in this example are likely to be compatible
 because they have the same version number and because they came
@@ -74,294 +101,322 @@ To specify which compilers to use when building isis, set the
 CC and FC environment variables.  For example, to set these
 environment variables, (t)csh users should type:
 
+.................................................................
   setenv CC gcc-4.3
   setenv FC gfortran-4.3
+.................................................................
 
 while bash, ksh, etc. users should type:
 
+.................................................................
   CC=gcc-4.3
   export CC
 
   FC=gfortran-4.3
   export FC
+.................................................................
 
-Ib.  Recommended installation method
-------------------------------------
-
-IMPORTANT: Build isis and S-Lang using the same C and Fortran
-           compilers that were used to build XSPEC.  If your
-           compilers are incompatible, the build may fail.
+[[Xb]]
+b. Recommended installation method
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[IMPORTANT]
+=================================================================
+Be sure to build isis and S-Lang using the same C and Fortran
+compilers that were used to build XSPEC.  If your compilers are
+incompatible, the build may fail.
+=================================================================
 
 If S-Lang has been installed in a standard location such as
-/usr/local, the isis installation process may be as simple as:
+'/usr/local', the isis installation process may be as simple as:
 
+.................................................................
     ./configure --with-headas=$HEADAS
     make
     make check
     make install
+.................................................................
 
-The HEADAS environment variable gives the path to your local
+The +HEADAS+ environment variable gives the path to your local
 HEASoft installation.  To set it, (t)csh users should type
 something like:
 
+.................................................................
    setenv HEADAS /usr/local/headas/x86_64-unknown-linux-gnu-libc2.7/
+.................................................................
 
 while users of bash, ksh, etc.. should type something like:
 
+.................................................................
    HEADAS=/usr/local/headas/x86_64-unknown-linux-gnu-libc2.7/
    export HEADAS
+.................................................................
 
 Note that the exact directory path depends on the details of
 your system.
 
-By default, isis files will be installed in /usr/local/isis and
-a symbolic link to the isis executable will be placed in
-/usr/local/bin/isis. If /usr/local/bin is already in your
-command search path, you should then be able to run isis by
-typing 'isis' at the unix prompt:
+By default, isis files will be installed in '/usr/local/isis'
+and a symbolic link to the isis executable will be placed in
+'/usr/local/bin/isis'. If '/usr/local/bin' is already in your
+command search path then, after isis is installed, you should
+be able to run it by typing 'isis' at the unix prompt:
 
+.................................................................
    > isis
+.................................................................
 
-To install isis in DIR instead of /usr/local, include the
-configure option:
+To install isis in 'DIR' instead of '/usr/local', include the
+'--prefix' configure option:
 
+.................................................................
   --prefix=DIR
+.................................................................
 
 If S-Lang has been installed in a non-standard location it may
-be necessary to specify its location when running the configure
-script:
+be necessary to specify its location using the '--with-slang'
+configure option:
 
+.................................................................
   --with-slang=DIR
+.................................................................
 
 To make use of the APED spectroscopy database, include the
-configure option,
+'--with-atomdb' configure option:
 
-  --with-atomdb=$ATOMDB
+.................................................................
+  --with-atomdb=DIR
+.................................................................
 
-where the ATOMDB environment variable provides the path to the
-top-level directory containing the spectroscopy database. To
-set this environment variable, (t)csh users should type
+[[Xc]]
+c. INSTALLATION EXAMPLE
+~~~~~~~~~~~~~~~~~~~~~~~
+To step through a complete installation example, suppose that
+your compilers are in '/usr/local/bin', you want to unpack the
+source code in '/soft/src', and you want to install everything
+in '/soft', with HEASoft in '/soft/headas' and isis in
+'/soft/isis'.  To create this setup, perform the following
+steps:
 
-   setenv ATOMDB /path/to/atomdb
+[NOTE]
+=================================================================
+To make this example concrete, specific software version
+numbers appear in the relevant URLs and command-lines. When
+performing a new installation, it is usually best to choose the
+newest available version of each package.
+=================================================================
 
-while users of bash, ksh, etc. should type:
+. Create the /soft/src directory:
++
+.......................
+  mkdir -p /soft/src
+.......................
++
+*****************************************************************
+Note that creating this directory requires root permission.
+However, it is unwise to compile software as root.  Only the
+last step (make install) should be performed as root.
 
-   ATOMDB=/path/to/atomdb
-   export ATOMDB
+If you do not have root permission and cannot create the
+'/soft/src' directory, that's ok, just choose a directory where
+you have write permission and enough space to hold all the
+files.  The disk space requirement is determined primarily by
+the size of HEASoft; S-Lang and ISIS require very little space
+in comparison.
+*****************************************************************
 
-Ic. INSTALLATION EXAMPLE
-------------------------
+. Download S-Lang, isis, and HEASoft:
++
+S-Lang source code is available from: +
+ftp://space.mit.edu/pub/davis/slang/v2.2/
++
+ISIS source code is available from: +
+ftp://space.mit.edu/pub/cxc/isis/
++
+HEASoft source code is available from: +
+http://heasarc.gsfc.nasa.gov/lheasoft/download.html
++
+After downloading the source code tar files, move the
+files to '/soft/src':
++
+.................................................................
+       mv slang-2.2.0.tar.gz /soft/src
+       mv isis-1.5.0.tar.gz /soft/src
+       mv heasoft-6.6.3.tar.gz /soft/src
+.................................................................
 
-To walk through a complete installation example, suppose that
-your compilers are in /usr/local/bin, you want to unpack the
-source code in /soft/src, and you want to install everything in
-/soft, with HEASoft in /soft/headas and isis in /soft/isis.  To
-create this setup, perform the following steps:
+. Specify compilers:
++
+In C shell variants, such as csh, tcsh, type:
++
+.................................................................
+       setenv CC /usr/local/bin/gcc
+       setenv FC /usr/local/bin/gfortran
+       setenv CXX /usr/local/bin/g++
+.................................................................
++
+In Bourne shell variants, such as bash, ksh, etc.  type:
++
+.................................................................
+       CC=/usr/local/bin/gcc
+       export CC
 
-   NOTE: To make this example concrete, specific software
-         version numbers appear in the relevant URLs and
-         command-lines. When performing a new installation, it
-         is usually best to choose the newest available version
-         of each package.
+       FC=/usr/local/bin/gfortran
+       export FC
 
-   1. Create the /soft/src directory:
+       CXX=/usr/local/bin/g++
+       export CXX
+.................................................................
 
-      mkdir -p /soft/src
+. Install S-Lang:
++
+.................................................................
+       cd /soft/src
+       gunzip -c slang-2.2.0.tar.gz | tar xf -
+       cd slang-2.2.0
+       ./configure --prefix=/soft
+       make
+       make install
+.................................................................
 
-      Note that creating the directory chosen for this example
-      requires root permission.  However, it is unwise to
-      compile software as root.  Only the last step (make install)
-      should be performed as root.
+. Install HEASoft:
++
+.................................................................
+       cd /soft/src
+.................................................................
++
+Follow the installation instructions in +
+http://heasarc.gsfc.nasa.gov/docs/software/lheasoft/install.html
++
+*****************************************************************
+Be sure to run the HEASoft configure script with the
+appropriate '--prefix' option so that HEASoft will
+be installed in the directory chosen for this
+example, '/soft/src/headas':
+.................................................................
+          ./configure --prefix=/soft/src/headas ...
+.................................................................
+*****************************************************************
 
-      If you do not have root permission and cannot create the
-      /soft/src directory, that's ok, just install somewhere
-      where you have write permission, and enough space to
-      hold everything.  The disk space requirement is primarily
-      determined by the size of HEASoft;  S-Lang and ISIS require
-      very little space in comparison.
+. Install isis:
++
+.................................................................
+       cd /soft/src
+       gunzip -c isis-1.5.0.tar.gz | tar xf -
+       cd isis-1.5.0
+       ./configure --prefix=/soft --with-slang=/soft \
+                   --with-headas=$HEADAS
+       make
+       make check
+       make install
+.................................................................
 
-   2. Download S-Lang, isis, and HEASoft:
+At this point, '/soft/bin/isis' should be a symbolic link to the
+isis executable.  When you run it, you should see something
+like this:
+.................................................................
+     > /soft/bin/isis
 
-      S-Lang source code is available from:
-         ftp://space.mit.edu/pub/davis/slang/v2.2/
+     Welcome to ISIS Version 1.5.0
+     Copyright (C) 1998-2009 Massachusetts Institute of Technology
 
-      ISIS source code is available from:
-         ftp://space.mit.edu/pub/cxc/isis/
-
-      HEASoft source code is available from:
-         http://heasarc.gsfc.nasa.gov/lheasoft/download.html
-
-      After downloading the source code tar files, move the
-      files to /soft/src:
-
-          mv slang-2.2.0.tar.gz /soft/src
-          mv isis-1.5.0.tar.gz /soft/src
-          mv heasoft-6.6.3.tar.gz /soft/src
-
-   3. Choose compilers:
-
-      In C shell variants, such as csh, tcsh, type:
-
-          setenv CC /usr/local/bin/gcc
-          setenv FC /usr/local/bin/gfortran
-          setenv CXX /usr/local/bin/g++
-
-      In Bourne shell variants, such as bash, ksh, etc.  type:
-
-          CC=/usr/local/bin/gcc
-          export CC
-
-          FC=/usr/local/bin/gfortran
-          export FC
-
-          CXX=/usr/local/bin/g++
-          export CXX
-
-   4. Install S-Lang:
-
-          cd /soft/src
-          gunzip -c slang-2.2.0.tar.gz | tar xf -
-          cd slang-2.2.0
-          ./configure --prefix=/soft
-          make
-          make install
-
-   5. Install HEASoft:
-
-          cd /soft/src
-
-          Follow the installation instructions in
-            http://heasarc.gsfc.nasa.gov/docs/software/lheasoft/install.html
-
-          Be sure to run the HEASoft configure script with the
-          appropriate --prefix option so that the HEASoft will
-          be installed in the directory chosen for this
-          example, /soft/src/headas:
-
-             ./configure --prefix=/soft/src/headas ...
-
-   6. Install isis:
-
-          cd /soft/src
-          gunzip -c isis-1.5.0.tar.gz | tar xf -
-          cd isis-1.5.0
-          ./configure --prefix=/soft --with-slang=/soft \
-                      --with-headas=/soft/headas/x86_64-unknown-linux-gnu-libc2.7/
-          make
-          make check
-          make install
-
-At this point, /soft/bin/isis should be a symbolic link to the
-isis executable.
+     isis>
+.................................................................
 
 For a complete list of supported configure options, do:
-
+..................................
   ./configure --help
-
+..................................
 Many of these configure options are described in the next
 section.
 
-Id. Configure options
----------------------
+[[Xd]]
+d. Configure options
+~~~~~~~~~~~~~~~~~~~~
 
---with-prefix=DIR
+[glossary]
+--with-prefix=DIR::
+    Use this option to install isis files in 'DIR/isis/$version'.
 
-    Use this option to install isis files in DIR/isis/$version.
-
---with-subdir=DIR
-
-    Use this option to install isis files in $prefix/isis/DIR
-    instead of $prefix/isis/$version.
+--with-subdir=DIR::
+    Use this option to install isis files in '$prefix/isis/DIR'
+    instead of '$prefix/isis/$version'.
     If  DIR="" (the empty string) then isis files will be
-    installed in $prefix/isis.
+    installed in '$prefix/isis'.
 
---with-headas=$HEADAS
-
+--with-headas=$HEADAS::
     Use this option to provide the path to the xspec libraries.
     When the cfitsio and pgplot libraries are present in
-    $HEADAS/lib, it is usually best to use them when building
-    isis (rather than any other versions of these libraries
-    that may be available on your system). For this reason, it
+    '$HEADAS/lib', it is usually best to use them when building
+    isis, rather than any other versions of these libraries
+    that may be available on your system. For this reason, it
     is usually best to avoid combining the --with-headas option
     with any of the --with-cfitsio or --with-pgplot options.
 
---with-xspec-version=nn
-
+--with-xspec-version=nn::
     When your local HEASoft installation includes both xspec11
     and xspec12, use this option to specify which version of
     the xspec libraries to link to isis.  If this configure
     option is absent, and both xspec versions are present, isis
     will use xspec12.
 
---with-xspec-static
-
+--with-xspec-static::
     Use this option to indicate that the xspec libraries should
     be statically linked to the isis executable.
 
---disable-xspec_tables
-
+--disable-xspec_tables::
     Use this option to build the xspec module without support for
     xspec table models.
 
---with-slang=DIR
+--with-slang=DIR::
+    Use this option to indicate that libslang is in 'DIR/lib'
+    and slang.h is in 'DIR/include'
 
-    Use this option to indicate that libslang is in DIR/lib
-    and slang.h is in DIR/include
-
---with-slanglib=LIB_DIR
---with-slanginc=INC_DIR
-
-    Use these options to indicate that libslang is in LIB_DIR
-    and slang.h is in INC_DIR.  If you use these options,
+--with-slanglib=LIB_DIR::
+--with-slanginc=INC_DIR::
+    Use these options to indicate that libslang is in 'LIB_DIR'
+    and slang.h is in 'INC_DIR'.  If you use these options,
     do not use the --with-slang option.
 
---with-cfitsio=DIR
+--with-cfitsio=DIR::
+    Use this option to indicate that libcfitsio is in 'DIR/lib'
+    and fitsio.h is in 'DIR/include'.
 
-    Use this option to indicate that libcfitsio is in DIR/lib
-    and fitsio.h is in DIR/include.
-
---with-cfitsiolib=LIB_DIR
---with-cfitsioinc=INC_DIR
-
-    Use these options to indicate that libcfitsio is in LIB_DIR
-    and fitsio.h is in INC_DIR.  If you use these options,
+--with-cfitsiolib=LIB_DIR::
+--with-cfitsioinc=INC_DIR::
+    Use these options to indicate that libcfitsio is in 'LIB_DIR'
+    and fitsio.h is in 'INC_DIR'.  If you use these options,
     do not use the --with-cfitsio option.
 
---with-pgplot=DIR
+--with-pgplot=DIR::
+    Use this option to indicate that libpgplot is in 'DIR/lib'
+    and cpgplot.h is in 'DIR/include'
 
-    Use this option to indicate that libpgplot is in DIR/lib
-    and cpgplot.h is in DIR/include
-
---with-pgplotlib=LIB_DIR
---with-pgplotinc=INC_DIR
-
-    Use these options to indicate that libpgplot is in LIB_DIR
-    and cpgplot.h is in INC_DIR.  If you use these options,
+--with-pgplotlib=LIB_DIR::
+--with-pgplotinc=INC_DIR::
+    Use these options to indicate that libpgplot is in 'LIB_DIR'
+    and cpgplot.h is in 'INC_DIR'.  If you use these options,
     do not use the --with-pgplot option.
 
---with-dep=DIR
-
+--with-dep=DIR::
     Use this option to indicate that slang and cfitsio are
-    installed in DIR/lib and DIR/include, and that pgplot is
-    installed in DIR/pgplot.
+    installed in 'DIR/lib' and 'DIR/include', and that pgplot is
+    installed in 'DIR/pgplot'.
 
---with-readline[=arg]
+--with-readline[=arg]::
+    Use this option to select which readline library to use:
+       - arg=gnu means use GNU readline
+       - arg=DIR means use GNU readline (from 'DIR/lib' and 'DIR/include')
+       - arg=slang means use S-Lang readline only
 
-    Use this option to select which readline library to use.
-        arg=gnu means use GNU readline
-        arg=DIR means use GNU readline (from DIR/lib and DIR/include)
-        arg=slang means use S-Lang readline only
-
---with-fclibs="..."
-
+--with-fclibs="..."::
     Use this option to provide additional libraries that may be
     needed by your compilers, but that are not automatically
     picked up by the configure script.  For example, if you
-    choose to compile isis with a C++ compiler (not recommended),
+    choose to compile isis with a C\+\+ compiler (not recommended),
     you may need to use --with-fclibs="-lstdc++".
 
-Ie.  (site-specific) Making a custom xspec module
--------------------------------------------------
+[[Xe]]
+e. (site-specific) Making a custom xspec module
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Part of the source code for the xspec module that is included
 in the isis distribution was automatically generated by a
@@ -376,152 +431,168 @@ work with your XSPEC installation.
 If you have already run the isis configure script as described
 above, you can run the code generator like so:
 
+.................................................................
    cd modules/xspec/src
    ./code_gen.sl 12 /soft/src/headas-6.6.3
+.................................................................
 
 where, in this example, '12' refers to the xspec version number
 (e.g. 12 for xspec12) and '/soft/src/headas-6.6.3' is the
 top-level directory containing the HEASoft source code
 distribution.
 
-To compile and install the new xspec module, go to the
-top-level isis directory and type:
+When the code generator runs successfully, you should see
+output that looks something like this:
 
+.................................................................
+  > ./code_gen.sl 12 /soft/src/heasoft-6.6.3/
+  Searching for XSPEC source code in: /soft/src/heasoft-6.6.3/
+  Got 141 models (85 additive, 46 multiplicative, 10 convolution)
+.................................................................
+
+To compile and install the new xspec module, type:
+
+.................................................................
+   cd /soft/src/isis-1.5.0
    make clean
    make
    make check
    make install
+.................................................................
 
-If.  (optional) Installing modules
-----------------------------------
+[[Xf]]
+f. (optional) Installing modules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you choose to install any other isis- or slang-related
-software, such as any of the modules available from
+You may wish to install additional isis- or slang-related
+software, such as one or more of the modules available from +
+http://space.mit.edu/cxc/isis/modules.html.
 
-  http://space.mit.edu/cxc/isis/modules.html,
-
-those modules should be installed in the same directory tree
+Such modules should be installed in the same directory tree
 where you installed slang, so that S-Lang applications such as
 isis will automatically find the new modules.
 
-For example, consider adding the histogram module to the layout
-described in the above example, where isis and slang were
+For example, consider adding the histogram module to the
+installation described above, where both isis and slang were
 installed in /soft.  To install the histogram module, do the
 following:
 
-   Download the module source code from:
-     http://space.mit.edu/CXC/software/slang/modules/hist/src/
-   and move the tar file to /soft/src.
+First, download the module source code tar file from +
+http://space.mit.edu/CXC/software/slang/modules/hist/src/
 
+Then, assuming the tar file is in /soft/src, do:
+.................................................................
    cd /soft/src
    gunzip -c slhist-0.3.2a.tar.gz | tar xf -
    cd slhist-0.3.2a
    ./configure --prefix=/soft --with-slang=/soft
    make
    make install
+.................................................................
 
 The histogram module can then be imported into isis like so:
 
+.................................................................
    isis> require ("histogram");
+.................................................................
 
-If you install a module that requires installing additional
-libraries (e.g. libpvm), then the additional libraries may be
-installed either in a standard system location (e.g. /usr) or
-in the same area as isis (e.g. /soft), depending on which is
-most convenient.
+If you install a module that depends on other libraries (e.g.
+libpvm), then those additional libraries may be installed
+either in a standard system location (e.g. /usr) or in the same
+directory tree as isis (e.g. /soft), depending on which is most
+convenient.
 
-II.  Installing binaries
-========================
-
-If binaries are available, see the isis web page
-      http://space.mit.edu/cxc/isis/
-for installation instructions.
-
-III. Installation suggestions for specific architectures
-========================================================
+[[X2]]
+2. Installation suggestions for specific architectures
+-------------------------------------------------------
 
 Linux systems:
---------------
+~~~~~~~~~~~~~
 
-o Recommended compilers: use gcc-4.3 and gfortran-4.3, or newer.
-
-  Older compilers will also work, but code compiled by older
-  versions of gfortran is not fully compatible with newer
-  versions of gfortran.  On older systems, using gcc-3.4 with
-  g77 will work; note, however, that g77 is no longer
-  maintained.
+- Recommended compilers: use gcc-4.3 and gfortran-4.3, or newer.
++
+Older compilers will also work, but code compiled by older
+versions of gfortran is not fully compatible with newer
+versions of gfortran.  On older systems, using gcc-3.4 with
+g77 will work; note, however, that g77 is no longer
+maintained.
 
 Mac OS X systems:
------------------
+~~~~~~~~~~~~~~~~
 
-o Compiler issues.
+- Compiler issues.
++
+Be sure that your system is up-to-date and that you have the
+latest version of Xcode installed.
++
+A good source for matching C, C\+\+ and Fortran compilers is: +
+http://hpc.sourceforge.net/
++
+The gfortran Fortran compiler is recommended -- isis makes
+extensive use of dynamic linking, but the g95 compiler has
+historically provided poor support for it.
 
-  Be sure that your system is up-to-date and that you have the
-  latest version of Xcode installed.
+- Dynamic Linking
++
+Dynamic linking to shared libraries behaves differently on
+the Mac than on a real unix system.  To avoid problems, be
+sure to install shared libraries whenever possible.
++
+It is a good idea to avoid having multiple copies of the same
+shared library on your system when those extra copies are in
+directories that will be examined by the compiler when it
+runs. For example, problems may arise if
+'/usr/lib/libslang.dylib' and '/usr/local/lib/libslang.dylib'
+both exist, but represent different library versions.
++
+It may also be necessary to set +DYLD_LIBRARY_PATH+ to
+provide paths to all the shared libraries needed at run-time.
 
-  A good source for matching C, C++ and Fortran compilers is:
-    http://hpc.sourceforge.net/
+- Missing libraries
++
+You might need to edit +EXTRA_LIB+ in 'src/Makefile' to add
 
-  The gfortran Fortran compiler is recommended. Isis makes
-  extensive use of dynamic linking, but the g95 compiler has
-  historically provided poor support for it.
+   -framework Foundation -framework AppKit -lpng
 
-o Dynamic Linking
-
-  Dynamic linking to shared libraries behaves differently on
-  the Mac than on a real unix system.  To avoid problems, be
-  sure to install shared libraries whenever possible.
-
-  It is a good idea to avoid having multiple copies of the same
-  shared library on your system when those extra copies are in
-  directories that will be examined by the compiler when it
-  runs. For example, problems may arise if
-  /usr/lib/libslang.dylib and /usr/local/lib/libslang.dylib
-  both exist but represent different library versions.
-
-  It may also be necessary to DYLD_LIBRARY_PATH to include
-  paths to all the shared libraries needed at run-time.
-
-o Missing libraries
-
-  You might need to edit EXTRA_LIB in src/Makefile to add
-
-        -framework Foundation -framework AppKit -lpng
-
-  After you're finished editing src/Makefile, build and install
-  isis as usual.
+After you're finished editing 'src/Makefile', build and install
+isis as usual.
 
 Solaris systems:
----------------
+~~~~~~~~~~~~~~~
 
-o The Solaris compilers are preferred:  CC=cc and FC=f90
+- The Solaris compilers are preferred:  CC=cc and FC=f90
 
 AIX systems:
------------
+~~~~~~~~~~~
 
-o The IBM compilers are preferred:  CC=xlc and FC=xlf
+- The IBM compilers are preferred:  CC=xlc and FC=xlf
 
-IV.  TROUBLESHOOTING
-====================
+[[X3]]
+3. TROUBLESHOOTING
+------------------
 
 Answers to some frequently asked questions are available from
-the web site:
-
-  http://space.mit.edu/cxc/isis/faq.html
+the web site: +
+http://space.mit.edu/cxc/isis/faq.html
 
 If isis did not compile:
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Did you build isis using exactly the same C and Fortran
-  compilers that were used to build the XSPEC libraries?
+ - Did you build isis <<Xa,using the same C and Fortran
+  compilers>> that were used to build the XSPEC libraries?
 
-  Are your C and Fortran compilers compatible?
+ - Are your C and Fortran compilers <<Xa,compatible>>?
 
-----------------------------------------------------------------------------
+[[X5]]
+4. Appendix
+-----------
+
+***********************************************************************
 Below, I have attached the generic INSTALL instructions included in the
 autoconf distribution.  These instructions provide more detail on how the
 configure script works and also describe other installation options which
 may be supported by the configure script.
-----------------------------------------------------------------------------
+***********************************************************************
 
 Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002 Free Software
 Foundation, Inc.
@@ -530,225 +601,228 @@ Foundation, Inc.
 unlimited permission to copy, distribute and modify it.
 
 Basic Installation
-==================
+------------------
 
-   These are generic installation instructions.
+These are generic installation instructions.
 
-   The `configure' shell script attempts to guess correct values for
+The 'configure' shell script attempts to guess correct values for
 various system-dependent variables used during compilation.  It uses
-those values to create a `Makefile' in each directory of the package.
-It may also create one or more `.h' files containing system-dependent
-definitions.  Finally, it creates a shell script `config.status' that
+those values to create a 'Makefile' in each directory of the package.
+It may also create one or more '.h' files containing system-dependent
+definitions.  Finally, it creates a shell script 'config.status' that
 you can run in the future to recreate the current configuration, and a
-file `config.log' containing compiler output (useful mainly for
-debugging `configure').
+file 'config.log' containing compiler output (useful mainly for
+debugging 'configure').
 
-   It can also use an optional file (typically called `config.cache'
-and enabled with `--cache-file=config.cache' or simply `-C') that saves
+It can also use an optional file (typically called 'config.cache'
+and enabled with '--cache-file=config.cache' or simply '-C') that saves
 the results of its tests to speed up reconfiguring.  (Caching is
 disabled by default to prevent problems with accidental use of stale
 cache files.)
 
-   If you need to do unusual things to compile the package, please try
-to figure out how `configure' could check whether to do them, and mail
-diffs or instructions to the address given in the `README' so they can
+If you need to do unusual things to compile the package, please try
+to figure out how 'configure' could check whether to do them, and mail
+diffs or instructions to the address given in the 'README' so they can
 be considered for the next release.  If you are using the cache, and at
-some point `config.cache' contains results you don't want to keep, you
+some point 'config.cache' contains results you don't want to keep, you
 may remove or edit it.
 
-   The file `configure.ac' (or `configure.in') is used to create
-`configure' by a program called `autoconf'.  You only need
-`configure.ac' if you want to change it or regenerate `configure' using
-a newer version of `autoconf'.
+The file 'configure.ac' (or 'configure.in') is used to create
+'configure' by a program called 'autoconf'.  You only need
+'configure.ac' if you want to change it or regenerate
+'configure' using a newer version of 'autoconf'.
 
 The simplest way to compile this package is:
 
-  1. `cd' to the directory containing the package's source code and type
-     `./configure' to configure the package for your system.  If you're
-     using `csh' on an old version of System V, you might need to type
-     `sh ./configure' instead to prevent `csh' from trying to execute
-     `configure' itself.
+. 'cd' to the directory containing the package's source code and type
+'./configure' to configure the package for your system.  If you're
+using 'csh' on an old version of System V, you might need to type
+'sh ./configure' instead to prevent 'csh' from trying to execute
+'configure' itself.
++
+Running 'configure' takes awhile.  While running, it prints some
+messages telling which features it is checking for.
 
-     Running `configure' takes awhile.  While running, it prints some
-     messages telling which features it is checking for.
+. Type 'make' to compile the package.
 
-  2. Type `make' to compile the package.
+. Optionally, type 'make check' to run any self-tests that come with
+the package.
 
-  3. Optionally, type `make check' to run any self-tests that come with
-     the package.
+. Type 'make install' to install the programs and any data files and
+documentation.
 
-  4. Type `make install' to install the programs and any data files and
-     documentation.
-
-  5. You can remove the program binaries and object files from the
-     source code directory by typing `make clean'.  To also remove the
-     files that `configure' created (so you can compile the package for
-     a different kind of computer), type `make distclean'.  There is
-     also a `make maintainer-clean' target, but that is intended mainly
-     for the package's developers.  If you use it, you may have to get
-     all sorts of other programs in order to regenerate files that came
-     with the distribution.
+. You can remove the program binaries and object files from the
+source code directory by typing 'make clean'.  To also remove the
+files that 'configure' created (so you can compile the package for
+a different kind of computer), type 'make distclean'.  There is
+also a 'make maintainer-clean' target, but that is intended mainly
+for the package's developers.  If you use it, you may have to get
+all sorts of other programs in order to regenerate files that came
+with the distribution.
 
 Compilers and Options
-=====================
+---------------------
 
-   Some systems require unusual options for compilation or linking that
-the `configure' script does not know about.  Run `./configure --help'
+Some systems require unusual options for compilation or linking that
+the 'configure' script does not know about.  Run './configure --help'
 for details on some of the pertinent environment variables.
 
-   You can give `configure' initial values for configuration parameters
+You can give 'configure' initial values for configuration parameters
 by setting variables in the command line or in the environment.  Here
 is an example:
-
+....................................................
      ./configure CC=c89 CFLAGS=-O2 LIBS=-lposix
-
-   *Note Defining Variables::, for more details.
+...................................................
+See <<X4,Defining Variables>>, for more details.
 
 Compiling For Multiple Architectures
-====================================
+------------------------------------
 
-   You can compile the package for more than one kind of computer at the
+You can compile the package for more than one kind of computer at the
 same time, by placing the object files for each architecture in their
-own directory.  To do this, you must use a version of `make' that
-supports the `VPATH' variable, such as GNU `make'.  `cd' to the
+own directory.  To do this, you must use a version of 'make' that
+supports the 'VPATH' variable, such as GNU 'make'.  'cd' to the
 directory where you want the object files and executables to go and run
-the `configure' script.  `configure' automatically checks for the
-source code in the directory that `configure' is in and in `..'.
+the 'configure' script.  'configure' automatically checks for the
+source code in the directory that 'configure' is in and in '..'.
 
-   If you have to use a `make' that does not support the `VPATH'
+If you have to use a 'make' that does not support the 'VPATH'
 variable, you have to compile the package for one architecture at a
 time in the source code directory.  After you have installed the
-package for one architecture, use `make distclean' before reconfiguring
+package for one architecture, use 'make distclean' before reconfiguring
 for another architecture.
 
 Installation Names
-==================
+------------------
 
-   By default, `make install' will install the package's files in
-`/usr/local/bin', `/usr/local/man', etc.  You can specify an
-installation prefix other than `/usr/local' by giving `configure' the
-option `--prefix=PATH'.
+By default, 'make install' will install the package's files in
+'/usr/local/bin', '/usr/local/man', etc.  You can specify an
+installation prefix other than '/usr/local' by giving 'configure' the
+option '--prefix=PATH'.
 
-   You can specify separate installation prefixes for
+You can specify separate installation prefixes for
 architecture-specific files and architecture-independent files.  If you
-give `configure' the option `--exec-prefix=PATH', the package will use
+give 'configure' the option '--exec-prefix=PATH', the package will use
 PATH as the prefix for installing programs and libraries.
 Documentation and other data files will still use the regular prefix.
 
-   In addition, if you use an unusual directory layout you can give
-options like `--bindir=PATH' to specify different values for particular
-kinds of files.  Run `configure --help' for a list of the directories
+In addition, if you use an unusual directory layout you can give
+options like '--bindir=PATH' to specify different values for particular
+kinds of files.  Run 'configure --help' for a list of the directories
 you can set and what kinds of files go in them.
 
-   If the package supports it, you can cause programs to be installed
-with an extra prefix or suffix on their names by giving `configure' the
-option `--program-prefix=PREFIX' or `--program-suffix=SUFFIX'.
+If the package supports it, you can cause programs to be installed
+with an extra prefix or suffix on their names by giving 'configure' the
+option '--program-prefix=PREFIX' or '--program-suffix=SUFFIX'.
 
 Optional Features
-=================
+-----------------
 
-   Some packages pay attention to `--enable-FEATURE' options to
-`configure', where FEATURE indicates an optional part of the package.
-They may also pay attention to `--with-PACKAGE' options, where PACKAGE
-is something like `gnu-as' or `x' (for the X Window System).  The
-`README' should mention any `--enable-' and `--with-' options that the
+Some packages pay attention to '--enable-FEATURE' options to
+'configure', where FEATURE indicates an optional part of the package.
+They may also pay attention to '--with-PACKAGE' options, where PACKAGE
+is something like 'gnu-as' or 'x' (for the X Window System).  The
+'README' should mention any '--enable-' and '--with-' options that the
 package recognizes.
 
-   For packages that use the X Window System, `configure' can usually
+For packages that use the X Window System, 'configure' can usually
 find the X include and library files automatically, but if it doesn't,
-you can use the `configure' options `--x-includes=DIR' and
-`--x-libraries=DIR' to specify their locations.
+you can use the 'configure' options '--x-includes=DIR' and
+'--x-libraries=DIR' to specify their locations.
 
 Specifying the System Type
-==========================
+--------------------------
 
-   There may be some features `configure' cannot figure out
+There may be some features 'configure' cannot figure out
 automatically, but needs to determine by the type of machine the package
 will run on.  Usually, assuming the package is built to be run on the
-_same_ architectures, `configure' can figure that out, but if it prints
+_same_ architectures, 'configure' can figure that out, but if it prints
 a message saying it cannot guess the machine type, give it the
-`--build=TYPE' option.  TYPE can either be a short name for the system
-type, such as `sun4', or a canonical name which has the form:
-
+'--build=TYPE' option.  TYPE can either be a short name for the system
+type, such as 'sun4', or a canonical name which has the form:
+............................
      CPU-COMPANY-SYSTEM
-
+............................
 where SYSTEM can have one of these forms:
-
+............................
      OS KERNEL-OS
-
-   See the file `config.sub' for the possible values of each field.  If
-`config.sub' isn't included in this package, then this package doesn't
+............................
+See the file 'config.sub' for the possible values of each field.  If
+'config.sub' isn't included in this package, then this package doesn't
 need to know the machine type.
 
-   If you are _building_ compiler tools for cross-compiling, you should
-use the `--target=TYPE' option to select the type of system they will
+If you are _building_ compiler tools for cross-compiling, you should
+use the '--target=TYPE' option to select the type of system they will
 produce code for.
 
-   If you want to _use_ a cross compiler, that generates code for a
+If you want to _use_ a cross compiler, that generates code for a
 platform different from the build platform, you should specify the
 "host" platform (i.e., that on which the generated programs will
-eventually be run) with `--host=TYPE'.
+eventually be run) with '--host=TYPE'.
 
 Sharing Defaults
-================
+----------------
 
-   If you want to set default values for `configure' scripts to share,
-you can create a site shell script called `config.site' that gives
-default values for variables like `CC', `cache_file', and `prefix'.
-`configure' looks for `PREFIX/share/config.site' if it exists, then
-`PREFIX/etc/config.site' if it exists.  Or, you can set the
-`CONFIG_SITE' environment variable to the location of the site script.
-A warning: not all `configure' scripts look for a site script.
+If you want to set default values for 'configure' scripts to share,
+you can create a site shell script called 'config.site' that gives
+default values for variables like 'CC', 'cache_file', and 'prefix'.
+'configure' looks for 'PREFIX/share/config.site' if it exists, then
+'PREFIX/etc/config.site' if it exists.  Or, you can set the
+'CONFIG_SITE' environment variable to the location of the site script.
+A warning: not all 'configure' scripts look for a site script.
 
+[[X4]]
 Defining Variables
-==================
+------------------
 
-   Variables not defined in a site shell script can be set in the
-environment passed to `configure'.  However, some packages may run
+Variables not defined in a site shell script can be set in the
+environment passed to 'configure'.  However, some packages may run
 configure again during the build, and the customized values of these
 variables may be lost.  In order to avoid this problem, you should set
-them in the `configure' command line, using `VAR=value'.  For example:
+them in the 'configure' command line, using 'VAR=value'.  For example:
 
-     ./configure CC=/usr/local2/bin/gcc
+...................................
+./configure CC=/usr/local2/bin/gcc
+...................................
 
 will cause the specified gcc to be used as the C compiler (unless it is
 overridden in the site shell script).
 
-`configure' Invocation
-======================
+'configure' Invocation
+----------------------
 
-   `configure' recognizes the following options to control how it
+'configure' recognizes the following options to control how it
 operates.
 
-`--help'
-`-h'
-     Print a summary of the options to `configure', and exit.
+'--help'::
+'-h'::
+     Print a summary of the options to 'configure', and exit.
 
-`--version'
-`-V'
-     Print the version of Autoconf used to generate the `configure'
+'--version'::
+'-V'::
+     Print the version of Autoconf used to generate the 'configure'
      script, and exit.
 
-`--cache-file=FILE'
+'--cache-file=FILE'::
      Enable the cache: use and save the results of the tests in FILE,
-     traditionally `config.cache'.  FILE defaults to `/dev/null' to
+     traditionally 'config.cache'.  FILE defaults to '/dev/null' to
      disable caching.
 
-`--config-cache'
-`-C'
-     Alias for `--cache-file=config.cache'.
+'--config-cache'::
+'-C'::
+     Alias for '--cache-file=config.cache'.
 
-`--quiet'
-`--silent'
-`-q'
+'--quiet'::
+'--silent'::
+'-q'::
      Do not print messages saying which checks are being made.  To
-     suppress all normal output, redirect it to `/dev/null' (any error
+     suppress all normal output, redirect it to '/dev/null' (any error
      messages will still be shown).
 
-`--srcdir=DIR'
+'--srcdir=DIR'::
      Look for the package's source code in directory DIR.  Usually
-     `configure' can determine that directory automatically.
+     'configure' can determine that directory automatically.
 
-`configure' also accepts some other, not widely useful, options.  Run
-`configure --help' for more details.
+'configure' also accepts some other, not widely useful, options.  Run
+'configure --help' for more details.
 
