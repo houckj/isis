@@ -122,7 +122,7 @@ extern Fcn_f_Type FC_FUNC(xszhcu,XSZHCU);
 extern Fcn_f_Type FC_FUNC(xszabp,XSZABP);
 extern Fcn_f_Type FC_FUNC(xszphb,XSZPHB);
 extern Fcn_f_Type FC_FUNC(zxipcf,ZXIPCF);
-extern Fcn_f_Type FC_FUNC(xszcrd,XSZCRD);
+extern Fcn_f_Type FC_FUNC(xscred,XSCRED);
 extern Fcn_f_Type FC_FUNC(msldst,MSLDST);
 extern Fcn_f_Type FC_FUNC(ztbabs,ZTBABS);
 extern Fcn_f_Type FC_FUNC(xszvab,XSZVAB);

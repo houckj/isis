@@ -122,7 +122,7 @@
 {"zpcfabs", (fptr_type *) FC_FUNC(xszabp,XSZABP), "_xspec_mul_f_hook", NULL},
 {"zphabs", (fptr_type *) FC_FUNC(xszphb,XSZPHB), "_xspec_mul_f_hook", NULL},
 {"zxipcf", (fptr_type *) FC_FUNC(zxipcf,ZXIPCF), "_xspec_mul_f_hook", NULL},
-{"zredden", (fptr_type *) FC_FUNC(xszcrd,XSZCRD), "_xspec_mul_f_hook", NULL},
+{"zredden", (fptr_type *) FC_FUNC(xscred,XSCRED), "_xspec_mul_f_hook", NULL},
 {"zsmdust", (fptr_type *) FC_FUNC(msldst,MSLDST), "_xspec_mul_f_hook", NULL},
 {"zTBabs", (fptr_type *) FC_FUNC(ztbabs,ZTBABS), "_xspec_mul_f_hook", NULL},
 {"zvarabs", (fptr_type *) FC_FUNC(xszvab,XSZVAB), "_xspec_mul_f_hook", NULL},
