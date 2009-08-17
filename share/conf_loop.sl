@@ -79,9 +79,12 @@ private define try_conf (index, ctrl)
      save = qualifier_exists ("save"),
      fit_verbose = qualifier ("fit_verbose", -1);
 
-   variable prefix = qualifier ("prefix", "conf_loop"),
-     file_conf = prefix + ".conf",
-     file_parm = prefix + ".par";
+   variable prefix = qualifier ("prefix", "conf_loop");
+   variable c = (prefix[-1] == '/') ? "" : "_";
+
+   variable
+     file_conf = "${prefix}${c}conf"$,
+     file_parm = "${prefix}${c}par"$;
 
    if (save && not ctrl.serial)
      {
@@ -121,10 +124,10 @@ private define try_conf (index, ctrl)
              if (save)
                {
                   save_par (file_parm);
-                  () = fprintf (fp, "\n chi^2 =%11.4e,  DoF =%6i, time = %s \n \n",
+                  () = fprintf (fp, "\n chi^2 =%11.4e,  DoF =%6i, time = %s  (%s)\n \n",
                                 info.statistic,
                                 (info.num_bins-info.num_variable_params),
-                                time());
+                                time(), file_parm);
                   () = fflush (fp);
                }
           }
