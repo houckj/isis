@@ -886,7 +886,7 @@ define xspec_elabund () %{{{
    if (_NARGS == 0)
      usage ("X = xspec_elabund (\"element_name\")");
    variable elname = ();
-   _xs_get_element_solar_abundance (sprintf("%-2s", elname));
+   _xs_get_element_solar_abundance (elname);
 }
 
 %}}}
