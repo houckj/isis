@@ -4,6 +4,7 @@ Changes since 1.5.0 (released Aug 2009)
  2.  Updates for heasoft-6.7 release.
       - link in libxanlib to resolve udmget
       - re-run code generator to update spectral model interfaces
+ 3.  "-v" command-line argument should be order-independent
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
