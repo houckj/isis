@@ -106,6 +106,13 @@ Use_Xspec_12() {
      xsmodel_lib=""
   fi
 
+  # check for presence of libxanlib_* library (contains udmget, needed >= heasoft-6.7
+  xanlib_libname=`/bin/ls ${libdir}/libxanlib*.${ext}`
+  xanlib_lib=`basename $xanlib_libname | sed s/lib// | sed s/\.${ext}//`
+  if test x"${xanlib_lib}" != x ; then
+      xanlib_lib="-l${xanlib_lib}"
+  fi
+
   # look for CCfits library with embedded version number
   ccfits_libname=`/bin/ls ${libdir}/libCCfits*.${ext}`
   ccfits_lib=`basename $ccfits_libname | sed s/lib// | sed s/\.${ext}//`
@@ -115,7 +122,7 @@ Use_Xspec_12() {
   fi
 
   # xspec 12:
-  XS_LIBS="-L${libdir} -lXSFunctions -lXSUtil -lXS ${xsmodel_lib} ${ccfits_lib} ${cfitsiolib} -L${xspec_module_dir}/objs -lxstbl"
+  XS_LIBS="-L${libdir} -lXSFunctions -lXSUtil -lXS ${xsmodel_lib} ${ccfits_lib} ${cfitsiolib} ${xanlib_lib} -L${xspec_module_dir}/objs -lxstbl"
   # FIXME -- xspec12 doesn't (yet?) support the old table model interface
   #sed 's|\#define HAVE_XSPEC_TABLE_MODELS 1|\#undef HAVE_XSPEC_TABLE_MODELS|' ${dir}/config.h > ${dir}/.config.h
   #/bin/mv ${dir}/.config.h ${dir}/config.h
