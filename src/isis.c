@@ -517,12 +517,17 @@ static int initialize (int argc, char **argv) /*{{{*/
 
    /* check for verbose loading */
    if (((is_script == 0) || (script_name == NULL))
-       && (argc > 0)
-       && (0 == strcmp (argv[0], "-v")))
+       && (argc > 0))
      {
-        (void) SLang_load_file_verbose (1);
-        argc--;
-        argv++;
+        int i;
+        for (i = 0; i < argc; i++)
+          {
+             if (0 == strcmp (argv[i], "-v"))
+               {
+                  (void) SLang_load_file_verbose (1);
+                  break;
+               }
+          }
      }
 
    if ((argc > 0) && (0 == strcmp (argv[0], "--sldb")))
