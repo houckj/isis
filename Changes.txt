@@ -5,6 +5,7 @@ Changes since 1.5.0 (released Aug 2009)
       - link in libxanlib to resolve udmget
       - re-run code generator to update spectral model interfaces
  3.  "-v" command-line argument should be order-independent
+ 4.  On Macs, libxanlib is a static library (see #2)
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
