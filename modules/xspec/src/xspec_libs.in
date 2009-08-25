@@ -25,7 +25,7 @@ elif [ -f "${libdir}/libcfitsio.${ext}" ]; then
     cfitsiolib="cfitsio"
 else
     cfitsio_libname=`/bin/ls ${libdir}/libcfitsio*.${ext}`
-    cfitsiolib=`basename $cfitsio_libname | sed s/lib// | sed s/\.${ext}//`
+    cfitsiolib=`basename $cfitsio_libname | sed -e 's/lib//' | sed -e "s/\.${ext}//"`
 fi
 
 if test x"${cfitsiolib}" != x ; then
@@ -42,7 +42,7 @@ Use_Xspec_11() {
           pgplotlib="pgplot"
       else
           pgplot_libname=`/bin/ls ${libdir}/libpgplot*.${ext}`
-          pgplotlib=`basename $pgplot_libname | sed s/lib// | sed s/\.${ext}//`
+          pgplotlib=`basename $pgplot_libname | sed -e 's/lib//' | sed -e "s/\.${ext}//"`
       fi
 
       if test x"${pgplotlib}" != x ; then
@@ -51,11 +51,11 @@ Use_Xspec_11() {
 
       xspec_libname=`/bin/ls ${libdir}/libxspec_lfn_*.${ext} 2> /dev/null`
       if test "x$xspec_libname" != "x" ; then
-        version=`basename $xspec_libname | sed s/libxspec_lfn_// | sed s/.${ext}//`
+        version=`basename $xspec_libname | sed -e 's/libxspec_lfn_//' | sed -e "s/\.${ext}//"`
       else
          xspec_libname=`/bin/ls ${libdir}/libxspec_lfn_*.a 2> /dev/null`
          if test "x$xspec_libname" != "x" ; then
-            version=`basename $xspec_libname | sed s/libxspec_lfn_// | sed s/.a//`
+            version=`basename $xspec_libname | sed -e 's/libxspec_lfn_//' | sed -e 's/\.a//'`
          else
             echo ""
             exit 1
@@ -109,10 +109,10 @@ Use_Xspec_12() {
   # check for presence of libxanlib_* library (contains udmget, needed >= heasoft-6.7
   xanlib_libname=`/bin/ls ${libdir}/libxanlib*.${ext}`
   if test x"${xanlib_libname}" != x ; then
-     xanlib_lib=`basename ${xanlib_libname} | sed s/lib// | sed s/\.${ext}//`
+     xanlib_lib=`basename ${xanlib_libname} | sed -e 's/lib//' | sed -e "s/\.${ext}//"`
   else
      xanlib_libname=`/bin/ls ${libdir}/libxanlib*.a`
-     xanlib_lib=`basename ${xanlib_libname} | sed s/lib// | sed s'/\.a//'`
+     xanlib_lib=`basename ${xanlib_libname} | sed -e 's/lib//' | sed -e 's/\.a//'`
   fi
   if test x"${xanlib_lib}" != x ; then
       xanlib_lib="-l${xanlib_lib}"
@@ -120,7 +120,7 @@ Use_Xspec_12() {
 
   # look for CCfits library with embedded version number
   ccfits_libname=`/bin/ls ${libdir}/libCCfits*.${ext}`
-  ccfits_lib=`basename $ccfits_libname | sed s/lib// | sed s/\.${ext}//`
+  ccfits_lib=`basename $ccfits_libname | sed -e 's/lib//' | sed -e "s/\.${ext}//"`
 
   if test x"${ccfits_lib}" != x ; then
      ccfits_lib="-l${ccfits_lib}"
@@ -129,7 +129,7 @@ Use_Xspec_12() {
   # xspec 12:
   XS_LIBS="-L${libdir} -lXSFunctions -lXSUtil -lXS ${xsmodel_lib} ${ccfits_lib} ${cfitsiolib} ${xanlib_lib} -L${xspec_module_dir}/objs -lxstbl"
   # FIXME -- xspec12 doesn't (yet?) support the old table model interface
-  #sed 's|\#define HAVE_XSPEC_TABLE_MODELS 1|\#undef HAVE_XSPEC_TABLE_MODELS|' ${dir}/config.h > ${dir}/.config.h
+  #sed -e 's|\#define HAVE_XSPEC_TABLE_MODELS 1|\#undef HAVE_XSPEC_TABLE_MODELS|' ${dir}/config.h > ${dir}/.config.h
   #/bin/mv ${dir}/.config.h ${dir}/config.h
    case "$host_os" in
       *solaris* )
