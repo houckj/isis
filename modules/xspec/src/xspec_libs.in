@@ -108,7 +108,12 @@ Use_Xspec_12() {
 
   # check for presence of libxanlib_* library (contains udmget, needed >= heasoft-6.7
   xanlib_libname=`/bin/ls ${libdir}/libxanlib*.${ext}`
-  xanlib_lib=`basename $xanlib_libname | sed s/lib// | sed s/\.${ext}//`
+  if test x"${xanlib_libname}" != x ; then
+     xanlib_lib=`basename ${xanlib_libname} | sed s/lib// | sed s/\.${ext}//`
+  else
+     xanlib_libname=`/bin/ls ${libdir}/libxanlib*.a`
+     xanlib_lib=`basename ${xanlib_libname} | sed s/lib// | sed s'/\.a//'`
+  fi
   if test x"${xanlib_lib}" != x ; then
       xanlib_lib="-l${xanlib_lib}"
   fi
