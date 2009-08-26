@@ -6,6 +6,7 @@ Changes since 1.5.0 (released Aug 2009)
       - re-run code generator to update spectral model interfaces
  3.  "-v" command-line argument should be order-independent
  4.  On Macs, libxanlib is a static library (see #2)
+ 5.  -g option should set _traceback=1 in interactive mode.
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
