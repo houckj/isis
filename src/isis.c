@@ -432,6 +432,7 @@ static int initialize (int argc, char **argv) /*{{{*/
    int force_interactive = 0;
    int ran_main = 0;
    int use_profiler = 0;
+   int want_traceback = 0;
 
    pgm = argv[0];
    pgm_basename = SLpath_basename (pgm);
@@ -632,6 +633,7 @@ static int initialize (int argc, char **argv) /*{{{*/
           {
              argc--;
              argv++;
+             want_traceback = 1;
              SLang_Traceback = 1;
              continue;
           }
@@ -800,6 +802,11 @@ static int initialize (int argc, char **argv) /*{{{*/
                  ISIS_VERSION_STRING, Isis_Copyright);
         fflush(stdout);
      }
+
+   /* If traceback is non-zero, usage messages will
+    * generate traceback output */
+   if (want_traceback == 0)
+     SLang_Traceback = 0;
 
    if (-1 == open_readline (readline_namespace))
      exit_isis (1);

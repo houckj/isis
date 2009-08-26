@@ -1464,7 +1464,6 @@ static void clear_errors (void) /*{{{*/
 
 void interpreter_loop (void) /*{{{*/
 {
-   SLang_Traceback = 0;
    (void) SLdefine_for_ifdef ("__ISIS_PROMPT__");
    (void) SLang_run_hooks ("isis_interactive_hook", 0, NULL);
 
