@@ -457,6 +457,98 @@ chdir
     
 
 ------------------------------------------------------------------------
+debug
+
+ SYNOPSIS
+    Debugging in ISIS
+
+ USAGE
+    isis> help debug
+
+ DESCRIPTION
+    There are several ways ISIS users may debug or fine-tune the
+    performance of analysis sessions and scripts.  We summarize
+    them here, and refer the reader to the S-Lang user manual for
+    more details.
+
+    Interactive Debugging:
+
+    The sldb command will invoke the interactive S-Lang debugger
+    and change the prompt accordingly.  Type help sldb for more
+    information.
+
+    Function and Variable Tracing:
+
+    _traceback is an intrinsic integer variable whose bitmapped
+    value controls the generation of the call-stack traceback upon
+    error. When set to 0, no traceback will be generated.
+    Otherwise its value is the bitwise-or of the following
+    integers:
+
+           1        Create a full traceback
+           2        Omit local variable information
+           4        Generate just one line of traceback
+
+    In batch mode, the default value of this variable is 4; in
+    interactive mode, the default value is 0.
+
+    Apropos:
+
+    The apropos and _apropos functions may be used to find function
+    and/or variable definitions which match a given expression.
+    For more details consult the help content for each function.
+
+    Command Line Options:
+
+    Invoking isis on the command line with the --help option
+    displays several options which can assist debugging.  Among
+    these are:
+
+    --sldb [FILE]  Invoke S-Lang debugger, optionally on the given FILE
+
+    --sldb-isis    Invoke S-Lang debugger on isis internals
+
+    --prof [options] script args...
+
+                   Invoke S-Lang profiler, optionally on the given FILE
+                   The profiler can be helpful to increase the performance of
+                   your scripts by enabling one to see which functions are
+                   called most often and for how long.
+
+    -g             Include debugging information when byte-compiling scripts
+                   (this automatically sets _traceback to 1)
+
+    -v             Show verbose loading messages, which can be helpful to
+                   discern where scripts are being loaded from, especially
+                   if multiple copies of them exist on your system.
+
+
+ SEE ALSO
+    help, apropos, isis --help option
+
+------------------------------------------------------------------------
+sldb
+
+ SYNOPSIS
+    Initiate interactive debugging
+
+ USAGE
+    sldb
+
+ DESCRIPTION
+    This command will invoke the interactive S-Lang debugger and
+    change the prompt accordingly.  The sldb debugger is loosely
+    patterned after gdb and similar debuggers, and allows one to
+    set breakpoints, step through S-Lang statements line by line,
+    inspect or change variable values, and so forth. Type help sldb
+    at the ISIS prompt for more information, or help once sldb is
+    invoked, or consult the sldb chapter of the S-Lang user manual.
+
+
+ SEE ALSO
+    _traceback, help debug, isis --sldb and --help options
+
+------------------------------------------------------------------------
 fft
 
  SYNOPSIS

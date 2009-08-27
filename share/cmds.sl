@@ -267,11 +267,32 @@ init_help_file_list ();
 define help () %{{{
 {
    variable help_file, topic;
-   variable msg = "\nhelp (\"topic\");       Also try: apropos (\"string\");\n"
-                  + "   or .help topic                  or .apropos string\n";
+   variable msg =
+`Several sources of help are available:
+1. To get help on a particular topic, try one of the following:
+        help topic
+       .help topic
+        help ("topic");
+2. To find symbols containing a particular substring, try one of:
+        apropos substring
+       .apropos substring
+        apropos ("substring");
+3. Many functions provide a brief usage message when called with
+   no parameters.
+4. For help on isis command-line options, try:
+        > isis --help
+5. ISIS documentation is available at:
+         http://space.mit.edu/cxc/isis/docs.html
+   S-Lang documentation is available at:
+         http://www.jedsoft.org/slang/docs.html
+6. If none of these sources provides an answer to your question,
+   feel free to ask isis-users@space.mit.edu`;
 
-   if (_isis->chk_num_args (_NARGS, 1, msg))
-     return;
+   if (_NARGS != 1)
+     {
+        message (msg);
+        return;
+     }
 
    topic = ();
    topic = str_delete_chars (topic, ";");

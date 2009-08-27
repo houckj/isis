@@ -313,7 +313,8 @@ static void usage (char *pgm) /*{{{*/
    fprintf (stdout, "     --help         Display this message\n");
    fprintf (stdout, "     --sldb [FILE]  Invoke S-Lang debugger\n");
    fprintf (stdout, "     --sldb-isis    Invoke S-Lang debugger on isis internals\n");
-   fprintf (stdout, "     --prof [FILE]  Invoke S-Lang profiler on FILE\n");
+   fprintf (stdout, "     --prof [options] script args...\n");
+   fprintf (stdout, "                    Invoke S-Lang profiler\n");
    fprintf (stdout, "     --batch        Exit after loading FILE\n");
    fprintf (stdout, "     --script       Script mode\n");
    fprintf (stdout, "     --force-interactive   Prompt after loading FILE\n");
@@ -323,7 +324,7 @@ static void usage (char *pgm) /*{{{*/
    fprintf (stdout, "     --version      Show version\n");
    fprintf (stdout, "     -Dsymbol       Define 'symbol' for #ifdef\n");
    fprintf (stdout, "     -a             Prompt has anonymous namespace\n");
-   fprintf (stdout, "     -g             Compile with debugging info\n");
+   fprintf (stdout, "     -g             Set S-Lang _traceback=1\n");
    fprintf (stdout, "     -i FILE        Use alternative init FILE (.isisrc is default)\n");
    fprintf (stdout, "     -n             Do not load .isisrc file\n");
    fprintf (stdout, "     -t             If isis_main or slsh_main exists, do not execute it\n");
