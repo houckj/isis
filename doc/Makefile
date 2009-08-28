@@ -13,11 +13,13 @@ world:	$(DOC).tex install-doc
 	make clean
 	make ascii
 
+install_mod_date=`ls --time-style=+'%Y %b %d' -l ../INSTALL.txt | cut -d' ' -f6,7,8`
+
 install-doc:	../INSTALL.html ../INSTALL.xml ../INSTALL.pdf
 ../INSTALL.html:	../INSTALL.txt
-	asciidoc -a "localdate=`date +'%Y %b %d'`" ../INSTALL.txt
+	asciidoc -a "revdate=${install_mod_date}" ../INSTALL.txt
 ../INSTALL.xml:	../INSTALL.txt
-	asciidoc -b docbook ../INSTALL.txt
+	asciidoc -a "revdate=${install_mod_date}" -b docbook ../INSTALL.txt
 ../INSTALL.pdf:	../INSTALL.txt
 	dblatex -T simple ../INSTALL.xml
 

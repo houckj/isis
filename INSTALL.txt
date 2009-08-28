@@ -1,7 +1,7 @@
 ISIS Installation Guide
 =======================
 John C. Houck <houck&#64;space&#46;mit&#46;edu>
-{backend@xhtml11:Last updated\: {localdate}}
+{backend@xhtml11:Last updated\: {revdate}}
 
 For more information about isis, see: http://space.mit.edu/cxc/isis/
 
