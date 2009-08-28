@@ -1234,7 +1234,6 @@ static SLang_IConstant_Type Atom_Intrin_Const [] =
 
 static SLang_Intrin_Var_Type Atom_Intrin_Vars [] =
 {
-   MAKE_VARIABLE("ION_FORMAT", &DB_Ion_Format, SLANG_INT_TYPE, 0),
    MAKE_VARIABLE("Ion_Format", &DB_Ion_Format, SLANG_INT_TYPE, 0),
    SLANG_END_INTRIN_VAR_TABLE
 };

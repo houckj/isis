@@ -4482,7 +4482,6 @@ static void set_eval_grid_method (int *method, int *cache_model_values) /*{{{*/
 
 static SLang_Intrin_Var_Type Fit_Intrin_Vars [] =
 {
-   MAKE_VARIABLE("FIT_VERBOSE", &Fit_Verbose, I, 0),
    MAKE_VARIABLE("Fit_Verbose", &Fit_Verbose, I, 0),
    MAKE_VARIABLE("Fit_Statistic", &Fit_Statistic, S, 0),
    MAKE_VARIABLE("Fit_Method", &Fit_Method, S, 0),

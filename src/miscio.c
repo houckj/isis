@@ -607,7 +607,6 @@ static void print_array (void) /*{{{*/
 
 static SLang_Intrin_Var_Type Misc_Intrin_Vars [] =
 {
-   MAKE_VARIABLE("VERBOSE_FITSIO", &Cfits_Verbose, SLANG_INT_TYPE, 0),
    MAKE_VARIABLE("Verbose_Fitsio", &Cfits_Verbose, SLANG_INT_TYPE, 0),
    MAKE_VARIABLE("Remove_Spectrum_Gaps", &Isis_Remove_Spectrum_Gaps, SLANG_INT_TYPE, 0),
    SLANG_END_INTRIN_VAR_TABLE
