@@ -62,37 +62,30 @@ define start_log () %{{{
 
 private variable Isis_Namespace = _isis->Isis_Public_Namespace_Name;
 
-private define print_apropos_list (list, ns, fp) %{{{
+private define make_apropos_list (list, ns) %{{{
 {
-   variable i, n = length(list);
-
-   !if (n)
-     return -1;
-
-   if (-1 == fprintf (fp, "Found %d matches in namespace %S:\n", n, ns))
-     return -1;
+   variable n = length(list);
+   variable s = {};
 
    list = list[array_sort(list, &strcmp)];
 
-   i = 0;
+   variable i = 0;
    loop (n / 3)
      {
-        if (-1 == fprintf (fp, "%-26s %-26s %s\n", list[i], list[i+1], list[i+2]))
-          return -1;
+        list_append (s, sprintf ("%-26s %-26s %s\n", list[i], list[i+1], list[i+2]));
 	i += 3;
      }
    n = n mod 3;
    loop (n)
      {
-        if (-1 == fprintf (fp, "%-26s ", list[i]))
-          return -1;
+        list_append (s, sprintf ("%-26s ", list[i]));
 	i++;
      }
 
-   if (-1 == fprintf (fp, "\n"))
-     return -1;
+   if (i mod 3 != 0)
+     list_append (s, "\n");
 
-   return 0;
+   return s;
 }
 
 %}}}
@@ -111,12 +104,31 @@ define apropos () %{{{
 
    variable namespaces = [Isis_Namespace, current_namespace()];
 
-   variable lists, status;
-   lists = array_map (Array_Type, &_apropos, namespaces, what, 0x3);
+   variable masks = Assoc_Type[];
+   masks["function"] = 1|2;
+   masks["variable"] = 4|8;
 
-   variable len = array_map(Int_Type, &length, lists);
+   variable ns, type, list, len = 0,
+     s = {};
 
-   !if (any(len > 0))
+   foreach type (["function", "variable"])
+     {
+        foreach ns (namespaces)
+          {
+             list = _apropos (ns, what, masks[type]);
+             variable n = length(list);
+             if (n == 0)
+               continue;
+             len += n;
+             list_append (s, sprintf ("\nFound %d %s match%s in namespace %S:\n",
+                                      n, type,
+                                      n>1 ? "es" : "",
+                                      ns));
+             list_append (s, make_apropos_list (list, ns));
+          }
+     }
+
+   if (len == 0)
      {
         vmessage ("No matches");
         return;
@@ -130,7 +142,13 @@ define apropos () %{{{
           fp = popen (p, "w");
      }
 
-   () = array_map (Int_Type, &print_apropos_list, lists, namespaces, fp);
+   variable ss;
+   foreach ss (s)
+     {
+        if (typeof(ss) != String_Type)
+          ss = strjoin (list_to_array (ss), "");
+        () = fprintf (fp, "%s", ss);
+     }
 
    if (fp != stdout)
      () = pclose (fp);

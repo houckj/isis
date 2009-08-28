@@ -17,17 +17,25 @@
     For example:
 
     isis> apropos data
-    Found 29 matches:
-    all_data                   copy_data_keywords         delete_data
-    get_data                   get_data_backscale         get_data_counts
-    get_data_exposure          get_data_flux              get_data_info
+
+    Found 39 function matches in namespace Global:
+    __data_weights             __datatype                 __is_datatype_numeric
+    all_data                   combine_datasets           copy_data_keywords
+    delete_data                get_data                   get_data_backscale
+    get_data_counts            get_data_exposure          get_data_flux
+    get_data_info              get_dataset_metadata       get_rmf_data_grid
     group_data                 have_data                  list_data
-    load_data                  oplot_data                 oplot_data_counts
-    oplot_data_flux            plot_data                  plot_data_counts
-    plot_data_flux             put_data                   put_data_counts
-    put_data_flux              rebin_data                 rebin_dataset
-    set_data_backscale         set_data_color             set_data_exposure
-    set_data_info              unset_data_color
+    load_data                  load_dataset               match_dataset_grids
+    oplot_data                 oplot_data_counts          oplot_data_flux
+    plot_data                  plot_data_counts           plot_data_flux
+    put_data                   put_data_counts            put_data_flux
+    rebin_data                 rebin_dataset              set_data_backscale
+    set_data_color             set_data_exposure          set_data_info
+    set_dataset_metadata       uncombine_datasets         unset_data_color
+
+    Found 6 variable matches in namespace Global:
+    DataError                  DataType_Type              ENODATA
+    Isis_Active_Dataset        Isis_Data_Info_Type        _FITS_BAD_DATA_FILL
     isis>
 
 
@@ -333,18 +341,22 @@ apropos
 
     For example:
 
-    isis> apropos ("load");
-    Found 13 matches:
-    add_to_isis_load_path      autoload                   get_isis_load_path
-    load_alt_ioniz             load_arf                   load_conf
-    load_data                  load_fit_method            load_fit_statistic
-    load_kernel                load_model                 load_par
-    load_rmf
+    isis> apropos load
+
+    Found 23 function matches in namespace Global:
+    add_to_isis_load_path      append_to_isis_load_path   autoload
+    get_isis_load_path         get_slang_load_path        load_alt_ioniz
+    load_arf                   load_conf                  load_data
+    load_dataset               load_fit_method            load_fit_statistic
+    load_kernel                load_line_profile_function load_model
+    load_par                   load_rmf                   mt_load_model
+    prepend_to_isis_load_path  prepend_to_slang_load_path rline_load_history
+    set_isis_load_path         set_slang_load_path
     isis>
 
     Because all strings generate a match with the empty string (
     ""), this can be used to obtain a list of almost all available
-    ISIS intrinsic functions.
+    ISIS intrinsic functions and variables.
 
  SEE ALSO
     .apropos, help, who
