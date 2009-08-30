@@ -171,7 +171,8 @@ $(OBJDIR_XSPEC_TABLE_LIB): $(OBJDIR)
 	          exit 1; \
 	        fi; \
 	done
-	cd $(OBJDIR) ; $(AR_CR) $(XSPEC_TABLE_LIB) $(XSPEC_TABLE_OBJS)
+	cd $(OBJDIR) ; $(CC) -c $(ELF_CFLAGS) $(SRCDIR)/udmget.c
+	cd $(OBJDIR) ; $(AR_CR) $(XSPEC_TABLE_LIB) $(XSPEC_TABLE_OBJS) udmget.o
 	$(RANLIB) $(OBJDIR_XSPEC_TABLE_LIB)
 
 $(ELFDIR) :
