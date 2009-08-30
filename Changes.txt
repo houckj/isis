@@ -8,6 +8,8 @@ Changes since 1.5.0 (released Aug 2009)
  4.  On Macs, libxanlib is a static library (see #2)
  5.  -g option should set _traceback=1 in interactive mode.
  6.  apropos now lists variables as well as functions
+ 7.  xspec module: drop libxanlib link (see #2 and #4) and
+     provide udmget.c from ftools/xanlib/memory.
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
