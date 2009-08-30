@@ -74,8 +74,15 @@ if test ! -r "$headas_config_status" ; then
    exit 0
 fi
 
-headas_cc=`grep @CC@ $headas_config_status | cut -d, -f3`
-headas_fc=`grep @FC@ $headas_config_status | cut -d, -f3`
+# heasoft-6.7 introduced a new format for config.status
+symbol=`grep @CC@ $headas_config_status`
+if test "x$symbol" != "x" ; then
+   headas_cc=`grep @CC@ $headas_config_status | cut -d, -f3`
+   headas_fc=`grep @FC@ $headas_config_status | cut -d, -f3`
+else
+   headas_cc=`grep '"CC"' $headas_config_status | cut -d'"' -f4`
+   headas_fc=`grep '"FC"' $headas_config_status | cut -d'"' -f4`
+fi
 
 headas_cc_version=`$headas_cc -dumpversion 2>&1`
 if test $? -eq 0 ; then
