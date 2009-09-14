@@ -2820,7 +2820,7 @@ private define fit_search_handler (s, msg) %{{{
 private define iterate_func_ref (num, func_ref) %{{{
 {
    variable
-     dir = qualifier ("dir", NULL),
+     dir = qualifier ("dir", sprintf ("fit_search_%d", getpid())),
      save_all = qualifier_exists ("save_all"),
      seed = qualifier ("seed", _time);
 
