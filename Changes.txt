@@ -11,6 +11,7 @@ Changes since 1.5.0 (released Aug 2009)
  7.  xspec module: drop libxanlib link (see #2 and #4) and
      provide udmget.c from ftools/xanlib/memory.
  8.  Provide default directory for fit_search output.
+ 9.  added _num_statistic_evaluations intrinsic variable
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
