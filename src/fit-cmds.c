@@ -65,6 +65,7 @@ int Isis_Voigt_Is_Normalized = 1;
 /*{{{ internal globals */
 
 static int Isis_Active_Function_Id;
+static int Num_Statistic_Evaluations;
 
 static enum Mode_type
 {
@@ -2131,6 +2132,7 @@ static int compute_model (double *model, double *par_list, int npars_vary) /*{{{
         (void) map_datasets (&copy_hist_model_hook, &model);
      }
 
+   Num_Statistic_Evaluations++;
    if (model == model_end)
      return 0;
 
@@ -3810,6 +3812,8 @@ static void iterate_fit_fun (int optimize) /*{{{*/
    int num_bins = 0;
    int err = -1;
 
+   Num_Statistic_Evaluations = 0;
+
    if ((NULL != (fo = fit_object_open ()))
        && (0 == fit_object_config (fo, Param, optimize)))
      {
@@ -4500,6 +4504,7 @@ static SLang_Intrin_Var_Type Fit_Intrin_Vars [] =
     *         This is also the new default.  This global switch is
     *         a temporary hack to provide back-compatibility in isis-1
     */
+   MAKE_VARIABLE("_num_statistic_evaluations", &Num_Statistic_Evaluations, I, 0),
    SLANG_END_INTRIN_VAR_TABLE
 };
 

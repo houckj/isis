@@ -14782,6 +14782,14 @@ keyword in PHA file headers.
 \index{{\tt Ignore\_PHA\_Backfile\_Keywords}}\\
 {\tt Allow\_Multiple\_Arf\_Factors} & 0 & See \verb|assign_arf|.
 \index{{\tt Allow\_Multiple\_Arf\_Factors}} \\
+{\tt \_num\_statistic\_evaluations} & 0 & The number of
+fit-statistic evaluations performed
+during the most recent fit.  Note that if the fit method is
+parallelized, this count may represent only those statistic evaluations
+occurring in the current process (the ``master'' process).  Whether or not
+the count includes statistic evaluations in other (slave) processes
+depends on the implementation of the specific parallel fit
+method. \index{{\tt \_num\_statistic\_evaluations}} \\
 \hline
 \end{tabular}
 \vfill
