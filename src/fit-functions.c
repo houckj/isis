@@ -66,6 +66,7 @@ static int set_kernel_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
    if (def->default_max) p->max = def->default_max[p->fun_par];
    if (def->default_freeze) p->freeze = def->default_freeze[p->fun_par];
    if (def->default_value) p->value = def->default_value[p->fun_par];
+   if (def->default_step) p->step = def->default_step[p->fun_par];
    if (def->default_min || def->default_max) p->set_minmax = 1;
 
    return 0;
@@ -82,6 +83,7 @@ static int set_cfun_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
    if (ff->s.default_max) p->max = ff->s.default_max[p->fun_par];
    if (ff->s.default_freeze) p->freeze = ff->s.default_freeze[p->fun_par];
    if (ff->s.default_value) p->value = ff->s.default_value[p->fun_par];
+   if (ff->s.default_step) p->step = ff->s.default_step[p->fun_par];
    if (ff->s.default_min || ff->s.default_max) p->set_minmax = 1;
 
    return 0;
@@ -91,7 +93,7 @@ static int set_cfun_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
 
 static int set_slangfun_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
 {
-   int got_min, got_max;
+   int got_min, got_max, depth, num;
 
    got_min = got_max = 0;
 
@@ -99,14 +101,37 @@ static int set_slangfun_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
    if (ff->slangfun_param_default == NULL)
      return 0;
 
+   depth = SLstack_depth();
+
    SLang_start_arg_list ();
    SLang_push_integer (p->fun_par);
    isis_push_args (ff->slangfun_param_default_args);
    SLang_end_arg_list ();
 
-   /* returns (value, freeze, min, max) */
+   /* returns (value, freeze, min, max)
+    *      or (value, freeze, min, max, step) */
    if (-1 == SLexecute_function (ff->slangfun_param_default))
      return -1;
+
+   num = SLstack_depth() - depth;
+
+   if ((num != 4) && (num != 5))
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                    "While setting parameter defaults for %s, %d values were provided. Either 4 or 5 were expected",
+                    ff->name[0], num);
+        return -1;
+     }
+
+   if (num == 5)
+     {
+        if (SLANG_NULL_TYPE == SLang_peek_at_stack ())
+          SLdo_pop();
+        else
+          {
+             SLang_pop_double (&p->step);
+          }
+     }
 
    if (SLANG_NULL_TYPE == SLang_peek_at_stack ())
      SLdo_pop();
@@ -1151,6 +1176,7 @@ typedef struct
    SLang_Array_Type *value;
    SLang_Array_Type *min;
    SLang_Array_Type *max;
+   SLang_Array_Type *step;
    SLang_Array_Type *freeze;
    SLang_Array_Type *unit;
 }
@@ -1164,6 +1190,7 @@ static SLang_CStruct_Field_Type Fit_Fun_Info_Type_Layout [] =
    MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, min, "min", SLANG_ARRAY_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, max, "max", SLANG_ARRAY_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, freeze, "freeze", SLANG_ARRAY_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, step, "step", SLANG_ARRAY_TYPE, 0),
    SLANG_END_CSTRUCT_TABLE
 };
 
@@ -1187,6 +1214,7 @@ void Fit_get_fun_info (char *name) /*{{{*/
        || (NULL == (fi.min = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &num_pars, 1)))
        || (NULL == (fi.max = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &num_pars, 1)))
        || (NULL == (fi.freeze = SLang_create_array (SLANG_UINT_TYPE, 0, NULL, &num_pars, 1)))
+       || (NULL == (fi.step = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &num_pars, 1)))
       )
      {
         isis_throw_exception (Isis_Error);
@@ -1207,6 +1235,7 @@ void Fit_get_fun_info (char *name) /*{{{*/
         p.min = 0.0;
         p.max = 0.0;
         p.freeze = 0;
+        p.step = 0.0;
 
         unit = ff->unit[i];
 
@@ -1222,6 +1251,7 @@ void Fit_get_fun_info (char *name) /*{{{*/
             || (0 != SLang_set_array_element (fi.min, &i, &p.min))
             || (0 != SLang_set_array_element (fi.max, &i, &p.max))
             || (0 != SLang_set_array_element (fi.freeze, &i, &p.freeze))
+            || (0 != SLang_set_array_element (fi.step, &i, &p.step))
            )
           {
              isis_throw_exception (Isis_Error);

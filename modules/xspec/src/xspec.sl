@@ -49,13 +49,14 @@ use_namespace("_isis");
 
 static variable __Xspec_Symbol = Assoc_Type[];
 
-static define _lmodel_set_default (value, freeze_val, min, max) %{{{
+static define _lmodel_set_default (value, freeze_val, min, max, step) %{{{
 {
-   variable t = struct {value, freeze_val, min, max};
+   variable t = struct {value, freeze_val, min, max, step};
    t.value = value;
    t.freeze_val = freeze_val;
    t.min = min;
    t.max = max;
+   t.step = step;
    return t;
 }
 
@@ -97,18 +98,24 @@ private define create_param_defaults_array (m) %{{{
    eval(sprintf ("variable %s = Struct_Type[%d];",
 		name, m.num_pars));
 
-   variable s, freeze_state;
+   variable s, freeze_state, step;
    variable pi = m.par_info;
    variable indices = [0:m.num_pars-1];
 
    foreach (indices)
      {
 	variable k = ();
-	freeze_state = (eval(pi[7,k]) < 0);
+        step = typecast (eval(pi[7,k]), Double_Type);
+        if (step <= 0)
+          {
+             freeze_state = 1;
+             step = abs(step);
+          }
+        else freeze_state = 0;
 
-	s = sprintf ("%s[%d] = _isis->_lmodel_set_default(%s, %d, %s, %s);",
+	s = sprintf ("%s[%d] = _isis->_lmodel_set_default(%s, %d, %s, %s, %e);",
 		     name, k,
-		     pi[2,k], freeze_state, pi[4,k], pi[5,k]);
+		     pi[2,k], freeze_state, pi[4,k], pi[5,k], step);
 	eval(s);
      }
 
@@ -185,7 +192,7 @@ private define create_wrapper (m) %{{{
 
    variable pdef_array_name = create_param_defaults_array (m);
    variable pdef;
-   pdef = sprintf ("define %s_default(i){variable d=%s[i];return (d.value, d.freeze_val, d.min, d.max);}",
+   pdef = sprintf ("define %s_default(i){variable d=%s[i];return (d.value, d.freeze_val, d.min, d.max, d.step);}",
 		   m.model_name, pdef_array_name);
 
    variable psetdef;

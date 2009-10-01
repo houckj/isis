@@ -184,25 +184,25 @@ static void print_status (int status, int nfe) /*{{{*/
 static void set_initial_stepsizes (Isis_Fit_Engine_Type *e, /*{{{*/
                                   double *pars, unsigned int npars)
 {
+   double *step = e->par_step;
    unsigned int i;
 
    for (i = 0; i < npars; i++)
      {
-        double s, a = fabs (pars[i]);
-#if 0
-        double d1, d2;
-        d1 = e->par_max[i] - pars[i];
-        d2 = pars[i] - e->par_min[i];
+        double scale;
 
-        if (d2 < d1) s = d2;
-        else if (d1 < DBL_MAX) s = d1;
+        if (step[i] > 0)
+          {
+             scale = step[i];
+          }
         else
-#endif
-        if (a > 100.0 * DBL_EPSILON)
-           s = a;
-        else s = 1.0;
+          {
+             double a = fabs (pars[i]);
+             double s = (a > 100.0 * DBL_EPSILON) ? a : 1.0;
+             scale = s * e->scale_factor;
+          }
 
-        e->scale[i] = s * e->scale_factor;
+        e->scale[i] = scale;
      }
 }
 

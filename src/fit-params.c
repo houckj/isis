@@ -863,6 +863,7 @@ static int pack (Param_Info_t *p, void *cl) /*{{{*/
         par->par[n] = p->value;
         par->par_min[n] = p->min;
         par->par_max[n] = p->max;
+        par->step[n] = p->step;
         par->idx[n] = p->idx;
 
         par->npars++;

@@ -317,7 +317,7 @@ void isis_fit_free_fit_statistic (Isis_Fit_Statistic_Type *s) /*{{{*/
    if (s->sl_report != NULL)
      SLang_free_function (s->sl_report);
 
-   ISIS_FREE (s->symbol);   
+   ISIS_FREE (s->symbol);
    ISIS_FREE (s);
 }
 
@@ -647,7 +647,7 @@ Isis_Fit_Type *isis_fit_open_fit (char *name, char *sname, Isis_Fit_Fun_Type *fu
 void isis_fit_close_fit (Isis_Fit_Type *f) /*{{{*/
 {
    Isis_Fit_Statistic_Type *s;
-   
+
    Isis_Fit_In_Progress = 0;
    if (f == NULL)
      return;
@@ -749,6 +749,16 @@ int isis_fit_set_ranges (Isis_Fit_Type *f, double *par_min, double *par_max) /*{
      return -1;
    f->engine->par_min = par_min;
    f->engine->par_max = par_max;
+   return 0;
+}
+
+/*}}}*/
+
+int isis_fit_set_param_step (Isis_Fit_Type *f, double *step) /*{{{*/
+{
+   if ((f == NULL) || (step == NULL))
+     return -1;
+   f->engine->par_step = step;
    return 0;
 }
 

@@ -486,7 +486,7 @@ typedef struct
    char *tie;
    char *units;
    int idx, freeze, is_a_norm;
-   double min, max, value;
+   double min, max, value, step;
    int malloced_fun_str;
 }
 _Param_Info_Type;
@@ -498,6 +498,7 @@ static SLang_CStruct_Field_Type _Param_Info_Type_Layout [] =
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, value, "value", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, min, "min", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, max, "max", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (_Param_Info_Type, step, "step", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, freeze, "freeze", SLANG_INT_TYPE, 0),
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, tie, "tie", SLANG_STRING_TYPE, 0),
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, units, "units", SLANG_STRING_TYPE, 0),
@@ -559,6 +560,7 @@ static int _copy_param_info (_Param_Info_Type *pi, unsigned int idx) /*{{{*/
    pi->max = p->max;
    pi->freeze = p->freeze;
    pi->is_a_norm = p->is_a_norm;
+   pi->step = p->step;
 
    if (p->tie_param_name)
      {
@@ -647,7 +649,7 @@ static int run_set_par_hook (char *hook_name, _Param_Info_Type *pi) /*{{{*/
 
 static int set_par (unsigned int idx, int p_tie, int p_freeze, /*{{{*/
                     double p_value, double p_min, double p_max,
-                    int update_minmax)
+                    int update_minmax, double p_step)
 {
    static char hook_name[] = "isis_set_par_hook";
    char tie_name[OUT_PARAM_NAME_SIZE];
@@ -666,6 +668,9 @@ static int set_par (unsigned int idx, int p_tie, int p_freeze, /*{{{*/
    pi.idx = idx;
    pi.value = p_value;
    pi.freeze = p_freeze;
+
+   if (p_step >= 0.0)
+     pi.step = p_step;
 
    if (update_minmax)
      {
@@ -703,11 +708,25 @@ static int set_par (unsigned int idx, int p_tie, int p_freeze, /*{{{*/
 }
 /*}}}*/
 
-static void set_params (int *idx, int *p_tie, int *p_freeze, /*{{{*/
-                        double *p_value, double *p_min, double *p_max,
-                        int *update_minmax)
+static void set_params (void)
 {
-   if (set_par (*idx, *p_tie, *p_freeze, *p_value, *p_min, *p_max, *update_minmax))
+   int idx, p_tie, p_freeze, update_minmax;
+   double p_value, p_min, p_max, p_step;
+
+   /* (idx, tie, freeze, value, min, max, update_minmax, step) */
+
+   SLang_pop_double (&p_step);
+   SLang_pop_integer (&update_minmax);
+
+   SLang_pop_double (&p_max);
+   SLang_pop_double (&p_min);
+   SLang_pop_double (&p_value);
+
+   SLang_pop_integer (&p_freeze);
+   SLang_pop_integer (&p_tie);
+   SLang_pop_integer (&idx);
+
+   if (set_par (idx, p_tie, p_freeze, p_value, p_min, p_max, update_minmax, p_step))
      isis_throw_exception (Isis_Error);
 }
 
@@ -867,7 +886,8 @@ static int parse_param_info (char *line, int line_num, char *fname, unsigned int
 
    *idx = p->idx;
 
-   return set_par (*idx, p_tie, p_freeze, p_value, p_min, p_max, 1);
+   /* Currently no support for setting param step from parameter file. */
+   return set_par (*idx, p_tie, p_freeze, p_value, p_min, p_max, 1, -1.0);
 }
 
 /*}}}*/
@@ -3207,6 +3227,7 @@ int fit_object_config (Fit_Object_Type *fo, Param_t *pt, int unpack_variable) /*
 
    isis_fit_set_verbose_level (fo->ft, info->verbose);
    isis_fit_set_ranges (fo->ft, info->par->par_min, info->par->par_max);
+   isis_fit_set_param_step (fo->ft, info->par->step);
 
    return 0;
 }
@@ -3609,18 +3630,19 @@ Fit_Param_t *new_fit_param_type (unsigned int num) /*{{{*/
      return NULL;
    memset ((char *)p, 0, sizeof (*p));
 
-   p->par = (double *) ISIS_MALLOC (num*3 * sizeof(double));
+   p->par = (double *) ISIS_MALLOC (num*4 * sizeof(double));
    p->idx = (int *) ISIS_MALLOC (num * sizeof(int));
    if ((p->par == NULL) || (p->idx == NULL))
      {
         free_fit_param_type (p);
         p = NULL;
      }
-   memset ((char *) p->par, 0, 3*num * sizeof(double));
+   memset ((char *) p->par, 0, 4*num * sizeof(double));
    memset ((char *) p->idx, 0, num * sizeof(int));
 
    p->par_min = p->par + num;
    p->par_max = p->par + num*2;
+   p->step   = p->par + num*3;
    p->npars = 0;
 
    return p;
@@ -4536,7 +4558,7 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
    MAKE_INTRINSIC_2("_set_fit_fun", define_user_model, V, I, S),
    MAKE_INTRINSIC_1("_load_par", load_params, I, S),
    MAKE_INTRINSIC_1("_edit_par", edit_params, V, S),
-   MAKE_INTRINSIC_7("_set_par", set_params, V, I, I, I, D, D, D, I),
+   MAKE_INTRINSIC("_set_par", set_params, V, 0),
    MAKE_INTRINSIC_I("_get_par", _get_par, V),
    MAKE_INTRINSIC_2("_set_par_fun", _set_par_fun, V, I, S),
    MAKE_INTRINSIC_I("_get_par_fun", _get_par_fun, V),

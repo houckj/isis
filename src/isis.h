@@ -258,6 +258,7 @@ struct Isis_Kernel_Def_t
    double *default_min;
    double *default_max;
    double *default_value;
+   double *default_step;
    unsigned int *default_freeze;
 
 #ifdef ISIS_SRC
@@ -268,7 +269,7 @@ struct Isis_Kernel_Def_t
 #endif
 };
 
-#define ISIS_NULL_KERNEL_DEF {0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+#define ISIS_NULL_KERNEL_DEF {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 
 struct Isis_Kernel_t
 {
@@ -390,6 +391,7 @@ typedef struct
    double *default_min;
    double *default_max;
    double *default_value;
+   double *default_step;
    unsigned int *default_freeze;
    unsigned int num_parameters;
    unsigned int category;          /* addmul, operator, etc. */
@@ -512,6 +514,7 @@ struct Isis_Fit_Engine_Type
    char *default_statistic_name;
    double *par_min;
    double *par_max;
+   double *par_step;
 
    int (*set_options) (Isis_Fit_Engine_Type *, Isis_Option_Type *);
    int (*set_range_hook) (Isis_Fit_Engine_Type *, Isis_Fit_Range_Hook_Type *);

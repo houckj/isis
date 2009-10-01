@@ -661,15 +661,16 @@ define set_par_fun () %{{{
 define set_par() %{{{
 {
    _isis->error_if_fit_in_progress (_function_name);
-   variable msg = "set_par (idx, value [,freeze, [ min, max]])";
+   variable msg = "set_par (idx, value [,freeze, [ min, max [, step]]])";
    variable idx, freeze, value, update_minmax;
-   variable par_min, par_max, preserve_tie;
+   variable par_min, par_max, preserve_tie, step;
 
    freeze = -1;        % default means dont change current setting
    preserve_tie = -1;  % default means dont change current setting
    update_minmax = 0;
    par_min = 0;
    par_max = 0;
+   step = -1.0;       % default means don't change current setting
 
    switch (_NARGS)
      {
@@ -683,6 +684,11 @@ define set_par() %{{{
      {
       case 5:
 	(idx, value, freeze, par_min, par_max) = ();
+	update_minmax = 1;
+     }
+     {
+      case 6:
+	(idx, value, freeze, par_min, par_max, step) = ();
 	update_minmax = 1;
      }
      {
@@ -722,13 +728,13 @@ define set_par() %{{{
        {value == NULL})
      {
 	set_par_fun (id, value);
-	_isis->_set_par (id, preserve_tie, freeze, get_par(id), par_min, par_max, update_minmax);
+	_isis->_set_par (id, preserve_tie, freeze, get_par(id), par_min, par_max, update_minmax, step);
      }
    else
      {
 	array_map (Void_Type, &_isis->_set_par, id, preserve_tie,
 		   freeze, value, par_min, par_max,
-		   update_minmax);
+		   update_minmax, step);
      }
 }
 
@@ -2054,7 +2060,7 @@ define set_params () %{{{
      {
 	p = ();
 	set_par_fun (p.index, p.fun);
-	set_par (p.index, p.value, p.freeze, p.min, p.max);
+	set_par (p.index, p.value, p.freeze, p.min, p.max, p.step);
      }
 }
 

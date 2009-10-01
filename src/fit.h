@@ -64,6 +64,7 @@ struct _Fit_Param_t
    double *par;
    double *par_min;
    double *par_max;
+   double *step;
    int *idx;
    int npars;
 };
@@ -102,6 +103,7 @@ struct _Param_Info_t
 {
    double value;
    double min, max;              /* max allowed range */
+   double step;                 /* suggested parameter step */
 
    char *fun_str;
    SLang_Name_Type *fun_ptr;     /* param may be a function of other params */
@@ -294,6 +296,7 @@ extern void set_slopt_fit_object (SLang_MMT_Type *mmt);
 extern int is_slang_optimizer (Isis_Fit_Type *f);
 
 extern int isis_fit_set_ranges (Isis_Fit_Type *f, double *par_min, double *par_max);
+extern int isis_fit_set_param_step (Isis_Fit_Type *f, double *step);
 extern int isis_fit_set_warn_hook (Isis_Fit_Type *f, Isis_Fit_Warning_Hook_Type *v);
 extern int isis_fit_set_verbose_hook (Isis_Fit_Type *f, Isis_Fit_Verbose_Hook_Type *v);
 extern int isis_fit_set_range_hook (Isis_Fit_Type *f, Isis_Fit_Range_Hook_Type *r);
