@@ -12,6 +12,8 @@ Changes since 1.5.0 (released Aug 2009)
      provide udmget.c from ftools/xanlib/memory.
  8.  Provide default directory for fit_search output.
  9.  added _num_statistic_evaluations intrinsic variable
+10.  Added support for specifying initial parameter step size.
+     See set_par, get_par_info, get_fun_info, set_param_default_hook
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
