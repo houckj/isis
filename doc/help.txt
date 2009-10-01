@@ -10589,6 +10589,7 @@ get_par_info
         value = 16.0269
         min = 15.95
         max = 16.03
+        step = 0.01
         freeze = 1
         tie = 0
         fun = NULL
@@ -12191,13 +12192,14 @@ set_par
     set the value of a fit parameter
 
  USAGE
-    set_par (idx, value [,freeze, [ min, max]])
+    set_par (idx, value [,freeze, [ min, max [,step]]])
 
  DESCRIPTION
           idx    parameter index or string identifier
         value    parameter value
        freeze    [optional] 1(0) if parameter is(is not) frozen
      min, max    [optional] allowed range for parameter value
+         step    [optional] initial parameter step size
 
     If allowed ranges are not specified by the user or if min=
     max=0, the parameter value range is unlimited; this is the
@@ -12292,6 +12294,9 @@ set_par
        return p;
     }
 
+    Depending on which optimization algorithm is used, the initial
+    parameter step value may or may not be used.  Values step<=0
+    indicate that no initial step size information is available.
 
 
  SEE ALSO
@@ -12316,13 +12321,17 @@ set_param_default_hook
     where the first parameter is the zero-based array index and
     args is an optional list of user-defined arguments. The
     optional arguments are specified when the hook function is
-    defined. The function must return four values,
+    defined. The function must return at least four values,
 
            return (value, freeze, min, max);
 
     providing defaults for (value, freeze, min, max), in that
     order. Note that the parameter range may be specified as NULL
-    to indicate that the corresponding range is unlimited.
+    to indicate that the corresponding range is unlimited.  An
+    optional fifth value may be returned to suggest an initial step
+    size for each parameter:
+
+           return (value, freeze, min, max, step);
 
     To specify the hook function to be used with a given
     fit-function, provide either a reference to the hook function

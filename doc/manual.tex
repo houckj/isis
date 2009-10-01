@@ -11821,6 +11821,7 @@ isis> print(s);
     value = 16.0269
     min = 15.95
     max = 16.03
+    step = 0.01
     freeze = 1
     tie = 0
     fun = NULL
@@ -13193,13 +13194,14 @@ Example:
 \begin{isisfunction}
 {set\_par} %name
 {set the value of a fit parameter} %purpose
-{set\_par (idx, value [,freeze, [ min, max]])} %usage
+{set\_par (idx, value [,freeze, [ min, max [,step]]])} %usage
 {edit\_par, load\_par, get\_par, set\_par\_fun, set\_param\_expansion\_method}
 \begin{verbatim}
       idx    parameter index or string identifier
     value    parameter value
    freeze    [optional] 1(0) if parameter is(is not) frozen
  min, max    [optional] allowed range for parameter value
+     step    [optional] initial parameter step size
 \end{verbatim}
 
 If allowed ranges are not specified by the user or if
@@ -13301,6 +13303,11 @@ public define isis_set_par_hook (p)
 }
 \end{verbatim}
 
+Depending on which optimization algorithm is used, the initial
+parameter step value may or may not be used.  Values
+\verb|step<=0| indicate that no initial step size information
+is available.
+
 \end{isisfunction}
 
 \begin{isisfunction}
@@ -13318,14 +13325,19 @@ The hook function should be a \slang\ function of the form
 where the first parameter is the zero-based array index and
 \verb|args| is an optional list of user-defined arguments. The
 optional arguments are specified when the hook function is
-defined. The function must return four values,
+defined. The function must return at least four values,
 \begin{verbatim}
        return (value, freeze, min, max);
 \end{verbatim}
 providing defaults for (\verb|value|, \verb|freeze|,
 \verb|min|, \verb|max|), in that order. Note that the parameter
 range may be specified as \verb|NULL| to indicate that the
-corresponding range is unlimited.
+corresponding range is unlimited.  An optional fifth value
+may be returned to suggest an initial step size for each
+parameter:
+\begin{verbatim}
+       return (value, freeze, min, max, step);
+\end{verbatim}
 
 To specify the hook function to be used with a given fit-function,
 provide either a reference to the hook function (a \slang\
