@@ -11594,16 +11594,16 @@ plot_conf
     [o]plot_conf (Struct_Type[, line[, dchisqr_array]])
 
  DESCRIPTION
-    By default, this function plots 1-sigma (68.3%), 2-sigma (90%)
-    and 3-sigma (99%) chi-square confidence contours for 2 degrees
-    of freedom.  To plot different contours, supply their
-    delta-chisqr values using the optional array argument. The
-    first argument is the return value of conf_map_counts or
-    conf_map_flux. If not otherwise specified, the axis limits of
-    these confidence contour plots are determined by the
-    Struct_Type arguments used to generate the confidence map. The
-    current implementation does not support plotting sub-regions of
-    confidence maps.
+    By default, this function plots contours at delta chi^2= 2.30,
+    4.61 and 9.21, corresponding to 1-sigma (68.3% confidence), 90%
+    confidence, and 3-sigma (99% confidence) respectively.  To plot
+    different contours, supply their delta-chisqr values using the
+    optional array argument. The first argument is the return value
+    of conf_map_counts or conf_map_flux. If not otherwise
+    specified, the axis limits of these confidence contour plots
+    are determined by the Struct_Type arguments used to generate
+    the confidence map. The current implementation does not support
+    plotting sub-regions of confidence maps.
 
     The first optional argument is a structure which specifies the
     line style and has the form
