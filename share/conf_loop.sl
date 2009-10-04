@@ -389,6 +389,7 @@ public define conf_loop()
              ordered_indices = ordered_indices,
              num_retries = num_retries,
              max_num_retries = max_num_retries,
+             max_param_retries = ctrl.max_param_retries,
              pmin_final = pmin_final,
              pmax_final = pmax_final,
              best_stat = info.statistic,
