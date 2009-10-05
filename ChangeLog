@@ -1,3 +1,11 @@
+2009-10-5  John E. Davis  <davis@space.mit.edu>
+
+	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.4.6
+
+	* src/cfitsio-module.c (insert_rows): Bug fix to allow rows to
+	  be inserted into an empty table (Manfred Hanke, Christian Schmid)
+
+
 2009-3-6  John E. Davis  <davis@space.mit.edu>
 
 	* src/fits.sl (reshape_string_array): new function to reshape
