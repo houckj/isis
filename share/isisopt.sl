@@ -60,6 +60,7 @@ private variable Powell_Qualifiers = struct
 private define set_powell_options (options)
 {
    handle_options (options, "powell", Powell_Qualifiers);
+   return 0;
 }
 private define powellfit (mmt, p, pmin, pmax)
 {
@@ -81,12 +82,13 @@ private variable Simplex_Qualifiers = struct
    reldiff = 1e-4,
    absdiff = 1e-8,
    maxnfe = 1000,
-   reflect=1, contract=0.5, stretch=0.5, scale=0.1,
+   reflect=1, contract=0.5, stretch=2.0, shrink=0.5, scale=0.1,
 };
 
 private define set_simplex_options (options)
 {
    handle_options (options, "simplex", Simplex_Qualifiers);
+   return 0;
 }
 private define simplexfit (mmt, p, pmin, pmax)
 {
@@ -118,6 +120,7 @@ private variable Diffevol_Qualifiers = struct
 private define set_diffevol_options (options)
 {
    handle_options (options, "diffevol", Diffevol_Qualifiers);
+   return 0;
 }
 private define diffevolfit (mmt, p, pmin, pmax)
 {
