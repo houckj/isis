@@ -10831,6 +10831,23 @@ directory.
 \end{isisfunction}
 
 \begin{isisfunction}
+{diffevol} %name
+{Differential Evolution optimization algorithm} %purpose
+{set\_fit\_method ("diffevol")} %usage
+{optimization, set\_fit\_method}
+
+Differential Evolution is a very simple population based,
+stochastic function minimizer.  For details, see
+\verb|http://www.icsi.berkeley.edu/~storn/code.html|.
+
+For help, use:
+\begin{verbatim}
+set_fit_method ("diffevol;help");
+\end{verbatim}
+
+\end{isisfunction}
+
+\begin{isisfunction}
 {egauss} %name
 {Gaussian line profile function [energy grid]} %purpose
 {egauss(id)} %usage
@@ -11083,24 +11100,17 @@ even if those wavelength ranges correspond to regions of the data
 that are currently being ignored for purposes of finding the best
 fitting model.
 
-Several minimization algorithms are available: {\tt lmdif} and
-{\tt marquardt} are Levenberg-Marquardt algorithms with
-numerical derivatives; {\tt simann} is a simulated annealing
-method; {\tt subplex} is a variant of the Nelder-Mead simplex
-algorithm. The latter two approaches may require more function
-evaluations to find the minimum, but may be less likely to
-become stuck in a local minimum.
-
-Either can be used to search for the best-fit model parameters.
-Aside from cases where the fit-function evaluation itself might
-fail, it is possible for the fitting algorithm to fail either
-because a minimum fit-statistic was not found within a reasonable
-number of iterations (see Bevington \& Robinson (1992) for more
-details).  If the fit algorithm fails, make sure that the initial
-parameter values are reasonably close to a good fit and that the
-current parameter values haven't run into the specified
-upper/lower range limits. Then, try repeating the fit with fewer
-variable parameters (see {\tt freeze}, {\tt thaw}). See also {\tt
+Several minimization algorithms are available -- see {\tt
+optimization}. Aside from cases where the fit-function
+evaluation itself might fail, it is possible for the fitting
+algorithm to fail either because a minimum fit-statistic was
+not found within a reasonable number of iterations (see
+Bevington \& Robinson (1992) for more details).  If the fit
+algorithm fails, make sure that the initial parameter values
+are reasonably close to a good fit and that the current
+parameter values haven't run into the specified upper/lower
+range limits. Then, try repeating the fit with fewer variable
+parameters (see {\tt freeze}, {\tt thaw}). See also {\tt
 Fit\_Verbose}.
 
 When the S-Lang function \verb|isis_prefit_hook| is defined in
@@ -12076,7 +12086,7 @@ overwritten by \verb|save_par|.
 {lmdif} %name
 {Variant of Levenberg-Marquardt minimization algorithm} %purpose
 {set\_fit\_method ("lmdif")} %usage
-{plm, marquardt, simann, subplex, set\_fit\_method}
+{optimization, set\_fit\_method}
 
 The \verb|lmdif| Levenberg-Marquardt algorithm is the default
 minimization algorithm used in fitting models to data.  This
@@ -12208,7 +12218,7 @@ at $x_0$ with full-width at half-maximum $\Gamma$.
 {marquardt} %name
 {Levenberg-Marquardt minimization algorithm} %purpose
 {set\_fit\_method ("marquardt")} %usage
-{plm, lmdif, simann, subplex, set\_fit\_method}
+{optimization, set\_fit\_method}
 
 This is an alternate implementation of the Levenberg-Marquardt
 algorithm.  This algorithm was derived under the assumption
@@ -12233,10 +12243,48 @@ To see a list of optional parameters, use
 \end{isisfunction}
 
 \begin{isisfunction}
+{optimization} %name
+{Optimization methods provided with isis} %purpose
+{-} %usage
+{set\_fit\_method, list\_fit\_methods}
+
+Isis provides a number of optimization methods. Note that the
+methods have different strengths and weaknesses and are by no
+means equivalent.  In the general case, multidimensional
+nonlinear optimization problems are extremely challenging.
+Because no single method works well on every problem, it is
+often necessary to take care in choosing which optimization
+method to use for a given problem.
+
+When the problem of interest is well behaved in the sense that
+the statistic is a smoothly varying function of a small number
+of uncorrelated parameters and has a unique minimum whose
+location can be guessed with reasonable accuracy, then a local
+optimization method such as Levenberg-Marquardt is most likely
+to perform well, in the sense of accurately locating the
+minimum after a relatively small number of model evaluations
+(see \verb|lmdif|, \verb|marquardt|, \verb|plm|).  The Powell
+method may also work well in such cases (see \verb|powell|).
+
+For less ideal problems, the simplex method (see
+\verb|simplex|, \verb|subplex|) or Powell method (see
+\verb|powell|) may be more effective, although significantly
+more model evaluations may be required.
+
+For the most difficult problems, a global method such as
+differential evolution (\verb|diffevol|) or simulated annealing
+(\verb|simann|) may yield useful results while the other
+methods might make little or no progress.  However, the large
+number of model evaluations required by these methods makes
+them very CPU intensive.
+
+\end{isisfunction}
+
+\begin{isisfunction}
 {plm} %name
 {Parallel Levenberg-Marquardt optimization method} %purpose
 {set\_fit\_method ("plm")} %usage
-{marquardt, lmdif, simann, subplex, set\_fit\_method, multicore}
+{optimization, set\_fit\_method, multicore}
 
 This is a parallelized version of the Levenberg-Marquardt
 optimization method. The basic algorithm was derived under the
@@ -12274,7 +12322,7 @@ To see a list of optional parameters, use
 {simann} %name
 {Variant of Simulated Annealing minimization algorithm} %purpose
 {set\_fit\_method ("simann")} %usage
-{subplex, plm, lmdif, marquardt, set\_fit\_method}
+{optimization, set\_fit\_method}
 
 To see a list of optional parameters, use
 \begin{verbatim}
@@ -12640,6 +12688,27 @@ function can also serve as both a linear function and a constant.
 \end{isisfunction}
 
 \begin{isisfunction}
+{powell} %name
+{Powell minimization algorithm} %purpose
+{set\_fit\_method ("powell")} %usage
+{optimization, set\_fit\_method, set\_fit\_constraint}
+
+The powell algorithm is an implementation of Powell's direction
+set method described in the paper: ``An efficient method for
+finding the minimum of a function of several variables without
+calculating derivatives'', The Computer Journal 1964.  This
+implementation also makes use of modifications suggested by
+W.I. Zangwill, ``Minimizing a function without derivatives'',
+Computer Journal 1967
+
+For help, use:
+\begin{verbatim}
+set_fit_method ("powell;help");
+\end{verbatim}
+
+\end{isisfunction}
+
+\begin{isisfunction}
 {Powerlaw} %name
 {power-law fit function} %purpose
 {Powerlaw (id)} %usage
@@ -12980,10 +13049,11 @@ To remove the fit-constraint use
 {set\_fit\_method} %name
 {select a fit-method} %purpose
 {set\_fit\_method ("name[;options]")} %usage
-{load\_fit\_method, register\_slang\_optimizer, set\_fit\_statistic, set\_fit\_constraint, randomize, lmdif, marquardt, minim, subplex}
+{load\_fit\_method, register\_slang\_optimizer,
+set\_fit\_statistic, set\_fit\_constraint, randomize, optimization}
 
-The \isisx distribution includes four fit methods, {\tt lmdif},
-{\tt marquardt}, {\tt minim} and {\tt subplex}.  Control
+The \isisx distribution includes a number of optimization
+methods (see \verb|optimization|).  Control
 parameters associated with the fit methods (such as convergence
 tolerances) may be adjusted by supplying qualifers in the
 method name string.  For example, one might set the maximum
@@ -13490,10 +13560,27 @@ indexing.
 \end{isisfunction}
 
 \begin{isisfunction}
+{simplex} %name
+{Simplex minimization algorithm} %purpose
+{set\_fit\_method ("simplex")} %usage
+{optimization, set\_fit\_method, set\_fit\_constraint}
+
+The simplex algorithm is an implementation of the Nelder-Mead
+simplex method, a general method for solving unconstrained
+optimization problems.
+
+For help, use:
+\begin{verbatim}
+set_fit_method ("simplex;help");
+\end{verbatim}
+
+\end{isisfunction}
+
+\begin{isisfunction}
 {subplex} %name
 {Subplex minimization algorithm} %purpose
 {set\_fit\_method ("subplex")} %usage
-{lmdif, marquardt, minim, set\_fit\_method, set\_fit\_constraint}
+{optimization, set\_fit\_method, set\_fit\_constraint}
 
 The subplex algorithm is a minimization algorithm used in
 fitting models to data.  A variant of the Nelder-Mead simplex

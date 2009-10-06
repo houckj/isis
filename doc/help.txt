@@ -9425,6 +9425,29 @@ edit_par
     load_par
 
 ------------------------------------------------------------------------
+diffevol
+
+ SYNOPSIS
+    Differential Evolution optimization algorithm
+
+ USAGE
+    set_fit_method ("diffevol")
+
+ DESCRIPTION
+    Differential Evolution is a very simple population based,
+    stochastic function minimizer.  For details, see
+    http://www.icsi.berkeley.edu/storn/code.html.
+
+    For help, use:
+
+    set_fit_method ("diffevol;help");
+
+
+
+ SEE ALSO
+    optimization, set_fit_method
+
+------------------------------------------------------------------------
 egauss
 
  SYNOPSIS
@@ -9731,25 +9754,17 @@ fit_counts
     currently being ignored for purposes of finding the best
     fitting model.
 
-    Several minimization algorithms are available: lmdif and
-    marquardt are Levenberg-Marquardt algorithms with numerical
-    derivatives; simann is a simulated annealing method; subplex is
-    a variant of the Nelder-Mead simplex algorithm. The latter two
-    approaches may require more function evaluations to find the
-    minimum, but may be less likely to become stuck in a local
-    minimum.
-
-    Either can be used to search for the best-fit model parameters.
-    Aside from cases where the fit-function evaluation itself might
-    fail, it is possible for the fitting algorithm to fail either
-    because a minimum fit-statistic was not found within a
-    reasonable number of iterations (see Bevington & Robinson
-    (1992) for more details).  If the fit algorithm fails, make
-    sure that the initial parameter values are reasonably close to
-    a good fit and that the current parameter values haven't run
-    into the specified upper/lower range limits. Then, try
-    repeating the fit with fewer variable parameters (see freeze,
-    thaw). See also Fit_Verbose.
+    Several minimization algorithms are available -- see
+    optimization. Aside from cases where the fit-function
+    evaluation itself might fail, it is possible for the fitting
+    algorithm to fail either because a minimum fit-statistic was
+    not found within a reasonable number of iterations (see
+    Bevington & Robinson (1992) for more details).  If the fit
+    algorithm fails, make sure that the initial parameter values
+    are reasonably close to a good fit and that the current
+    parameter values haven't run into the specified upper/lower
+    range limits. Then, try repeating the fit with fewer variable
+    parameters (see freeze, thaw). See also Fit_Verbose.
 
     When the S-Lang function isis_prefit_hook is defined in the
     Global namespace, isis will execute this function immediately
@@ -10924,7 +10939,7 @@ lmdif
 
 
  SEE ALSO
-    plm, marquardt, simann, subplex, set_fit_method
+    optimization, set_fit_method
 
 ------------------------------------------------------------------------
 load_conf
@@ -11097,7 +11112,50 @@ marquardt
 
 
  SEE ALSO
-    plm, lmdif, simann, subplex, set_fit_method
+    optimization, set_fit_method
+
+------------------------------------------------------------------------
+optimization
+
+ SYNOPSIS
+    Optimization methods provided with isis
+
+ USAGE
+    -
+
+ DESCRIPTION
+    Isis provides a number of optimization methods. Note that the
+    methods have different strengths and weaknesses and are by no
+    means equivalent.  In the general case, multidimensional
+    nonlinear optimization problems are extremely challenging.
+    Because no single method works well on every problem, it is
+    often necessary to take care in choosing which optimization
+    method to use for a given problem.
+
+    When the problem of interest is well behaved in the sense that
+    the statistic is a smoothly varying function of a small number
+    of uncorrelated parameters and has a unique minimum whose
+    location can be guessed with reasonable accuracy, then a local
+    optimization method such as Levenberg-Marquardt is most likely
+    to perform well, in the sense of accurately locating the
+    minimum after a relatively small number of model evaluations
+    (see lmdif, marquardt, plm).  The Powell method may also work
+    well in such cases (see powell).
+
+    For less ideal problems, the simplex method (see simplex,
+    subplex) or Powell method (see powell) may be more effective,
+    although significantly more model evaluations may be required.
+
+    For the most difficult problems, a global method such as
+    differential evolution (diffevol) or simulated annealing
+    (simann) may yield useful results while the other methods might
+    make little or no progress.  However, the large number of model
+    evaluations required by these methods makes them very CPU
+    intensive.
+
+
+ SEE ALSO
+    set_fit_method, list_fit_methods
 
 ------------------------------------------------------------------------
 plm
@@ -11141,7 +11199,7 @@ plm
 
 
  SEE ALSO
-    marquardt, lmdif, simann, subplex, set_fit_method, multicore
+    optimization, set_fit_method, multicore
 
 ------------------------------------------------------------------------
 simann
@@ -11223,7 +11281,7 @@ simann
 
 
  SEE ALSO
-    subplex, plm, lmdif, marquardt, set_fit_method
+    optimization, set_fit_method
 
 ------------------------------------------------------------------------
 Minimum_Stat_Err
@@ -11559,6 +11617,33 @@ poly
 
  SEE ALSO
     gauss, Lorentz, delta, bin_width, bin_center
+
+------------------------------------------------------------------------
+powell
+
+ SYNOPSIS
+    Powell minimization algorithm
+
+ USAGE
+    set_fit_method ("powell")
+
+ DESCRIPTION
+    The powell algorithm is an implementation of Powell's direction
+    set method described in the paper: "An efficient method for
+    finding the minimum of a function of several variables without
+    calculating derivatives", The Computer Journal 1964.  This
+    implementation also makes use of modifications suggested by
+    W.I. Zangwill, "Minimizing a function without derivatives",
+    Computer Journal 1967
+
+    For help, use:
+
+    set_fit_method ("powell;help");
+
+
+
+ SEE ALSO
+    optimization, set_fit_method, set_fit_constraint
 
 ------------------------------------------------------------------------
 Powerlaw
@@ -11956,13 +12041,12 @@ set_fit_method
     set_fit_method ("name[;options]")
 
  DESCRIPTION
-    The ISIS distribution includes four fit methods, lmdif,
-    marquardt, minim and subplex.  Control parameters associated
-    with the fit methods (such as convergence tolerances) may be
-    adjusted by supplying qualifers in the method name string.  For
-    example, one might set the maximum number of function
-    evaluations performed by subplex by setting the maxnfe option
-    using
+    The ISIS distribution includes a number of optimization methods
+    (see optimization).  Control parameters associated with the fit
+    methods (such as convergence tolerances) may be adjusted by
+    supplying qualifers in the method name string.  For example,
+    one might set the maximum number of function evaluations
+    performed by subplex by setting the maxnfe option using
 
       set_fit_method ("subplex;maxnfe=1000");
 
@@ -11998,7 +12082,8 @@ set_fit_method
 
 
  SEE ALSO
-    load_fit_method, register_slang_optimizer, set_fit_statistic, set_fit_constraint, randomize, lmdif, marquardt, minim, subplex
+    load_fit_method, register_slang_optimizer,
+set_fit_statistic, set_fit_constraint, randomize, optimization
 
 ------------------------------------------------------------------------
 set_fit_range_hook
@@ -12491,6 +12576,29 @@ set_par_fun
     set_par, get_par_info, _par, fit_fun, conf_map_counts
 
 ------------------------------------------------------------------------
+simplex
+
+ SYNOPSIS
+    Simplex minimization algorithm
+
+ USAGE
+    set_fit_method ("simplex")
+
+ DESCRIPTION
+    The simplex algorithm is an implementation of the Nelder-Mead
+    simplex method, a general method for solving unconstrained
+    optimization problems.
+
+    For help, use:
+
+    set_fit_method ("simplex;help");
+
+
+
+ SEE ALSO
+    optimization, set_fit_method, set_fit_constraint
+
+------------------------------------------------------------------------
 subplex
 
  SYNOPSIS
@@ -12525,7 +12633,7 @@ subplex
     tol is the relative error tolerance on the parameter value.
 
  SEE ALSO
-    lmdif, marquardt, minim, set_fit_method, set_fit_constraint
+    optimization, set_fit_method, set_fit_constraint
 
 ------------------------------------------------------------------------
 thaw
