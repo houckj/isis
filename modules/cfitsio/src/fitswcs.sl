@@ -1,4 +1,4 @@
-%    Copyright (C) 2004-2007 Massachusetts Institute of Technology
+%    Copyright (C) 2004-2009 Massachusetts Institute of Technology
 %
 %    Author:  John E. Davis <davis@space.mit.edu>
 %
