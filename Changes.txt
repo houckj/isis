@@ -14,6 +14,9 @@ Changes since 1.5.0 (released Aug 2009)
  9.  added _num_statistic_evaluations intrinsic variable
 10.  Added support for specifying initial parameter step size.
      See set_par, get_par_info, get_fun_info, set_param_default_hook
+11.  New optimization methods contributed by John E. Davis:
+       diffevol, powell, simplex
+12.  Updated cfitsio module to version 0.4.6
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
