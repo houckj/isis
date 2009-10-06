@@ -21,5 +21,9 @@ plot-extra.sl
 pgplot_interface.sl
 setup.sl
 fork_socket.sl
+diffevol.sl
+powell.sl
+simplex.sl
+isisopt.sl
 
 
