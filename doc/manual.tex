@@ -12998,16 +12998,19 @@ values, model parameters, or computed model values and may also
 depend upon additional fit-parameters associated with the
 constraint function itself.
 
-Use \verb|set_fit_constraint| to provide a reference to a
-constraint function.  The constraint function should accept
-two parameters and should return a scalar-valued penalty.  The
-first input parameter is the scalar-valued fit statistic.  The
-second input parameter is an array of strings giving the names
-of fit-parameters that are associated with the constraint
-function. The parameters named in this array will appear as
-fit-parameters of the form \verb|constraint(1).name|. If the
-constraint function has no parameters, the second input
-parameter should be \verb|NULL|.
+Use \verb|set_fit_constraint| to provide a reference to the
+constraint function and, if necessary, to provide an array of
+strings giving the names of fit-parameters that are associated
+with the constraint function.  The parameters named in this
+array will appear as fit-parameters of the form
+\verb|constraint(1).name|.
+
+The constraint function itself should accept two parameters and
+should return a scalar-valued penalty. The first input
+parameter is the scalar-valued fit statistic.  The second input
+parameter is an array of parameter values. If the constraint
+function has no parameters, the second input parameter will be
+set to \verb|NULL|.
 
 For example:
 \begin{verbatim}
@@ -13025,11 +13028,11 @@ For example:
    set_fit_constraint (&a_constraint, ["lambda1", "lambda2"]);
 \end{verbatim}
 
-Note that, if the constraint function indicated in the first
-argument is defined in the \verb|Global| namespace or in the
-\verb|isis| namespace, it may not have the name
-`\verb|constraint|'. The name `\verb|constraint|' may be used
-only if the function is declared to be private:
+Note that, if the constraint function is defined in the
+\verb|Global| namespace or in the \verb|isis| namespace, it may
+not have the name `\verb|constraint|'. The name
+`\verb|constraint|' may be used only if the function is
+declared to be private:
 \begin{verbatim}
   private define constraint (stat, pars)
   {

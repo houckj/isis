@@ -11984,16 +11984,18 @@ set_fit_constraint
     depend upon additional fit-parameters associated with the
     constraint function itself.
 
-    Use set_fit_constraint to provide a reference to a constraint
-    function.  The constraint function should accept two parameters
-    and should return a scalar-valued penalty.  The first input
+    Use set_fit_constraint to provide a reference to the constraint
+    function and, if necessary, to provide an array of strings
+    giving the names of fit-parameters that are associated with the
+    constraint function.  The parameters named in this array will
+    appear as fit-parameters of the form constraint(1).name.
+
+    The constraint function itself should accept two parameters and
+    should return a scalar-valued penalty. The first input
     parameter is the scalar-valued fit statistic.  The second input
-    parameter is an array of strings giving the names of
-    fit-parameters that are associated with the constraint
-    function. The parameters named in this array will appear as
-    fit-parameters of the form constraint(1).name. If the
-    constraint function has no parameters, the second input
-    parameter should be NULL.
+    parameter is an array of parameter values. If the constraint
+    function has no parameters, the second input parameter will be
+    set to NULL.
 
     For example:
 
@@ -12010,11 +12012,10 @@ set_fit_constraint
        }
        set_fit_constraint (&a_constraint, ["lambda1", "lambda2"]);
 
-    Note that, if the constraint function indicated in the first
-    argument is defined in the Global namespace or in the isis
-    namespace, it may not have the name `constraint'. The name
-    `constraint' may be used only if the function is declared to be
-    private:
+    Note that, if the constraint function is defined in the Global
+    namespace or in the isis namespace, it may not have the name
+    `constraint'. The name `constraint' may be used only if the
+    function is declared to be private:
 
       private define constraint (stat, pars)
       {
