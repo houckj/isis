@@ -11124,34 +11124,31 @@ optimization
     -
 
  DESCRIPTION
-    Isis provides a number of optimization methods. Note that the
-    methods have different strengths and weaknesses and are by no
-    means equivalent.  In the general case, multidimensional
-    nonlinear optimization problems are extremely challenging.
-    Because no single method works well on every problem, it is
-    often necessary to take care in choosing which optimization
-    method to use for a given problem.
+    Isis provides a variety of optimization methods suitable for
+    wide variety of fitting applications. Each method has its own
+    strengths and weaknesses.  Because no single method works well
+    on every problem, it is often necessary to give some thought to
+    which optimization method is likely to be effective for a given
+    problem.
 
-    When the problem of interest is well behaved in the sense that
-    the statistic is a smoothly varying function of a small number
-    of uncorrelated parameters and has a unique minimum whose
-    location can be guessed with reasonable accuracy, then a local
-    optimization method such as Levenberg-Marquardt is most likely
-    to perform well, in the sense of accurately locating the
-    minimum after a relatively small number of model evaluations
-    (see lmdif, marquardt, plm).  The Powell method may also work
-    well in such cases (see powell).
+    When the problem of interest is well behaved (e.g. the
+    statistic is a smoothly varying function of a small number of
+    uncorrelated parameters and has a unique minimum whose location
+    can be guessed with reasonable accuracy), a local optimization
+    method such as Levenberg-Marquardt is most likely to perform
+    well, in the sense of accurately locating the minimum after a
+    relatively small number of model evaluations (see lmdif,
+    marquardt, plm).  The Powell method may also work well in such
+    cases (see powell).
 
-    For less ideal problems, the simplex method (see simplex,
+    For more difficult problems, the simplex method (see simplex,
     subplex) or Powell method (see powell) may be more effective,
     although significantly more model evaluations may be required.
-
-    For the most difficult problems, a global method such as
-    differential evolution (diffevol) or simulated annealing
-    (simann) may yield useful results while the other methods might
-    make little or no progress.  However, the large number of model
-    evaluations required by these methods makes them very CPU
-    intensive.
+    Global methods such as differential evolution (diffevol) or
+    simulated annealing (simann) may produce results even when
+    other methods make little or no progress.  However, the large
+    number of model evaluations sometimes required by these methods
+    means they can be very CPU intensive.
 
 
  SEE ALSO
@@ -11779,7 +11776,6 @@ register_slang_optimizer
       define set_options (options)
       {
          Qualfiers = options;
-         return 0;
       }
 
       define some_function (obj, params, params_min, params_max)
