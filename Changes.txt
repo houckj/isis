@@ -17,6 +17,7 @@ Changes since 1.5.0 (released Aug 2009)
 11.  New optimization methods contributed by John E. Davis:
        diffevol, powell, simplex
 12.  Updated cfitsio module to version 0.4.6
+13.  Minor change to slang optimization method interface.
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
