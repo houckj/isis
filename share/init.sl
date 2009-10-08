@@ -36,7 +36,6 @@ $1 =
    ,"atom-cmds"
    ,"emis-cmds"
    ,"fit-cmds"
-   ,"plm"
    ,"isisopt"
    ,"group"
    ,"conf_loop"

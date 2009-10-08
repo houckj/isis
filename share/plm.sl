@@ -30,39 +30,39 @@
 % Algorithm'', in the proceedings of the 23rd International Conference
 % on Supercomputing, Yorktown Heights, NY, pp 450-459.
 
-private variable Qualifiers;
-
-private define set_options (options)
+private define plmfit();
+private variable PLM_Defaults = struct
 {
-   variable help_string =
- "plm options:\n"
-+"          tol (1.e-4)  Chi-square (X) has converged when dX/X <= tol\n"
-+"       lambda (0.1)    Levenberg-Marquardt parameter\n"
-+"  grow_factor (10)     lambda increases by lambda *= grow_factor\n"
-+"shrink_factor (0.1)    lambda decreases by lambda *= shrink_factor\n"
-+"    max_loops (100)    Maximum number of trials\n"
-+"        delta (1.e-4)  param delta for numerical derivative is\n"
-+"                          (|p| + sqrt(delta))*sqrt(delta)";
+   tol = 1.e-4,
+   lambda = 0.1,
+   grow_factor = 10.0,
+   shrink_factor = 0.1,
+   max_loops = 100,
+   delta = 1.e-4,
+   verbose = 0,
+   num_slaves = -1,
+   optimize = &plmfit
+};
 
-   if (struct_field_exists (options, "help"))
+private define override_defaults (sinfo, q)
+{
+   if (q == NULL)
+     return;
+   variable sinfo_fields = get_struct_field_names (sinfo);
+
+   foreach (get_struct_field_names (q))
      {
-        message(help_string);
-        return 0;
+	variable name = ();
+	if (any (name == sinfo_fields))
+	  set_struct_field (sinfo, name, get_struct_field (q, name));
      }
-
-   Qualifiers = options;
-   return 0;
 }
 
-private define option_value (name, default)
+define plm_new ()
 {
-   if (__is_initialized (&Qualifiers))
-     {
-        if (struct_field_exists (Qualifiers, name))
-          return get_struct_field (Qualifiers, name);
-     }
-
-   return default;
+   variable s = @PLM_Defaults;
+   override_defaults (s, __qualifiers ());
+   return s;
 }
 
 private define svd_solve (A, b)
@@ -168,10 +168,9 @@ private define lm_slave (s, mmt)
    return 0;
 }
 
-private define matrix_queue_setup (mmt)
+private define matrix_queue_setup (mmt, qual)
 {
-   variable delta = option_value ("delta", 1.e-4),
-     sqrt_delta = sqrt(delta);
+   variable sqrt_delta = sqrt(qual.delta);
 
    variable i,
      num_pars = State.num_pars,
@@ -281,7 +280,7 @@ private define matrix_handler (s, msg)
      }
 }
 
-private define search_queue_setup (lambdas, chisqr, p, alpha, beta)
+private define search_queue_setup (lambdas, chisqr, p, alpha, beta, sinfo)
 {
    State.search = struct
      {
@@ -291,7 +290,8 @@ private define search_queue_setup (lambdas, chisqr, p, alpha, beta)
         next = 0,
         best = struct {chisqr=chisqr, params=p, lambda=NULL},
         num_finished = 0,
-        done = 0
+        done = 0,
+        verbose = sinfo.verbose
      };
 }
 
@@ -330,7 +330,7 @@ private define search_recv_result (s)
         x.best.params = [p1];
      }
 
-   if (Fit_Verbose > 0)
+   if (x.verbose > 0)
      {
         variable ps;
         print(p1, &ps);
@@ -378,14 +378,17 @@ private define halt_slaves (slaves)
    manage_slaves (slaves, NULL);
 }
 
-private define plmfit (mmt, p, pmin, pmax)
+private define plmfit (obj, p, pmin, pmax, mmt)
 {
+   override_defaults (obj, __qualifiers());
+
    variable
-     tol = option_value ("tol", 1.e-4),
-     lambda = option_value ("lambda", 0.1),
-     grow_factor = option_value ("grow_factor", 10.0),
-     shrink_factor = option_value ("shrink_factor", 0.1),
-     max_loops = option_value ("max_loops", 100);
+     tol = obj.tol,
+     lambda = obj.lambda,
+     grow_factor = obj.grow_factor,
+     shrink_factor = obj.shrink_factor,
+     max_loops = obj.max_loops,
+     verbose = obj.verbose;
 
    variable new_pars = @p;
    variable weight = __data_weights (mmt);
@@ -396,8 +399,11 @@ private define plmfit (mmt, p, pmin, pmax)
    State.weight = @weight;
 
    variable s, slaves = new_slave_list();
-   variable num_slaves = option_value ("num_slaves",
-                                       min([State.num_pars, _num_cpus()]));
+
+   variable num_slaves = min([State.num_pars, _num_cpus()]);
+   if (obj.num_slaves > 0)
+     num_slaves = obj.num_slaves;
+
    loop (num_slaves)
      {
         s = fork_slave (&lm_slave, mmt);
@@ -408,7 +414,7 @@ private define plmfit (mmt, p, pmin, pmax)
      {
         State.params = @p;
 
-        matrix_queue_setup (mmt);
+        matrix_queue_setup (mmt, obj);
         foreach s (slaves) {matrix_send_next (s);}
         manage_slaves (slaves, &matrix_handler; while_=&computing_matrix);
 
@@ -423,7 +429,7 @@ private define plmfit (mmt, p, pmin, pmax)
              variable p1, chisqr1,
                lambdas = lambda * grow_factor^powers;
 
-             search_queue_setup (lambdas, chisqr, p, alpha, beta);
+             search_queue_setup (lambdas, chisqr, p, alpha, beta, obj);
              foreach s (slaves) {search_send_next (s);}
              manage_slaves (slaves, &search_handler; while_=&performing_search);
 
@@ -440,7 +446,7 @@ private define plmfit (mmt, p, pmin, pmax)
 
              if (lambda > 1.e10)
                {
-                  if (Fit_Verbose > 0) vmessage ("too many iterations");
+                  if (verbose > 0) vmessage ("too many iterations");
                   halt_slaves (slaves);
                   return p1;
                }
@@ -467,6 +473,4 @@ private define plmfit (mmt, p, pmin, pmax)
 
    return p;
 }
-
-register_slang_optimizer ("plm", &plmfit ; set_options=&set_options);
 

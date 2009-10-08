@@ -21,7 +21,7 @@ private define help_options (method, qualifiers)
 	  str = sprintf ("%s  [%s]\n", str, get_struct_field(qualifiers, name));
      }
    usage (str);
-}	     
+}
 
 private define handle_options (options, method, qualifiers)
 {
@@ -60,7 +60,6 @@ private variable Powell_Qualifiers = struct
 private define set_powell_options (options)
 {
    handle_options (options, "powell", Powell_Qualifiers);
-   return 0;
 }
 private define powellfit (mmt, p, pmin, pmax)
 {
@@ -88,7 +87,6 @@ private variable Simplex_Qualifiers = struct
 private define set_simplex_options (options)
 {
    handle_options (options, "simplex", Simplex_Qualifiers);
-   return 0;
 }
 private define simplexfit (mmt, p, pmin, pmax)
 {
@@ -120,7 +118,6 @@ private variable Diffevol_Qualifiers = struct
 private define set_diffevol_options (options)
 {
    handle_options (options, "diffevol", Diffevol_Qualifiers);
-   return 0;
 }
 private define diffevolfit (mmt, p, pmin, pmax)
 {
@@ -134,3 +131,31 @@ private define diffevolfit (mmt, p, pmin, pmax)
 register_slang_optimizer ("diffevol", &diffevolfit; set_options=&set_diffevol_options);
 
 %}}}
+
+%{{{ plm Interface
+autoload ("plm_new", "plm");
+private variable PLM_Qualifiers = struct
+{
+   tol = 1.e-4,
+   lambda = 0.1,
+   grow_factor = 10.0,
+   shrink_factor = 0.1,
+   max_loops = 100,
+   delta = 1.e-4,
+   verbose = 0,
+   num_slaves = -1,
+};
+
+private define set_plm_options (options)
+{
+   handle_options (options, "plm", PLM_Qualifiers);
+}
+private define plmfit (mmt, p, pmin, pmax)
+{
+   variable obj = plm_new ();
+   () = obj.optimize (p, pmin, pmax, mmt ;; PLM_Qualifiers);
+   return p;
+}
+register_slang_optimizer ("plm", &plmfit; set_options=&set_plm_options);
+%}}}
+

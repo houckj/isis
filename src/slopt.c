@@ -132,7 +132,7 @@ return_error:
 static int slfe_set_options (Isis_Fit_Engine_Type *e, Isis_Option_Type *opts) /*{{{*/
 {
    SLang_Array_Type *sl_opts;
-   int i, n, status;
+   int i, n;
 
    if (opts == NULL)
      return -1;
@@ -182,15 +182,15 @@ static int slfe_set_options (Isis_Fit_Engine_Type *e, Isis_Option_Type *opts) /*
         return -1;
      }
 
-   if (-1 == SLang_pop_integer (&status))
+   if (SLang_get_error ())
      {
         isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__,
-                    "status return failed after setting options for fit method '%s'",
+                    "S-Lang error while setting options for fit method '%s'",
                     e->engine_name);
         return -1;
      }
 
-   return status;
+   return 0;
 }
 
 /*}}}*/
