@@ -378,8 +378,10 @@ private define halt_slaves (slaves)
    manage_slaves (slaves, NULL);
 }
 
-private define plmfit (obj, p, pmin, pmax, mmt)
+private define plmfit (obj, in_parms, pmin, pmax, mmt)
 {
+   variable p = @in_parms;
+
    override_defaults (obj, __qualifiers());
 
    variable
@@ -448,7 +450,8 @@ private define plmfit (obj, p, pmin, pmax, mmt)
                {
                   if (verbose > 0) vmessage ("too many iterations");
                   halt_slaves (slaves);
-                  return p1;
+                  in_parms[*] = p1;
+                  return -1;
                }
 
              powers += powers[-1] + 1;
@@ -463,14 +466,15 @@ private define plmfit (obj, p, pmin, pmax, mmt)
         if (chisqr - chisqr1 <= tol * chisqr)
           {
              halt_slaves (slaves);
-             return p;
+             in_parms[*] = p;
+             return 0;
           }
 
         chisqr = chisqr1;
      }
 
    halt_slaves (slaves);
-
-   return p;
+   in_parms[*] = p;
+   return 0;
 }
 
