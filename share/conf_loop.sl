@@ -23,6 +23,8 @@
 %    along with this program; if not, write to the Free Software
 %    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+private variable Dir, Basename;
+
 public define save_par_limits()
 {
    variable msg = "save_par_limits (indices, pmin, pmax, file)";
@@ -79,12 +81,9 @@ private define try_conf (index, ctrl)
      save = qualifier_exists ("save"),
      fit_verbose = qualifier ("fit_verbose", -1);
 
-   variable prefix = qualifier ("prefix", "conf_loop");
-   variable c = (prefix[-1] == '/') ? "" : "_";
-
    variable
-     file_conf = "${prefix}${c}conf"$,
-     file_parm = "${prefix}${c}par"$;
+     file_conf = path_concat (Dir, "${Basename}conf"$),
+     file_parm = path_concat (Dir, "${Basename}par"$);
 
    if (save && not ctrl.serial)
      {
@@ -353,18 +352,22 @@ public define conf_loop()
    variable i, s, num_retries = 0,
      max_num_retries = qualifier ("max_num_retries", 100);
 
-   variable save = qualifier_exists ("save"),
-     prefix = qualifier ("prefix", "conf_loop");
+   variable save = qualifier_exists ("save");
+   variable prefix = qualifier ("prefix", "conf_loop");
+
+   Dir = path_dirname (prefix);
+   Basename = path_basename (prefix);
+   if (strlen (Basename) == 0)
+     Basename = sprintf ("conf_loop_%d_", getpid());
 
    if (save)
      {
-        variable dir = path_dirname (prefix);
-        if (dir != ".")
+        if (Dir != ".")
           {
-             if (NULL == stat_file (dir))
+             if (NULL == stat_file (Dir))
                {
-                  if (mkdir (dir, 0777) != 0)
-                    throw IOError, "failed opening directory $dir"$;
+                  if (mkdir (Dir, 0777) != 0)
+                    throw IOError, "failed opening directory $Dir"$;
                }
           }
      }
@@ -440,7 +443,8 @@ public define conf_loop()
    if (save != 0  && num_retries <= max_num_retries)
      {
         save_par_limits (ordered_indices,
-                         pmin_final, pmax_final, prefix + ".save");
+                         pmin_final, pmax_final,
+                         path_concat (Dir, "${Basename}save"$));
      }
 
    return pmin_final, pmax_final;
