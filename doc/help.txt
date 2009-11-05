@@ -10599,15 +10599,19 @@ get_par_info
 
     isis> s=get_par_info(2);
     isis> print(s);
-        name = gauss(1).center
-        index = 2
-        value = 16.0269
-        min = 15.95
-        max = 16.03
-        step = 0.01
-        freeze = 1
-        tie = 0
-        fun = NULL
+    {name="gauss(1).center",
+     index=2,
+     value=12.0,
+     min=-1.7976931348623157e+308,
+     max=1.7976931348623157e+308,
+     hard_min=-inf,
+     hard_max=inf,
+     step=0.0,
+     freeze=0,
+     tie=NULL,
+     units="A",
+     is_a_norm=0,
+     fun=NULL}
 
     If non-NULL, the fun parameter contains the expression string
     specified by set_par_fun.
@@ -12403,17 +12407,18 @@ set_param_default_hook
     where the first parameter is the zero-based array index and
     args is an optional list of user-defined arguments. The
     optional arguments are specified when the hook function is
-    defined. The function must return at least four values,
+    defined.  The function should return the default values in a
+    structure of the form
 
-           return (value, freeze, min, max);
+         struct {value, freeze, min, max, hard_min, hard_max, step}
 
-    providing defaults for (value, freeze, min, max), in that
-    order. Note that the parameter range may be specified as NULL
-    to indicate that the corresponding range is unlimited.  An
-    optional fifth value may be returned to suggest an initial step
-    size for each parameter:
-
-           return (value, freeze, min, max, step);
+    where value is the default parameter value and min and max
+    define the user-adjustable parameter range.  The
+    user-adjustable parameter range must fall within the hard
+    limits defined by hard_min and hard_max.  The initial parameter
+    step size, step, is used by some optimization methods, but only
+    if step > 0. freeze is a boolean value, non-zero if the
+    parameter is frozen by default.
 
     To specify the hook function to be used with a given
     fit-function, provide either a reference to the hook function
@@ -12428,24 +12433,28 @@ set_param_default_hook
     For a power-law fit-function, one might construct such a
     parameter-default function as follows:
 
-        typedef struct {value, freeze, min, max} Param_Type;
-
-        define set_default (x, value, freeze, min, max)
+        define set_default (value, freeze, lim, hard_lim, step)
         {
+           variable x = struct {value, freeze, min, max,
+                                hard_min, hard_max, step};
            x.value = value;
            x.freeze = freeze;
-           x.min = min;
-           x.max = max;
+           x.min = lim[0];
+           x.max = lim[1];
+           x.hard_min = hard_lim[0];
+           x.hard_max = hard_lim[1];
+           x.step = step;
+
+           return x;
         }
 
-        variable Defaults = Param_Type[2];
-        set_default (Defaults[0],  1.0, 0,  0.0, NULL);
-        set_default (Defaults[1],    0, 0, -5.0 , 1.0);
+        variable Defaults = Struct_Type[2];
+        Defaults[0] = set_default (1.0, 0, [0.0, DOUBLE_MAX], [0.0, _Inf], 0);
+        Defaults[1] = set_default (  0, 0, [-5.0, 1.0], [-10.0, 10.0], 0);
 
         define plaw_default_hook (i)
         {
-           variable d = Defaults[i];
-           return (d.value, d.freeze, d.min, d.max);
+           return Defaults[i];
         }
         set_param_default_hook ("plaw", &plaw_default_hook);
 

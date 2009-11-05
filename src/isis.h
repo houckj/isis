@@ -36,10 +36,10 @@ extern "C" {
 #include <slang.h>
 
 #define ISIS_VERSION          10500
-#define ISIS_VERSION_STRING  "1.5.0-14"
+#define ISIS_VERSION_STRING  "1.5.0-15"
 #define ISIS_VERSION_PREFIX   1.5.0
 
-#define ISIS_API_VERSION 3
+#define ISIS_API_VERSION 4
 
 enum
 {
@@ -257,6 +257,8 @@ struct Isis_Kernel_Def_t
    char **kernel_parm_units;
    double *default_min;
    double *default_max;
+   double *default_hard_min;
+   double *default_hard_max;
    double *default_value;
    double *default_step;
    unsigned int *default_freeze;
@@ -269,7 +271,7 @@ struct Isis_Kernel_Def_t
 #endif
 };
 
-#define ISIS_NULL_KERNEL_DEF {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+#define ISIS_NULL_KERNEL_DEF {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 
 struct Isis_Kernel_t
 {
@@ -390,6 +392,8 @@ typedef struct
    char **parameter_units;
    double *default_min;
    double *default_max;
+   double *default_hard_min;
+   double *default_hard_max;
    double *default_value;
    double *default_step;
    unsigned int *default_freeze;

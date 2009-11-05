@@ -47,6 +47,9 @@ extern int Isis_Evaluating_Derived_Param;
 extern int Isis_Fit_In_Progress;
 extern int Fit_Loading_Parameters_From_File;
 
+extern double Isis_Inf;
+extern double Isis_Nan;
+
 typedef struct _Fit_Param_t Fit_Param_t;
 typedef struct _Param_Info_t Param_Info_t;
 typedef struct Param_t Param_t;
@@ -56,7 +59,6 @@ typedef char Fit_Fun_Name_t[MAX_NAME_SIZE];
 extern Fit_Fun_t * Fit_get_fit_fun (int fun_type);
 extern int Fit_get_fun_type (char *name);
 extern int Fit_get_fun_par (Fit_Fun_t *ff, char *par_name);
-extern int Fit_set_fun_param_default (Param_Info_t *p);
 extern void Fit_get_fun_info (char *name);
 
 struct _Fit_Param_t
@@ -102,7 +104,8 @@ struct _Fit_Fun_t
 struct _Param_Info_t
 {
    double value;
-   double min, max;              /* max allowed range */
+   double min, max;             /* max allowed range (user-defined) */
+   double hard_min, hard_max;   /* max allowed range (model validity) */
    double step;                 /* suggested parameter step */
 
    char *fun_str;

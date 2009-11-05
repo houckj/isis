@@ -11826,15 +11826,19 @@ For example:
 \begin{verbatim}
 isis> s=get_par_info(2);
 isis> print(s);
-    name = gauss(1).center
-    index = 2
-    value = 16.0269
-    min = 15.95
-    max = 16.03
-    step = 0.01
-    freeze = 1
-    tie = 0
-    fun = NULL
+{name="gauss(1).center",
+ index=2,
+ value=12.0,
+ min=-1.7976931348623157e+308,
+ max=1.7976931348623157e+308,
+ hard_min=-inf,
+ hard_max=inf,
+ step=0.0,
+ freeze=0,
+ tie=NULL,
+ units="A",
+ is_a_norm=0,
+ fun=NULL}
 \end{verbatim}
 If non-NULL, the \verb|fun| parameter contains the expression string specified
 by \verb|set_par_fun|.
@@ -13386,28 +13390,25 @@ is available.
 {set\_param\_default\_hook (function\_name, hook [,args])} %usage
 {add\_slang\_function, set\_function\_category}
 
-For a fit-function implemented in \slang, one can define
-parameter defaults by providing an associated hook function.
-The hook function should be a \slang\ function of the form
+For a fit-function implemented in \slang, one can define parameter defaults by
+providing an associated hook function. The hook function should be a \slang\
+function of the form
 \begin{verbatim}
     define param_default (i [,args])
 \end{verbatim}
-where the first parameter is the zero-based array index and
-\verb|args| is an optional list of user-defined arguments. The
-optional arguments are specified when the hook function is
-defined. The function must return at least four values,
+where the first parameter is the zero-based array index and \verb|args| is an
+optional list of user-defined arguments. The optional arguments are specified
+when the hook function is defined.  The function should return the default
+values in a structure of the form
 \begin{verbatim}
-       return (value, freeze, min, max);
+     struct {value, freeze, min, max, hard_min, hard_max, step}
 \end{verbatim}
-providing defaults for (\verb|value|, \verb|freeze|,
-\verb|min|, \verb|max|), in that order. Note that the parameter
-range may be specified as \verb|NULL| to indicate that the
-corresponding range is unlimited.  An optional fifth value
-may be returned to suggest an initial step size for each
-parameter:
-\begin{verbatim}
-       return (value, freeze, min, max, step);
-\end{verbatim}
+where \verb|value| is the default parameter value and \verb|min| and
+\verb|max| define the user-adjustable parameter range.  The user-adjustable
+parameter range must fall within the hard limits defined by \verb|hard_min|
+and \verb|hard_max|.  The initial parameter step size, \verb|step|, is used by
+some optimization methods, but only if \verb|step| $> 0$. \verb|freeze| is a
+boolean value, non-zero if the parameter is frozen by default.
 
 To specify the hook function to be used with a given fit-function,
 provide either a reference to the hook function (a \slang\
@@ -13423,24 +13424,28 @@ or the name of the hook function (a \slang\ \verb|String_Type|)
 For a power-law fit-function, one might construct such a
 parameter-default function as follows:
 \begin{verbatim}
-    typedef struct {value, freeze, min, max} Param_Type;
-
-    define set_default (x, value, freeze, min, max)
+    define set_default (value, freeze, lim, hard_lim, step)
     {
+       variable x = struct {value, freeze, min, max,
+                            hard_min, hard_max, step};
        x.value = value;
        x.freeze = freeze;
-       x.min = min;
-       x.max = max;
+       x.min = lim[0];
+       x.max = lim[1];
+       x.hard_min = hard_lim[0];
+       x.hard_max = hard_lim[1];
+       x.step = step;
+
+       return x;
     }
 
-    variable Defaults = Param_Type[2];
-    set_default (Defaults[0],  1.0, 0,  0.0, NULL);
-    set_default (Defaults[1],    0, 0, -5.0 , 1.0);
+    variable Defaults = Struct_Type[2];
+    Defaults[0] = set_default (1.0, 0, [0.0, DOUBLE_MAX], [0.0, _Inf], 0);
+    Defaults[1] = set_default (  0, 0, [-5.0, 1.0], [-10.0, 10.0], 0);
 
     define plaw_default_hook (i)
     {
-       variable d = Defaults[i];
-       return (d.value, d.freeze, d.min, d.max);
+       return Defaults[i];
     }
     set_param_default_hook ("plaw", &plaw_default_hook);
 \end{verbatim}

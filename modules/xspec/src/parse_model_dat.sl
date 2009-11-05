@@ -189,7 +189,7 @@ private define xspec12_filter (buf) %{{{
                   else
                     value = "0";
 
-                  buf[i] = "$name  XXX  $value  0   0  1    1   -1"$;
+                  buf[i] = "$name  XXX  $value  0   0  1    10   -1"$;
                }
           }
      }
@@ -255,7 +255,7 @@ define parse_function (buf) %{{{
      {
 	pars = String_Type[8, num_pars+1];
 	% add the norm using this line entry
-	line = "norm   XXX  1. 0.0 0.0 1.e10 1.e10  0.01";
+	line = "norm  XXX  1. 0.0 0.0  1.0e10  1.e38  0.01";
 	pars[*,i] = parse_parameter_line (line);
 	pars[1,i] = delete_substrings (pars[1,i], "X");
 	i++;

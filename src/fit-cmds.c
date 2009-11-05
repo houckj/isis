@@ -486,7 +486,8 @@ typedef struct
    char *tie;
    char *units;
    int idx, freeze, is_a_norm;
-   double min, max, value, step;
+   double value, step;
+   double min, max, hard_min, hard_max;
    int malloced_fun_str;
 }
 _Param_Info_Type;
@@ -498,6 +499,8 @@ static SLang_CStruct_Field_Type _Param_Info_Type_Layout [] =
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, value, "value", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, min, "min", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, max, "max", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (_Param_Info_Type, hard_min, "hard_min", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (_Param_Info_Type, hard_max, "hard_max", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, step, "step", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, freeze, "freeze", SLANG_INT_TYPE, 0),
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, tie, "tie", SLANG_STRING_TYPE, 0),
@@ -558,6 +561,8 @@ static int _copy_param_info (_Param_Info_Type *pi, unsigned int idx) /*{{{*/
    pi->value = p->value;
    pi->min = p->min;
    pi->max = p->max;
+   pi->hard_min = p->hard_min;
+   pi->hard_max = p->hard_max;
    pi->freeze = p->freeze;
    pi->is_a_norm = p->is_a_norm;
    pi->step = p->step;

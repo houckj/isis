@@ -55,6 +55,48 @@ static Fit_Fun_t *find_fit_fun (unsigned int fun_type, Fit_Fun_t *head);
 
 /*{{{ methods */
 
+static int validate_hard_limits (Param_Info_t *p) /*{{{*/
+{
+   /* infinite limits are ok */
+   if (isnan (p->hard_min) || isnan (p->hard_max))
+     return -1;
+
+   if (p->hard_min > p->hard_max)
+     {
+        double tmp;
+        tmp = p->hard_min;
+        p->hard_min = p->hard_max;
+        p->hard_max = tmp;
+     }
+
+   return 0;
+}
+
+/*}}}*/
+
+static int outside_hard_limits (Param_Info_t *p) /*{{{*/
+{
+   int outside;
+
+   outside = ( p->value < p->hard_min || p->hard_max < p->value
+              || p->min < p->hard_min || p->hard_max < p->min
+              || p->max < p->hard_min || p->hard_max < p->max);
+
+   if (outside)
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                    "Parameter '%s' defaults are inconsistent with hard limits",
+                    p->param_name);
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                    "hard_min=%g min=%g value=%g max=%g hard_max=%g",
+                    p->hard_min, p->min, p->value, p->max, p->hard_max);
+     }
+
+   return outside;
+}
+
+/*}}}*/
+
 static int set_kernel_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
 {
    Isis_Kernel_Def_t *def = (Isis_Kernel_Def_t *)ff->client_data;
@@ -62,12 +104,18 @@ static int set_kernel_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
    if (def == NULL)
      return -1;
 
+   if (def->default_hard_min) p->hard_min = def->default_hard_min[p->fun_par];
+   if (def->default_hard_max) p->hard_max = def->default_hard_max[p->fun_par];
    if (def->default_min) p->min = def->default_min[p->fun_par];
    if (def->default_max) p->max = def->default_max[p->fun_par];
    if (def->default_freeze) p->freeze = def->default_freeze[p->fun_par];
    if (def->default_value) p->value = def->default_value[p->fun_par];
    if (def->default_step) p->step = def->default_step[p->fun_par];
    if (def->default_min || def->default_max) p->set_minmax = 1;
+
+   if ((-1 == validate_hard_limits (p))
+       || (0 != outside_hard_limits (p)))
+     return -1;
 
    return 0;
 }
@@ -79,6 +127,8 @@ static int set_cfun_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
    if (ff == NULL || p == NULL)
      return -1;
 
+   if (ff->s.default_hard_min) p->hard_min = ff->s.default_hard_min[p->fun_par];
+   if (ff->s.default_hard_max) p->hard_max = ff->s.default_hard_max[p->fun_par];
    if (ff->s.default_min) p->min = ff->s.default_min[p->fun_par];
    if (ff->s.default_max) p->max = ff->s.default_max[p->fun_par];
    if (ff->s.default_freeze) p->freeze = ff->s.default_freeze[p->fun_par];
@@ -86,34 +136,96 @@ static int set_cfun_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
    if (ff->s.default_step) p->step = ff->s.default_step[p->fun_par];
    if (ff->s.default_min || ff->s.default_max) p->set_minmax = 1;
 
+   if ((-1 == validate_hard_limits (p))
+       || (0 != outside_hard_limits (p)))
+     return -1;
+
    return 0;
 }
 
 /*}}}*/
 
-static int set_slangfun_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
+typedef struct
 {
-   int got_min, got_max, depth, num;
+   double value;
+   double min;
+   double max;
+   double hard_min;
+   double hard_max;
+   double step;
+   int freeze;
+}
+Param_Default_Type;
 
-   got_min = got_max = 0;
+static SLang_CStruct_Field_Type Param_Default_Type_Layout [] =
+{
+   MAKE_CSTRUCT_FIELD (Param_Default_Type, value, "value", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Param_Default_Type, min, "min", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Param_Default_Type, max, "max", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Param_Default_Type, hard_min, "hard_min", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Param_Default_Type, hard_max, "hard_max", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Param_Default_Type, step, "step", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Param_Default_Type, freeze, "freeze", SLANG_INT_TYPE, 0),
+   SLANG_END_CSTRUCT_TABLE
+};
 
-   /* ok if default aren't provided */
-   if (ff->slangfun_param_default == NULL)
-     return 0;
+static int pop_slangfun_default_struct (Param_Info_t *p)
+{
+   Param_Default_Type pdt;
 
-   depth = SLstack_depth();
-
-   SLang_start_arg_list ();
-   SLang_push_integer (p->fun_par);
-   isis_push_args (ff->slangfun_param_default_args);
-   SLang_end_arg_list ();
-
-   /* returns (value, freeze, min, max)
-    *      or (value, freeze, min, max, step) */
-   if (-1 == SLexecute_function (ff->slangfun_param_default))
+   if (-1 == SLang_pop_cstruct ((VOID_STAR)&pdt, Param_Default_Type_Layout))
      return -1;
 
+   if (0 == isnan(pdt.value)) p->value = pdt.value;
+   if (0 == isnan(pdt.min)) p->min = pdt.min;
+   if (0 == isnan(pdt.max)) p->max = pdt.max;
+   if (0 == isnan(pdt.hard_min)) p->hard_min = pdt.hard_min;
+   if (0 == isnan(pdt.hard_max)) p->hard_max = pdt.hard_max;
+   if (0 == isnan(pdt.step)) p->step = pdt.step;
+   p->freeze = pdt.freeze;
+
+   SLang_free_cstruct ((VOID_STAR)&pdt, Param_Default_Type_Layout);
+
+   p->set_minmax = 1;
+
+   if (p->min > p->max)
+     {
+        double tmp;
+        tmp = p->min;
+        p->min = p->max;
+        p->max = tmp;
+     }
+
+   if ((-1 == validate_hard_limits (p))
+       || (0 != outside_hard_limits (p)))
+     return -1;
+
+   return 0;
+}
+
+static int handle_return_from_slangfun_default_hook (Fit_Fun_t *ff, Param_Info_t *p, int depth)
+{
+   int got_min=0, got_max=0, num;
+
+   /* hook returns (value, freeze, min, max)
+    *           or (value, freeze, min, max, step)
+    *           or struct
+    * The multi-value returns options should go away eventually,
+    * but for now they're needed for back-compatibility.
+    */
+
    num = SLstack_depth() - depth;
+
+   if (num == 1)
+     {
+        if (-1 == pop_slangfun_default_struct (p))
+          {
+             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                         "Failed setting parameter defaults for %s", ff->name[0]);
+             return -1;
+          }
+        return 0;
+     }
 
    if ((num != 4) && (num != 5))
      {
@@ -163,6 +275,27 @@ static int set_slangfun_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
      }
 
    return 0;
+}
+
+static int set_slangfun_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
+{
+   int depth;
+
+   /* ok if default aren't provided */
+   if (ff->slangfun_param_default == NULL)
+     return 0;
+
+   depth = SLstack_depth();
+
+   SLang_start_arg_list ();
+   SLang_push_integer (p->fun_par);
+   isis_push_args (ff->slangfun_param_default_args);
+   SLang_end_arg_list ();
+
+   if (-1 == SLexecute_function (ff->slangfun_param_default))
+     return -1;
+
+   return handle_return_from_slangfun_default_hook (ff, p, depth);
 }
 
 /*}}}*/
@@ -481,18 +614,6 @@ static int init_fun_table (void) /*{{{*/
 /*}}}*/
 
 /*{{{ maintain fit function table */
-
-int Fit_set_fun_param_default (Param_Info_t *p) /*{{{*/
-{
-   Fit_Fun_t *ff = Fit_get_fit_fun (p->fun_type);
-
-   if (ff == NULL)
-     return -1;
-
-   return (*ff->set_param_default) (ff, p);
-}
-
-/*}}}*/
 
 Fit_Fun_t *Fit_get_fit_fun (int fun_type) /*{{{*/
 {
@@ -1234,6 +1355,8 @@ void Fit_get_fun_info (char *name) /*{{{*/
         p.value = 0.0;
         p.min = 0.0;
         p.max = 0.0;
+        p.hard_min = -Isis_Inf;
+        p.hard_max =  Isis_Inf;
         p.freeze = 0;
         p.step = 0.0;
 

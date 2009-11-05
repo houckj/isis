@@ -19,7 +19,8 @@ Changes since 1.5.0 (released Aug 2009)
 12.  Updated cfitsio module to version 0.4.6
 13.  Minor change to slang optimization method interface.
 14.  Fixed plm bug introduced by #13:  best-fit parameters were
-     getting found, but not returned.
+     being found but not returned.
+15.  Added support for hard limits on fit parameters.
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
@@ -107,7 +108,7 @@ Changes since 1.4.9 (released Nov 2007)
      redundant model evaluations during e.g. confidence limit searches.
      alias_fun() enables renaming spectral models and model
      parameters and changing parameter defaults.
-40.  Applied patch to retrieve help files using the S-Lang 
+40.  Applied patch to retrieve help files using the S-Lang
      add_doc_file() intrinsic (from Mike Noble)
 41.  Added support for displaying xspec12 help files, either pdf
      or html.
@@ -116,7 +117,7 @@ Changes since 1.4.9 (released Nov 2007)
      command line
 44.  Fix xspec module bug: xspec12 local models implemented in
      C or C++ were being linked through the wrong interface.
-45.  Support the double-precision fortran interface for xspec 
+45.  Support the double-precision fortran interface for xspec
      local models
 46.  Fixed confusing interaction between fakeit and grouping
 47.  Fixed malloc bug in xspec module.

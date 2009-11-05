@@ -327,6 +327,19 @@ static int set_param_minmax (Param_Info_t *p, double p_min, double p_max) /*{{{*
    if (p == NULL)
      return -1;
 
+   if ((p_min < p->hard_min) || (p_min > p->hard_max))
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "parameter %d minimum=%g violates hard limits (%g, %g)",
+                    p->idx, p_min, p->hard_min, p->hard_max);
+        return -1;
+     }
+   if ((p_max < p->hard_min) || (p_max > p->hard_max))
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "parameter %d maximum=%g violates hard limits (%g, %g)",
+                    p->idx, p_max, p->hard_min, p->hard_max);
+        return -1;
+     }
+
    p->min = p_min;
    p->max = p_max;
 
@@ -482,6 +495,9 @@ int Fit_register_fun (Param_t *pt, Fit_Fun_t *ff, unsigned int fun_id,  /*{{{*/
         p->tie_param_name = NULL;
         p->freeze = 0;
         p->is_a_norm = param_is_a_norm (p, &ff->s);
+
+        p->hard_min = -Isis_Inf;
+        p->hard_max =  Isis_Inf;
 
         if (-1 == init_parameter_of_type (ff, p))
           {

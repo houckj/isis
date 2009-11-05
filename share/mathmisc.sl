@@ -25,6 +25,8 @@
 
 % $Id: mathmisc.sl,v 1.14 2004/09/09 11:31:55 houck Exp $
 
+_isis->_set_inf_and_nan (_Inf, _NaN);
+
 #ifnexists cumsum
 define cumsum () %{{{
 {

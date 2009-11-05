@@ -1476,6 +1476,15 @@ void interpreter_loop (void) /*{{{*/
 
 /*}}}*/
 
+double Isis_Inf;
+double Isis_Nan;
+
+static void set_inf_and_nan_intrin (double *inf_val, double *nan_val)
+{
+   Isis_Inf = *inf_val;
+   Isis_Nan = *nan_val;
+}
+
 static int safe_system (char *cmd) /*{{{*/
 {
    (void) cmd;
@@ -1519,6 +1528,7 @@ static SLang_Intrin_Fun_Type Private_Intrinsics[] =
    MAKE_INTRINSIC_I("_quit", _quit, V),
    MAKE_INTRINSIC("_reset", reset_isis, V, 0),
    MAKE_INTRINSIC_S("_source", source_file_cmd, V),
+   MAKE_INTRINSIC_2("_set_inf_and_nan", set_inf_and_nan_intrin, V, SLANG_DOUBLE_TYPE, SLANG_DOUBLE_TYPE),
    SLANG_END_INTRIN_FUN_TABLE
 };
 

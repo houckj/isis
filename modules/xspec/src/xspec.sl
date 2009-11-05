@@ -49,11 +49,13 @@ use_namespace("_isis");
 
 static variable __Xspec_Symbol = Assoc_Type[];
 
-static define _lmodel_set_default (value, freeze_val, min, max, step) %{{{
+static define _lmodel_set_default (value, freeze_val, hard_min, min, max, hard_max, step) %{{{
 {
-   variable t = struct {value, freeze_val, min, max, step};
+   variable t = struct {value, freeze, hard_min, hard_max, min, max, step};
    t.value = value;
-   t.freeze_val = freeze_val;
+   t.freeze = freeze_val;
+   t.hard_min = hard_min;
+   t.hard_max = hard_max;
    t.min = min;
    t.max = max;
    t.step = step;
@@ -113,9 +115,9 @@ private define create_param_defaults_array (m) %{{{
           }
         else freeze_state = 0;
 
-	s = sprintf ("%s[%d] = _isis->_lmodel_set_default(%s, %d, %s, %s, %e);",
+	s = sprintf ("%s[%d] = _isis->_lmodel_set_default(%s, %d, %s, %s, %s, %s, %e);",
 		     name, k,
-		     pi[2,k], freeze_state, pi[4,k], pi[5,k], step);
+		     pi[2,k], freeze_state, pi[3,k], pi[4,k], pi[5,k], pi[6,k], step);
 	eval(s);
      }
 
@@ -192,8 +194,8 @@ private define create_wrapper (m) %{{{
 
    variable pdef_array_name = create_param_defaults_array (m);
    variable pdef;
-   pdef = sprintf ("define %s_default(i){variable d=%s[i];return (d.value, d.freeze_val, d.min, d.max, d.step);}",
-		   m.model_name, pdef_array_name);
+   pdef = sprintf ("define %s_default(i){return %s[i];}",
+                   m.model_name, pdef_array_name);
 
    variable psetdef;
    psetdef = sprintf ("set_param_default_hook (\"%s\", &%s_default)",
