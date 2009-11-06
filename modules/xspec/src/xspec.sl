@@ -458,7 +458,7 @@ private define get_model_lib_path (dir, ext) %{{{
 {
    if (NULL == stat_file (dir))
      {
-	vmessage ("*** xspec:  Directory %d not found", dir);
+	vmessage ("*** xspec:  Directory %S not found", dir);
 	return NULL;
      }
 
@@ -670,7 +670,7 @@ private define _add_table_model (nargs, msg, fmt, args_hook, is_norm) %{{{
    args = fits_read_col (file, "name");
    if (args == NULL)
      {
-	verror ("failed reading parameter names from %d", file);
+	verror ("failed reading parameter names from %S", file);
 	return;
      }
 
