@@ -811,7 +811,7 @@ static int parse_comment_line (char *line, int line_num, char *fname, unsigned i
 
 /*}}}*/
 
-int Fit_copy_fun_params (char *fun_name, unsigned int fun_id, double **par, unsigned int *num_pars)
+int Fit_copy_fun_params (char *fun_name, unsigned int fun_id, double **par, unsigned int *num_pars) /*{{{*/
 {
    Fit_Fun_t *ff;
    double *p;
@@ -843,6 +843,8 @@ int Fit_copy_fun_params (char *fun_name, unsigned int fun_id, double **par, unsi
 
    return 0;
 }
+
+/*}}}*/
 
 static int parse_param_info (char *line, int line_num, char *fname, unsigned int *idx) /*{{{*/
 {
