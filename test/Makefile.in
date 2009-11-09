@@ -56,6 +56,10 @@ check:	write-permission $(SHARED_LIBRARIES)
 	        echo "" ; \
 		exit 1 ; \
 	    fi ;            \
+	    ISIS_SRCDIR=$(prefix) ; \
+	    export ISIS_SRCDIR ; \
+	    SLSH=$(SLSH_PATH); \
+	    export SLSH ; \
 	 fi ; \
 	if test -f "$(HEA)/headas-init.sh" ; then \
 	    HEADAS="$(HEA)" ; export HEADAS ; . $$HEADAS/headas-init.sh ; \
