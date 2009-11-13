@@ -21,6 +21,7 @@ Changes since 1.5.0 (released Aug 2009)
 14.  Fixed plm bug introduced by #13:  best-fit parameters were
      being found but not returned.
 15.  Added support for hard limits on fit parameters.
+16.  warn when selected bintable columns lack TUNIT keyword
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
