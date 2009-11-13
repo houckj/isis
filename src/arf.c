@@ -72,7 +72,7 @@ void Arf_free_arf (Isis_Arf_t *a) /*{{{*/
 
    if (a->fracexpo_is_vector)
      ISIS_FREE (a->fracexpo.v);
-   
+
    ISIS_FREE(a->file);
    ISIS_FREE(a);
 }
@@ -227,30 +227,30 @@ int Arf_id_list (Isis_Arf_t *head, unsigned int **ids, unsigned int *num) /*{{{*
 {
    Isis_Arf_t *a;
    unsigned int n;
-   
+
    *ids = NULL;
    *num = 0;
-   
+
    if (head == NULL)
      return 0;
-   
+
    for (a = head->next; a != NULL; a = a->next)
      {
         *num += 1;
      }
-   
+
    if (*num == 0)
      return 0;
-   
+
    if (NULL == (*ids = (unsigned int *)ISIS_MALLOC (*num * sizeof (unsigned int))))
      return -1;
-   
+
    n = 0;
    for (a = head->next; a != NULL; a = a->next)
      {
         (*ids)[n++] = a->index;
      }
-   
+
    return 0;
 }
 
@@ -616,9 +616,9 @@ void Arf_free_arf_info (Arf_Info_Type *ai) /*{{{*/
    ISIS_FREE (ai->file);
 
    if (ai->fracexpo_is_vector)
-     {        
+     {
         ISIS_FREE (ai->fracexpo.v);
-     }   
+     }
 }
 
 /*}}}*/
@@ -633,7 +633,7 @@ int Arf_set_arf_info (Isis_Arf_t *a, Arf_Info_Type *ai) /*{{{*/
         if (a->fracexpo_is_vector)
           ISIS_FREE(a->fracexpo.v);
         a->fracexpo.s = ai->fracexpo.s;
-     }   
+     }
    else
      {
         int size;
@@ -644,7 +644,7 @@ int Arf_set_arf_info (Isis_Arf_t *a, Arf_Info_Type *ai) /*{{{*/
                          ai->nbins, a->nbins);
              return -1;
           }
-        
+
         if (a->fracexpo_is_vector)
           ISIS_FREE(a->fracexpo.v);
 
@@ -731,7 +731,7 @@ Isis_Arf_t *Arf_make_identity_arf (double *bin_lo, double * bin_hi, unsigned int
 {
    Isis_Arf_t *a;
    double *p;
-   
+
    if (NULL == (a = new_arf (nbins)))
      return NULL;
 
