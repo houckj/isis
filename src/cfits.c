@@ -349,11 +349,21 @@ int cfits_get_colunits (char *col_units, const char *col_name, cfitsfile *fptr)
    if (-1 == cfits_get_colnum (&colnum, col_name, fptr))
      return -1;
 
+   col_units[0] = 0;
+
    (void) fits_get_bcolparms ((fitsfile *) fptr, colnum, NULL, col_units,
                               NULL, NULL, NULL, NULL, NULL, NULL, &status);
 
    cfits_report_error (status);
    if (status != 0) return -1;
+
+   if (col_units[0] == 0)
+     {
+        isis_vmesg (FAIL, I_WARNING, __FILE__, __LINE__,
+                    "column %d '%s' lacks a TUNIT keyword",
+                    colnum, col_name);
+        return -1;
+     }
 
    return 0;
 }
