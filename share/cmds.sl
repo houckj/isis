@@ -831,8 +831,9 @@ define writecol () %{{{
    if (length (where (status == -1)))
      verror ("writecol:  error writing to file");
 
-   if (fp != stdout and fp != stderr)
-     _isis->close_file (fp);
+   () = fflush (fp);
+   %if (fp != stdout and fp != stderr)
+   %  _isis->close_file (fp);
 }
 
 %}}}
