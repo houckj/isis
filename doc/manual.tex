@@ -3104,7 +3104,7 @@ extending from 1-20 \AA, type
 Given a grid which provides the lower bin edges of
 a histogram grid, the high edges are defined as
 \begin{verbatim}
-   hi[[i:n-1]] = [ lo[[1:n-1]], 2*lo[n-1] - lo[n-2] ];
+   hi = [ lo[[1:n-1]], 2*lo[n-1] - lo[n-2] ];
 \end{verbatim}
 so that the last two bins have the same width.
 
