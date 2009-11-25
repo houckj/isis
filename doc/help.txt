@@ -2282,12 +2282,13 @@ get_convolved_model_flux
 
     The convolved model flux is computed using the expression
 
-    F(h) = t \int R(h,E)S(E)dE
+    F(h) = \int R(h,E)S(E)dE
 
+    unless flux_corr_model_counts was called for this data set.
 
 
  SEE ALSO
-    get_model_counts, get_model_flux
+    flux_corr_model_counts, get_model_counts, get_model_flux
 
 ------------------------------------------------------------------------
 get_data_backscale
@@ -3435,11 +3436,13 @@ plot_convolved_model_flux
 
     F(h) = \int R(h,E)S(E)dE
 
+    unless flux_corr_model_counts was called for this data set.
+
     See get_convolved_model_flux and plot_model_counts for details.
 
 
  SEE ALSO
-    [o]plot_data_flux, [o]plot_model_flux
+    flux_corr_model_counts, [o]plot_data_flux, [o]plot_model_flux
 
 ------------------------------------------------------------------------
 plot_data_flux

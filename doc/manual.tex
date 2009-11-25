@@ -4326,7 +4326,7 @@ In this example, it is assumed that the global variable
 {get\_convolved\_model\_flux} %name
 {load spectral model into a \slang\ structure} %purpose
 {Struct\_Type = get\_convolved\_model\_flux (hist\_index)} %usage
-{get\_model\_counts, get\_model\_flux}
+{flux\_corr\_model\_counts, get\_model\_counts, get\_model\_flux}
 
 \begin{verbatim}
 hist_index = integer index of spectrum in internal list
@@ -4343,8 +4343,9 @@ model values.
 
 The convolved model flux is computed using the expression
 \begin{equation}
-F(h) = t \int R(h,E)S(E)dE
+F(h) = \int R(h,E)S(E)dE
 \end{equation}
+unless \verb|flux_corr_model_counts| was called for this data set.
 
 \end{isisfunction}
 
@@ -5339,7 +5340,7 @@ plotting.
 {plot\_convolved\_model\_flux} %name
 {plot convolved spectral model flux for a specific data spectrum} %purpose
 {[o]plot\_convolved\_model\_flux (hist\_index [,style])} %usage
-{[o]plot\_data\_flux, [o]plot\_model\_flux}
+{flux\_corr\_model\_counts, [o]plot\_data\_flux, [o]plot\_model\_flux}
 
 This function plots the model for the specified data set
 broadened using the assigned RMF.  The convolved model
@@ -5347,6 +5348,7 @@ flux is computed using the expression
 \begin{equation}
 F(h) = \int R(h,E)S(E)dE
 \end{equation}
+unless \verb|flux_corr_model_counts| was called for this data set.
 
 See \verb|get_convolved_model_flux| and
 \verb|plot_model_counts| for details.
