@@ -170,7 +170,7 @@ private define init_data_struct (k)
    if (s.back != NULL)
      {
         scale = [((get_data_exposure (k) * get_data_backscale(k))
-                  /get_back_exposure (k) * get_back_backscale(k))];
+                  /(get_back_exposure (k) * get_back_backscale(k)))];
         scale[where(isnan(scale))] = 1.0;
         if (length(scale) == 1) scale = scale[0];
      }
@@ -427,27 +427,30 @@ define group_bin ()
    variable d, old_flags;
    (d, old_flags)= matching_grids (datasets);
 
-   variable a = closest_alignments ([lo[0], hi],
-                                    [d[0].bin_lo[0], d[0].bin_hi]);
-   a = a[where (a >= 0)];
+   variable alo = closest_alignments (lo, d[0].bin_lo);
+   variable ahi = closest_alignments (hi, d[0].bin_hi);
+   variable ia = where (alo >= 0 and ahi >= 0);
 
-   variable num_a = length(a),
+   alo = alo[ia];
+   ahi = ahi[ia];
+
+   variable num_a = length(ia),
      num_bins = length(d[0].bin_lo),
      flags = Integer_Type[num_bins];
 
    variable k, _sign=1;
 
-   _for k (0, num_a-2, 1)
+   _for k (0, num_a-1, 1)
      {
-        if (a[k] <= a[k+1]-1)
+        if (alo[k] <= ahi[k])
           {
-             flags[[ a[k] : a[k+1]-1 ]] = _sign;
+             flags[[ alo[k] : ahi[k] ]] = _sign;
              _sign *= -1;
           }
      }
 
    variable num_datasets = length(datasets),
-     indices = [a[0]:a[-1]];
+     indices = [alo[0]:ahi[-1]];
 
    _for k (0, num_datasets-1, 1)
      {
