@@ -22,6 +22,8 @@ Changes since 1.5.0 (released Aug 2009)
      being found but not returned.
 15.  Added support for hard limits on fit parameters.
 16.  warn when selected bintable columns lack TUNIT keyword
+17.  Insert missing parens to fix bug in 'group' function background
+     scaling.
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
