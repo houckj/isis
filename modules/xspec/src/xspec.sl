@@ -39,7 +39,7 @@ require ("parse_model_dat");
 
 %=======================================================================
 %
-% Put a couple of crucial symbols in the _isis namespace so
+% Put some important symbols in the _isis namespace so
 % we always know where to find them:
 %
 $1 = current_namespace();
@@ -63,6 +63,32 @@ static define _lmodel_set_default (value, freeze_val, hard_min, min, max, hard_m
 }
 
 %}}}
+
+static variable _Xspec_Link_Errors;
+static define xspec_register_link_error (name, path, errmsg)
+{
+   if (assoc_key_exists (_Xspec_Link_Errors, errmsg))
+     {
+        list_append (_Xspec_Link_Errors[errmsg], name);
+     }
+   else
+     {
+        _Xspec_Link_Errors[errmsg] = {name};
+     }
+}
+static define xspec_clear_link_errors ()
+{
+   _Xspec_Link_Errors = Assoc_Type[];
+}
+static define xspec_print_link_errors ()
+{
+   variable errmsg, namelist;
+   foreach errmsg, namelist (_Xspec_Link_Errors) using ("keys", "values")
+     {
+        vmessage ("Link error: $errmsg"$);
+        %vmessage ("occurred for:  %s", strjoin (list_to_array(namelist), ", "));
+     }
+}
 
 use_namespace($1);
 
@@ -92,6 +118,16 @@ static define load_xspec_symbol (name) %{{{
 }
 
 %}}}
+
+static define parse_model_table ();
+private define load_shared_model_table (buf)
+{
+   variable names;
+   _isis->xspec_clear_link_errors ();
+   names = parse_model_table (buf, &load_xspec_symbol);
+   _isis->xspec_print_link_errors();
+   return names;
+}
 
 private define create_param_defaults_array (m) %{{{
 {
@@ -442,7 +478,7 @@ define load_xspec_local_models () %{{{
 
    variable dir = path_dirname (lib_path);
    variable buf = load_buf (path_concat (dir, "lmodel.dat"), dir);
-   () = parse_model_table (buf, &load_xspec_symbol);
+   () = load_shared_model_table (buf);
 }
 
 %}}}
@@ -510,7 +546,7 @@ private define load_lmodels_from_dir (dir, file) %{{{
      }
    vmessage ("loading %s", Model_File);
 
-   return parse_model_table (load_buf(Model_Dat, dir), &load_xspec_symbol);
+   return load_shared_model_table (load_buf(Model_Dat, dir));
 }
 
 %}}}
@@ -560,7 +596,7 @@ define _load_xspec_local_models () %{{{
    Model_File = libso_path;
    Model_Srcdir = path_dirname(lmodeldat_path);
 
-   () = parse_model_table (load_buf(Model_Dat, Model_Srcdir), &load_xspec_symbol) ;
+   () = load_shared_model_table (load_buf(Model_Dat, Model_Srcdir));
 }
 
 %}}}

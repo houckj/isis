@@ -798,20 +798,13 @@ static void _xspec_model_init_string (Xspec_Type *xt, char *init)
 
 static void handle_link_error (char *path, char *name) /*{{{*/
 {
-   const char *error;
+   const char *error = dlerror ();
 
-   if (-2 != SLang_is_defined ("_xspec_module_verbose_link_errors"))
-     return;
+   if (error == NULL)
+     error = "unknown";
 
-   if (NULL != (error = dlerror ()))
-     {
-        fprintf (stderr, "Link error:  %s\n", error);
-     }
-   else
-     {
-        fprintf (stderr, "Link error:  failed loading %s from %s\n",
-                 name, path);
-     }
+   (void) SLang_run_hooks ("_isis->xspec_register_link_error", 3,
+                           name, path, error);
 }
 /*}}}*/
 
