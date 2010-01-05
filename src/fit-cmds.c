@@ -3860,7 +3860,8 @@ static void fobj_get_data_weights (Fit_Object_MMT_Type *mmt)
 static void iterate_fit_fun (int optimize) /*{{{*/
 {
    Fit_Object_Type *fo = NULL;
-   double stat = 0.0;
+   double stat = isis_nan();
+   unsigned int num_pars = 0, num_vary = 0;
    int num_bins = 0;
    int err = -1;
 
@@ -3873,15 +3874,18 @@ static void iterate_fit_fun (int optimize) /*{{{*/
         fit_object_keep_params (fo, Param);
      }
 
-   if (fo != NULL && fo->info != NULL)
+   if ((fo != NULL) && (fo->info != NULL))
      {
-        SLang_push_integer (err ? -1 : 0);
-        SLang_push_double (stat);
-        SLang_push_integer ((int) fo->info->num_vary);
-        SLang_push_integer (num_bins);
+        num_vary = fo->info->num_vary;
      }
+   else Fit_count_params (Param, &num_pars, &num_vary);
 
    fit_object_close (fo);
+
+   SLang_push_integer (err ? -1 : 0);
+   SLang_push_double (stat);
+   SLang_push_integer (num_vary);
+   SLang_push_integer (num_bins);
 }
 
 /*}}}*/
