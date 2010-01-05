@@ -37,6 +37,42 @@ private variable shared_lib_ext = "so";
 #ifnexists load_xspec_local_models
 require ("parse_model_dat");
 
+private variable _Temp_Xspec_Link_Errors, _Xspec_Link_Errors;
+private define register_link_error (assoc, errmsg, name)
+{
+   if (assoc_key_exists (assoc, errmsg))
+     list_append (assoc[errmsg], name);
+   else assoc[errmsg] = {name};
+}
+private define xspec_keep_link_errors ()
+{
+   variable errmsg, namelist;
+   foreach errmsg, namelist (_Temp_Xspec_Link_Errors) using ("keys", "values")
+     {
+        variable n;
+        foreach n (namelist)
+          {
+             register_link_error (_Xspec_Link_Errors, errmsg, n);
+          }
+     }
+}
+private define xspec_clear_link_errors ()
+{
+   _Temp_Xspec_Link_Errors = Assoc_Type[];
+}
+private define xspec_track_link_errors ()
+{
+   _Xspec_Link_Errors = Assoc_Type[];
+}
+private define xspec_print_link_errors ()
+{
+   variable errmsg, namelist;
+   foreach errmsg, namelist (_Xspec_Link_Errors) using ("keys", "values")
+     {
+        vmessage ("Link error: $errmsg"$);
+     }
+}
+
 %=======================================================================
 %
 % Put some important symbols in the _isis namespace so
@@ -64,30 +100,9 @@ static define _lmodel_set_default (value, freeze_val, hard_min, min, max, hard_m
 
 %}}}
 
-static variable _Xspec_Link_Errors;
 static define xspec_register_link_error (name, path, errmsg)
 {
-   if (assoc_key_exists (_Xspec_Link_Errors, errmsg))
-     {
-        list_append (_Xspec_Link_Errors[errmsg], name);
-     }
-   else
-     {
-        _Xspec_Link_Errors[errmsg] = {name};
-     }
-}
-static define xspec_clear_link_errors ()
-{
-   _Xspec_Link_Errors = Assoc_Type[];
-}
-static define xspec_print_link_errors ()
-{
-   variable errmsg, namelist;
-   foreach errmsg, namelist (_Xspec_Link_Errors) using ("keys", "values")
-     {
-        vmessage ("Link error: $errmsg"$);
-        %vmessage ("occurred for:  %s", strjoin (list_to_array(namelist), ", "));
-     }
+   register_link_error (_Temp_Xspec_Link_Errors, errmsg, name);
 }
 
 use_namespace($1);
@@ -106,6 +121,8 @@ static define load_xspec_symbol (name) %{{{
 	    strlow(nameu), strlow(name),
 	    strup(nameu), strup(name)];
 
+   xspec_clear_link_errors ();
+
    foreach (names)
      {
 	variable n = ();
@@ -113,6 +130,9 @@ static define load_xspec_symbol (name) %{{{
 	if (ret == 0)
 	  return (xf, NULL);  % FIXME?
      }
+
+   % save recent link errors only if load ultimately failed
+   xspec_keep_link_errors ();
 
    return (NULL, NULL);
 }
@@ -123,9 +143,9 @@ static define parse_model_table ();
 private define load_shared_model_table (buf)
 {
    variable names;
-   _isis->xspec_clear_link_errors ();
+   xspec_track_link_errors ();
    names = parse_model_table (buf, &load_xspec_symbol);
-   _isis->xspec_print_link_errors();
+   xspec_print_link_errors();
    return names;
 }
 
