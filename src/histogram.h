@@ -279,6 +279,11 @@ extern SLang_Name_Type *Hist_post_model_hook (Hist_t *h);
 extern int Hist_set_post_model_hook (Hist_t *h, SLang_Name_Type *hook, void (*delete_hook)(SLang_Name_Type *));
 extern int Hist_run_post_model_hook (Hist_t *h, double *cts, SLang_Array_Type *sl_bgd);
 
+/* assigned model */
+extern SLang_Name_Type *Hist_assigned_model (Hist_t *h);
+extern Isis_Arg_Type *Hist_assigned_model_args (Hist_t *h);
+extern int Hist_assign_model (Hist_t *h, SLang_Name_Type *fun_ptr, Isis_Arg_Type *args);
+
 /* user-defined metadata */
 extern SLang_Any_Type *Hist_get_metadata (Hist_t *h);
 extern int Hist_set_metadata (Hist_t *h, SLang_Any_Type *meta);

@@ -1811,7 +1811,7 @@ static void get_dataset_metadata (int *hist_index) /*{{{*/
 
 static void set_post_model_hook (void) /*{{{*/
 {
-   SLang_Name_Type *post_model_hook;
+   SLang_Name_Type *post_model_hook = NULL;
    int hist_index;
    Hist_t *h;
 
@@ -1824,6 +1824,31 @@ static void set_post_model_hook (void) /*{{{*/
      return;
 
    (void) Hist_set_post_model_hook (h, post_model_hook, SLang_free_function);
+}
+
+/*}}}*/
+
+static void assign_model_intrin (int *num_extra_args) /*{{{*/
+{
+   SLang_Name_Type *fun_ptr = NULL;
+   Isis_Arg_Type *args = NULL;
+   int hist_index;
+   Hist_t *h;
+
+   if (*num_extra_args > 0)
+     args = isis_pop_args (*num_extra_args);
+
+   set_hook_from_stack (&fun_ptr);
+
+   if (-1 == SLang_pop_integer (&hist_index))
+     return;
+
+   if (NULL == (h = find_hist (hist_index)))
+     return;
+
+   (void) Hist_assign_model (h, fun_ptr, args);
+
+   (void) sync_model_with_data ();
 }
 
 /*}}}*/
@@ -2091,7 +2116,7 @@ static int default_stat_error_hook (void *cl, /*{{{*/
 
 static void set_stat_error_hook (int *indx) /*{{{*/
 {
-   SLang_Name_Type *stat_error_hook;
+   SLang_Name_Type *stat_error_hook = NULL;
    Hist_t *h;
 
    if (NULL == (h = find_hist (*indx)))
@@ -2773,6 +2798,7 @@ static SLang_Intrin_Fun_Type Hist_Intrinsics [] =
    MAKE_INTRINSIC_I("_unset_hist_color", _unset_hist_color, V),
    MAKE_INTRINSIC_2("_set_hist_object_name", _set_hist_object_name, V, I, S),
    MAKE_INTRINSIC("_set_post_model_hook", set_post_model_hook, V, 0),
+   MAKE_INTRINSIC_I("_assign_model", assign_model_intrin, V),
    MAKE_INTRINSIC_I("_set_dataset_metadata", set_dataset_metadata, V),
    MAKE_INTRINSIC_I("_get_dataset_metadata", get_dataset_metadata, V),
    MAKE_INTRINSIC_I("_set_sys_err_frac_intrin", set_sys_err_frac_intrin, V),

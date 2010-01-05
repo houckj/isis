@@ -136,6 +136,9 @@ struct _Hist_t
    SLang_Name_Type *instrumental_background_hook;          /* instrumental background */
    char *instrumental_background_hook_name;
 
+   SLang_Name_Type *assigned_model;
+   Isis_Arg_Type *assigned_model_args;
+
    void *stat_error_hook;
    void (*stat_error_hook_delete)(void *);
 
@@ -353,6 +356,9 @@ static void free_hist (Hist_t *h) /*{{{*/
    ISIS_FREE (h->quality);
    ISIS_FREE (h->instrumental_background_hook_name);
 
+   SLang_free_function (h->assigned_model);
+   isis_free_args (h->assigned_model_args);
+
    area_free (&h->area);
    area_free (&h->bgd_area);
 
@@ -562,6 +568,9 @@ static Hist_t *Hist_new_hist (int nbins) /*{{{*/
 
    h->post_model_hook = NULL;
    h->post_model_hook_delete = NULL;
+
+   h->assigned_model = NULL;
+   h->assigned_model_args = NULL;
 
    h->user_meta = NULL;
 
@@ -3150,6 +3159,32 @@ int Hist_set_metadata (Hist_t *h, SLang_Any_Type *meta) /*{{{*/
 }
 
 /*}}}*/
+
+/* assigned model */
+SLang_Name_Type *Hist_assigned_model (Hist_t *h)
+{
+   if (h == NULL)
+     return NULL;
+   return h->assigned_model;
+}
+
+Isis_Arg_Type *Hist_assigned_model_args (Hist_t *h)
+{
+   if (h == NULL)
+     return NULL;
+   return h->assigned_model_args;
+}
+
+int Hist_assign_model (Hist_t *h, SLang_Name_Type *fun_ptr, Isis_Arg_Type *args)
+{
+   if (h == NULL)
+     return -1;
+   SLang_free_function (h->assigned_model);
+   isis_free_args (h->assigned_model_args);
+   h->assigned_model = fun_ptr;
+   h->assigned_model_args = args;
+   return 0;
+}
 
 /* post model-evaluation  hook */
 

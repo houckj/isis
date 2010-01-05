@@ -907,6 +907,54 @@ define load_dataset () %{{{
 
 %}}}
 
+private variable Wrapped_Model_Num = 1;
+define maybe_wrap_assigned_model_ref (ref)
+{
+   if (typeof(ref) == Ref_Type)
+     return ref;
+
+   if (typeof(ref) != String_Type)
+     return NULL;
+
+   variable r = __get_reference (ref);
+   if (r != NULL)
+     return r;
+
+   variable name = "__assigned_model_${Wrapped_Model_Num}"$;
+   r = eval ("private define $name(){return $ref;} __get_reference(\"$name\");"$);
+   Wrapped_Model_Num++;
+
+   return r;
+}
+
+define assign_model ()
+{
+   _isis->error_if_fit_in_progress (_function_name);
+   variable msg =
+   "assign_model (hist_index[], model_ref [, args])\n\
+     where 'model_ref' is either a String_Type or a Ref_Type";
+   variable id, indices, model_ref, args = NULL;
+
+   if (_NARGS == 0)
+     usage(msg);
+
+   if (_NARGS > 2)
+     args = __pop_list (_NARGS-2);
+
+   (indices, model_ref) = ();
+
+   model_ref = maybe_wrap_assigned_model_ref (model_ref);
+
+   foreach id (indices)
+     {
+        if (args != NULL)
+          {
+             _isis->_assign_model (id, model_ref, __push_list (args), length(args));
+          }
+        else _isis->_assign_model (id, model_ref, 0);
+     }
+}
+
 % rebin/rebin
 
 define set_rebin_error_hook () %{{{

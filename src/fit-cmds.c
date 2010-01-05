@@ -1532,9 +1532,19 @@ static int register_fitfun_pars (Hist_t *h, void *cl) /*{{{*/
    char *name;
    char *body;
 
-   (void) h;
-
-   /* apply this to _all_ datasets, even if no noticed bins */
+   if (h != NULL)
+     {
+        SLang_Name_Type *fun_ptr;
+        if (NULL != (fun_ptr = Hist_assigned_model (h)))
+          {
+             Isis_Arg_Type *args;
+             if (NULL != (args = Hist_assigned_model_args (h)))
+               {
+                  (void) isis_push_args (args);
+               }
+             return do_init_mode_eval (fun_ptr);
+          }
+     }
 
    if (fr == NULL)
      return -1;
@@ -1668,7 +1678,7 @@ int update_user_model (void) /*{{{*/
     * with user-defined kernels (like the grating pileup kernel).
     */
 
-   s = f->fun_string ? f->fun_string : (char *) "bin_width(1)";
+   s = f->fun_string ? f->fun_string : (char *) "null";
    if (NULL == (copy = isis_make_string (s)))
      return -1;
    ret = _define_user_model (copy);
@@ -1744,15 +1754,28 @@ static int pop_model_result (Isis_Hist_t *x) /*{{{*/
 static int eval_model_using_global_grid (Hist_t *h, Isis_Hist_t *g) /*{{{*/
 {
    User_Function_Type *f;
-   (void) h;
+   SLang_Name_Type *fun_ptr;
 
-   f = get_user_function ();
-   if ((f == NULL) || (f->fun_ptr == NULL))
+   if (NULL != (fun_ptr = Hist_assigned_model (h)))
      {
-        isis_vmesg (INTR, I_INFO, __FILE__, __LINE__, "fit function not defined");
-        return -1;
+        Isis_Arg_Type *args;
+        if (NULL != (args = Hist_assigned_model_args (h)))
+          {
+             (void) isis_push_args (args);
+          }
      }
-   SLexecute_function (f->fun_ptr);
+   else
+     {
+        f = get_user_function ();
+        if ((f == NULL) || (f->fun_ptr == NULL))
+          {
+             isis_vmesg (INTR, I_INFO, __FILE__, __LINE__, "fit function not defined");
+             return -1;
+          }
+        fun_ptr = f->fun_ptr;
+     }
+
+   SLexecute_function (fun_ptr);
 
    return pop_model_result (g);
 }
@@ -4461,7 +4484,7 @@ static void set_eval_grid_method (int *method, int *cache_model_values) /*{{{*/
    SLang_Array_Type *sl_members = NULL;
    unsigned int *members;
    unsigned int num_members;
-   SLang_Name_Type *hook;
+   SLang_Name_Type *hook = NULL;
 
    if ((-1 == SLang_pop_array_of_type (&sl_members, SLANG_UINT_TYPE))
        || (sl_members == NULL))

@@ -1936,6 +1936,11 @@ define delta_fit (lo, hi, par)
    return result;
 }
 
+define null_fit (lo, hi, par)
+{
+   return Double_Type[length(lo)];
+}
+
 define bin_width_fit (lo, hi, par)
 {
    return (hi - lo);
@@ -1961,6 +1966,7 @@ define bin_center_en_fit (lo, hi, par)
 define init_static_slang_functions () %{{{
 {
    add_slang_function ("delta", ["norm", "lambda"]);
+   add_slang_function ("null", [""]);
    add_slang_function ("bin_width", [""]);
    add_slang_function ("bin_width_en");
    add_slang_function ("bin_center", [""]);
