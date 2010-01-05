@@ -25,6 +25,7 @@ Changes since 1.5.0 (released Aug 2009)
 17.  Insert missing parens to fix bug in 'group' function background
      scaling.
 18.  Better diagnostics for xspec module local model link errors
+19.  Added assign_model intrinsic.
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
