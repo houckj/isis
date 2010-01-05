@@ -9667,7 +9667,8 @@ add\_slang\_function}). Furthermore, using the ISIS intrinsic
 variable \verb|Isis_Active_Dataset|, one can write user-defined
 functions which evaluate differently for different datasets. For
 example, its possible to simulataneously fit a Gaussian to one
-dataset and a Lorentzian to another.
+dataset and a Lorentzian to another.  For another way to do this,
+see \verb|assign_model|.
 
 Models may be fit to either flux-corrected data or count-data.
 Extending the standard forward-folding fit algorithm used in \xspec,
@@ -10249,6 +10250,53 @@ define fun (x, pars)
 % fit the data (providing initial parameter values in `pars')
 (best, stat) = array_fit (x, y, NULL, pars, NULL, NULL, &fun);
 \end{verbatim}
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{assign\_model}
+{Assign a model to an specific dataset}
+{assign\_model (id[], model\_ref [, arg1 [, arg2, ...]]);}
+{fit\_fun, Isis\_Active\_Dataset}
+
+This function may be used to associate a model with a particular dataset,
+overriding any model that may have been defined using \verb|fit_fun|.
+
+The \verb|model_ref| argument may be defined in one of two ways:
+\begin{verbatim}
+   * a String_Type containing a valid model expression
+          e.g. "phabs(1) * (mekal(1) + powerlaw(1))"
+   * a Ref_Type that refers to a S-Lang function:
+          e.g. &some_function
+\end{verbatim}
+
+When the model is defined using a \verb|Ref_Type|, any additional arguments
+provided to \verb|assign_model| will be passed along to the referenced
+function when it is evaluated. For example, the following setup:
+\begin{verbatim}
+      define example_model (i1, i2)
+      {
+          return phabs(i1) * (mekal(i2) + powerlaw(1));
+      }
+
+      assign_model (2, &example_model, 1, 2);
+\end{verbatim}
+is equivalent to:
+\begin{verbatim}
+      assign_model (2, "phabs(1) * (mekal(2) + powerlaw(1))");
+\end{verbatim}
+
+To unassign a dataset's model, use \verb|model_ref=NULL|:
+\begin{verbatim}
+     assign_model (id, NULL);
+\end{verbatim}
+
+Note that if every dataset has a model specified by \verb|assign_model|, then
+a default model specified by \verb|fit_fun| will not be evaluated during a
+fit, even though the parameters of the \verb|fit_fun| model still appear in
+the \verb|list_par| output and, for the purposes of optimization, may still be
+treated as variable parameters.  In this situation, it may be advisable to use
+\verb|fit_fun ("null")| to eliminate the extraneous parameters.
 
 \end{isisfunction}
 
@@ -10900,7 +10948,7 @@ with the flux-corrected histogram (see \verb|flux_corr|).  See
 {eval\_fun} %name
 {Evaluate the fit-function on a user-defined grid} %purpose
 {y = eval\_fun (lo, hi)} %usage
-{get\_cfun, get\_cfun2, fit\_fun, eval\_fun2}
+{get\_cfun, get\_cfun2, fit\_fun, eval\_fun2, assign\_model}
 
 This function evaluates the current fit-function on the specified
 histogram grid \verb|(lo, hi)|.
@@ -10916,6 +10964,7 @@ If the current fit-function evaluates differently for different
 datasets, it is necessary to specify the dataset index to use when
 evaluating the fit-function.  Do this by setting the
 \verb|Isis_Active_Dataset| index before calling \verb|eval_fun|.
+For another way to do this, see \verb|assign_model|.
 \end{isisfunction}
 
 \begin{isisfunction}
@@ -11187,7 +11236,7 @@ preserved. For example:
 {fit\_fun} %name
 {define a fit function without prompting for parameters} %purpose
 {fit\_fun("function\_string")} %usage
-{get\_fit\_fun, ifit\_fun, Lorentz, gauss, load\_par, set\_par, set\_par\_fun}
+{assign\_model, get\_fit\_fun, ifit\_fun, Lorentz, gauss, load\_par, set\_par, set\_par\_fun}
 
 The function definition string must be a valid \slang\
 expression.  For example, to fit a sum of two Gaussians
@@ -11207,9 +11256,12 @@ Fit-functions may take additional arguments (see
 arguments, with the restriction that the model string must
 ultimately evaluate to a \verb|Double_Type| array.
 
-A fit-function which evaluates differently for different datasets
-may be defined using the \isisx intrinsic variable
-\verb|Isis_Active_Dataset|. For example:
+A fit-function which evaluates differently for different datasets may be
+defined using the \isisx intrinsic variable \verb|Isis_Active_Dataset| or by
+using \verb|assign_model|.
+
+As an example of how to use \verb|Isis_Active_Dataset|,
+consider the following:
 \begin{verbatim}
    public define my_complicated_function ()
    {
@@ -11535,7 +11587,7 @@ For example:
 {get\_cfun} %name
 {get the y-values of the differential fit-function} %purpose
 {y = get\_cfun (x\_array)} %usage
-{eval\_fun, fit\_fun}
+{eval\_fun, fit\_fun, assign\_model}
 
 Given an array of x-coordinate values {\tt x\_array}, this function returns
 an array containing the corresponding (unbinned) values of the currently
@@ -11552,6 +11604,7 @@ Note that, if the current fit-function evaluates differently for
 different datasets, it is necessary to specify the dataset index
 to use when evaluating the fit-function.  Do this by setting the
 \verb|Isis_Active_Dataset| index before calling \verb|eval_fun|.
+For another way to do this, see \verb|assign_model|.
 \end{isisfunction}
 
 \begin{isisfunction}
@@ -14859,7 +14912,8 @@ tables on input (see {\tt plasma}). The default probably need not be changed.\\
 {\tt Isis\_Active\_Dataset} & - & This variable contains the index of the
 dataset for which the fit-function is currently being evaluated.  This
 intrinsic variable is primarily useful for writing user-defined fit-functions
-which evaluate differently for different datasets.\\
+which evaluate differently for different datasets.  See also {\tt
+assign\_model}.\\
 {\tt Isis\_Append\_Semicolon} & 0 & If non-zero, \isis\ will
 automatically append a semicolon (;) to each input command line
 in interactive mode.  Otherwise, the user must type the semicolon

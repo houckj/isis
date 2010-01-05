@@ -8767,6 +8767,59 @@ array_fit
     set_fit_method, set_fit_statistic, fit_counts, fit_flux
 
 ------------------------------------------------------------------------
+assign_model
+
+ SYNOPSIS
+    Assign a model to an specific dataset
+
+ USAGE
+    assign_model (id[], model_ref [, arg1 [, arg2, ...]]);
+
+ DESCRIPTION
+    This function may be used to associate a model with a
+    particular dataset, overriding any model that may have been
+    defined using fit_fun.
+
+    The model_ref argument may be defined in one of two ways:
+
+       * a String_Type containing a valid model expression
+              e.g. "phabs(1) * (mekal(1) + powerlaw(1))"
+       * a Ref_Type that refers to a S-Lang function:
+              e.g. &some_function
+
+    When the model is defined using a Ref_Type, any additional
+    arguments provided to assign_model will be passed along to the
+    referenced function when it is evaluated. For example, the
+    following setup:
+
+          define example_model (i1, i2)
+          {
+              return phabs(i1) * (mekal(i2) + powerlaw(1));
+          }
+
+          assign_model (2, &example_model, 1, 2);
+
+    is equivalent to:
+
+          assign_model (2, "phabs(1) * (mekal(2) + powerlaw(1))");
+
+    To unassign a dataset's model, use model_ref=NULL:
+
+         assign_model (id, NULL);
+
+    Note that if every dataset has a model specified by
+    assign_model, then a default model specified by fit_fun will
+    not be evaluated during a fit, even though the parameters of
+    the fit_fun model still appear in the list_par output and, for
+    the purposes of optimization, may still be treated as variable
+    parameters.  In this situation, it may be advisable to use
+    fit_fun ("null") to eliminate the extraneous parameters.
+
+
+ SEE ALSO
+    fit_fun, Isis_Active_Dataset
+
+------------------------------------------------------------------------
 bin_center
 
  SYNOPSIS
@@ -9538,10 +9591,11 @@ eval_fun
     If the current fit-function evaluates differently for different
     datasets, it is necessary to specify the dataset index to use
     when evaluating the fit-function.  Do this by setting the
-    Isis_Active_Dataset index before calling eval_fun.
+    Isis_Active_Dataset index before calling eval_fun. For another
+    way to do this, see assign_model.
 
  SEE ALSO
-    get_cfun, get_cfun2, fit_fun, eval_fun2
+    get_cfun, get_cfun2, fit_fun, eval_fun2, assign_model
 
 ------------------------------------------------------------------------
 eval_fun2
@@ -9873,7 +9927,10 @@ fit_fun
 
     A fit-function which evaluates differently for different
     datasets may be defined using the ISIS intrinsic variable
-    Isis_Active_Dataset. For example:
+    Isis_Active_Dataset or by using assign_model.
+
+    As an example of how to use Isis_Active_Dataset, consider the
+    following:
 
        public define my_complicated_function ()
        {
@@ -9942,7 +9999,7 @@ fit_fun
 
 
  SEE ALSO
-    get_fit_fun, ifit_fun, Lorentz, gauss, load_par, set_par, set_par_fun
+    assign_model, get_fit_fun, ifit_fun, Lorentz, gauss, load_par, set_par, set_par_fun
 
 ------------------------------------------------------------------------
 fitfun_handle
@@ -10262,9 +10319,10 @@ get_cfun
     for different datasets, it is necessary to specify the dataset
     index to use when evaluating the fit-function.  Do this by
     setting the Isis_Active_Dataset index before calling eval_fun.
+    For another way to do this, see assign_model.
 
  SEE ALSO
-    eval_fun, fit_fun
+    eval_fun, fit_fun, assign_model
 
 ------------------------------------------------------------------------
 get_cfun2
