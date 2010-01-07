@@ -2632,9 +2632,7 @@ group
        sqrt( (Total_Counts) + (Back_Counts)*(Back_Scale*Exposure_Ratio)^2 )
 
     where the totals represent sums over all datasets (or those
-    specified by the sn_data qualifier, if it is present). The
-    default minimum S/N ratio, min_sn=1/sqrt(0.05) corresponds to
-    5% Poisson uncertainty in each bin.
+    specified by the sn_data qualifier, if it is present).
 
     The last channels are binned into a single group, regardless of
     whether or not they meet the binning criteria.
@@ -2644,6 +2642,16 @@ group
     specified using the bounds and unit qualifiers, and grouping
     criteria are specified as arrays with one entry for each
     subinterval.
+
+    Qualifier    Default     Meaning
+    ---------    -------     -------
+    min_sn        0          Final bin will have S/N ratio >= min_sn
+    sn_data       all        List of datasets to be used for S/N calculation
+                               (by default, all specified datasets are used)
+    min_chan      1          Final bin will contain at least min_chan bins
+    bounds        NULL       Endpoints of spectrum subintervals that
+                                will be grouped differently
+    unit          Angstrom   Physical units of `bounds' coordinates
 
     For example,
 
@@ -10808,14 +10816,13 @@ ignore_values
     multiple datasets are specified, their spectral grids should
     match exactly.
 
-    Use the unit qualfier to specify the physical units of the lo,
-    hi intervals.
-
-    Use the min_sum=value qualifier to ignore only those bins for
-    which the sum over all specified datasets exceeds value.
-
-    Use the min_val=value qualifier to ignore only those bins which
-    exceed value in any one of the specified datasets.
+    Qualifier    Default     Meaning
+    ---------    -------     -------
+    unit          Angstrom   physical units of (lo, hi)
+    min_sum       NULL       if defined, ignore only bins for which
+                                (sum over datasets) > min_sum
+    min_val       NULL       if defined, ignore only bins for which
+                                (value in every dataset) > min_val
 
     For example,
 
@@ -11487,14 +11494,13 @@ notice_values
     qualifiers. If multiple datasets are specified, their spectral
     grids should match exactly.
 
-    Use the unit qualfier to specify the physical units of the lo,
-    hi intervals.
-
-    Use the min_sum=value qualifier to notice only those bins for
-    which the sum over all specified datasets exceeds value.
-
-    Use the min_val=value qualifier to notice only those bins which
-    exceed value in any one of the specified datasets.
+    Qualifier    Default     Meaning
+    ---------    -------     -------
+    unit          Angstrom   physical units of (lo, hi)
+    min_sum       NULL       if defined, notice only bins for which
+                                (sum over datasets) > min_sum
+    min_val       NULL       if defined, notice only bins for which
+                                (value in every dataset) > min_val
 
     For example,
 
