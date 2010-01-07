@@ -231,9 +231,8 @@ public define group ()
    bounds = to_angstrom (bounds ;; __qualifiers);
 
    variable min_sn, min_chan;
-   % Default S/N threshold corresponds to +/- 5% uncertainty
    min_sn = force_array_length (Double_Type, length_bounds,
-                                qualifier("min_sn", 1/sqrt(0.05)));
+                                qualifier("min_sn", 0.0));
 
    min_chan = force_array_length (Integer_Type, length_bounds,
                                   qualifier("min_chan",1));
