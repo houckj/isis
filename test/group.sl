@@ -64,7 +64,7 @@ define check_sn_bounds (k, bounds, is_egy, sn_values)
 
 define isis_main()
 {
-   () = fputs ("testing group...", stderr);
+   () = fputs ("testing group... ", stderr);
    variable d, expected_sn;
 
    %
@@ -113,7 +113,7 @@ define isis_main()
    check_sn_bounds (1, bounds, 0, [1.5, sn_values]);
 
    vmessage ("ok");
-   () = fputs ("testing group_bin...", stderr);
+   () = fputs ("testing group_bin... ", stderr);
 
    delete_data (all_data);
    variable lo, hi, n=1000, c = Double_Type[n];
