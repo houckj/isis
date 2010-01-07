@@ -26,6 +26,7 @@ Changes since 1.5.0 (released Aug 2009)
      scaling.
 18.  Better diagnostics for xspec module local model link errors
 19.  Added assign_model intrinsic.
+20.  group:  change min_sn default to min_sn=0
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
