@@ -12339,6 +12339,62 @@ set_kernel
     load_kernel, print_kernel, get_kernel, list_kernels
 
 ------------------------------------------------------------------------
+set_hard_limits
+
+ SYNOPSIS
+    Adjust the hard limits constraining a fit parameter's value
+
+ USAGE
+    set_hard_limits (fun_name, par_name, [hard_min], [hard_max])
+
+ DESCRIPTION
+    Because hard limits are intended to define the full range of
+    parameter values for which a fit-function is applicable, it
+    should not be necessary for the user to modify the hard limits
+    at all.
+
+    Unfortunately, hard limits are sometimes set to an overly
+    restrictive range. For example, hard limits may constrain a
+    Doppler shift parameter to always correspond to a redshift even
+    though the same code can perfectly well handle a blueshift.
+
+    Use set_hard_limits to adjust the hard limits for a given
+    parameter of a given function. Note that the new hard limits
+    will apply only to instances of the fit-function that are used
+    AFTER the hard limits were changed. Specifying a value of NULL
+    or _NaN leaves the corresponding hard limit unchanged. When a
+    fit-function imposes no default hard limits on parameter
+    values, calling set_hard_limits will not change that.
+
+    EXAMPLE:
+          % Suppose we've been working with this model:
+        isis> fit_fun ("TBabs(1) * mekal(1)");
+
+          % Now we want to add a blue-shifted mekal component,
+          % but the current hard limits on mekal.redshift
+          % do not allow setting redshift < 0.
+
+          % To fix this, first change the hard lower limit on the
+          % redshift parameter to allow blueshifts:
+        isis> set_hard_limits ("mekal", "redshift", -1, NULL);
+
+          % Now introduce the blue-shifted component:
+        isis> fit_fun ("TBabs(1) * (mekal(1) + mekal(2))");
+        isis> set_par ("mekal(2).redshift", -0.04, 0, -0.5, 0.5);
+
+          % Note that the hard lower limit on mekal(1).redshift
+          % is still set to 0:
+        isis> set_par ("mekal(1).redshift", -0.04, 0, -0.5, 0.5);
+        Error: parameter 6 minimum=-0.5 violates hard limits (0, 10)
+        Failed: setting parameter 6
+        Isis Error
+        isis>
+
+
+ SEE ALSO
+    set_par
+
+------------------------------------------------------------------------
 set_par
 
  SYNOPSIS
@@ -12356,7 +12412,9 @@ set_par
 
     If allowed ranges are not specified by the user or if min=
     max=0, the parameter value range is unlimited; this is the
-    default.
+    default.  If the function provides hard limits on the parameter
+    value range, then the min, max values must be consistent with
+    those hard limits (see set_hard_limits).
 
     One can also refer to parameters by name:
 
@@ -12453,7 +12511,7 @@ set_par
 
 
  SEE ALSO
-    edit_par, load_par, get_par, set_par_fun, set_param_expansion_method
+    edit_par, load_par, get_par, set_par_fun, set_hard_limits
 
 ------------------------------------------------------------------------
 set_param_default_hook

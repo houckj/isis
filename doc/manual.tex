@@ -12017,7 +12017,7 @@ unit          Angstrom   physical units of (lo, hi)
 min_sum       NULL       if defined, ignore only bins for which
                             (sum over datasets) > min_sum
 min_val       NULL       if defined, ignore only bins for which
-                            (value in every dataset) > min_val 
+                            (value in every dataset) > min_val
 \end{verbatim}
 
 For example,
@@ -13329,10 +13329,59 @@ Example:
 \end{isisfunction}
 
 \begin{isisfunction}
+{set\_hard\_limits}
+{Adjust the hard limits constraining a fit parameter's value}
+{set\_hard\_limits (fun\_name, par\_name, [hard\_min], [hard\_max])}
+{set\_par}
+
+Because hard limits are intended to define the full range of parameter values
+for which a fit-function is applicable, it should not be necessary for the
+user to modify the hard limits at all.
+
+Unfortunately, hard limits are sometimes set to an overly restrictive range.
+For example, hard limits may constrain a Doppler shift parameter to always
+correspond to a redshift even though the same code can perfectly well handle a
+blueshift.
+
+Use \verb|set_hard_limits| to adjust the hard limits for a given parameter of
+a given function. Note that the new hard limits will apply only to instances
+of the fit-function that are used AFTER the hard limits were changed.
+Specifying a value of \verb|NULL| or \verb|_NaN| leaves the corresponding hard
+limit unchanged. When a fit-function imposes no default hard limits on
+parameter values, calling \verb|set_hard_limits| will not change that.
+
+\begin{verbatim}
+EXAMPLE:
+      % Suppose we've been working with this model:
+    isis> fit_fun ("TBabs(1) * mekal(1)");
+
+      % Now we want to add a blue-shifted mekal component,
+      % but the current hard limits on mekal.redshift
+      % do not allow setting redshift < 0.
+
+      % To fix this, first change the hard lower limit on the
+      % redshift parameter to allow blueshifts:
+    isis> set_hard_limits ("mekal", "redshift", -1, NULL);
+
+      % Now introduce the blue-shifted component:
+    isis> fit_fun ("TBabs(1) * (mekal(1) + mekal(2))");
+    isis> set_par ("mekal(2).redshift", -0.04, 0, -0.5, 0.5);
+
+      % Note that the hard lower limit on mekal(1).redshift
+      % is still set to 0:
+    isis> set_par ("mekal(1).redshift", -0.04, 0, -0.5, 0.5);
+    Error: parameter 6 minimum=-0.5 violates hard limits (0, 10)
+    Failed: setting parameter 6
+    Isis Error
+    isis>
+\end{verbatim}
+\end{isisfunction}
+
+\begin{isisfunction}
 {set\_par} %name
 {set the value of a fit parameter} %purpose
 {set\_par (idx, value [,freeze, [ min, max [,step]]])} %usage
-{edit\_par, load\_par, get\_par, set\_par\_fun, set\_param\_expansion\_method}
+{edit\_par, load\_par, get\_par, set\_par\_fun, set\_hard\_limits}
 \begin{verbatim}
       idx    parameter index or string identifier
     value    parameter value
@@ -13343,7 +13392,10 @@ Example:
 
 If allowed ranges are not specified by the user or if
 {\tt min}={\tt max}=0, the parameter value range is unlimited;
-this is the default.
+this is the default.  If the function provides hard limits
+on the parameter value range, then the \verb|min|, \verb|max|
+values must be consistent with those hard limits
+(see \verb|set_hard_limits|).
 
 One can also refer to parameters by name:
 \begin{verbatim}
