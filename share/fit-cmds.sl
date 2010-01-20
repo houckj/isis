@@ -519,6 +519,24 @@ define get_fit_fun () %{{{
 
 %}}}
 
+define set_hard_limits ()
+{
+   _isis->error_if_fit_in_progress (_function_name);
+   variable msg = "set_hard_limits (fun_name, par_name, [hard_min], [hard_max])";
+
+   if (_isis->chk_num_args (_NARGS, 4, msg))
+     return;
+
+   variable fun_name, par_name, hard_min, hard_max;
+   (fun_name, par_name, hard_min, hard_max) = ();
+
+   if (hard_min == NULL) hard_min = _NaN;
+   if (hard_max == NULL) hard_max = _NaN;
+
+   if (_isis->set_hard_limits (fun_name, par_name, hard_min, hard_max) != 0)
+     throw IsisError;
+}
+
 define get_fun_info () %{{{
 {
    variable msg = "Struct_Type = get_fun_info (\"fun_name\")";

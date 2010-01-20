@@ -36,7 +36,7 @@ define pop_list (num, msg) %{{{
      }
 
    variable a;
-   
+
    if (num > 1)
      {
 	a = __pop_args (num);
@@ -323,7 +323,7 @@ define warn_fprintf () %{{{
 	(fp, fmt) = ();
 	() = fprintf (fp, fmt, __push_args (args));
      }
-   
+
    () = fflush (fp);
 
    if (errno != 0)
@@ -331,7 +331,7 @@ define warn_fprintf () %{{{
 	verror ("*** Error:  write failed (%s)", errno_string(errno));
 	return -1;
      }
-   
+
    return 0;
 }
 
@@ -340,9 +340,9 @@ define warn_fprintf () %{{{
 define close_file (fp) %{{{
 {
    _isis->_isis_set_errno (0);
-   
+
    ()=fflush(fp);
-   
+
    if (0 != fclose (fp)
 	or errno != 0)
      {
@@ -363,12 +363,12 @@ define _stop_log () %{{{
 	return;
      }
 
-   if (Isis_Log_File_Fp == NULL) 
+   if (Isis_Log_File_Fp == NULL)
      return;
-   
+
    () = warn_fprintf (Isis_Log_File_Fp, "%% Log stopped %s\n", time ());
    close_file (Isis_Log_File_Fp);
-   
+
    EXECUTE_ERROR_BLOCK;
 }
 
@@ -420,7 +420,7 @@ define do_save_input (file) %{{{
 	() = warn_fprintf (fp, "%s\n", l.line);
 	l = l.next;
      }
-   
+
    close_file (fp);
 }
 
@@ -536,7 +536,7 @@ define emisdb_start_hook () %{{{
      {
 	line_emis, contin_emis, ionization, abundance, filemap
      };
-   
+
    s.line_emis = ""; s.contin_emis = ""; s.ionization = "";
    s.abundance = ""; s.filemap = "";
 
@@ -707,6 +707,61 @@ define options_to_struct (options) %{{{
      }
 
    return s;
+}
+
+%}}}
+
+% Partial support for changing hard limits on parameters of
+% fit-functions implemented in slang.  This works only for
+% functions that keep their defaults in a global structure
+% named __${fname}_Defaults (and the only functions known
+% to do that are those defined by the xspec module...)
+%
+define set_slangfun_param_hard_limits (fun_name, par_name, index, hard_min, hard_max) %{{{
+{
+   variable msg;
+
+   variable default_struct_array_name = "__${fun_name}_Defaults"$;
+   variable rs = __get_reference (default_struct_array_name);
+
+   if (rs == NULL || 0 == _is_struct_type (@rs))
+     {
+        msg = "*** Sorry, I can't change the hard limits for function '$fun_name' (struct $default_struct_array_name is undefined)"$;
+        vmessage(msg);
+        return -1;
+     }
+
+   variable s = (@rs)[index];
+
+   if (0 == isnan(hard_min))
+     {
+        if (s.min < hard_min)
+          {
+             msg = sprintf ("parameter %s.%s: hard minimum not changed.  (hard_min=%g is inconsistent with default minimum=%g)",
+                            fun_name, par_name,
+                            hard_min,
+                            s.min);
+             vmessage(msg);
+             return -1;
+          }
+        s.hard_min = hard_min;
+     }
+
+   if (0 == isnan(hard_max))
+     {
+        if (s.max > hard_max)
+          {
+             msg = sprintf ("parameter %s.%s: hard maximum not changed.  (hard_max=%g is inconsistent with default maximum=%g)",
+                            fun_name, par_name,
+                            hard_max,
+                            s.max);
+             vmessage(msg);
+             return -1;
+          }
+        s.hard_max = hard_max;
+     }
+
+   return 0;
 }
 
 %}}}

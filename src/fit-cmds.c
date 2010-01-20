@@ -4645,6 +4645,7 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
    MAKE_INTRINSIC_1("eval_diff_fitfun_using_handle_intrin", eval_diff_fitfun_using_handle_intrin, V, MT),
    MAKE_INTRINSIC_1("get_fitfun_handle_intrin", push_mmt_fitfun_type_intrin, V, S),
    MAKE_INTRINSIC_1("get_fitfun_info", Fit_get_fun_info, V, S),
+   MAKE_INTRINSIC_4("set_hard_limits", Fit_set_hard_limits, I, S, S, D, D),
    MAKE_INTRINSIC("open_fit_object_mmt_intrin", open_fit_object_mmt_intrin, V, 0),
    MAKE_INTRINSIC_2("fobj_eval_statistic", fobj_eval_statistic, V, MTO, I),
    MAKE_INTRINSIC_2("fobj_eval_residuals", fobj_eval_residuals, V, MTO, I),
