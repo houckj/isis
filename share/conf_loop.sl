@@ -225,11 +225,23 @@ private define recv_slave_result (slv)
    x.num_retries += result.num_retries;
    slv.status = SLAVE_READY;
 
-   variable keep, restart;
+   variable keep, restart, not_bracketed;
+   variable p_value = get_par(index);
+
+   % If two or more fit parameters are strongly correlated, it may
+   % happen that the slave's confidence limits fail to bracket the
+   % master's current parameter value.
+   not_bracketed = (p_value < result.pmin || result.pmax < p_value);
+   if (not_bracketed)
+     {
+        vmessage ("*** warning:  parameter $index:  confidence limits do not bracket initial parameter value"$);
+        vmessage ("              Restarting confidence limit search...");
+     }
 
    restart = (info.statistic < x.best_stat
               || (result.pmin == result.pmax
-                  && result.num_retries < x.max_param_retries));
+                  && result.num_retries < x.max_param_retries)
+              || not_bracketed);
 
    keep = (restart ||
            (param_version == x.param_version
