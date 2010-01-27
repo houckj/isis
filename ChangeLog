@@ -1,3 +1,14 @@
+2010-1-27  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl (fits_iterate): Added a fits_iterate function.
+	  Docs to come...
+	(_fits_sl_version_string): 0.4.6-0
+
+2010-1-22  John E. Davis  <davis@space.mit.edu>
+
+	* src/fits.sl: fits_read_col can read a subset of rows using the
+	   row and num qualifiers.
+
 2009-10-5  John E. Davis  <davis@space.mit.edu>
 
 	* src/version.h (MODULE_PATCH_LEVEL): bumped to 0.4.6
