@@ -1,4 +1,4 @@
-%    Copyright (C) 1998-2009 Massachusetts Institute of Technology
+%    Copyright (C) 1998-2010 Massachusetts Institute of Technology
 %
 %    Author:  John E. Davis <davis@space.mit.edu>
 %
@@ -21,8 +21,8 @@
 %else
 import ("cfitsio");
 
-variable _fits_sl_version = 405;
-variable _fits_sl_version_string = "0.4.5-0";
+variable _fits_sl_version = 406;
+variable _fits_sl_version_string = "0.4.6-0";
 
 private variable Verbose = 1;
 % Forward declarations
@@ -508,15 +508,9 @@ private define convert_tdim_string (tdim, num_rows)
 }
 
 
-private define check_vector_tdim (fp, first_row, col, data)
+private define check_vector_tdim (fp, first_row, tdim_col, data)
 {
-   variable tdim_col = sprintf ("TDIM%d", col);
-
-   !if (fits_binary_table_column_exists (fp, tdim_col))
-     return;
-   
-   do_fits_error (_fits_get_colnum (fp, tdim_col, &tdim_col));
-   if (tdim_col == col)
+   if (tdim_col == 0)
      return;
 
    variable len = length (data);
@@ -566,26 +560,31 @@ private define reshape_string_array (fp, col, data)
 
 % FITS column and keyword names can begin with a number or have dashes. 
 % Bad Design.
+private define normalize_names (names);
 private define normalize_names (names)
 {
-   names = @names;
+   variable new_names = String_Type[0];
    _for (0, length (names)-1, 1)
      {
 	variable i = ();
-	variable name = strlow (names[i]);
-#iffalse
-	(name,) = strreplace (name, "-", "_", strlen (name));
-#else
+	variable name = names[i];
+	variable t = typeof (name);
+	if ((t == Array_Type) || (t == List_Type))
+	  {
+	     new_names = [new_names, normalize_names(name)];
+	     continue;
+	  }
+
+	name = strlow (name);
 	name = strtrans (name, "^a-z0-9", "_");
-#endif
-	names[i] = name;
 	variable ch = name[0];
-	if ((ch == '_')
-	    or ((ch >= 'a') and (ch <= 'z')))
-	  continue;
-	names[i] = "_" + name;
+	ifnot ((ch == '_')
+	       || ((ch >= 'a') && (ch <= 'z')))
+	  name = "_" + name;
+	
+	new_names = [new_names, name];
      }
-   return names;
+   return new_names;
 }
 
 private define get_column_number (fp, col)
@@ -599,13 +598,12 @@ private define get_column_number (fp, col)
    return int (col);
 }
 
-private define get_column_numbers (fp, args)
+private define get_column_numbers (fp, col_list)
 {
    variable column_nums = Int_Type[0];
-   foreach (args)
+   foreach (col_list)
      {
-	variable arg = ();
-	variable col = arg.value;
+	variable col = ();
 	if (typeof (col) == Array_Type)
 	  col = array_map (Int_Type, &get_column_number, fp, col);
 	else
@@ -616,13 +614,60 @@ private define get_column_numbers (fp, args)
    return column_nums;
 }
 
+private define open_read_cols (fp, columns)
+{
+   variable needs_close, numrows, numcols;
+   fp = get_open_binary_table (fp, &needs_close);
+   do_fits_error (_fits_get_num_rows (fp, &numrows));
+   numcols = length(columns);
+   
+   variable s = struct
+     {
+	fp = fp,
+	needs_close = needs_close,
+	columns = get_column_numbers (fp, columns),
+	num_rows = numrows, num_cols = numcols,
+	tdims = String_Type[numcols],
+	tdim_cols = Int_Type[numcols],
+     };
+   
+   _for (0, numcols-1, 1)
+     {
+	variable i = ();
+	variable col = s.columns[i];
+	variable tdim = get_tdim_string (fp, col);
+	if (tdim != NULL)
+	  s.tdims[i] = tdim;
+	variable tdim_col = sprintf ("TDIM%d", col);
+	if (fits_binary_table_column_exists (fp, tdim_col))
+	  {
+	     do_fits_error (_fits_get_colnum (fp, tdim_col, &tdim_col));
+	     if (tdim_col != col)
+	       s.tdim_cols[i] = tdim_col;
+	  }
+     }
+   
+   return s;
+}
+
+private define close_read_cols (s)
+{
+   do_close_file (s.fp, s.needs_close);
+}
+
+   
+
 % This function assumes that fp is an open pointer, and that columns is
 % an array of column numbers.  The data are left on the stack.
-private define read_cols (fp, columns, first_row, last_row)
+private define read_cols (fpinfo, first_row, last_row)
 {
-   variable numrows;
-   do_fits_error (_fits_get_num_rows (fp, &numrows));
-   
+   variable
+     fp = fpinfo.fp,
+     numrows = fpinfo.num_rows,
+     columns = fpinfo.columns,
+     tdims = fpinfo.tdims,
+     tdim_cols = fpinfo.tdim_cols;
+
    if (first_row < 0)
      first_row += (1+numrows);
    if (last_row < 0)
@@ -633,28 +678,47 @@ private define read_cols (fp, columns, first_row, last_row)
        or (want_num_rows > numrows) or (want_num_rows < 0))
      throw FitsError, "Invalid first or last row parameters";
    
-   variable numcols = length (columns);
    variable data_arrays;   
    do_fits_error (_fits_read_cols (fp, columns, first_row, want_num_rows, &data_arrays));
-   _for (0, numcols-1, 1)
+   _for (0, fpinfo.num_cols-1, 1)
      {
 	variable i = ();
 	variable col = columns[i];
 	variable data = data_arrays[i];
-	variable tdim = get_tdim_string (fp, col);
+	variable tdim = tdims[i];
 	if (tdim != NULL)
 	  {
-	     tdim = convert_tdim_string (tdim, numrows);
+	     tdim = convert_tdim_string (tdim, want_num_rows);
 	     reshape (data, tdim);
 	  }
 	else if (typeof (data) == Array_Type)
 	  {
 	     if (_typeof (data) == String_Type)
 	       data = reshape_string_array (fp, col, data);
-	     check_vector_tdim (fp, first_row, col, data);
+	     if (tdim_cols[i]>0)
+	       check_vector_tdim (fp, first_row, tdim_cols[i], data);
 	  }
 	data;			       %  leave it on stack
      }
+}
+
+private define pop_column_list (nargs)
+{
+   variable list = {};
+   _stk_reverse (nargs);	       %  preserve the order
+   loop (nargs)
+     {
+	variable arg = ();
+	variable t = typeof(arg);
+	if ((t == Array_Type) || (t == List_Type))
+	  {
+	     foreach arg (arg)
+	       list_append (list, arg);
+	     continue;
+	  }
+	list_append (list, arg);
+     }
+   return list;
 }
 
 %!%+
@@ -678,21 +742,23 @@ private define read_cols (fp, columns, first_row, last_row)
 define fits_read_col ()
 {
    if (_NARGS < 2)
-     usage ("(x1...xN) = fits_read_col (file, c1, ...cN)");
+     usage ("(x1...xN) = fits_read_col (file, c1, ...cN [;row=val, num=val])");
 
-   variable fp, col;
-   variable numrows;
-   variable columns = __pop_args (_NARGS-1);
-   fp = ();
+   variable cols = pop_column_list (_NARGS-1);
+   variable fp = ();
+   variable fpinfo = open_read_cols (fp, cols);
 
-   variable needs_close;
-   fp = get_open_binary_table (fp, &needs_close);
+   variable first_row, last_row, num;
+   first_row = qualifier ("row", 1);
+   num = qualifier ("num");
+   if (num == NULL)
+     last_row = -1;
+   else
+     last_row = first_row + num - 1;
 
-   columns = get_column_numbers (fp, columns);
+   read_cols (fpinfo, first_row, last_row);     %  data on stack
 
-   read_cols (fp, columns, 1, -1);     %  data on stack
-
-   do_close_file (fp, needs_close);
+   close_read_cols (fpinfo);
 }
 
 %!%+
@@ -715,11 +781,11 @@ define fits_read_col_struct ()
    !if (_NARGS)
      usage ("struct = fits_read_col_struct(file, COL1, ...)");
    
-   variable cols = __pop_args (_NARGS - 1);
+   variable cols = pop_column_list (_NARGS - 1);
    variable file = ();
-   variable fields = normalize_names ([__push_args(cols)]);
+   variable fields = normalize_names (cols);
    variable s = @Struct_Type (fields);
-   set_struct_fields (s, fits_read_col (file, __push_args (cols)));
+   set_struct_fields (s, fits_read_col (file, cols));
    return s;
 }
 
@@ -748,16 +814,16 @@ define fits_read_cell ()
      usage ("x = fits_read_cell (file, c, r)");
 
    (fp, c, r) = ();
-   fp = get_open_binary_table (fp, &needs_close);
+   variable fpinfo = open_read_cols (fp, c);
 
-   variable a = read_cols (fp, get_column_number (fp, c), r, r);
+   variable a = read_cols (fpinfo, r, r);
    variable dims, nd; (dims,nd,) = array_info (a);
    if (nd == 1)
      a = a[0];
    else
      reshape (a, dims[[1:]]);
    
-   do_close_file (fp, needs_close);
+   close_read_cols (fpinfo);
    return a;
 }
 
@@ -770,13 +836,38 @@ define fits_read_cells ()
      usage ("(x1,...xN) = %s (file, col1, ..., colN, r0, r1)", _function_name);
 
    (r0, r1) = ();
-   columns = __pop_args (_NARGS-3);
+   columns = pop_column_list (_NARGS-3);
    fp = ();
-   fp = get_open_binary_table (fp, &needs_close);
+
+   variable fpinfo = open_read_cols (fp, columns);
+   read_cols (fpinfo, r0, r1);    %  on stack
+   close_read_cols (fpinfo);
+}
+
+define fits_get_num_rows ()
+{
+   if (_NARGS != 1)
+     usage ("nrows = fits_get_num_rows (file)");
    
-   columns = get_column_numbers (fp, columns);
-   read_cols (fp, columns, r0, r1);    %  on stack
+   variable fp = ();
+   variable needs_close, num_rows;
+   fp = get_open_binary_table (fp, &needs_close);
+   do_fits_error (_fits_get_num_rows (fp, &num_rows));
    do_close_file (fp, needs_close);
+   return num_rows;
+}
+
+define fits_get_num_cols ()
+{
+   if (_NARGS != 1)
+     usage ("ncols = fits_get_num_cols (file)");
+   
+   variable fp = ();
+   variable needs_close, num_cols;
+   fp = get_open_binary_table (fp, &needs_close);
+   do_fits_error (_fits_get_num_cols (fp, &num_cols));
+   do_close_file (fp, needs_close);
+   return num_cols;
 }
 
 %!%+
@@ -855,10 +946,8 @@ define fits_read_table ()
 
    variable f, names = NULL;
    if (_NARGS > 1)
-     {
-	names = __pop_args (_NARGS-1);
-	names = [__push_args(names)];
-     }
+     names = pop_column_list (_NARGS-1);
+
    f = ();
    variable needs_close;
    f = get_open_binary_table (f, &needs_close);
@@ -1961,87 +2050,51 @@ define fits_write_img ()
 }
 
 
-#iffalse
-define fits_iterate (fp, delta_rows, func, client_data, column_names)
+define fits_iterate ()
 {
-   variable numrows;
-   variable num_columns = length (column_names);
-   variable col_nums = Int_Type[num_columns];
-   variable data = Struct_Type[num_columns];
+   if (_NARGS != 4)
+     {
+	usage ("\
+fits_iterate (fp, {col1, col2, ...}, &func, {arg1, arg2,...})\n\
+  This function iterates over all rows in a binary table calling func,\n\
+  which should be declared as:\n\
+    define func(arg1, arg2, ..., data1, data2, ...)\n\
+  where data1 is read form col1, etc.  The function must return 1 for\n\
+  processing to continue.  Any other value will cause iteration to stop.\n\
+\n\
+  Qualifiers: drows=VAL\n\
+    Use VAL rows for the number of rows to read at one time (default=4096)\n\
+"
+	      );
+     }
+
+   variable fp, col_list, func, func_list;
+   (fp, col_list, func, func_list)=();
+
+   variable delta_rows = qualifier ("drows", 4096);
+   if (delta_rows <= 0)
+     throw InvalidParmError, "drows must be >= 1";
+
+   variable fpinfo = open_read_cols (fp, col_list);
+   variable num_rows = fpinfo.num_rows;
+   variable num_cols = fpinfo.num_cols;
    variable i;
    
-   for (i = 0; i < num_columns; i++)
+   delta_rows--;
+   variable r0 = 1;
+   while (r0 <= num_rows)
      {
-	variable col;
-	do_fits_error (_fits_get_colnum (fp, column_names[i], &col));
-	col_nums[i] = col;
-	data[i] = struct { value };
-     }
+	variable r1 = r0 + delta_rows;
+	if (r1 > num_rows)
+	  r1 = num_rows;
 
-   do_fits_error (_fits_get_num_rows (fp, &numrows));
-
-   variable current_row = 1;
-   while (numrows)
-     {
-	variable value;
-
-	if (numrows < delta_rows)
-	  delta_rows = numrows;
+	if (1 != (@func)(__push_list(func_list), read_cols (fpinfo, r0, r1)))
+	  break;
 	
-	for (i = 0; i < num_columns; i++)
-	  {
-	     do_fits_error (_fits_read_col (fp, col_nums[i], current_row, 
-					    delta_rows, &value));
-	     data[i].value = value;
-	  }
-	@func (client_data, __push_args (data));
-	
-	current_row += delta_rows;
-	numrows -= delta_rows;
+	r0 = r1 + 1;
      }
 }
 
-define test_func (info, x, y, ccdid, grade, status)
-{
-   variable i = where ((ccdid == info.ccdid)
-		       and ((grade != 1) and (grade != 5) and (grade != 7))
-		       and (status == 0));
-   info.sum_x += sum (x[i]);
-   info.sum_y += sum (y[i]);
-   info.num += length (x[i]);
-}
-
-
-define test_fits_iterate ()
-{
-   variable file = "/tmp/test.fits[EVENTS]";
-   
-   variable info = struct 
-     {
-	sum_x, sum_y, ccdid, num
-     };
-   variable fp = fits_open_file (file, "r");
-   
-   variable delta = 1;
-   while (delta < 100000000)
-     {
-	info.sum_x = 0;
-	info.sum_y = 0;
-	info.ccdid = 7;
-	info.num = 0;
-
-	tic ();
-	fits_iterate (fp, 10000, &test_func, info, 
-		      ["X", "Y", "CCD_ID", "GRADE", "STATUS"]);
-
-	() = fprintf (stdout, "delta=%d, CPU=%g secs, mean([x,y]) is [%g,%g]\n",
-		      delta, toc (), info.sum_x/info.num, info.sum_y/info.num);
-	() = fflush (stdout);
-	delta *= 10;
-     }
-   
-}
-#endif
 
 % Obsolete functions
 

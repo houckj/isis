@@ -94,11 +94,13 @@ define test_img (filename)
 
 private define test_bt (filename)
 {
-   variable uint16s = UInt16_Type[65]; uint16s[*] = [1:65];
-   variable uint32s = UInt32_Type[65]; uint32s[*] = [1:65];
-   variable data = struct {u16, u32};
-   data.u16 = uint16s;
-   data.u32 = uint16s;
+   variable nrows = 71;
+   variable uint16s = UInt16_Type[nrows]; uint16s[*] = [1:nrows];
+   variable uint32s = UInt32_Type[nrows]; uint32s[*] = [1:nrows];
+   variable xs = [1:10:#nrows*3*2];
+   reshape (xs, [nrows, 3, 2]);
+
+   variable data = struct {u16 = uint16s, u32 = uint32s, x=xs};
 
    fits_write_binary_table (filename, "FOO", data);
    
@@ -115,6 +117,29 @@ private define test_bt (filename)
 	warn ("testbt: failed to read/write an unsigned 32 bit column");
 	delete = 0;
      }
+   if (0 == is_identical (table.x, data.x))
+     {
+	warn ("testbt: failed to read/write an array column");
+	delete = 0;
+     }
+
+   variable fp = fits_open_file (filename + "[FOO]", "r");
+   variable r = 0, dr = 7;
+   while (r < nrows)
+     {
+	if (r + dr > nrows)
+	  dr = nrows - r;
+	variable x = fits_read_col (fp, "X"; row=r+1, num=dr);
+	if (0 == is_identical (xs[[r:r+dr-1],*,*], x))
+	  {
+	     warn ("testbt: failed to read using the row qualifier");
+	     delete = 0;
+	     break;
+	  }
+	r += nrows;
+     }
+   fits_close_file (fp);
+
    if (delete) 
      () = remove (filename);
 }
