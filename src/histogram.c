@@ -3937,6 +3937,7 @@ int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins) /*{{{*/
 {
    double *bgd_cts = NULL;
    double *cts = NULL;
+   double *sys_err_frac = NULL;
    union {double *d; int *i;} tmp;
    int i;
 
@@ -3959,6 +3960,13 @@ int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins) /*{{{*/
 
    if (-1 == validate_wavelength_grid (nbins, lo, hi))
      return -1;
+
+   if (h->sys_err_frac != NULL)
+     {
+        /* rebin this before we modify the original grid, counts, etc. */
+        if (NULL == (sys_err_frac = rebin_sys_err_frac (h, lo, hi, nbins)))
+          goto error_return;
+     }
 
 #define D_REALLOC_OR_FAIL(x,n) \
    if (NULL == (tmp.d = (double *) ISIS_REALLOC((x), (n) * sizeof(double)))) \
@@ -3986,7 +3994,6 @@ int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins) /*{{{*/
      }
    if (h->sys_err_frac != NULL)
      {
-        D_REALLOC_OR_FAIL(h->sys_err_frac, nbins);
         D_REALLOC_OR_FAIL(h->orig_sys_err_frac, nbins);
      }
    I_REALLOC_OR_FAIL(h->rebin, nbins);
@@ -4027,15 +4034,6 @@ int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins) /*{{{*/
           goto error_return;
      }
 
-   if (h->sys_err_frac != NULL)
-     {
-        double *sys_err_frac = NULL;
-        if (NULL == (sys_err_frac = rebin_sys_err_frac (h, lo, hi, nbins)))
-          goto error_return;
-        ISIS_FREE(h->sys_err_frac);
-        h->sys_err_frac = sys_err_frac;
-     }
-
    if ((-1 == rebin_backscale (&h->area, h, lo, hi, nbins))
        || (-1 == rebin_backscale (&h->bgd_area, h, lo, hi, nbins)))
      goto error_return;
@@ -4049,6 +4047,9 @@ int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins) /*{{{*/
 
    ISIS_FREE (h->orig_bgd);
    h->orig_bgd = bgd_cts;
+
+   ISIS_FREE (h->sys_err_frac);
+   h->sys_err_frac = sys_err_frac;
 
    h->nbins = nbins;
    h->orig_nbins = nbins;
