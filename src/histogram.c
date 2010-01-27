@@ -5525,10 +5525,18 @@ int Hist_rebin_min_counts (Hist_t *h, void * s) /*{{{*/
 
    if (remaining > 0.0)
      {
+#if 0
         if (n < h->orig_nbins)
           n++;
 
         sign *= -1;
+#else
+        if (remaining >= min_bin_counts)
+          {
+             n++;
+             sign *= -1;
+          }
+#endif
         for (; k < h->orig_nbins; k++)
           h->rebin[k] = sign;
      }
