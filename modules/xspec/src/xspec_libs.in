@@ -115,7 +115,7 @@ Use_Xspec_12() {
   fi
 
   # xspec 12:
-  XS_LIBS="-L${libdir} -lXSFunctions -lXSUtil -lXS ${xsmodel_lib} ${ccfits_lib} ${cfitsiolib} -L${xspec_module_dir}/objs -lxstbl"
+  XS_LIBS="-L${libdir} -lXSFunctions -lXSUtil -lXS ${xsmodel_lib} ${ccfits_lib} ${cfitsiolib}"
   # FIXME -- xspec12 doesn't (yet?) support the old table model interface
   #sed -e 's|\#define HAVE_XSPEC_TABLE_MODELS 1|\#undef HAVE_XSPEC_TABLE_MODELS|' ${dir}/config.h > ${dir}/.config.h
   #/bin/mv ${dir}/.config.h ${dir}/config.h
