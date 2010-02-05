@@ -420,6 +420,12 @@ d. Configure options
     choose to compile isis with a C\+\+ compiler (not recommended),
     you may need to use --with-fclibs="-lstdc++".
 
+--x-libraries=DIR/lib::
+--x-includes=DIR/include::
+    Use these options to indicate that the X libraries and
+    include files are installed in 'DIR/lib' and 'DIR/include',
+    respectively.
+
 [[Xe]]
 e. (site-specific) Making a custom xspec module
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -537,6 +543,16 @@ http://hpc.sourceforge.net/
 The gfortran Fortran compiler is recommended -- isis makes
 extensive use of dynamic linking, but the g95 compiler has
 historically provided poor support for it.
+
+- Compiler options.
++
+It may be necessary to use additional compiler options to specify
+the intended architecture.  For example, to specify 32-bit
+binaries for i386, you may need to use
+.............................................
+     CFLAGS="-m32 -arch i386"
+     LDFLAGS="-m32"
+.............................................
 
 - Dynamic Linking
 +
