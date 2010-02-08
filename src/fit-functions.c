@@ -449,7 +449,11 @@ static int c_bin_eval (Fit_Fun_t *ff, Isis_Hist_t *g, double *par) /*{{{*/
      }
 
    status = (*ff->fun.c)((double *) at->data, g, par, ff->nparams);
-   (void) SLang_push_array (at, 1);
+   if (status == 0)
+     {
+        (void) SLang_push_array (at, 1);
+     }
+
    return status;
 }
 
