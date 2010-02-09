@@ -241,6 +241,20 @@ ISIS_USER_SOURCE_MODULE(poly,p,options) /*{{{*/
 
 /*}}}*/
 
+static void delta_b (double *val, Isis_Hist_t *g, double x0, double area) /*{{{*/
+{
+   int i;
+
+   for (i = 0; i < g->n_notice; i++)
+     {
+        if (g->bin_lo[i] <= x0 && x0 < g->bin_hi[i])
+          val[i] = area;
+        else val[i] = 0.0;
+     }
+}
+
+/*}}}*/
+
 /* integrated over bin width */
 static int lorentz_b (double *val, Isis_Hist_t *g, double *par, unsigned int npar) /*{{{*/
 {
@@ -251,22 +265,26 @@ static int lorentz_b (double *val, Isis_Hist_t *g, double *par, unsigned int npa
 
    (void) npar;
 
-   if (hfw <= 0.0)
+   if (hfw < 0.0)
      {
-        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "lorentz: FWHM <= 0");
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "lorentz: FWHM < 0");
         return -1;
      }
 
-   for (i=0; i < g->n_notice; i++)
+   if (hfw > 0.0)
      {
-        double dxh, dxl;
-        int n = g->notice_list[i];
+        for (i=0; i < g->n_notice; i++)
+          {
+             double dxh, dxl;
+             int n = g->notice_list[i];
 
-        dxh = (g->bin_hi[n] - x0) / hfw;
-        dxl = (g->bin_lo[n] - x0) / hfw;
+             dxh = (g->bin_hi[n] - x0) / hfw;
+             dxl = (g->bin_lo[n] - x0) / hfw;
 
-        val[i] = area * (atan (dxh) - atan (dxl)) / PI;
+             val[i] = area * (atan (dxh) - atan (dxl)) / PI;
+          }
      }
+   else delta_b (val, g, x0, area);
 
    return 0;
 }
@@ -282,9 +300,9 @@ static int lorentz_c (double *val, Isis_User_Grid_t *g, double *par, unsigned in
 
    (void) npar;
 
-   if (hfw <= 0.0)
+   if (hfw < 0.0)
      {
-        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "lorentz: FWHM <= 0");
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "lorentz: FWHM < 0");
         return -1;
      }
 
@@ -387,22 +405,26 @@ static int gauss_b (double *val, Isis_Hist_t *g, double *par, unsigned int npar)
 
    (void) npar;
 
-   if (sigma <= 0.0)
+   if (sigma < 0.0)
      {
-        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "gauss: sigma <= 0");
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "gauss: sigma < 0");
         return -1;
      }
 
-   for (i=0; i < g->n_notice; i++)
+   if (sigma > 0.0)
      {
-        double dxh, dxl;
-        int n = g->notice_list[i];
+        for (i=0; i < g->n_notice; i++)
+          {
+             double dxh, dxl;
+             int n = g->notice_list[i];
 
-        dxh = (g->bin_hi[n] - x0) / sigma;
-        dxl = (g->bin_lo[n] - x0) / sigma;
+             dxh = (g->bin_hi[n] - x0) / sigma;
+             dxl = (g->bin_lo[n] - x0) / sigma;
 
-        val[i] = area * (isis_gpf (dxh) - isis_gpf (dxl));
+             val[i] = area * (isis_gpf (dxh) - isis_gpf (dxl));
+          }
      }
+   else delta_b (val, g, x0, area);
 
    return 0;
 }
@@ -525,24 +547,28 @@ static int egauss_b (double *val, Isis_Hist_t *g, double *par, unsigned int npar
 
    (void) npar;
 
-   if (sigma <= 0.0)
+   if (sigma < 0.0)
      {
-        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "egauss: sigma <= 0");
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "egauss: sigma < 0");
         return -1;
      }
 
-   for (i=0; i < g->n_notice; i++)
+   if (sigma > 0.0)
      {
-        double elo, ehi, dxh, dxl;
-        int n = g->notice_list[i];
+        for (i=0; i < g->n_notice; i++)
+          {
+             double elo, ehi, dxh, dxl;
+             int n = g->notice_list[i];
 
-        elo = KEV_ANGSTROM / g->bin_hi[n];
-        ehi = KEV_ANGSTROM / g->bin_lo[n];
+             elo = KEV_ANGSTROM / g->bin_hi[n];
+             ehi = KEV_ANGSTROM / g->bin_lo[n];
 
-        dxh = (ehi - e0) / sigma;
-        dxl = (elo - e0) / sigma;
-        val[i] = area * (isis_gpf (dxh) - isis_gpf (dxl));
+             dxh = (ehi - e0) / sigma;
+             dxl = (elo - e0) / sigma;
+             val[i] = area * (isis_gpf (dxh) - isis_gpf (dxl));
+          }
      }
+   else delta_b (val, g, KEV_ANGSTROM/e0, area);
 
    return 0;
 }
@@ -798,12 +824,12 @@ int Fit_Append_Builtin_Functions (void)
 {
    Static_Function_Type *t = Static_Function_Table;
    Static_Function_Type *u;
-   
+
    for (u = t; u->name != NULL; u++)
      {
         if (-1 == Isis_Add_Static_Fun (u->init, u->name))
           return -1;
      }
-   
+
    return 0;
 }
