@@ -29,6 +29,7 @@ Changes since 1.5.0 (released Aug 2009)
 20.  group:  change min_sn default to min_sn=0
 21.  Added set_hard_limits to allow changing parameter hard limits
 22.  Updated cfitsio module to version 0.4.6-0
+23.  Change error handling behavior for isis-intrinsic fit functions.
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
