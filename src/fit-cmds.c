@@ -713,7 +713,7 @@ static int set_par (unsigned int idx, int p_tie, int p_freeze, /*{{{*/
 }
 /*}}}*/
 
-static void set_params (void)
+static void set_params (void) /*{{{*/
 {
    int idx, p_tie, p_freeze, update_minmax;
    double p_value, p_min, p_max, p_step;
@@ -734,6 +734,8 @@ static void set_params (void)
    if (set_par (idx, p_tie, p_freeze, p_value, p_min, p_max, update_minmax, p_step))
      isis_throw_exception (Isis_Error);
 }
+
+/*}}}*/
 
 /*}}}*/
 
@@ -3840,7 +3842,7 @@ static void fobj_eval_residuals (Fit_Object_MMT_Type *mmt, int *enable_copying) 
 
 /*}}}*/
 
-static void fobj_get_data_weights (Fit_Object_MMT_Type *mmt)
+static void fobj_get_data_weights (Fit_Object_MMT_Type *mmt) /*{{{*/
 {
    Fit_Object_Type *fo = mmt->fo;
    Fit_Object_Data_Type *dt = fo->dt;
@@ -3856,6 +3858,8 @@ static void fobj_get_data_weights (Fit_Object_MMT_Type *mmt)
 
    SLang_push_array (sl_wt, 1);
 }
+
+/*}}}*/
 
 static void iterate_fit_fun (int optimize) /*{{{*/
 {

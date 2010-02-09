@@ -2180,11 +2180,11 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
 		  else
 		    {
 		       try_pars = get_params();
-		       if (-1 == (@fit_ref) (&fit_info))
-			 {
-			    if (fail_ref != NULL)
-			      (@fail_ref) (ip1, ip2, @best_pars, try_pars, fit_info);
-			 }
+                       if (-1 == (@fit_ref) (&fit_info))
+                         {
+                            if (fail_ref != NULL)
+                              (@fail_ref) (ip1, ip2, @best_pars, try_pars, fit_info);
+                         }
 		    }
 	       }
 
