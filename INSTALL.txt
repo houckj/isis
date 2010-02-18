@@ -61,6 +61,9 @@ Table of Contents
   e. <<Xe,(site-specific) Making a custom xspec module>>
   f. <<Xf,(optional) Installing modules>>
 . <<X2,Installation suggestions for specific architectures>>
+  - <<Xlinux,Linux>>
+  - <<Xmac,Mac OS X>>
+  - <<Xsolaris,Solaris>>
 . <<X3,TROUBLESHOOTING>>
 . <<X5,Appendix>>
 
@@ -518,6 +521,7 @@ convenient.
 2. Installation suggestions for specific architectures
 -------------------------------------------------------
 
+[[Xlinux]]
 Linux systems:
 ~~~~~~~~~~~~~
 
@@ -529,6 +533,7 @@ versions of gfortran.  On older systems, using gcc-3.4 with
 g77 will work; note, however, that g77 is no longer
 maintained.
 
+[[Xmac]]
 Mac OS X systems:
 ~~~~~~~~~~~~~~~~
 
@@ -579,6 +584,7 @@ You might need to edit +EXTRA_LIB+ in 'src/Makefile' to add
 After you're finished editing 'src/Makefile', build and install
 isis as usual.
 
+[[Xsolaris]]
 Solaris systems:
 ~~~~~~~~~~~~~~~
 
