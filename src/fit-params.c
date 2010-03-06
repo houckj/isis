@@ -642,9 +642,9 @@ int Fit_set_param_control (Param_t *pt, unsigned int idx, int update_minmax,  /*
         p->set_minmax = 1;
      }
 
+   ISIS_FREE(p->tie_param_name);
    if ((tie != NULL) && (*tie != 0))
      {
-        ISIS_FREE(p->tie_param_name);
         if (NULL == (p->tie_param_name = isis_make_string (tie)))
           return -1;
      }
