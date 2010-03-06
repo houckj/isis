@@ -30,6 +30,8 @@ Changes since 1.5.0 (released Aug 2009)
 21.  Added set_hard_limits to allow changing parameter hard limits
 22.  Updated cfitsio module to version 0.4.6-0
 23.  Change error handling behavior for isis-intrinsic fit functions.
+24.  Fix bug reported by Manfred Hanke:  load_par can now untie
+     parameters
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
