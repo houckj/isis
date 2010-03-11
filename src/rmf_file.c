@@ -1265,6 +1265,9 @@ static int rebin_rmf (Isis_Rmf_t *rmf, double *wv_lo, double *wv_hi, unsigned in
 
         v = cd->v + i;
 
+        if (v->num_grps == 0)
+          continue;
+
         old_h_start = NULL;
         old_h_end = NULL;
 
