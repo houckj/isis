@@ -875,7 +875,10 @@ define delete_rmf () %{{{
 
 define load_dataset () %{{{
 {
-   variable msg = "load_dataset (data-file [, rmf-file [, arf-file]])";
+   variable msg =
+`load_dataset (data-file [, rmf-file [, arf-file]] ; qualifiers)
+    qualifiers:   id=&dataset_id`;
+
    variable p, a, r;
 
    a = NULL;
@@ -902,6 +905,12 @@ define load_dataset () %{{{
         if (a == -1)
           verror ("load_dataset: failed to load arf file");
         assign_arf (a, p);
+     }
+
+   variable id_ref = qualifier ("id", NULL);
+   if (id_ref != NULL)
+     {
+        @id_ref = p;
      }
 }
 
