@@ -26,6 +26,14 @@ require ("fork");
 require ("socket");
 require ("select");
 
+#ifndef urand
+require ("rand");
+private define urand ()
+{
+   return rand_uniform ();
+}
+#endif
+
 %  Public functions:
 %     slaves = new_slave_list ( [; qualifiers]);
 %     s = fork_slave (&task [,args [; qualifiers]]);
@@ -58,8 +66,6 @@ private variable Slaves_Running;
 private variable Slaves_Were_Replaced;
 private variable Sigchld_Received;
 private variable Verbose = 0;
-
-define pid_vmessage ();
 
 private define slave_is_active (s)
 {
@@ -733,8 +739,8 @@ define _num_cpus ()
    if (NULL != stat_file (dir))
      return length(glob("$dir/cpu?"$));
 
-   % Give up.
-   return 0;
+   % We have at least 1 CPU
+   return 1;
 }
 
 % Communications interface:
@@ -907,7 +913,7 @@ private define recv_string (fp)
 
 private define write_string (fp, s)
 {
-   variable n = strlen(s) + 1;
+   variable n = strbytelen(s) + 1;
    variable b = pack ("s$n"$, s);
    return write_array (fp, bstring_to_array (b));
 }
@@ -923,7 +929,7 @@ private define send_string (fp, s)
 
    if (typeof(s) == String_Type)
      {
-        len[0] = strlen(s) + 1;
+        len[0] = strbytelen(s) + 1;
         if (write_array (fp, len) < 0)
           return -1;
         return write_string (fp, s);
@@ -931,7 +937,7 @@ private define send_string (fp, s)
 
    _for i (0, num-1, 1)
      {
-        len[i] = strlen(s[i]) + 1;
+        len[i] = strbytelen(s[i]) + 1;
      }
 
    if (write_array (fp, len) < 0)
@@ -1034,17 +1040,18 @@ private define send_item (fp, item)
    return status;
 }
 
-private define array_to_struct (fields)
-{
-   eval (sprintf ("define __atos__(){return struct {%s};}",
-                  strjoin (fields, ",")));
-   return eval ("__atos__()");
-}
+% private define array_to_struct (fields)
+% {
+%    eval (sprintf ("define __atos__(){return struct {%s};}",
+%                   strjoin (fields, ",")));
+%    return eval ("__atos__()");
+% }
 
 private define recv_one_struct (fp)
 {
    variable names = recv_string (fp);
-   variable s = array_to_struct (names);
+   variable s = @Struct_Type(names);
+   %variable s = array_to_struct (names);
 
    variable i, n = length(names);
    _for i (0, n-1, 1)
@@ -1148,14 +1155,10 @@ private define recv_list (fp)
 {
    variable num = read_array (fp, 1, Integer_Type)[0];
 
-   variable x = list_new();
+   variable x = {};
 
-   while (num > 0)
-     {
-        variable value = recv_item (fp);
-        list_append (x, value);
-        num--;
-     }
+   loop (num)
+     list_append (x, recv_item (fp));
 
    return x;
 }
