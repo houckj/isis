@@ -1287,13 +1287,25 @@ define eval_fun () %{{{
 define get_back () %{{{
 {
    variable msg = "bgd = get_back (hist_index)";
-   variable id;
+   variable id, bgd, save_active_dataset;
 
    if (_isis->chk_num_args (_NARGS, 1, msg))
      return;
 
    id = ();
-   return _isis->_get_instrumental_background (id);
+
+   save_active_dataset = Isis_Active_Dataset;
+   try
+     {
+        Isis_Active_Dataset = id;
+        bgd = _isis->_get_instrumental_background (id);
+     }
+   finally
+     {
+        Isis_Active_Dataset = save_active_dataset;
+     }
+
+   return bgd;
 }
 define get_iback ()
 {
