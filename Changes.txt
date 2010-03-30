@@ -32,6 +32,8 @@ Changes since 1.5.0 (released Aug 2009)
 23.  Change error handling behavior for isis-intrinsic fit functions.
 24.  Fix bug reported by Manfred Hanke:  load_par can now untie
      parameters
+25.  Added set_back_exposure() intrinsic
+26.  Updated xspec module interface on heasoft-6.9 release
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
