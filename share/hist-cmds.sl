@@ -2846,7 +2846,7 @@ define match_dataset_grids () %{{{
 % Contributed by Mike Nowak <mnowak@space.mit.edu>
 define i2x_group () %{{{
 {
-   variable msg = "isis_group[] = i2x_group (xspec_group[])";
+   variable msg = "xspec_group[] = i2x_group (isis_group[])";
 
    if (_isis->chk_num_args (_NARGS, 1, msg))
      return;
@@ -2882,7 +2882,7 @@ define i2x_group () %{{{
 % Contributed by Mike Nowak <mnowak@space.mit.edu>
 define x2i_group () %{{{
 {
-   variable msg = "xspec_group[] = x2i_group (isis_group[])";
+   variable msg = "isis_group[] = x2i_group (xspec_group[])";
 
    if (_isis->chk_num_args (_NARGS, 1, msg))
      return;
