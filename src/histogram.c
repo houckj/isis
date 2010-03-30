@@ -3400,6 +3400,17 @@ int Hist_get_back_exposure (Hist_t *h, double *back_exposure) /*{{{*/
 }
 /*}}}*/
 
+int Hist_set_back_exposure (Hist_t *h, double back_exposure) /*{{{*/
+{
+   if (NULL == h)
+     return -1;
+
+   h->bgd_exposure = back_exposure;
+
+   return 0;
+}
+/*}}}*/
+
 int Hist_get_exposure (Hist_t *h, double * exposure) /*{{{*/
 {
    if (NULL == h)

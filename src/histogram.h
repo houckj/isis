@@ -221,6 +221,7 @@ extern int Hist_get_back_region_area (Hist_t *h, double **region_area, int *num)
 extern int Hist_set_data_region_area (Hist_t *h, double *region_area, int num);
 extern int Hist_set_back_region_area (Hist_t *h, double *region_area, int num);
 extern int Hist_get_back_exposure (Hist_t *h, double *back_exposure);
+extern int Hist_set_back_exposure (Hist_t *h, double back_exposure);
 extern int Hist_set_color (Hist_t *h, int color);
 extern int Hist_unset_color (Hist_t *h);
 extern int Hist_set_object_name (Hist_t *h, char *object);

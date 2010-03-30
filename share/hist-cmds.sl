@@ -396,6 +396,20 @@ define get_back_exposure () %{{{
 
 %}}}
 
+define set_back_exposure () %{{{
+{
+   variable msg = "set_back_exposure (hist_index, time)";
+
+   if (_isis->chk_num_args (_NARGS, 2, msg))
+     return;
+
+   variable index, time;
+   (index, time) = ();
+   return _isis->_set_back_exposure (index, time);
+}
+
+%}}}
+
 define get_arf_exposure () %{{{
 {
    variable msg = "time = get_arf_exposure (arf_index)";

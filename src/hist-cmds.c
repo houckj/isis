@@ -1508,6 +1508,17 @@ static void _get_back_exposure (int *hist_index) /*{{{*/
 
 /*}}}*/
 
+static void _set_back_exposure (int *hist_index, double *t) /*{{{*/
+{
+   Hist_t *h = find_hist (*hist_index);
+   if (-1 == Hist_set_back_exposure (h, *t))
+     {
+        isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__, "couldn't set exposure for spectrum %d background", *hist_index);
+     }
+}
+
+/*}}}*/
+
 static void get_region_area (int hist_index, /*{{{*/
                              int (*getfun)(Hist_t *, double **, int *))
 {
@@ -2760,6 +2771,7 @@ static SLang_Intrin_Fun_Type Hist_Intrinsics [] =
    MAKE_INTRINSIC_2("_define_bgd", define_bgd, I, I,D),
    MAKE_INTRINSIC_2("_define_bgd_file", define_bgd_file, I, I,S),
    MAKE_INTRINSIC_I("_get_back_exposure", _get_back_exposure, V),
+   MAKE_INTRINSIC_2("_set_back_exposure", _set_back_exposure, V, I,D),
    MAKE_INTRINSIC_I("_get_histogram_exposure_time", _get_histogram_exposure_time, V),
    MAKE_INTRINSIC_2("_set_histogram_exposure_time", _set_histogram_exposure_time, V, I, D),
    MAKE_INTRINSIC_I("_get_data_region_area", _get_data_region_area, V),
