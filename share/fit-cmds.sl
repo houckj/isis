@@ -2172,9 +2172,8 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
 		  set_par (k, p.value, p.freeze, p.min, p.max);
 	       }
 
-	     variable flim = [0.5, 2.0];
-	     variable pa = p1[i1]*flim;
-	     variable pb = p2[i2]*flim;
+	     variable pa = p1[i1]*[1.0, 1.0];
+	     variable pb = p2[i2]*[1.0, 1.0];
 
 	     set_par (ip1, p1[i1], 1, min(pa), max(pa));
 	     set_par (ip2, p2[i2], 1, min(pb), max(pb));
