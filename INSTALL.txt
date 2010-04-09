@@ -325,7 +325,7 @@ like this:
      > /soft/bin/isis
 
      Welcome to ISIS Version 1.5.0
-     Copyright (C) 1998-2009 Massachusetts Institute of Technology
+     Copyright (C) 1998-2010 Massachusetts Institute of Technology
 
      isis>
 .................................................................
