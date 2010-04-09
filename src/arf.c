@@ -450,7 +450,10 @@ int Arf_read_arf (Isis_Arf_t *head, char *filename) /*{{{*/
      }
 
    if (-1 == (id = validate_and_append (head, a, input_units)))
-     goto finish;
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "%s", filename);
+        goto finish;
+     }
 
    ret = 0;
 
