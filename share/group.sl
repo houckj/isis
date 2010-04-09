@@ -263,6 +263,12 @@ public define group ()
 
    i_inc = sign (i_end - i_start);
 
+   if (i_inc == 0)
+     {
+        vmessage ("*** group:  null grouping specified (no bins are affected)");
+        return;
+     }
+
    variable i, j, d, sn, _sign = 1, bin = NULL;
 
    _for i (i_start, i_end, i_inc)
