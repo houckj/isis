@@ -383,7 +383,7 @@ private define load_dr_refs2 (upper, lower, dr_file) %{{{
    num_levs.dr_reference[*] = "";
 
    variable j;
-   _for j (0, num_levs-1, 0)
+   _for j (0, num_levs-1, 1)
      {
         refs.dr_reference[j] = r.reference[levs[j]-1];
      }
