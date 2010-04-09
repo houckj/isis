@@ -359,7 +359,7 @@ define alias () %{{{
      return;
    (from, to) = ();
 
-   eval(sprintf("define %s() { variable args = __pop_args (_NARGS); %s(__push_args(args));}", to, from),
+   eval(sprintf("define %s() { variable args = __pop_args (_NARGS); %s(__push_args(args) ;; __qualifiers);}", to, from),
 	Isis_Namespace);
 }
 
