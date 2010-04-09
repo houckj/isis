@@ -2811,12 +2811,26 @@ interpol
     new_y[] = interpol (new_x[], old_x[], old_y[])
 
  DESCRIPTION
-    The input function y(x) specified by the S-Lang arrays (old_x,
-    old_y) is linearly interpolated onto the grid (new_x) to
+    The input function y(x) specified by the S-Lang arrays
+    (old_x,old_y) is linearly interpolated onto the grid (new_x) to
     determine the corresponding interpolated values new_y.  Both
-    new and old grids must be in monotonic increasing order. If the
-    new grid extends beyond the old grid, linear extrapolation is
-    performed.
+    new and old grids must be in monotonic increasing order.
+
+    Qualifiers:
+    name          description
+    ----          -----------
+    extrapolate   Specify extrapolation method, if any.
+                    extrapolate = "none"|"linear"|"logx"|"logy"|"logxy"
+                         default:  extrapolate="linear"
+            "linear" means perform linear extrapolation on old_y vs. old_x
+              "logx" means perform linear extrapolation on old_y vs. log(old_x)
+              "logy" means perform linear extrapolation on log(old_y) vs. old_x
+             "logxy" means perform linear extrapolation on log(old_y) vs. log(old_x)
+
+    null_value    Y value used for off-grid X values when extrapolate="none"
+                         default:  null_value=NULL
+
+
 
  SEE ALSO
     rebin, interpol_points

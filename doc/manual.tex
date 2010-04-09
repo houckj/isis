@@ -4782,11 +4782,26 @@ LETG/HRC-S data).
 \index{Interpolation!arrays}
 
 The input function \verb|y(x)| specified by the \slang\ arrays
-(\verb|old_x, old_y|) is linearly interpolated onto the grid
+(\verb|old_x,old_y|) is linearly interpolated onto the grid
 (\verb|new_x|) to determine the corresponding interpolated values
-\verb|new_y|.  Both new and old grids must be in monotonic
-increasing order. If the new grid extends beyond the old grid,
-linear extrapolation is performed.
+\verb|new_y|.  Both new and old grids must be in monotonic increasing order.
+
+\begin{verbatim}
+Qualifiers:
+name          description
+----          -----------
+extrapolate   Specify extrapolation method, if any.
+                extrapolate = "none"|"linear"|"logx"|"logy"|"logxy"
+                     default:  extrapolate="linear"
+        "linear" means perform linear extrapolation on old_y vs. old_x
+          "logx" means perform linear extrapolation on old_y vs. log(old_x)
+          "logy" means perform linear extrapolation on log(old_y) vs. old_x
+         "logxy" means perform linear extrapolation on log(old_y) vs. log(old_x)
+
+null_value    Y value used for off-grid X values when extrapolate="none"
+                     default:  null_value=NULL
+\end{verbatim}
+
 \end{isisfunction}
 
 \begin{isisfunction}

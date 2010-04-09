@@ -1142,9 +1142,68 @@ define rebin () %{{{
 
 %}}}
 
+private define extrap_linear (newx, x, y) %{{{
+{
+   return y[0] + (newx - x[0]) * (y[1] - y[0])/(x[1] - x[0]);
+}
+
+%}}}
+
+private define handle_extrapolation (newx, newy, oldx, oldy) %{{{
+{
+   variable
+     lo = where (newx < oldx[0]),
+     hi = where (newx > oldx[-1]);
+
+   if (length(lo) == 0 && length(hi) == 0)
+     return;
+
+   variable method = qualifier ("extrapolate", "linear");
+   variable null_value = qualifier ("null_value", _NaN);
+
+   % linear extrapolation is (has already been) performed by default
+   if (method == "linear")
+     return;
+
+   variable lo_end = [0,1], hi_end = [-2, -1];
+
+   switch (method)
+     {
+      case "none":
+        newy[lo] = null_value;
+        newy[hi] = null_value;
+     }
+     {
+      case "logx":
+        newy[lo] = extrap_linear (log(newx[lo]), log(oldx[lo_end]), oldy[lo_end]);
+        newy[hi] = extrap_linear (log(newx[hi]), log(oldx[hi_end]), oldy[hi_end]);
+     }
+     {
+      case "logy":
+        newy[lo] = exp(extrap_linear (newx[lo], oldx[lo_end], log(oldy[lo_end])));
+        newy[hi] = exp(extrap_linear (newx[hi], oldx[hi_end], log(oldy[hi_end])));
+     }
+     {
+      case "logxy":
+        newy[lo] = exp(extrap_linear (log(newx[lo]), log(oldx[lo_end]), log(oldy[lo_end])));
+        newy[hi] = exp(extrap_linear (log(newx[hi]), log(oldx[hi_end]), log(oldy[hi_end])));
+     }
+     {
+        % default:
+        throw ApplicationError, "interpol:  unrecognized qualifier:  $method"$;
+     }
+}
+
+%}}}
+
 define interpol () %{{{
 {
-   variable msg = "new_y[] = interpol (new_x[], old_x[], old_y[]);";
+   variable msg =
+`new_y[] = interpol (new_x[], old_x[], old_y[]);
+   Qualifiers:  extrapolate ="none"|"linear"|"logx"|"logy"|"logxy"
+                              default: extrapolate="linear"
+                null_value  =<value>
+                              default: null_value=NULL`;
    variable newx, oldx, oldy;
 
    if (_isis->chk_num_args (_NARGS, 3, msg))
@@ -1153,6 +1212,8 @@ define interpol () %{{{
    (newx, oldx, oldy) = ();
 
    variable newy = _isis->_array_interp (newx, oldx, oldy);
+
+   handle_extrapolation (newx, newy, oldx, oldy ;; __qualifiers);
 
    if (length(newy) == 1)
      newy = newy[0];
