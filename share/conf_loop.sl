@@ -39,11 +39,17 @@ public define save_par_limits()
    if (typeof(file) != String_Type)
      throw UsageError, "*** Must input a String_Type file name";
 
-   variable current_params = get_params (indices);
-   array_map (Void_Type, &set_par,
-              indices, get_par(indices), 0, pmin, pmax);
-   save_par (file);
-   set_params (current_params);
+   try
+     {
+        variable current_params = get_params (indices);
+        array_map (Void_Type, &set_par,
+                   indices, get_par(indices), 0, pmin, pmax);
+        save_par (file);
+     }
+   finally
+     {
+        set_params (current_params);
+     }
 
    return;
 }
