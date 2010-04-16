@@ -64,17 +64,16 @@ static int mpfit_objective (int num_fvec_values, int num_pars, double *pars, /*{
    Isis_Fit_Engine_Type *e = ift->engine;
    Isis_Fit_Statistic_Type *fs = ift->stat;
    Fun_Info_Type *fi = &Fun_Info;
-   double statistic;
 
    (void) num_fvec_values;  (void) deriv_vec;
 
    if (-1 == ift->fun (Isis_Client_Data, fi->x, fi->npts, pars, num_pars, fi->fx))
      return -1;
 
-   (void)fs->fun (fs, fi->y, fi->fx, fi->weights, fi->npts, fvec, &statistic);
+   (void)fs->fun (fs, fi->y, fi->fx, fi->weights, fi->npts, fvec, &ift->statistic);
 
    if (e->verbose > 0)
-     e->verbose_hook (Isis_Client_Data, statistic, pars, fi->npars);
+     e->verbose_hook (Isis_Client_Data, ift->statistic, pars, fi->npars);
 
    return 0;
 }
@@ -167,6 +166,12 @@ static int mpfit_method (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
         ps->step = e->par_step[i];
         ps->relstep = 0.01;  /* FIXME !! */
         ps->side = 0;        /* FIXME !! */
+        /* Note that mpfit's two-sided numerical derivative option
+         * does not fully support parameter bounds.  The method used
+         * to support parameter bounds with one-sided numerical
+         * derivatives could easily be extended to the two-sided
+         * derivative case, but as of 4/2010 that hasn't been done.
+         */
         ps->deriv_debug = 0;
         ps->deriv_reltol = 0.0; /* rel. tolerance for deriv debug printout */
         ps->deriv_abstol = 0.0; /* abs. tolerance for deriv debug printout */
