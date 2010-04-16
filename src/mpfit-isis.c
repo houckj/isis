@@ -25,14 +25,16 @@
 
 /*{{{ Includes  */
 
-/* #include "config.h" */
+#include "config.h"
 #include <float.h>
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
-#include <stdlib.h>
-
 #include <string.h>
+
+#ifdef HAVE_STDLIB_H
+# include <stdlib.h>
+#endif
 
 /*}}}*/
 
@@ -134,6 +136,39 @@ static int mpfit_config_set_defaults (struct mp_config_struct *s) /*{{{*/
 
 /*}}}*/
 
+static void print_status (struct mp_result_struct *mpfit_result) /*{{{*/
+{
+   char *m;
+
+   if (mpfit_result == NULL)
+     return;
+
+   switch (mpfit_result->status)
+     {
+      case MP_OK_CHI:  m = "chi-square value converged";
+        break;
+      case MP_OK_PAR:  m = "parameter values converged";
+        break;
+      case MP_OK_BOTH: m = "chi-square and parameter values converged";
+        break;
+      case MP_OK_DIR:  m = "orthogonality converged";
+        break;
+      case MP_MAXITER: m = "maximum number of iterations reached";
+        break;
+      case MP_FTOL:    m = "ftol is too small; no further improvements";
+        break;
+      case MP_XTOL:    m = "xtol is too small; no further improvements";
+        break;
+      case MP_GTOL:    m = "gtol is too small; no further improvements";
+        break;
+      default:
+        /* nada... */
+        break;
+     }
+}
+
+/*}}}*/
+
 static int mpfit_method (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
                           double *x, double *y, double *weights, unsigned int npts,
                           double *pars, unsigned int npars)
@@ -192,6 +227,9 @@ static int mpfit_method (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
    (void) mpfit (mpfit_objective, npts, npars, pars,
                  mpfit_pars, &e->mpfit_config, ift, &mpfit_result);
    ift->statistic = mpfit_result.bestnorm;
+
+   if (e->verbose > 0)
+     print_status (&mpfit_result);
 
    finish:
 
