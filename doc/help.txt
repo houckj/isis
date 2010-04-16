@@ -11010,22 +11010,20 @@ lmdif
     set_fit_method ("lmdif")
 
  DESCRIPTION
-    The lmdif Levenberg-Marquardt algorithm is the default
-    minimization algorithm used in fitting models to data.  This
-    algorithm was derived under the assumption that the function to
-    be minimized is the Chi-square fit-statistic.  For details on
-    the derivation, see e.g. Bevington and Robinson (1992).
+    This interface invokes mpfit with a limited set of options and
+    is provided primarily for backward compatibility with isis
+    versions 1.5 and earlier.  See mpfit for details.
 
-    The only optional parameter is the relative error tolerance
-    used to determine whether or not the algorithm has converged.
-    For help, use:
+    For help on lmdif options, use:
 
     set_fit_method ("lmdif;help");
 
+    The lmdif tol option defines both the ftol and xtol parameters
+    of mpfit.
 
 
  SEE ALSO
-    optimization, set_fit_method
+    optimization, set_fit_method, mpfit
 
 ------------------------------------------------------------------------
 load_conf
@@ -11201,6 +11199,31 @@ marquardt
     optimization, set_fit_method
 
 ------------------------------------------------------------------------
+mpfit
+
+ SYNOPSIS
+    Variant of Levenberg-Marquardt minimization algorithm
+
+ USAGE
+    set_fit_method ("mpfit")
+
+ DESCRIPTION
+    The mpfit Levenberg-Marquardt algorithm is the default
+    minimization algorithm used in fitting models to data.  This
+    algorithm was derived under the assumption that the function to
+    be minimized is the Chi-square fit-statistic.  For details on
+    the derivation, see e.g. Bevington and Robinson (1992).
+
+    For help, use:
+
+    set_fit_method ("mpfit;help");
+
+
+
+ SEE ALSO
+    optimization, set_fit_method
+
+------------------------------------------------------------------------
 optimization
 
  SYNOPSIS
@@ -11223,7 +11246,7 @@ optimization
     can be guessed with reasonable accuracy), a local optimization
     method such as Levenberg-Marquardt is most likely to perform
     well, in the sense of accurately locating the minimum after a
-    relatively small number of model evaluations (see lmdif,
+    relatively small number of model evaluations (see mpfit,
     marquardt, plm).  The Powell method may also work well in such
     cases (see powell).
 
@@ -12148,13 +12171,13 @@ set_fit_method
       set_fit_method ("minim;default");
 
     Given a reasonably good initial guess and a reasonably smooth
-    chi^2 space, lmdif generally converges to the best fit fairly
+    chi^2 space, mpfit generally converges to the best fit fairly
     quickly. In the ideal case, its convergence is quadratic.  In
     cases where the chi^2 parameter space is relatively complex
-    (e.g. pileup), with many local minima, minim may be helpful
+    (e.g. pileup), with many local minima, subplex may be helpful
     because it is somewhat less likely to become stuck in a local
-    minimum.  One possible strategy may be to use minim to find the
-    neighborhood of the global minimum and then use lmdif to
+    minimum.  One possible strategy may be to use subplex to find
+    the neighborhood of the global minimum and then use mpfit to
     quickly find the best fit.
 
     In general, it is a good idea to thoroughly search the

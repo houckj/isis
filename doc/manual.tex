@@ -2017,17 +2017,17 @@ values.  To simplify this process, \isisx provides a {\tt
 randomize} function to automatically randomize all free
 fit-function parameters within the currently specified {\tt
 min-max} parameter ranges. It may also be helpful to fit first
-using {\tt minim} to locate the neighborhood of the global
-minimum and then use {\tt lmdif} to refine the answer.  For
+using {\tt subplex} to locate the neighborhood of the global
+minimum and then use {\tt mpfit} to refine the answer.  For
 example:
 
 \begin{verbatim}
-   set_fit_method ("minim");
+   set_fit_method ("subplex");
    loop (3)
      {
         () = fit_counts;
      }
-   set_fit_method ("lmdif");
+   set_fit_method ("mpfitx");
    () = fit_counts;
 \end{verbatim}
 
@@ -12169,20 +12169,19 @@ overwritten by \verb|save_par|.
 {lmdif} %name
 {Variant of Levenberg-Marquardt minimization algorithm} %purpose
 {set\_fit\_method ("lmdif")} %usage
-{optimization, set\_fit\_method}
+{optimization, set\_fit\_method, mpfit}
 
-The \verb|lmdif| Levenberg-Marquardt algorithm is the default
-minimization algorithm used in fitting models to data.  This
-algorithm was derived under the assumption that the function to
-be minimized is the Chi-square fit-statistic.  For details on
-the derivation, see e.g. Bevington and Robinson (1992).
+This interface invokes \verb|mpfit| with a limited set of options and is
+provided primarily for backward compatibility with isis versions 1.5 and
+earlier.  See \verb|mpfit| for details.
 
-The only optional parameter is the relative error tolerance
-used to determine whether or not the algorithm has converged.
-For help, use:
+For help on lmdif options, use:
 \begin{verbatim}
 set_fit_method ("lmdif;help");
 \end{verbatim}
+
+The \verb|lmdif| \verb|tol| option defines both the \verb|ftol|
+and \verb|xtol| parameters of \verb|mpfit|.
 
 \end{isisfunction}
 
@@ -12326,6 +12325,25 @@ To see a list of optional parameters, use
 \end{isisfunction}
 
 \begin{isisfunction}
+{mpfit} %name
+{Variant of Levenberg-Marquardt minimization algorithm} %purpose
+{set\_fit\_method ("mpfit")} %usage
+{optimization, set\_fit\_method}
+
+The \verb|mpfit| Levenberg-Marquardt algorithm is the default
+minimization algorithm used in fitting models to data.  This
+algorithm was derived under the assumption that the function to
+be minimized is the Chi-square fit-statistic.  For details on
+the derivation, see e.g. Bevington and Robinson (1992).
+
+For help, use:
+\begin{verbatim}
+set_fit_method ("mpfit;help");
+\end{verbatim}
+
+\end{isisfunction}
+
+\begin{isisfunction}
 {optimization} %name
 {Optimization methods provided with isis} %purpose
 {-} %usage
@@ -12344,7 +12362,7 @@ uncorrelated parameters and has a unique minimum whose location
 can be guessed with reasonable accuracy), a local optimization
 method such as Levenberg-Marquardt is most likely to perform
 well, in the sense of accurately locating the minimum after a
-relatively small number of model evaluations (see \verb|lmdif|,
+relatively small number of model evaluations (see \verb|mpfit|,
 \verb|marquardt|, \verb|plm|).  The Powell method may also work
 well in such cases (see \verb|powell|).
 
@@ -13160,14 +13178,14 @@ default} qualifier:
 \end{verbatim}
 
 Given a reasonably good initial guess and a
-reasonably smooth $\chi^2$ space, {\tt lmdif} generally
+reasonably smooth $\chi^2$ space, {\tt mpfit} generally
 converges to the best fit fairly quickly. In the ideal case, its
 convergence is quadratic.  In cases where the $\chi^2$ parameter
 space is relatively complex (e.g. pileup), with many local minima,
-{\tt minim} may be helpful because it is somewhat less likely to
+{\tt subplex} may be helpful because it is somewhat less likely to
 become stuck in a local minimum.  One possible strategy may
-be to use {\tt minim} to find the neighborhood of the global
-minimum and then use {\tt lmdif} to quickly find the best fit.
+be to use {\tt subplex} to find the neighborhood of the global
+minimum and then use {\tt mpfit} to quickly find the best fit.
 
 In general, it is a good idea to thoroughly search the parameter
 space to find the best fit.  The {\tt randomize} function may be
