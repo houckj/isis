@@ -66,6 +66,13 @@ if test $# -lt 3 ; then
   exit 0
 fi
 
+###############################################################
+# 4/2010:  As of heasoft-6.9 compiler information is no longer
+# stored in $HEADAS/BUILD_DIR/config.status so we can no longer
+# check the compatibility of HEADAS compilers.
+exit 0
+###############################################################
+
 headas="$3"
 
 headas_config_status="$headas/BUILD_DIR/config.status"
