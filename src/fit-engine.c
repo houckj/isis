@@ -176,8 +176,8 @@ static int penalty_statistic (Isis_Fit_Statistic_Type *st, /*{{{*/
 {
    SLang_Array_Type *sl_pars = NULL;
    double *pars = NULL;
-   double penalty;
-   unsigned int num;
+   double old_stat, new_stat, penalty, b, vec_penalty;
+   unsigned int i, num;
 
    if (-1 == (*st->assigned_fun)(st, y, fx, w, npts, vec, stat))
      return -1;
@@ -196,6 +196,8 @@ static int penalty_statistic (Isis_Fit_Statistic_Type *st, /*{{{*/
           return -1;
      }
 
+   old_stat = *stat;
+
    SLang_start_arg_list ();
    /* NULL sl_pars is ok */
    if ((-1 == SLang_push_double (*stat))
@@ -208,7 +210,7 @@ static int penalty_statistic (Isis_Fit_Statistic_Type *st, /*{{{*/
    SLang_end_arg_list ();
 
    if ((-1 == SLexecute_function ((SLang_Name_Type *)st->constraint_fun))
-       || -1 == SLang_pop_double (&penalty))
+       || -1 == SLang_pop_double (&new_stat))
      {
         isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "evaluating fit-constraint function");
         SLang_free_array (sl_pars);
@@ -217,7 +219,27 @@ static int penalty_statistic (Isis_Fit_Statistic_Type *st, /*{{{*/
 
    SLang_free_array (sl_pars);
 
-   *stat = penalty;
+   *stat = new_stat;
+
+   /* The penalty must also affect the vector statistic somehow.
+    * Try spreading it uniformly over all bins, assuming that
+    * the base statistic is the Euclidean norm = sum (vec^2);
+    * We want to define:
+    *   new_vec = old_vec + vec_penalty
+    * so that
+    *   new_stat = sum(new_vec^2) = old_stat + penalty.
+    *
+    * FIXME?  This seems ok for chi-square, but perhaps something
+    * different would be better for max. likelihood or cash statistic?
+    * Maybe the statistic object should have a vec_penalty() method?
+    */
+   b = 2 * isis_kahan_sum (vec, npts) / npts;
+   penalty = new_stat - old_stat;
+   vec_penalty = -0.5*b + sqrt (0.25*b*b + penalty / npts);
+   for (i = 0; i < npts; i++)
+     {
+        vec[i] += vec_penalty;
+     }
 
    return 0;
 }
