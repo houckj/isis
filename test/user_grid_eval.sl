@@ -42,8 +42,8 @@ define do_test (num, chisqr)
                num, info.statistic, chisqr);
 }
 
-variable sizes         = [12,      25,      50,   100,     200];
-variable chisqr_values = [63155.7, 8189.29, 1522.61, 271.688, 103.378];
+variable sizes         = [12,      25,      50,      100,     200];
+variable chisqr_values = [62461.9, 8086.03, 1500.71, 265.303, 100.975];
 
 #iffalse
 Num_Model_Eval_Bins = 200;

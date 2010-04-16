@@ -51,8 +51,8 @@ set_par ("gauss(1).sigma", 1);
 
 variable info;
 () = fit_counts (&info);
-if (abs(1.0 - 210.862/info.statistic) > 1.e-3)
-  failed ("opfun:  chisqr=%g  expected 210.862", info.statistic);
+if (abs(1.0 - 207.941/info.statistic) > 1.e-3)
+  failed ("opfun:  chisqr=%g  expected 207.941", info.statistic);
 
 % apply the wavelength shift to a gaussian line
 
@@ -61,7 +61,7 @@ set_par ("wlshift(1).offset1", -0.1);
 set_par ("wlshift(1).offset2", +0.1);
 
 () = eval_counts (&info);
-if (abs(1.0 - 2240.17/info.statistic) > 1.e-3)
-  failed ("opfun:  chisqr=%g  expected 2240.17", info.statistic);
+if (abs(1.0 - 2226.85/info.statistic) > 1.e-3)
+  failed ("opfun:  chisqr=%g  expected 2226.85", info.statistic);
 
 msg ("ok\n");
