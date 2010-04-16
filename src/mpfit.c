@@ -1060,6 +1060,8 @@ int mp_fdjac2(mp_func funct,
   int has_analytical_deriv = 0, has_numerical_deriv = 0;
   int has_debug_deriv = 0;
 
+  (void) ldfjac;
+
   temp = mp_dmax1(epsfcn,MP_MACHEP0);
   eps = sqrt(temp);
   ij = 0;
@@ -1294,6 +1296,9 @@ void mp_qrfac(int m, int n, double *a, int lda,
   static double zero = 0.0;
   static double one = 1.0;
   static double p05 = 0.05;
+
+  (void) lda;  (void) lipvt;
+
   /*
    *     compute the initial column norms and initialize several arrays.
    */
@@ -1494,7 +1499,7 @@ void mp_qrsolv(int n, double *r, int ldr, int *ipvt, double *diag,
 *     **********
 */
   int i,ij,ik,kk,j,jp1,k,kp1,l,nsing;
-  double cos,cotan,qtbpj,sin,sum,tan,temp;
+  double cs,cotan,qtbpj,sn,sum,tn,temp;
   static double zero = 0.0;
   static double p25 = 0.25;
   static double p5 = 0.5;
@@ -1550,22 +1555,22 @@ void mp_qrsolv(int n, double *r, int ldr, int *ipvt, double *diag,
 	if (fabs(r[kk]) < fabs(sdiag[k]))
 	  {
 	    cotan = r[kk]/sdiag[k];
-	    sin = p5/sqrt(p25+p25*cotan*cotan);
-	    cos = sin*cotan;
+	    sn = p5/sqrt(p25+p25*cotan*cotan);
+	    cs = sn*cotan;
 	  }
 	else
 	  {
-	    tan = sdiag[k]/r[kk];
-	    cos = p5/sqrt(p25+p25*tan*tan);
-	    sin = cos*tan;
+	    tn = sdiag[k]/r[kk];
+	    cs = p5/sqrt(p25+p25*tn*tn);
+	    sn = cs*tn;
 	  }
 	/*
 	 *	    compute the modified diagonal element of r and
 	 *	    the modified element of ((q transpose)*b,0).
 	 */
-	r[kk] = cos*r[kk] + sin*sdiag[k];
-	temp = cos*wa[k] + sin*qtbpj;
-	qtbpj = -sin*wa[k] + cos*qtbpj;
+	r[kk] = cs*r[kk] + sn*sdiag[k];
+	temp = cs*wa[k] + sn*qtbpj;
+	qtbpj = -sn*wa[k] + cs*qtbpj;
 	wa[k] = temp;
 	/*
 	 *	    accumulate the tranformation in the row of s.
@@ -1576,8 +1581,8 @@ void mp_qrsolv(int n, double *r, int ldr, int *ipvt, double *diag,
 	    ik = kk + 1;
 	    for (i=kp1; i<n; i++)
 	      {
-		temp = cos*r[ik] + sin*sdiag[i];
-		sdiag[i] = -sin*r[ik] + cos*sdiag[i];
+		temp = cs*r[ik] + sn*sdiag[i];
+		sdiag[i] = -sn*r[ik] + cs*sdiag[i];
 		r[ik] = temp;
 		ik += 1; /* [i+ldr*k] */
 	      }
@@ -2160,6 +2165,10 @@ c     burton s. garbow, kenneth e. hillstrom, jorge j. more
 c
 c     **********
 */
+
+/* avoid stupid compiler warning 'j0 shadows global declaration' */
+#undef j0
+#define j0 j0_noshadow
 
 int mp_covar(int n, double *r, int ldr, int *ipvt, double tol, double *wa)
 {
