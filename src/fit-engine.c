@@ -52,7 +52,7 @@
 extern void list_statistics_and_engines (void);
 extern void _add_slang_statistic (char *);
 
-char *Fit_Default_Fit_Method = "lmdif";
+char *Fit_Default_Fit_Method = "mpfit";
 char *Fit_Default_Fit_Statistic = "chisqr";
 int Isis_Fit_In_Progress = 0;
 
@@ -546,6 +546,9 @@ int init_fit_engine (void) /*{{{*/
      return -1;
 
    if (-1 == isis_fit_add_engine ("marquardt", "chisqr", Isis_marquardt_feng))
+     return -1;
+
+   if (-1 == isis_fit_add_engine ("mpfit", "chisqr", Isis_mpfit_feng))
      return -1;
 
    if (-1 == isis_fit_add_engine ("lmdif", "chisqr", Isis_lmdif_feng))

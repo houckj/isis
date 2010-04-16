@@ -319,6 +319,7 @@ extern int isis_fit_add_statistic (char *name, Isis_Fit_Statistic_Init_Type *x);
 /* Specific fitting methods */
 extern Isis_Fit_Engine_Type *Isis_lmdif_feng (char *name, char *sname);
 extern Isis_Fit_Engine_Type *Isis_marquardt_feng (char *name, char *sname);
+extern Isis_Fit_Engine_Type *Isis_mpfit_feng (char *name, char *sname);
 extern Isis_Fit_Engine_Type *Isis_subplex_feng (char *name, char *sname);
 extern Isis_Fit_Engine_Type *Isis_simann_feng (char *name, char *sname);
 extern Isis_Fit_Statistic_Type *Isis_chisqr_stat (void);
