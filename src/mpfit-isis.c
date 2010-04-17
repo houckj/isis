@@ -69,10 +69,10 @@ static int mpfit_objective (int num_fvec_values, int num_pars, double *pars, /*{
 
    (void) num_fvec_values;  (void) deriv_vec;
 
-   if (-1 == ift->fun (Isis_Client_Data, fi->x, fi->npts, pars, num_pars, fi->fx))
+   if (-1 == ift->compute_model (Isis_Client_Data, fi->x, fi->npts, pars, num_pars, fi->fx))
      return -1;
 
-   (void)fs->fun (fs, fi->y, fi->fx, fi->weights, fi->npts, fvec, &ift->statistic);
+   (void)fs->compute_statistic (fs, fi->y, fi->fx, fi->weights, fi->npts, fvec, &ift->statistic);
 
    if (e->verbose > 0)
      e->verbose_hook (Isis_Client_Data, ift->statistic, pars, fi->npars);

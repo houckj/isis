@@ -105,7 +105,7 @@ static void fcn (int npars, double *pars, double *val) /*{{{*/
 
    *val = DBL_MAX;
 
-   if (-1 == ift->fun (Client_Data, fi->x, fi->npts, pars, fi->npars, fi->fx))
+   if (-1 == ift->compute_model (Client_Data, fi->x, fi->npts, pars, fi->npars, fi->fx))
      {
         Error_Occurred = 1;
         /* simann doesn't test for error returns */
@@ -113,7 +113,7 @@ static void fcn (int npars, double *pars, double *val) /*{{{*/
         return;
      }
 
-   (void)fs->fun (fs, fi->y, fi->fx, fi->weights, fi->npts, Fvec, &statistic);
+   (void)fs->compute_statistic (fs, fi->y, fi->fx, fi->weights, fi->npts, Fvec, &statistic);
    *val = statistic;
 
    if (e->verbose > 0)

@@ -237,7 +237,7 @@ ISIS_FIT_STATISTIC_METHOD (chisqr)
      return NULL;
    memset ((char *)s, 0, sizeof (*s));
 
-   s->fun = chisqr_function;
+   s->compute_statistic = chisqr_function;
    s->report = chisqr_report;
    s->delta_is_chisqr_distributed = 1;
    s->set_options = set_options;

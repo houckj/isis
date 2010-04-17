@@ -129,7 +129,7 @@ ISIS_FIT_STATISTIC_METHOD (cash)
      return NULL;
    memset ((char *)s, 0, sizeof (*s));
 
-   s->fun = cash_function;
+   s->compute_statistic = cash_function;
    s->report = cash_report;
    s->delta_is_chisqr_distributed = 1;
    s->deallocate = deallocate;

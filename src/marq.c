@@ -120,7 +120,7 @@ static int _marquardt_compute_alpha_beta (Isis_Fit_Type *ft, void *clientdata, /
                                           unsigned int nparms)
 {
    Isis_Fit_Engine_Type *e = ft->engine;
-   Isis_Fit_Fun_Type *f = ft->fun;
+   Isis_Fit_Fun_Type *f = ft->compute_model;
    double *y_1 = NULL;
    double **dyda = NULL;
    int i, count_max, num_pars = nparms;
@@ -250,7 +250,7 @@ static int marquardt (Isis_Fit_Type *ft, void *clientdata, /*{{{*/
         goto finish;
      }
 
-   f = ft->fun;
+   f = ft->compute_model;
 
    if (-1 == (*f) (clientdata, x, ny, a, nparms, y_1))
      {
@@ -258,7 +258,7 @@ static int marquardt (Isis_Fit_Type *ft, void *clientdata, /*{{{*/
         goto finish;
      }
 
-   (void) fs->fun (fs, y, y_1, weight, ny, vec, &chisqr);
+   (void) fs->compute_statistic (fs, y, y_1, weight, ny, vec, &chisqr);
    chisqr1 = chisqr;
    chisqr0 = chisqr;
 
@@ -345,7 +345,7 @@ static int marquardt (Isis_Fit_Type *ft, void *clientdata, /*{{{*/
                   goto finish;
                }
 
-             (void) fs->fun (fs, y, y_1, weight, ny, vec, &chisqr1);
+             (void) fs->compute_statistic (fs, y, y_1, weight, ny, vec, &chisqr1);
 
              if (e->verbose > 0)
                e->verbose_hook (clientdata, chisqr1, a1, nparms);

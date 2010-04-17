@@ -387,7 +387,7 @@ int isis_fit_add_statistic (char *name, Isis_Fit_Statistic_Init_Type *init) /*{{
     * constraints).
     */
 
-   s->stat->assigned_fun = s->stat->fun;
+   s->stat->assigned_fun = s->stat->compute_statistic;
 
    s->next = Statistic_List;
    Statistic_List = s;
@@ -539,7 +539,7 @@ static Isis_Fit_Statistic_Type *init_sl_statistic (void) /*{{{*/
         return NULL;
      }
 
-   s->fun = sl_statistic_function;
+   s->compute_statistic = sl_statistic_function;
    s->report = sl_report_function;
    s->sl_fun = statistic_fun;
    s->sl_report = report_fun;
@@ -649,15 +649,15 @@ Isis_Fit_Type *isis_fit_open_fit (char *name, char *sname, Isis_Fit_Fun_Type *fu
    if (constraint_fun)
      {
         s->constraint_fun = constraint_fun;
-        s->fun = &penalty_statistic;
+        s->compute_statistic = &penalty_statistic;
      }
    else
      {
         s->constraint_fun = NULL;
-        s->fun = s->assigned_fun;
+        s->compute_statistic = s->assigned_fun;
      }
 
-   f->fun = fun;
+   f->compute_model = fun;
    f->engine = e;
    f->stat = s;
    f->statistic = DBL_MAX;

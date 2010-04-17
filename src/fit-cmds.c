@@ -3352,7 +3352,7 @@ static int eval_fit_stat2 (Isis_Fit_Statistic_Type *s,  int enable_copying, /*{{
         return -1;
      }
 
-   ret = s->fun (s, y, fx, w, n, vstat, stat);
+   ret = s->compute_statistic (s, y, fx, w, n, vstat, stat);
 
    if (vec)
      {

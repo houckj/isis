@@ -105,14 +105,14 @@ static double fun (int *num, double *pars) /*{{{*/
    if (e->range_hook (clientdata, e->par_min, e->par_max, pars, npars))
      return PARAM_OUTSIDE_BOUND_CONSTRAINTS;
 
-   if (-1 == ift->fun (clientdata, fi->x, fi->npts, pars, npars, fi->fx))
+   if (-1 == ift->compute_model (clientdata, fi->x, fi->npts, pars, npars, fi->fx))
      {
         /* subplex doesn't test for error returns */
         longjmp (Jumpbuf, 1);
         /* return -1.0; */
      }
 
-   (void)fs->fun (fs, fi->y, fi->fx, fi->weights, fi->npts, Stat_Vec, &statistic);
+   (void)fs->compute_statistic (fs, fi->y, fi->fx, fi->weights, fi->npts, Stat_Vec, &statistic);
 
    if (e->verbose > 0)
      e->verbose_hook (clientdata, statistic, pars, npars);

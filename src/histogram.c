@@ -5208,7 +5208,7 @@ static int compute_plot_residuals (Hist_t *h, unsigned int version, /*{{{*/
              double dv = d->val_err[i];
              wt[i] = 1.0/(dv*dv);
           }
-        if (-1 == s->fun (s, d->val, m->val, wt, n, cpy->val, &statistic))
+        if (-1 == s->compute_statistic (s, d->val, m->val, wt, n, cpy->val, &statistic))
           return -1;
         for (i = 0; i < n; i++)
           cpy->val_err[i] = 1.0;

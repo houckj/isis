@@ -437,7 +437,7 @@ typedef Isis_Fit_Statistic_Type *Isis_Fit_Statistic_Init_Type (void);
 
 struct Isis_Fit_Statistic_Type
 {
-   Isis_Fit_Statistic_Fun_Type *fun;
+   Isis_Fit_Statistic_Fun_Type *compute_statistic;
    SLang_Name_Type *sl_fun;
 
    Isis_Fit_Statistic_Report_Type *report;
@@ -485,7 +485,7 @@ typedef int Isis_Fit_Fun_Type(void *clientdata,
                               double *fx);
 struct Isis_Fit_Type
 {
-   Isis_Fit_Fun_Type *fun;
+   Isis_Fit_Fun_Type *compute_model;
    Isis_Fit_Engine_Type *engine;
    Isis_Fit_Statistic_Type *stat;
    double statistic;
