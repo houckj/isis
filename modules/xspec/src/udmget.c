@@ -134,6 +134,14 @@
 #include <string.h>
 /* #include "cfortran.h" */
 
+#ifdef __cplusplus
+extern "C" int udmget_ (int *nelem, int *datatype, int *pointer, int *status);
+extern "C" int udmfre_ (int *pointer, int *datatype, int *status);
+#else
+extern int udmget_ (int *nelem, int *datatype, int *pointer, int *status);
+extern int udmfre_ (int *pointer, int *datatype, int *status);
+#endif
+
 /* number of distinct memory blocks that can be allocated. */
 
 #define MAXBLK 1000
@@ -497,13 +505,7 @@ static int fill_guard (int pointer, int elsize, int nelem)
 
 }
 
-#ifdef VMS
-extern int udmget (int *nelem, int *datatype, int *pointer, int *status);
-int udmget (int *nelem, int *datatype, int *pointer, int *status)
-#else
-extern int udmget_ (int *nelem, int *datatype, int *pointer, int *status);
 int udmget_ (int *nelem, int *datatype, int *pointer, int *status)
-#endif
 {
 
   unsigned int size, elsize;
@@ -574,7 +576,7 @@ int udmget_ (int *nelem, int *datatype, int *pointer, int *status)
     printf ("Reallocing size %d\n",size);
 #endif
 
-    p = udm_realloc( blocks[i].ptr, size );
+    p = (char *) udm_realloc( blocks[i].ptr, size );
 
     if (p == NULL)
       {
@@ -685,13 +687,7 @@ int udmget_ (int *nelem, int *datatype, int *pointer, int *status)
   return 0;
 }
 
-#ifdef VMS
-extern int udmfre (int *pointer, int *datatype, int *status);
-int udmfre (int *pointer, int *datatype, int *status)
-#else
-extern int udmfre_ (int *pointer, int *datatype, int *status);
 int udmfre_ (int *pointer, int *datatype, int *status)
-#endif
 {
   char *p;
   int size;
