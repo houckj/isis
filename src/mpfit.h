@@ -113,7 +113,7 @@ typedef int (*mp_func)(int m, /* Number of functions (elts of fvec) */
 		       double *x,      /* I - Parameters */
 		       double *fvec,   /* O - function values */
 		       double **dvec,  /* O - function derivatives (optional)*/
-		       void *private); /* I/O - function private data*/
+		       void *private_data); /* I/O - function private data*/
 
 /* Error codes */
 #define MP_ERR_INPUT (0)         /* General input parameter error */
@@ -154,6 +154,6 @@ typedef int (*mp_func)(int m, /* Number of functions (elts of fvec) */
 
 /* External function prototype declarations */
 extern int mpfit(mp_func funct, int m, int npar,
-		 double *xall, mp_par *pars, mp_config *config, void *private,
+		 double *xall, mp_par *pars, mp_config *config, void *private_data,
 		 mp_result *result);
 

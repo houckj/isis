@@ -221,8 +221,8 @@ static int mpfit_method (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
 
    memset ((void *)&mpfit_result, 0, sizeof (struct mp_result_struct));
 
-   if ((NULL == (fi->fx = ISIS_MALLOC (npts * sizeof(double))))
-       || (NULL == (ift->covariance_matrix = ISIS_MALLOC (npars * npars * sizeof(double)))))
+   if ((NULL == (fi->fx = (double *) ISIS_MALLOC (npts * sizeof(double))))
+       || (NULL == (ift->covariance_matrix = (double *) ISIS_MALLOC (npars * npars * sizeof(double)))))
      goto finish;
 
    mpfit_result.covar = ift->covariance_matrix;
@@ -362,7 +362,7 @@ ISIS_FIT_ENGINE_METHOD(mpfit,name,sname)
 {
    Isis_Fit_Engine_Type *e;
 
-   if (NULL == (e = ISIS_MALLOC (sizeof(Isis_Fit_Engine_Type))))
+   if (NULL == (e = (Isis_Fit_Engine_Type *) ISIS_MALLOC (sizeof(Isis_Fit_Engine_Type))))
      return NULL;
    memset ((char *)e, 0, sizeof (*e));
 
@@ -430,7 +430,7 @@ ISIS_FIT_ENGINE_METHOD(lmdif,name,sname)
 {
    Isis_Fit_Engine_Type *e;
 
-   if (NULL == (e = ISIS_MALLOC (sizeof(Isis_Fit_Engine_Type))))
+   if (NULL == (e = (Isis_Fit_Engine_Type *) ISIS_MALLOC (sizeof(Isis_Fit_Engine_Type))))
      return NULL;
    memset ((char *)e, 0, sizeof (*e));
 
