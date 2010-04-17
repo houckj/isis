@@ -426,6 +426,7 @@ static int initialize (int argc, char **argv) /*{{{*/
    char *readline_namespace = "isis";
    char *script_name = NULL;
    char *pgm, *pgm_basename, *p_hyphen;
+   int verbose_mask = SLANG_LOAD_FILE_VERBOSE | SLANG_LOAD_MODULE_VERBOSE;
    int no_init_file = 0;
    int is_script = 0;
    int set_verbose = 0;
@@ -526,7 +527,7 @@ static int initialize (int argc, char **argv) /*{{{*/
           {
              if (0 == strcmp (argv[i], "-v"))
                {
-                  (void) SLang_load_file_verbose (1);
+                  (void) SLang_load_file_verbose (verbose_mask);
                   break;
                }
           }
@@ -667,7 +668,7 @@ static int initialize (int argc, char **argv) /*{{{*/
           {
              argc--;
              argv++;
-             (void) SLang_load_file_verbose (1);
+             (void) SLang_load_file_verbose (verbose_mask);
              continue;
           }
 
