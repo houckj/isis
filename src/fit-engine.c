@@ -661,6 +661,7 @@ Isis_Fit_Type *isis_fit_open_fit (char *name, char *sname, Isis_Fit_Fun_Type *fu
    f->engine = e;
    f->stat = s;
    f->statistic = DBL_MAX;
+   f->covariance_matrix = NULL;
 
    Isis_Fit_In_Progress = 1;
 
@@ -684,6 +685,7 @@ void isis_fit_close_fit (Isis_Fit_Type *f) /*{{{*/
         s->message_string = NULL;
      }
 
+   ISIS_FREE (f->covariance_matrix);
    ISIS_FREE (f);
 }
 

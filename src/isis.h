@@ -489,6 +489,7 @@ struct Isis_Fit_Type
    Isis_Fit_Engine_Type *engine;
    Isis_Fit_Statistic_Type *stat;
    double statistic;
+   double *covariance_matrix;   /* npars x npars */
 };
 
 extern void isis_fit_free_fit_engine (Isis_Fit_Engine_Type *e);

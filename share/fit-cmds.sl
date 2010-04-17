@@ -996,29 +996,22 @@ define fit_fun()
 
 %{{{ fit model to data
 
-private define Fit_Info_Struct_Type ()
-{
-   variable s = struct {statistic, num_variable_params, num_bins};
-   return s;
-}
-
 private define _do_eval_fit (_do_eval, data_type, msg, nargs) %{{{
 {
-   variable response_type;
-   variable s = Fit_Info_Struct_Type();
+   variable tmp, ref = &tmp,
+     response_type = Assigned_ARFRMF;
 
    switch (nargs)
      {
       case 0:
-	response_type = Assigned_ARFRMF;
+        % do nothing
      }
      {
       case 1:
-	variable x = ();
+        variable x = ();
 	if (typeof (x) == Ref_Type)
 	  {
-	     response_type = Assigned_ARFRMF;
-	     @x = s;
+             ref = x;
 	  }
 	else
 	  {
@@ -1027,22 +1020,12 @@ private define _do_eval_fit (_do_eval, data_type, msg, nargs) %{{{
      }
      {
       case 2:
-	variable ref;
 	(response_type, ref) = ();
-        @ref = s;
      }
      {
 	% default:
 	_pop_n (nargs);
 	usage (msg);
-     }
-
-   if (0 == is_struct_type (s))
-     {
-	usage (msg);
-	message ("*** Argument must provide address of a Struct_Type:");
-	message ("*** variable s = struct {statistic, num_variable_params, num_bins}");
-	return;
      }
 
    _isis->_set_fit_type (response_type, data_type);
@@ -1057,7 +1040,7 @@ private define _do_eval_fit (_do_eval, data_type, msg, nargs) %{{{
           {
              Fit_Verbose = fit_verbose;
           }
-        (status, s.statistic, s.num_variable_params, s.num_bins) = (@_do_eval)();
+        status = (@_do_eval)(ref);
      }
    finally
      {
@@ -1099,9 +1082,8 @@ define eval_flux ()
 private define eval_statistic (data_type)
 {
    _isis->_set_fit_type (Assigned_ARFRMF, data_type);
-   variable status;
-   variable s = Fit_Info_Struct_Type();
-   (status, s.statistic, s.num_variable_params, s.num_bins) = _isis->_eval_statistic_only();
+   variable s, status;
+   status = _isis->_eval_statistic_only(&s);
    if (status == 0)
      return s;
    else return NULL;
@@ -2149,7 +2131,7 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
    variable i2, num_p2 = length(p2);
 
    variable chisqr = Float_Type [num_p2, num_p1];
-   variable fit_info = Fit_Info_Struct_Type ();
+   variable fit_info;
 
    variable print_status;
    print_status = (save_fit_verbose >= 0) or (Isis_Verbose >= _isis->_WARN);
@@ -2182,7 +2164,7 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
 		 {mask_ref != NULL}
 		 {0 == (@mask_ref) (p1[i1], p2[i2])})
 	       {
-		  fit_info.statistic = -1.0;
+		  fit_info = struct {statistic=-1.0};
 	       }
 	     else
 	       {
@@ -2202,7 +2184,7 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
 	     chisqr[i2, i1] = fit_info.statistic;
 
 	     if (save_ref != NULL)
-	       (@save_ref) (fit_info);
+	       (@save_ref) (fit_info.statistic);
 
              if (print_status)
                {

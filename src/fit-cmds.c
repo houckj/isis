@@ -3400,7 +3400,7 @@ static int eval_fit_stat (Isis_Fit_Statistic_Type *s,  int enable_copying, /*{{{
 
 /*}}}*/
 
-static double *eval_fit_residual (Isis_Fit_Statistic_Type *s,  int enable_copying, /*{{{*/
+static double *eval_fit_residual (Isis_Fit_Statistic_Type *s, int enable_copying, /*{{{*/
                                   double *y, double *w, int n,
                                   double *par, int npars)
 {
@@ -3861,59 +3861,119 @@ static void fobj_get_data_weights (Fit_Object_MMT_Type *mmt) /*{{{*/
 
 /*}}}*/
 
-static void iterate_fit_fun (int optimize) /*{{{*/
+typedef struct
 {
+   double stat;
+   SLang_Array_Type *covar;
+   unsigned int num_vary;
+   int num_bins;
+}
+Fit_Result_Type;
+
+static SLang_CStruct_Field_Type Fit_Result_Type_Layout [] =
+{
+   MAKE_CSTRUCT_FIELD (Fit_Result_Type, stat, "statistic", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Fit_Result_Type, covar, "covariance_matrix", SLANG_ARRAY_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Fit_Result_Type, num_vary, "num_variable_params", SLANG_UINT_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Fit_Result_Type, num_bins, "num_bins", SLANG_INT_TYPE, 0),
+   SLANG_END_CSTRUCT_TABLE
+};
+
+static int copy_covariance_matrix (Fit_Result_Type *fr, Fit_Object_Type *fo) /*{{{*/
+{
+   Isis_Fit_Type *ift = fo->ft;
+   int dims[2] = {0, 0};
+
+   if (ift->covariance_matrix)
+     {
+        dims[0] = fr->num_vary;
+        dims[1] = fr->num_vary;
+     }
+
+   if (NULL == (fr->covar = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, dims, 2)))
+     return -1;
+
+   if (ift->covariance_matrix)
+     {
+        int i, j, k = 0, pos[2];
+        for (i = 0; i < dims[0]; i++)
+          {
+             pos[0] = i;
+             for (j = 0; j < dims[1]; j++)
+               {
+                  double m = ift->covariance_matrix[k];
+                  pos[1] = j;
+                  SLang_set_array_element (fr->covar, pos, &m);
+                  k++;
+               }
+          }
+     }
+
+   return 0;
+}
+
+/*}}}*/
+
+static int iterate_fit_fun (int optimize, SLang_Ref_Type *ref) /*{{{*/
+{
+   Fit_Result_Type fr;
    Fit_Object_Type *fo = NULL;
-   double stat = isis_nan();
-   unsigned int num_pars = 0, num_vary = 0;
-   int num_bins = 0;
-   int err = -1;
+   unsigned int num_pars = 0;
+   int status = -1;
+
+   memset ((char *)&fr, 0, sizeof(fr));
+   fr.stat = isis_nan();
 
    Num_Statistic_Evaluations = 0;
 
    if ((NULL != (fo = fit_object_open ()))
        && (0 == fit_object_config (fo, Param, optimize)))
      {
-        err = fit_statistic (fo, optimize, &stat, &num_bins);
+        status = fit_statistic (fo, optimize, &fr.stat, &fr.num_bins);
         fit_object_keep_params (fo, Param);
      }
 
    if ((fo != NULL) && (fo->info != NULL))
      {
-        num_vary = fo->info->num_vary;
+        fr.num_vary = fo->info->num_vary;
      }
-   else Fit_count_params (Param, &num_pars, &num_vary);
+   else Fit_count_params (Param, &num_pars, &fr.num_vary);
 
+   copy_covariance_matrix (&fr, fo);
    fit_object_close (fo);
 
-   SLang_push_integer (err ? -1 : 0);
-   SLang_push_double (stat);
-   SLang_push_integer (num_vary);
-   SLang_push_integer (num_bins);
+   if (ref != NULL)
+     (void) SLang_assign_cstruct_to_ref (ref, &fr, Fit_Result_Type_Layout);
+
+   SLang_free_cstruct (&fr, Fit_Result_Type_Layout);
+
+   return status ? -1 : 0;
 }
 
 /*}}}*/
 
-static void find_best_fit (void) /*{{{*/
+static int find_best_fit (SLang_Ref_Type *ref) /*{{{*/
 {
    Computing_Statistic_Only = 0;
-   iterate_fit_fun (1);
+   return iterate_fit_fun (1, ref);
 }
 /*}}}*/
 
-static void eval_model (void) /*{{{*/
+static int eval_model (SLang_Ref_Type *ref) /*{{{*/
 {
    Computing_Statistic_Only = 0;
-   iterate_fit_fun (0);
+   return iterate_fit_fun (0, ref);
 }
 
 /*}}}*/
 
-static void eval_statistic_only (void) /*{{{*/
+static int eval_statistic_only (SLang_Ref_Type *ref) /*{{{*/
 {
+   int status;
    Computing_Statistic_Only = 1;
-   iterate_fit_fun (0);
+   status = iterate_fit_fun (0, ref);
    Computing_Statistic_Only = 0;
+   return status;
 }
 
 /*}}}*/
@@ -4543,6 +4603,7 @@ static void set_eval_grid_method (int *method, int *cache_model_values) /*{{{*/
 #define UI SLANG_UINT_TYPE
 #define D SLANG_DOUBLE_TYPE
 #define S SLANG_STRING_TYPE
+#define R SLANG_REF_TYPE
 
 static SLang_Intrin_Var_Type Fit_Intrin_Vars [] =
 {
@@ -4608,9 +4669,9 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
    MAKE_INTRINSIC_I("_thaw", _thaw, V),
    MAKE_INTRINSIC_II("_tie", _tie, V),
    MAKE_INTRINSIC_I("_untie", _untie, V),
-   MAKE_INTRINSIC("_fit", find_best_fit, V, 0),
-   MAKE_INTRINSIC("_eval_model", eval_model, V, 0),
-   MAKE_INTRINSIC("_eval_statistic_only", eval_statistic_only, V, 0),
+   MAKE_INTRINSIC_1("_fit", find_best_fit, I, R),
+   MAKE_INTRINSIC_1("_eval_model", eval_model, I, R),
+   MAKE_INTRINSIC_1("_eval_statistic_only", eval_statistic_only, I, R),
    MAKE_INTRINSIC_4("_confidlev", confidence_limits, V, I, D, I, D),
    MAKE_INTRINSIC_I("_set_conf_limit_search", _set_conf_limit_search, V),
    MAKE_INTRINSIC("_array_fit", array_fit, V, 0),
@@ -4662,6 +4723,7 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
 #undef UI
 #undef D
 #undef S
+#undef R
 #undef MT
 #undef MTO
 

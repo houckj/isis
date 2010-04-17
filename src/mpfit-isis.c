@@ -186,7 +186,7 @@ static int mpfit_method (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
 
    e = ift->engine;
 
-   if (NULL == (mpfit_pars = (struct mp_par_struct *) malloc (npars * sizeof *mpfit_pars)))
+   if (NULL == (mpfit_pars = (struct mp_par_struct *) ISIS_MALLOC (npars * sizeof *mpfit_pars)))
      return -1;
 
    for (i = 0; i < npars; i++)
@@ -221,8 +221,11 @@ static int mpfit_method (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
 
    memset ((void *)&mpfit_result, 0, sizeof (struct mp_result_struct));
 
-   if (NULL == (fi->fx = malloc (npts * sizeof(double))))
+   if ((NULL == (fi->fx = ISIS_MALLOC (npts * sizeof(double))))
+       || (NULL == (ift->covariance_matrix = ISIS_MALLOC (npars * npars * sizeof(double)))))
      goto finish;
+
+   mpfit_result.covar = ift->covariance_matrix;
 
    (void) mpfit (mpfit_objective, npts, npars, pars,
                  mpfit_pars, &e->mpfit_config, ift, &mpfit_result);
