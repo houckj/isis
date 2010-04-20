@@ -26,14 +26,6 @@ require ("fork");
 require ("socket");
 require ("select");
 
-#ifndef urand
-require ("rand");
-private define urand ()
-{
-   return rand_uniform ();
-}
-#endif
-
 %  Public functions:
 %     slaves = new_slave_list ( [; qualifiers]);
 %     s = fork_slave (&task [,args [; qualifiers]]);
@@ -454,20 +446,6 @@ define fork_slave ()
    if (close (s2) != 0)
      throw IOError, errno_string();
    return process_struct (pid, s1);
-}
-
-private define shuffle (array)
-{
-   % Fisher-Yates-Durstenfeld in-place shuffle
-   variable n = length(array);
-   while (n > 1)
-     {
-        variable k = int(n * urand());
-        n--;
-        variable tmp = array[n];
-        array[n] = array[k];
-        array[k] = tmp;
-     }
 }
 
 private define handle_pending_messages (slaves)
@@ -1281,6 +1259,27 @@ define recv_objs ()
 
 #ifdef FORK_SOCKET_TEST %{{{
 
+#ifndef urand
+require ("rand");
+private define urand ()
+{
+   if (_NARGS == 0)
+     return rand_uniform ();
+   variable a;
+   if (_NARGS == 1)
+     {
+	a = ();
+	return rand_uniform (a);
+     }
+   a = __pop_args (_NARGS);
+   return rand_uniform (Char_Type[__push_args(a)]);
+}
+private define seed_random ()
+{
+   srand();
+}
+#endif
+
 private variable M = 2;
 
 define task (s, which, num_loops)
@@ -1337,7 +1336,7 @@ define message_handler (s, msg)
      }
 }
 
-define isis_main()
+define slsh_main()
 {
    seed_random (_time);
 
