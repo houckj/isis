@@ -3576,8 +3576,9 @@ static void array_fit (void) /*{{{*/
    Isis_Fit_Type *f;
    SLang_Array_Type *par, *par_min, *par_max;
    SLang_Array_Type *x, *y, *wt;
+   double *par_step = NULL;
    double statistic = 0.0;
-   int nx, npars, ret = -1;
+   int i, nx, npars, ret = -1;
 
    f = NULL;
    x = y = wt = par = par_min = par_max = NULL;
@@ -3613,8 +3614,21 @@ static void array_fit (void) /*{{{*/
         goto finish;
      }
 
+   if (NULL == (par_step = ISIS_MALLOC(npars * sizeof(double))))
+     {
+        isis_throw_exception (Isis_Error);
+        goto finish;
+     }
+   for (i = 0; i < npars; i++)
+     {
+        double value;
+        (void) SLang_get_array_element (par, &i, &value);
+        par_step[i] = 0.01 * ((value == 0) ? 1.0 : fabs(value));
+     }
+
    isis_fit_set_verbose_level (f, Fit_Verbose);
    isis_fit_set_ranges (f, DDATA(par_min), DDATA(par_max));
+   isis_fit_set_param_step (f, par_step);
 
    ret = isis_fit_perform_fit (f, NULL, DDATA(x), DDATA(y), DDATA(wt), nx,
                                DDATA(par), npars, &statistic);
@@ -3636,6 +3650,7 @@ static void array_fit (void) /*{{{*/
    SLang_free_array (wt);
    SLang_free_array (par_min);
    SLang_free_array (par_max);
+   ISIS_FREE(par_step);
 #undef DDATA
 }
 
