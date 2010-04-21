@@ -121,18 +121,15 @@ static define load_xspec_symbol (name) %{{{
 	    strlow(nameu), strlow(name),
 	    strup(nameu), strup(name)];
 
-   xspec_clear_link_errors ();
-
    foreach (names)
      {
 	variable n = ();
 	ret = load_xspec_fun (&xf, Model_File, n);
 	if (ret == 0)
-	  return (xf, NULL);  % FIXME?
+          {
+             return (xf, NULL);
+          }
      }
-
-   % save recent link errors only if load ultimately failed
-   xspec_keep_link_errors ();
 
    return (NULL, NULL);
 }
@@ -143,9 +140,7 @@ static define parse_model_table ();
 private define load_shared_model_table (buf)
 {
    variable names;
-   xspec_track_link_errors ();
    names = parse_model_table (buf, &load_xspec_symbol);
-   xspec_print_link_errors();
    return names;
 }
 
@@ -215,8 +210,16 @@ private define create_wrapper (m) %{{{
           {
              variable prefix = m.routine_name[[0:1]];
              switch (prefix)
-               {case "C_" or case "c_":  fmt = "_xspec_%s_C_hook";}
-               {case "F_":  fmt = "_xspec_%s_F_hook";}
+               {
+                case "C_" or case "c_":
+                  m.routine_name = m.routine_name[[2:]];
+                  fmt = "_xspec_%s_C_hook";
+               }
+               {
+                case "F_":
+                  m.routine_name = m.routine_name[[2:]];
+                  fmt = "_xspec_%s_F_hook";
+               }
           }
         hook_name = sprintf (fmt, m.model_type);
      }
@@ -283,6 +286,8 @@ static define parse_model_table (t, load_symbol_ref) %{{{
    variable e, m, s;
    variable names = NULL;
 
+   xspec_track_link_errors ();
+
    s = 0;
 
    foreach (blanks)
@@ -301,12 +306,10 @@ static define parse_model_table (t, load_symbol_ref) %{{{
 	if (m.num_pars == 0)
 	  continue;
 
+        xspec_clear_link_errors ();
+
         variable nm, try_names;
-#ifdef __HAVE_XSPEC_12__
-        try_names = [m.routine_name, m.model_name];
-#else
         try_names = [m.model_name, m.routine_name];
-#endif
         foreach nm (try_names)
           {
              (m.exec_symbol, m.exec_symbol_hook) = (@load_symbol_ref) (nm);
@@ -315,6 +318,8 @@ static define parse_model_table (t, load_symbol_ref) %{{{
           }
 	if (m.exec_symbol == NULL)
           {
+             % save recent link errors only if load ultimately failed
+             xspec_keep_link_errors();
              vmessage ("failed loading %s/%s", m.model_name, m.routine_name);
              continue;
           }
@@ -334,6 +339,8 @@ static define parse_model_table (t, load_symbol_ref) %{{{
 	else list = strjoin (names, ", ");
 	vmessage ("loaded:  %S", list);
      }
+
+   xspec_print_link_errors ();
 
    return names;
 }
