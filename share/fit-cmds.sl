@@ -2670,7 +2670,7 @@ define array_fit () %{{{
 	verror ("*** array_fit:  length(par_max) != length(pars)");
      }
 
-   _isis->_array_fit (x, y, wt, pars, par_min, par_max, fun);
+   _isis->_array_fit (x, y, wt, @pars, par_min, par_max, fun);
 }
 
 %}}}
