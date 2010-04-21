@@ -37,6 +37,7 @@ Changes since 1.5.0 (released Aug 2009)
 27.  new interpol qualifier controls alternate extrapolation methods
 28.  Added mpfit optimization method.  Removed lmdif, providing
      a backward-compatible lmdif interface that invokes mpfit.
+29.  Fix bug in array_fit interface (par_step passed as NULL)
 
 pre1.5.0
  1.  Added support for parallel processing via fork and select.
