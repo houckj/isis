@@ -3614,6 +3614,15 @@ static void array_fit (void) /*{{{*/
         goto finish;
      }
 
+   /* FIXME !! */
+   if (is_slang_optimizer (f))
+     {
+        isis_vmesg (FAIL, I_NOT_IMPLEMENTED, __FILE__, __LINE__,
+                    "array_fit does not support using optimizers implemented in S-Lang");
+        isis_throw_exception (Isis_Error);
+        goto finish;
+     }
+
    if (NULL == (par_step = ISIS_MALLOC(npars * sizeof(double))))
      {
         isis_throw_exception (Isis_Error);
