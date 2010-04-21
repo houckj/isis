@@ -200,30 +200,6 @@ private define create_wrapper (m) %{{{
    else
      arg = "";
 
-   variable hook_name;
-   if (m.exec_symbol_hook != NULL)
-     hook_name = m.exec_symbol_hook;
-   else
-     {
-        variable fmt = "_xspec_%s_f_hook";
-        if (strlen(m.routine_name) > 3)
-          {
-             variable prefix = m.routine_name[[0:1]];
-             switch (prefix)
-               {
-                case "C_" or case "c_":
-                  m.routine_name = m.routine_name[[2:]];
-                  fmt = "_xspec_%s_C_hook";
-               }
-               {
-                case "F_":
-                  m.routine_name = m.routine_name[[2:]];
-                  fmt = "_xspec_%s_F_hook";
-               }
-          }
-        hook_name = sprintf (fmt, m.model_type);
-     }
-
    variable set_init_string = "";
    if (m.init_string != NULL)
      {
@@ -235,7 +211,7 @@ private define create_wrapper (m) %{{{
    variable def;
    def = sprintf ("define %s_fit(l,h,p%s){%s return %s(l,h,p%s, _isis->__Xspec_Symbol[\"%s\"]);}",
 		  m.model_name, arg, set_init_string,
-		  hook_name, arg,
+		  m.exec_symbol_hook, arg,
 		  m.model_name);
 
    variable param_names, units, s;
@@ -269,6 +245,31 @@ private define create_wrapper (m) %{{{
 }
 
 %}}}
+
+static define choose_exec_symbol_hook (m)
+{
+   if (m.exec_symbol_hook != NULL)
+     return;
+
+   variable fmt = "_xspec_%s_f_hook";
+   if (strlen(m.routine_name) > 3)
+     {
+        variable prefix = m.routine_name[[0:1]];
+        switch (prefix)
+          {
+           case "C_" or case "c_":
+             m.routine_name = m.routine_name[[2:]];
+             fmt = "_xspec_%s_C_hook";
+          }
+          {
+           case "F_":
+             m.routine_name = m.routine_name[[2:]];
+             fmt = "_xspec_%s_F_hook";
+          }
+     }
+
+   m.exec_symbol_hook = sprintf (fmt, m.model_type);
+}
 
 static define parse_model_table (t, load_symbol_ref) %{{{
 {
@@ -306,13 +307,15 @@ static define parse_model_table (t, load_symbol_ref) %{{{
 	if (m.num_pars == 0)
 	  continue;
 
+        choose_exec_symbol_hook (m);
+
         xspec_clear_link_errors ();
 
         variable nm, try_names;
         try_names = [m.model_name, m.routine_name];
         foreach nm (try_names)
           {
-             (m.exec_symbol, m.exec_symbol_hook) = (@load_symbol_ref) (nm);
+             (m.exec_symbol, ) = (@load_symbol_ref) (nm);
              if (m.exec_symbol != NULL)
                break;
           }
