@@ -862,7 +862,8 @@ private define list_par_string (free_only) %{{{
    variable len;
    len = massage_param_structs (pars);
 
-   variable s = [strtrim(get_fit_fun())];
+   variable s = get_fit_fun();
+   s = (s == NULL) ? String_Type[0] : [strtrim(s)];
 
    variable bs, datasets = all_data();
    if (datasets != NULL)
