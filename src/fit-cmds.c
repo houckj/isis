@@ -3960,10 +3960,10 @@ static int iterate_fit_fun (int optimize, SLang_Ref_Type *ref) /*{{{*/
    if ((fo != NULL) && (fo->info != NULL))
      {
         fr.num_vary = fo->info->num_vary;
+        copy_covariance_matrix (&fr, fo);
      }
    else Fit_count_params (Param, &num_pars, &fr.num_vary);
 
-   copy_covariance_matrix (&fr, fo);
    fit_object_close (fo);
 
    if (ref != NULL)
