@@ -2,6 +2,8 @@ Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
  1.  xspec module more closely adheres to local model naming convention
  2.  Fixed NULL dereference bug (copy_covariance_matrix)
+ 3.  array_fit: internally, force 'pars' to be an array and don't
+     overwrite it on return.
 
 Changes since 1.5.0 (released Aug 2009)
 ---------------------------------------
