@@ -2636,6 +2636,9 @@ define array_fit () %{{{
    if (x == NULL or y == NULL or pars == NULL or fun == NULL)
      usage (msg);
 
+   if (typeof(pars) != Array_Type)
+     pars = [pars];
+
    if (length(x) != length(y)
        or (wt != NULL and length(x) != length(wt)))
      usage (msg);
