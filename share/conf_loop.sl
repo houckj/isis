@@ -345,7 +345,7 @@ public define conf_loop()
      {
         level = 1,
         tol = 1.e-3,
-        max_param_retries = qualifier ("max_param_retries", 10),
+        max_param_retries = qualifier ("max_param_retries", 0),
         serial
      };
    variable indices;
