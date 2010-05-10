@@ -2132,6 +2132,7 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
    variable i2, num_p2 = length(p2);
 
    variable chisqr = Float_Type [num_p2, num_p1];
+   chisqr[*,*] = -1.0;
    variable fit_info;
 
    variable print_status;
@@ -2161,13 +2162,11 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
 	     set_par (ip1, p1[i1], 1, min(pa), max(pa));
 	     set_par (ip2, p2[i2], 1, min(pb), max(pb));
 
-	     if (andelse
-		 {mask_ref != NULL}
-		 {0 == (@mask_ref) (p1[i1], p2[i2])})
-	       {
-		  fit_info = struct {statistic=-1.0};
-	       }
-	     else
+             variable masked_out =
+               ((mask_ref != NULL)
+                && (0 == (@mask_ref) (p1[i1], p2[i2])));
+
+	     ifnot (masked_out)
 	       {
 		  if (num_free <= 2)
 		    () = (@eval_ref) (&fit_info);
@@ -2180,12 +2179,12 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
                               (@fail_ref) (ip1, ip2, @best_pars, try_pars, fit_info);
                          }
 		    }
+                  chisqr[i2, i1] = fit_info.statistic;
 	       }
-
-	     chisqr[i2, i1] = fit_info.statistic;
+             else fit_info = NULL;
 
 	     if (save_ref != NULL)
-	       (@save_ref) (fit_info.statistic);
+	       (@save_ref) (fit_info);
 
              if (print_status)
                {
