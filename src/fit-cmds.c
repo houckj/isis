@@ -2209,7 +2209,7 @@ static int combine_marked_datasets (Fit_Data_t *d, int apply_weights, double *y,
    for (i = 0; i < d->num_datasets; i++)
      {
         Hist_t *h = d->datasets[i];
-        double *yt, *yf;
+        double *yt, *yf, *y_massaged;
         int k, n;
 
         n = Hist_num_data_noticed (h);
@@ -2222,10 +2222,19 @@ static int combine_marked_datasets (Fit_Data_t *d, int apply_weights, double *y,
         yf = y + d->offsets[i];
         yt = yc + d->offset_for_marked[i];
 
+        if (-1 == Hist_call_pre_combine_hook (h, yf, n, &y_massaged))
+          {
+             isis_throw_exception (Isis_Error);
+             return -1;
+          }
+
         for (k = 0; k < n; k++)
           {
-             yt[k] += w * yf[k];
+             yt[k] += w * y_massaged[k];
           }
+
+        if (y_massaged != yf)
+          ISIS_FREE (y_massaged);
      }
 
    return 0;
@@ -3237,8 +3246,14 @@ static int combine_datasets (Fit_Data_t *d, double *y, double *w, int n, /*{{{*/
    if (-1 == combine_marked_datasets (d, 1, tmp, wg))
      return -1;
 
+   /* Note that pre-combine hook may return some zero weights.
+    * If so, don't divide by zero.
+    */
    for (i = 0; i < ng; i++)
-     wg[i] = 1.0/wg[i];
+     {
+        if (wg[i] != 0.0)
+          wg[i] = 1.0/wg[i];
+     }
 
    return 0;
 }

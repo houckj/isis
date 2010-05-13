@@ -1924,6 +1924,25 @@ define set_post_model_hook ()
    array_map (Void_Type, &_isis->_set_post_model_hook, ids, hook);
 }
 
+define set_pre_combine_hook () %{{{
+{
+   _isis->error_if_fit_in_progress (_function_name);
+   variable msg = "set_pre_combine_hook (hist_index[], &hook)";
+   variable id, hook;
+
+   if (_isis->chk_num_args (_NARGS, 2, msg))
+     return;
+
+   (id, hook) = ();
+
+   if (typeof(hook) == String_Type)
+     hook = __get_reference (hook);
+
+   array_map (Void_Type, &_isis->_set_pre_combine_hook, id, hook);
+}
+
+%}}}
+
 define set_define_model_hook ()
 {
    _isis->error_if_fit_in_progress (_function_name);

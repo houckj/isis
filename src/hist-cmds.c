@@ -1839,6 +1839,25 @@ static void set_post_model_hook (void) /*{{{*/
 
 /*}}}*/
 
+static void set_pre_combine_hook (void) /*{{{*/
+{
+   SLang_Name_Type *pre_combine_hook = NULL;
+   int hist_index;
+   Hist_t *h;
+
+   set_hook_from_stack (&pre_combine_hook);
+
+   if (-1 == SLang_pop_integer (&hist_index))
+     return;
+
+   if (NULL == (h = find_hist (hist_index)))
+     return;
+
+   (void) Hist_set_pre_combine_hook (h, pre_combine_hook);
+}
+
+/*}}}*/
+
 static void assign_model_intrin (int *num_extra_args) /*{{{*/
 {
    SLang_Name_Type *fun_ptr = NULL;
@@ -2810,6 +2829,7 @@ static SLang_Intrin_Fun_Type Hist_Intrinsics [] =
    MAKE_INTRINSIC_I("_unset_hist_color", _unset_hist_color, V),
    MAKE_INTRINSIC_2("_set_hist_object_name", _set_hist_object_name, V, I, S),
    MAKE_INTRINSIC("_set_post_model_hook", set_post_model_hook, V, 0),
+   MAKE_INTRINSIC("_set_pre_combine_hook", set_pre_combine_hook, V, 0),
    MAKE_INTRINSIC_I("_assign_model", assign_model_intrin, V),
    MAKE_INTRINSIC_I("_set_dataset_metadata", set_dataset_metadata, V),
    MAKE_INTRINSIC_I("_get_dataset_metadata", get_dataset_metadata, V),

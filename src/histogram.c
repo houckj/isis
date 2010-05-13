@@ -124,6 +124,7 @@ struct _Hist_t
 
    unsigned int combo_id;        /* for combining datasets to improve statistics */
    double combo_weight;
+   SLang_Name_Type *pre_combine;
 
    int exclude;                  /* != 0 means exclude from fit */
    Isis_Rsp_t f_rsp;             /* fit-response (used in fit) */
@@ -354,6 +355,9 @@ static void free_hist (Hist_t *h) /*{{{*/
    ISIS_FREE (h->file);
    ISIS_FREE (h->orig_notice);
    ISIS_FREE (h->quality);
+
+   SLang_free_function (h->pre_combine);
+
    ISIS_FREE (h->instrumental_background_hook_name);
    SLang_free_function (h->instrumental_background_hook);
 
@@ -566,6 +570,8 @@ static Hist_t *Hist_new_hist (int nbins) /*{{{*/
    h->orig_bgd = NULL;
 
    h->flux_weights = NULL;
+
+   h->pre_combine = NULL;
 
    h->post_model_hook = NULL;
    h->post_model_hook_delete = NULL;
@@ -4922,6 +4928,99 @@ int Hist_set_combination (Hist_t *head, unsigned int *members, /*{{{*/
    Next_Combo_Id++;
 
    return gid;
+}
+
+/*}}}*/
+
+int Hist_set_pre_combine_hook (Hist_t *h, SLang_Name_Type *hook) /*{{{*/
+{
+   if (h == NULL)
+     return -1;
+   SLang_free_function (h->pre_combine);
+   h->pre_combine = hook;
+   return 0;
+}
+
+/*}}}*/
+
+int Hist_call_pre_combine_hook (Hist_t *h, double *y, int n, double **y_new) /*{{{*/
+{
+   SLang_Array_Type *sl_y = NULL, *sl_new_y = NULL;
+   double *new_y = NULL;
+   int status = -1;
+
+   *y_new = NULL;
+
+   if (h->pre_combine == NULL)
+     {
+        *y_new = y;
+        return 0;
+     }
+
+   /* When a pre-combine hook is used, the eval_grid_method should
+    * probably be ISIS_EVAL_GRID_SEPARATE, but I don't want to rule
+    * out the possibility that ISIS_EVAL_GRID_USER might work too.
+    * ISIS_EVAL_GRID_MERGED definitely makes no sense, so I'll
+    * warn about that.
+    */
+   if (h->eval_grid_method.type == ISIS_EVAL_GRID_MERGED)
+     {
+        isis_vmesg (FAIL, I_WARNING, __FILE__, __LINE__,
+                    "dataset %d: a pre-combine hook is assigned, but eval_grid_method=MERGED_GRID",
+                    h->index);
+        return -1;
+     }
+
+   if (NULL == (sl_y = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &n, 1)))
+     return -1;
+
+   memcpy ((char *)sl_y->data, (char *)y, n * sizeof(double));
+
+   SLang_start_arg_list ();
+   SLang_push_integer (h->index);
+   SLang_push_array (sl_y, 1);
+   SLang_end_arg_list ();
+
+   if (-1 == SLexecute_function (h->pre_combine))
+     {
+        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__,
+                    "executing pre_combine hook (dataset id = %d)", h->index);
+        goto return_error;
+     }
+
+   if (SLANG_NULL_TYPE == SLang_peek_at_stack ())
+     {
+        SLdo_pop ();
+        goto return_error;
+     }
+
+   if ((-1 == SLang_pop_array_of_type (&sl_new_y, SLANG_DOUBLE_TYPE))
+       || (sl_new_y == NULL))
+     {
+        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__,
+                    "in pre_combine hook (dataset id = %d)", h->index);
+        goto return_error;
+     }
+
+   if ((int) sl_new_y->num_elements != n)
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                    "pre_combine hook (dataset id = %d) returned wrong length array (was %d should be %d)",
+                    h->index, sl_new_y->num_elements, n);
+        goto return_error;
+     }
+
+   if (NULL == (new_y = ISIS_MALLOC (n * sizeof(*new_y))))
+     goto return_error;
+
+   memcpy ((char *)new_y, (char *)sl_new_y->data, n * sizeof(double));
+   *y_new = new_y;
+   status = 0;
+
+return_error:
+   SLang_free_array (sl_new_y);
+   if (status) ISIS_FREE (new_y);
+   return status;
 }
 
 /*}}}*/
