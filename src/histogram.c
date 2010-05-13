@@ -355,6 +355,7 @@ static void free_hist (Hist_t *h) /*{{{*/
    ISIS_FREE (h->orig_notice);
    ISIS_FREE (h->quality);
    ISIS_FREE (h->instrumental_background_hook_name);
+   SLang_free_function (h->instrumental_background_hook);
 
    SLang_free_function (h->assigned_model);
    isis_free_args (h->assigned_model_args);
