@@ -765,3 +765,24 @@ define set_slangfun_param_hard_limits (fun_name, par_name, index, hard_min, hard
 }
 
 %}}}
+
+% Support tracking a list of combined datasets and their models
+private variable store_data, store_models;
+define set_combined_store_data_ref (ref)
+{
+   store_data = ref;
+}
+define set_combined_store_models_ref (ref)
+{
+   store_models = ref;
+}
+define store_combined_data ()
+{
+   variable a = __pop_args(_NARGS);
+   (@store_data)(__push_args(a));
+}
+define store_combined_models ()
+{
+   variable a = __pop_args(_NARGS);
+   (@store_models)(__push_args(a));
+}

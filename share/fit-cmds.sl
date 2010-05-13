@@ -3121,6 +3121,120 @@ define get_combined (gid, get_func) %{{{
 
 %}}}
 
+% support storing most recent combined data/model
+private variable Combined_Datasets;
+
+private define combination_struct (combo_id, indices, data, weights)
+{
+   variable s = struct
+     {
+        combo_id = combo_id,
+        indices = indices,
+        data = data,
+        err = sqrt(1./weights),
+        model
+     };
+   return s;
+}
+
+private define find_combo (gid) %{{{
+{
+   ifnot (__is_initialized (&Combined_Datasets))
+     return NULL;
+
+   variable x;
+   foreach x (Combined_Datasets)
+     {
+        if (x.combo_id == gid)
+          return x;
+     }
+
+   return NULL;
+}
+
+%}}}
+
+private define store_combined_data (combo_ids, offsets, nbins, data, weights) %{{{
+{
+   variable uniq_indices = unique(combo_ids),
+     n = length(uniq_indices);
+
+   variable j, lst = {};
+   _for j (0, n-1, 1)
+     {
+        variable i = uniq_indices[j];
+        variable k = offsets[i] + [0:nbins[i]-1];
+        variable s = combination_struct (combo_ids[i], k, data[k], weights[k]);
+        list_append (lst, s);
+     }
+
+   Combined_Datasets = lst;
+}
+
+%}}}
+
+private define store_combined_models (combo_ids, models) %{{{
+{
+   variable uniq_indices = unique(combo_ids),
+     n = length(uniq_indices);
+
+   variable j;
+   _for j (0, n-1, 1)
+     {
+        variable i = uniq_indices[j];
+        variable s = find_combo (combo_ids[i]);
+        s.model = models[s.indices];
+     }
+}
+
+%}}}
+
+_isis->set_combined_store_data_ref (&store_combined_data);
+_isis->set_combined_store_models_ref (&store_combined_models);
+
+private define get_combo_result (gid) %{{{
+{
+   ifnot (__is_initialized (&Combined_Datasets))
+     return NULL;
+
+   if (gid == NULL)
+     {
+        return Combined_Datasets;
+     }
+
+   variable g, a = Struct_Type[0];
+   foreach g (gid)
+     {
+        variable x = find_combo(g);
+        if (x == NULL)
+          continue;
+        a = [a, x];
+     }
+
+   return length(a) ? a : NULL;
+}
+
+%}}}
+
+define get_combined2 () %{{{
+{
+   variable msg = "get_combined2 (gid_list)";
+   variable gid;
+
+   if (_NARGS == 0)
+     gid = NULL;
+   else if (_NARGS == 1)
+     gid = ();
+   else
+     {
+        gid = __pop_args (_NARGS);
+        gid = [__push_args (gid)];
+     }
+
+   get_combo_result (gid);
+}
+%}}}
+
 define rebin_combined () %{{{
 {
    _isis->error_if_fit_in_progress (_function_name);

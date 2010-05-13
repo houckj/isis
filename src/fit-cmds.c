@@ -2233,11 +2233,93 @@ static int combine_marked_datasets (Fit_Data_t *d, int apply_weights, double *y,
 
 /*}}}*/
 
+static int store_combined_data (Fit_Data_t *d, double *data, double *weight)
+{
+   SLang_Array_Type *sl_data=NULL, *sl_weight=NULL, *sl_combo_ids=NULL;
+   SLang_Array_Type *sl_offsets=NULL, *sl_lengths=NULL;
+   int i, n = d->nbins_after_datasets_combined;
+
+   if ((NULL == (sl_data = SLang_create_array (SLANG_DOUBLE_TYPE, 1, NULL, &n, 1)))
+       ||(NULL == (sl_weight = SLang_create_array (SLANG_DOUBLE_TYPE, 1, NULL, &n, 1)))
+       ||(NULL == (sl_combo_ids = SLang_create_array (SLANG_INT_TYPE, 1, NULL, &d->num_datasets, 1)))
+       ||(NULL == (sl_offsets = SLang_create_array (SLANG_INT_TYPE, 1, NULL, &d->num_datasets, 1)))
+       ||(NULL == (sl_lengths = SLang_create_array (SLANG_INT_TYPE, 1, NULL, &d->num_datasets, 1)))
+      )
+     {
+        SLang_free_array (sl_data);
+        SLang_free_array (sl_weight);
+        SLang_free_array (sl_combo_ids);
+        SLang_free_array (sl_offsets);
+        SLang_free_array (sl_lengths);
+        return -1;
+     }
+
+   memcpy ((char *)sl_data->data, (char *)data, n * sizeof(double));
+   memcpy ((char *)sl_weight->data, (char *)weight, n * sizeof(double));
+
+   for (i = 0; i < d->num_datasets; i++)
+     {
+        Hist_t *h = d->datasets[i];
+        int combo_id = Hist_combination_id (h);
+        int offset = d->offset_for_marked[i];
+        int nbins = Hist_num_data_noticed (h);
+        SLang_set_array_element (sl_combo_ids, &i, &combo_id);
+        SLang_set_array_element (sl_offsets, &i, &offset);
+        SLang_set_array_element (sl_lengths, &i, &nbins);
+     }
+
+   SLang_start_arg_list ();
+   SLang_push_array (sl_combo_ids, 1);
+   SLang_push_array (sl_offsets, 1);
+   SLang_push_array (sl_lengths, 1);
+   SLang_push_array (sl_data, 1);
+   SLang_push_array (sl_weight, 1);
+   SLang_end_arg_list ();
+
+   SLang_execute_function ("_isis->store_combined_data");
+
+   return 0;
+}
+
+static int store_combined_models (Fit_Data_t *d, double *models)
+{
+   SLang_Array_Type *sl_models=NULL, *sl_combo_ids=NULL;
+   int i, n = d->nbins_after_datasets_combined;
+
+   if ((NULL == (sl_models = SLang_create_array (SLANG_DOUBLE_TYPE, 1, NULL, &n, 1))
+        ||(NULL == (sl_combo_ids = SLang_create_array (SLANG_INT_TYPE, 1, NULL, &d->num_datasets, 1))))
+       )
+     {
+        SLang_free_array (sl_models);
+        SLang_free_array (sl_combo_ids);
+        return -1;
+     }
+
+   for (i = 0; i < d->num_datasets; i++)
+     {
+        Hist_t *h = d->datasets[i];
+        int combo_id = Hist_combination_id (h);
+        SLang_set_array_element (sl_combo_ids, &i, &combo_id);
+     }
+
+   memcpy ((char *)sl_models->data, (char *)models, n * sizeof(double));
+
+   SLang_start_arg_list ();
+   SLang_push_array (sl_combo_ids, 1);
+   SLang_push_array (sl_models, 1);
+   SLang_end_arg_list ();
+
+   SLang_execute_function ("_isis->store_combined_models");
+
+   return 0;
+}
+
 static int _fitfun (void *cl, double *x,  unsigned int nbins, /*{{{*/
                     double *par, unsigned int npars, double *model)
 {
    Fit_Data_t *d = Current_Fit_Data_Info;
    int no_combined_datasets, num_pars = npars;
+   int status = -1;
    (void) x; (void) cl; (void) nbins;
 
    if (d == NULL)
@@ -2254,7 +2336,11 @@ static int _fitfun (void *cl, double *x,  unsigned int nbins, /*{{{*/
    if (-1 == compute_model (d->tmp, par, num_pars))
      return -1;
 
-   return combine_marked_datasets (d, 0, d->tmp, model);
+   status = combine_marked_datasets (d, 0, d->tmp, model);
+
+   (void) store_combined_models (d, model);
+
+   return status;
 }
 
 /*}}}*/
@@ -3198,7 +3284,9 @@ static Fit_Object_Data_Type *setup_fit_object_data (Fit_Data_t *d) /*{{{*/
         if ((NULL == (dt->data = (double *) ISIS_MALLOC (dt->num * sizeof(double))))
             || (NULL == (dt->weight = (double *) ISIS_MALLOC (dt->num * sizeof(double))))
             || (-1 == combine_datasets (d, d->data, d->weight, d->nbins,
-                                        dt->data, dt->weight)))
+                                        dt->data, dt->weight))
+            || (-1 == store_combined_data (d, dt->data, dt->weight))
+           )
           {
              free_fit_object_data (dt);
              ISIS_FREE(dt);
