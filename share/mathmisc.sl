@@ -299,7 +299,7 @@ define fft1d () %{{{
 	usage(msg);
 	return;
      }
-   
+
    variable num_re_dims, num_im_dims;
    (,num_re_dims,) = array_info (re);
    (,num_im_dims,) = array_info (im);
@@ -307,7 +307,7 @@ define fft1d () %{{{
      {
         message ("*** Warning:  fft supports 1-D arrays only");
         return;
-     }   
+     }
 
    re_cpy = @re;
    im_cpy = @im;
