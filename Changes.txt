@@ -4,6 +4,10 @@ Changes since 1.6.0 (released Apr 2010)
  2.  Fixed NULL dereference bug (copy_covariance_matrix)
  3.  array_fit: internally, force 'pars' to be an array and don't
      overwrite it on return.
+ 4.  A list of summed spectra and models associated with combine_datasets
+     is now stored internally.  See get_combined2.
+ 5.  Provided a means to modify data and model spectra immediately
+     before they are summed by combine_datasets. See set_pre_combine_hook.
 
 Changes since 1.5.0 (released Aug 2009)
 ---------------------------------------
