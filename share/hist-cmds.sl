@@ -1592,6 +1592,15 @@ define define_flux () %{{{
 
 %}}}
 
+define get_back_fun ()
+{
+   variable msg = "String_Type = get_back_fun (hist_index)";
+   if (_isis->chk_num_args (_NARGS, 1, msg))
+     return;
+   variable id = ();
+   return _isis->_get_instrumental_background_hook_name(id);
+}
+
 define back_fun () %{{{
 {
    _isis->error_if_fit_in_progress (_function_name);
