@@ -3674,7 +3674,7 @@ corresponding identity response (e.g. ARF=1 or RMF=1).
 {combination\_members} %name
 {Get a list of combined datasets} %purpose
 {list = combination\_members (gid)} %usage
-{combine\_datasets, match\_dataset\_grids, uncombine\_datasets, get\_combined, rebin\_combined}
+{combine\_datasets, match\_dataset\_grids, uncombine\_datasets, get\_combined, get\_combined2, rebin\_combined, set\_pre\_combine\_hook}
 
 \end{isisfunction}
 
@@ -3682,7 +3682,7 @@ corresponding identity response (e.g. ARF=1 or RMF=1).
 {combine\_datasets} %name
 {Combine several datasets to improve the fit-statistics} %purpose
 {gid = combine\_datasets (list [, weights])} %usage
-{combination\_members, match\_dataset\_grids, uncombine\_datasets, get\_combined, set\_eval\_grid\_method, rebin\_combined}
+{combination\_members, match\_dataset\_grids, uncombine\_datasets, get\_combined, get\_combined2, set\_eval\_grid\_method, rebin\_combined, set\_pre\_combine\_hook}
 \index{Combining datasets}
 \index{Coupled sources}
 
@@ -4245,7 +4245,7 @@ isis> print(s);
 {get\_combined}
 {Retrieve the combined dataset or corresponding model}
 {Struct\_Type = get\_combined (gid, \&get\_function)}
-{combination\_members, combine\_datasets, uncombine\_datasets, match\_dataset\_grids, rebin\_combined}
+{get\_combined2, combination\_members, combine\_datasets, uncombine\_datasets, match\_dataset\_grids, rebin\_combined, set\_pre\_combine\_hook}
 
 Use this function to obtain the specified dataset combination
 or the corresponding model combination.  The return value is
@@ -4319,6 +4319,27 @@ mean_flux = get_combined (g, &exposure_weighted_model_flux);
 
 In this example, it is assumed that the global variable
 \verb|Total_Exposure_Time| has been previously computed.
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{get\_combined2}
+{Retrieve the combined dataset or corresponding model}
+{Struct\_Type[] = get\_combined2 (gid[])}
+{get\_combined, combination\_members, combine\_datasets, uncombine\_datasets, match\_dataset\_grids, rebin\_combined, set\_pre\_combine\_hook}
+
+Use this function to retrieve dataset combination(s) from the internal
+table. If the list of combination ids is \verb|NULL|, then the entire list
+is returned.  The return value is a structure or an array of structures
+with struct fields:
+\begin{verbatim}
+   __Field__     __Meaning__
+   combo_id     combination id number
+   model        summed model spectrum
+   data         summed data spectrum
+   err          uncertainty on summed data values
+   indices      <internal use only>
+\end{verbatim}
 
 \end{isisfunction}
 
@@ -5290,7 +5311,7 @@ compliance, but will be ignored if \verb|Rmf_OGIP_Compliance=0|.
 {match\_dataset\_grids} %name
 {Put a list of datasets onto the same grid} %purpose
 {match\_dataset\_grids (list[])} %usage
-{combination\_members, combine\_datasets, uncombine\_datasets, get\_combined, rebin\_combined}
+{combination\_members, combine\_datasets, uncombine\_datasets, get\_combined, get\_combined2, rebin\_combined, set\_pre\_combine\_hook}
 
 This function uses \verb|rebin_dataset| to put all the listed
 datasets onto the original (ungrouped) grid from the first dataset
@@ -6300,6 +6321,89 @@ of the hook-function provided by \verb|set_post_model_hook|.
 \end{isisfunction}
 
 \begin{isisfunction}
+{set\_pre\_combine\_hook} %name
+{Modify the data and computed model spectra before computing spectral sums} %purpose
+{set\_pre\_combine\_hook (id[], \&func)} %usage
+{combine\_datasets, set\_eval\_grid\_method}
+
+A pre-combine hook is a function that is called on behalf of a particular
+dataset immediately before that dataset (or its associated model) is added to
+one of the spectral sums accumulated by \verb|combine_datasets|. Each dataset
+may be assigned a pre-combine hook. A pre-combine hook has the form:
+\begin{verbatim}
+  define pre_combine_hook (id, y)
+  {
+     % compute new_y
+     return new_y;
+  }
+\end{verbatim}
+where \verb|id| is a dataset index and \verb|y| and \verb|new_y| are
+\verb|Double_Type| arrays of the same length.  To assign a pre-combine hook to
+one or more datasets, do:
+\begin{verbatim}
+   set_pre_combine_hook (id, &pre_combine_hook);
+\end{verbatim}
+where \verb|id| is an integer dataset index or an array of indices.
+To disable the pre-combine hook, do:
+\begin{verbatim}
+   set_pre_combine_hook (id, NULL);
+\end{verbatim}
+
+For consistency when using a pre-combine hook, it is necessary for isis to
+separately evaluate the spectral model for each associated dataset instead of
+using the \verb|MERGED_GRID| method which is the default for
+\verb|combine_datasets|. For this reason, it is an error to assign a
+pre-combine hook to a dataset without also specifying an evaluation method
+different from \verb|MERGED_GRID|.  The most common evaluation method choice
+is likely to be \verb|SEPARATE_GRID|:
+\begin{verbatim}
+  gid = combine_datasets (id);
+  set_pre_combine_hook (id, &pre_combine_hook);
+  set_eval_grid_method (SEPARATE_GRID, id);
+\end{verbatim}
+For details on different evaluation grid methods, see
+\verb|set_eval_grid_method|.
+
+As an example application of \verb|set_pre_combine_hook|, consider a set of
+observed spectra in which each spectrum has a different Doppler shift, but
+you'd like to shift all the spectra into the rest frame before combining. In
+general, because the responses aren't easily shifted, you can't easily shift
+the data spectra before performing the fit.  Assuming that the
+dataset-specific redshift is available using \verb|get_dataset_metadata|, the
+necessary Doppler shift can be applied with the following pre-combine hook:
+\begin{verbatim}
+define shift_to_emitter_frame (y, lo, hi, z)
+{
+   variable
+     new_lo = lo / (1.0 + z),
+     new_hi = hi / (1.0 + z);
+
+   return rebin (new_lo, new_hi, lo, hi, y);
+}
+
+define pre_combine_hook (i, y)
+{
+   variable
+     z = get_dataset_metadata (i),  % redshift
+     x = get_data_info (i),
+     d = get_data_counts (i);
+
+   variable
+     lo = d.bin_lo[x.notice_list],
+     hi = d.bin_hi[x.notice_list];
+
+   return shift_to_emitter_frame (y, lo, hi, -z);
+}
+
+...
+gid = combine_datasets (ids);
+set_eval_grid_method (SEPARATE_GRID, ids);
+set_pre_combine_hook (ids, &pre_combine_hook);
+\end{verbatim}
+
+\end{isisfunction}
+
+\begin{isisfunction}
 {set\_rebin\_error\_hook}
 {Change the way rebinning propagates uncertainties}
 {set\_rebin\_error\_hook (hist\_index, \&hook)}
@@ -6378,7 +6482,7 @@ Example:
 {uncombine\_datasets} %name
 {Turn off dataset combination} %purpose
 {uncombine\_datasets (gid[])} %usage
-{combine\_datasets, match\_dataset\_grids, combination\_members, get\_combined, rebin\_combined}
+{combine\_datasets, match\_dataset\_grids, combination\_members, get\_combined, get\_combined2, rebin\_combined, set\_pre\_combine\_hook}
 
 \end{isisfunction}
 

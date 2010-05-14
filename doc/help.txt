@@ -1520,7 +1520,7 @@ combination_members
 
 
  SEE ALSO
-    combine_datasets, match_dataset_grids, uncombine_datasets, get_combined, rebin_combined
+    combine_datasets, match_dataset_grids, uncombine_datasets, get_combined, get_combined2, rebin_combined, set_pre_combine_hook
 
 ------------------------------------------------------------------------
 combine_datasets
@@ -1646,7 +1646,7 @@ combine_datasets
 
 
  SEE ALSO
-    combination_members, match_dataset_grids, uncombine_datasets, get_combined, set_eval_grid_method, rebin_combined
+    combination_members, match_dataset_grids, uncombine_datasets, get_combined, get_combined2, set_eval_grid_method, rebin_combined, set_pre_combine_hook
 
 ------------------------------------------------------------------------
 copy_data_keywords
@@ -2257,7 +2257,34 @@ get_combined
 
 
  SEE ALSO
-    combination_members, combine_datasets, uncombine_datasets, match_dataset_grids, rebin_combined
+    get_combined2, combination_members, combine_datasets, uncombine_datasets, match_dataset_grids, rebin_combined, set_pre_combine_hook
+
+------------------------------------------------------------------------
+get_combined2
+
+ SYNOPSIS
+    Retrieve the combined dataset or corresponding model
+
+ USAGE
+    Struct_Type[] = get_combined2 (gid[])
+
+ DESCRIPTION
+    Use this function to retrieve dataset combination(s) from the
+    internal table. If the list of combination ids is NULL, then
+    the entire list is returned.  The return value is a structure
+    or an array of structures with struct fields:
+
+       __Field__     __Meaning__
+       combo_id     combination id number
+       model        summed model spectrum
+       data         summed data spectrum
+       err          uncertainty on summed data values
+       indices      <internal use only>
+
+
+
+ SEE ALSO
+    get_combined, combination_members, combine_datasets, uncombine_datasets, match_dataset_grids, rebin_combined, set_pre_combine_hook
 
 ------------------------------------------------------------------------
 get_convolved_model_flux
@@ -3375,7 +3402,7 @@ match_dataset_grids
     datasets to improve statistics -- see combine_datasets.
 
  SEE ALSO
-    combination_members, combine_datasets, uncombine_datasets, get_combined, rebin_combined
+    combination_members, combine_datasets, uncombine_datasets, get_combined, get_combined2, rebin_combined, set_pre_combine_hook
 
 ------------------------------------------------------------------------
 plot_data
@@ -4545,6 +4572,98 @@ set_post_model_hook
     fit_fun, fit_counts
 
 ------------------------------------------------------------------------
+set_pre_combine_hook
+
+ SYNOPSIS
+    Modify the data and computed model spectra before computing spectral sums
+
+ USAGE
+    set_pre_combine_hook (id[], &func)
+
+ DESCRIPTION
+    A pre-combine hook is a function that is called on behalf of a
+    particular dataset immediately before that dataset (or its
+    associated model) is added to one of the spectral sums
+    accumulated by combine_datasets. Each dataset may be assigned a
+    pre-combine hook. A pre-combine hook has the form:
+
+      define pre_combine_hook (id, y)
+      {
+         % compute new_y
+         return new_y;
+      }
+
+    where id is a dataset index and y and new_y are Double_Type
+    arrays of the same length.  To assign a pre-combine hook to one
+    or more datasets, do:
+
+       set_pre_combine_hook (id, &pre_combine_hook);
+
+    where id is an integer dataset index or an array of indices. To
+    disable the pre-combine hook, do:
+
+       set_pre_combine_hook (id, NULL);
+
+    For consistency when using a pre-combine hook, it is necessary
+    for isis to separately evaluate the spectral model for each
+    associated dataset instead of using the MERGED_GRID method
+    which is the default for combine_datasets. For this reason, it
+    is an error to assign a pre-combine hook to a dataset without
+    also specifying an evaluation method different from
+    MERGED_GRID.  The most common evaluation method choice is
+    likely to be SEPARATE_GRID:
+
+      gid = combine_datasets (id);
+      set_pre_combine_hook (id, &pre_combine_hook);
+      set_eval_grid_method (SEPARATE_GRID, id);
+
+    For details on different evaluation grid methods, see
+    set_eval_grid_method.
+
+    As an example application of set_pre_combine_hook, consider a
+    set of observed spectra in which each spectrum has a different
+    Doppler shift, but you'd like to shift all the spectra into the
+    rest frame before combining. In general, because the responses
+    aren't easily shifted, you can't easily shift the data spectra
+    before performing the fit.  Assuming that the dataset-specific
+    redshift is available using get_dataset_metadata, the necessary
+    Doppler shift can be applied with the following pre-combine
+    hook:
+
+    define shift_to_emitter_frame (y, lo, hi, z)
+    {
+       variable
+         new_lo = lo / (1.0 + z),
+         new_hi = hi / (1.0 + z);
+
+       return rebin (new_lo, new_hi, lo, hi, y);
+    }
+
+    define pre_combine_hook (i, y)
+    {
+       variable
+         z = get_dataset_metadata (i),  % redshift
+         x = get_data_info (i),
+         d = get_data_counts (i);
+
+       variable
+         lo = d.bin_lo[x.notice_list],
+         hi = d.bin_hi[x.notice_list];
+
+       return shift_to_emitter_frame (y, lo, hi, -z);
+    }
+
+    ...
+    gid = combine_datasets (ids);
+    set_eval_grid_method (SEPARATE_GRID, ids);
+    set_pre_combine_hook (ids, &pre_combine_hook);
+
+
+
+ SEE ALSO
+    combine_datasets, set_eval_grid_method
+
+------------------------------------------------------------------------
 set_rebin_error_hook
 
  SYNOPSIS
@@ -4646,7 +4765,7 @@ uncombine_datasets
 
 
  SEE ALSO
-    combine_datasets, match_dataset_grids, combination_members, get_combined, rebin_combined
+    combine_datasets, match_dataset_grids, combination_members, get_combined, get_combined2, rebin_combined, set_pre_combine_hook
 
 ------------------------------------------------------------------------
 unset_data_color
