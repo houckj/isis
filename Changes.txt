@@ -8,6 +8,9 @@ Changes since 1.6.0 (released Apr 2010)
      is now stored internally.  See get_combined2.
  5.  Provided a means to modify data and model spectra immediately
      before they are summed by combine_datasets. See set_pre_combine_hook.
+ 6.  set_sys_err_frac now accepts a scalar value
+ 7.  Error bars in histogram plots now include systematic error
+     added in quadrature.
 
 Changes since 1.5.0 (released Aug 2009)
 ---------------------------------------
