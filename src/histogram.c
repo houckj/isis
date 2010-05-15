@@ -1999,7 +1999,7 @@ int Hist_define_sys_err_frac (Hist_t *h, double *sys_err_frac, int nbins) /*{{{*
         return -1;
      }
 
-   if (nbins != h->orig_nbins)
+   if ((nbins != h->orig_nbins) && (nbins != 1))
      {
         isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "size mismatch: data has %d bins",
                     h->orig_nbins);
@@ -2008,14 +2008,16 @@ int Hist_define_sys_err_frac (Hist_t *h, double *sys_err_frac, int nbins) /*{{{*
 
    if (h->sys_err_frac == NULL)
      {
-        if (-1 == alloc_sys_err (h, nbins))
+        if (-1 == alloc_sys_err (h, h->orig_nbins))
           return -1;
      }
 
+   /* nbins = 1 or h->orig_nbins */
    if (-1 == assign_sys_err (h, sys_err_frac, nbins))
      return -1;
 
-   memcpy ((char *)h->orig_sys_err_frac, (char *)h->sys_err_frac, nbins * sizeof(double));
+   memcpy ((char *)h->orig_sys_err_frac, (char *)h->sys_err_frac,
+           h->orig_nbins * sizeof(double));
 
    return 0;
 }
