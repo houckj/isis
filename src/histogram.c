@@ -877,6 +877,7 @@ static int get_hist_version (Hist_t *h, unsigned int version, Isis_Hist_t *x) /*
    x->notice = h->notice;
    x->notice_list = h->notice_list;
    x->n_notice = h->n_notice;
+   x->sys_err_frac = h->sys_err_frac;
 
    if (is_data(version))
      {
@@ -3678,12 +3679,12 @@ int Hist_copy_noticed_data (Hist_t *h, unsigned int version, double *val, double
      }
 
    /* Include xspec-style systematic error */
-   if (h->sys_err_frac != NULL)
+   if (hist.sys_err_frac != NULL)
      {
         for (i=0; i < hist.n_notice; i++)
           {
              int k = hist.notice_list[i];
-             val_err[i] = isis_hypot (val_err[i], h->sys_err_frac[k] * hist.val[k]);
+             val_err[i] = isis_hypot (val_err[i], hist.sys_err_frac[k] * hist.val[k]);
           }
      }
 
@@ -5152,6 +5153,7 @@ static void free_plot_copy (Isis_Hist_t *cpy) /*{{{*/
    ISIS_FREE (cpy->notice);
    ISIS_FREE (cpy->bin_lo);
    ISIS_FREE (cpy->bin_hi);
+   ISIS_FREE (cpy->sys_err_frac);
 }
 
 /*}}}*/
@@ -5167,7 +5169,9 @@ static int make_plot_copy (Isis_Hist_t *src, Isis_Hist_t *dest) /*{{{*/
        || NULL == (dest->bin_lo = (double *) ISIS_MALLOC (src->nbins * sizeof(double)))
        || NULL == (dest->bin_hi = (double *) ISIS_MALLOC (src->nbins * sizeof(double)))
        || NULL == (dest->val_err = (double *) ISIS_MALLOC (src->nbins * sizeof(double)))
-       || ((src->notice != NULL) && (NULL == (dest->notice = (int *) ISIS_MALLOC (src->nbins * sizeof(int))))))
+       || ((src->sys_err_frac != NULL) && (NULL == (dest->sys_err_frac = (double *) ISIS_MALLOC (src->nbins * sizeof(double)))))
+       || ((src->notice != NULL) && (NULL == (dest->notice = (int *) ISIS_MALLOC (src->nbins * sizeof(int)))))
+      )
      {
         free_plot_copy (dest);
         return -1;
@@ -5184,6 +5188,9 @@ static int make_plot_copy (Isis_Hist_t *src, Isis_Hist_t *dest) /*{{{*/
      memcpy ((char *) dest->val_err, (char *) src->val_err, d_size);
    else
      memset ((char *) dest->val_err, 0, d_size);
+
+   if (src->sys_err_frac != NULL)
+     memcpy ((char *) dest->sys_err_frac, (char *) src->sys_err_frac, d_size);
 
    if (src->notice != NULL)
      memcpy ((char *) dest->notice, (char *) src->notice, i_size);
@@ -5273,7 +5280,8 @@ static int compute_plot_residuals (Hist_t *h, unsigned int version, /*{{{*/
    Isis_Hist_t other;
    unsigned int i, n;
    double t, statistic;
-   double *wt;
+   double *wt, *total_err;
+   int status = -1;
 
    if (is_model(version))
      {
@@ -5296,22 +5304,35 @@ static int compute_plot_residuals (Hist_t *h, unsigned int version, /*{{{*/
 
    n = cpy->nbins;
 
+   if (d->sys_err_frac == NULL)
+     total_err = d->val_err;
+   else
+     {
+        if (NULL == (total_err = (double *)ISIS_MALLOC (n * sizeof(double))))
+          return -1;
+        for (i = 0; i < n; i++)
+          {
+             total_err[i] = isis_hypot (d->val_err[i],
+                                        d->sys_err_frac[i] * d->val[i]);
+          }
+     }
+
    switch (info->residuals)
      {
       default:
         if (s == NULL)
-          return -1;
+          goto return_error;
         *label = s->symbol;
         /* use cpy->val_err as temporary work space for weights */
         wt = cpy->val_err;
         for (i = 0; i < n; i++)
           {
              /* val_err != 0 guaranteed elsewhere */
-             double dv = d->val_err[i];
+             double dv = total_err[i];
              wt[i] = 1.0/(dv*dv);
           }
         if (-1 == s->compute_statistic (s, d->val, m->val, wt, n, cpy->val, &statistic))
-          return -1;
+          goto return_error;
         for (i = 0; i < n; i++)
           cpy->val_err[i] = 1.0;
         break;
@@ -5326,7 +5347,7 @@ static int compute_plot_residuals (Hist_t *h, unsigned int version, /*{{{*/
         for (i = 0; i < n; i++)
           {
              cpy->val[i] = (d->val[i] - m->val[i]) / t;
-             cpy->val_err[i] = d->val_err[i] / t;
+             cpy->val_err[i] = total_err[i] / t;
           }
         break;
 
@@ -5342,13 +5363,19 @@ static int compute_plot_residuals (Hist_t *h, unsigned int version, /*{{{*/
              else
                {
                   cpy->val[i] = d->val[i] / m->val[i];
-                  cpy->val_err[i] = d->val_err[i] / m->val[i];
+                  cpy->val_err[i] = total_err[i] / m->val[i];
                }
           }
         break;
      }
 
-   return 0;
+   status = 0;
+return_error:
+
+   if (total_err != d->val_err)
+     ISIS_FREE(total_err);
+
+   return status;
 }
 
 /*}}}*/
@@ -5373,13 +5400,10 @@ static void plot_reference_line (double ref) /*{{{*/
 int Hist_plot (Hist_t *h, unsigned int version, Hist_Plot_Tune_Type *info, /*{{{*/
                Plot_t *fmt, Isis_Fit_Statistic_Type *s)
 {
-   int x_unit, eb_save, ylog_save, bd_save, malloced;
+   int x_unit, eb_save, ylog_save, bd_save;
    Isis_Hist_t hist, cpy;
-   Isis_Hist_t *plt;
    int ret = -1;
    char *label = NULL;
-
-   malloced = 0;
 
    if (NULL == fmt)
      return -1;
@@ -5401,24 +5425,15 @@ int Hist_plot (Hist_t *h, unsigned int version, Hist_Plot_Tune_Type *info, /*{{{
 
    x_unit = Plot_x_unit (fmt);
 
-   if ((x_unit != U_ANGSTROM)
-       || (info->residuals != 0)
-       || (info->rate != 0))
-     {
-        memset ((char *)&cpy, 0, sizeof(cpy));
-        if (-1 == make_plot_copy (&hist, &cpy))
-          return -1;
-        malloced = 1;
-     }
-
-   plt = NULL;
+   memset ((char *)&cpy, 0, sizeof(cpy));
+   if (-1 == make_plot_copy (&hist, &cpy))
+     return -1;
 
    /* The order of these transformations matters! */
    if (info->residuals != 0)
      {
         if (-1 == compute_plot_residuals (h, version, info, s, &cpy, &label))
           goto finish;
-        plt = &cpy;
      }
    else if (info->rate != 0)
      {
@@ -5430,18 +5445,23 @@ int Hist_plot (Hist_t *h, unsigned int version, Hist_Plot_Tune_Type *info, /*{{{
              if (-1 == compute_rate (t, &cpy))
                goto finish;
           }
-        plt = &cpy;
+     }
+
+   if ((cpy.sys_err_frac != NULL) && (info->residuals == 0))
+     {
+        int i;
+        for (i = 0; i < cpy.nbins; i++)
+          {
+             cpy.val_err[i] = isis_hypot (cpy.val_err[i],
+                                          cpy.sys_err_frac[i] * cpy.val[i]);
+          }
      }
 
    if (x_unit != U_ANGSTROM)
      {
         if (-1 == convert_from_angstrom (x_unit, &cpy))
           goto finish;
-        plt = &cpy;
      }
-
-   if (plt == NULL)
-     plt = &hist;
 
    if (info->default_labels)
      {
@@ -5473,7 +5493,7 @@ int Hist_plot (Hist_t *h, unsigned int version, Hist_Plot_Tune_Type *info, /*{{{
    if (info->use_style == NULL)
      info->use_style = h->color;
 
-   ret = Plot_hist (fmt, info->use_style, info->overlay, plt);
+   ret = Plot_hist (fmt, info->use_style, info->overlay, &cpy);
 
    /* plot a horizontal reference line for residuals */
    switch (info->residuals)
@@ -5501,8 +5521,7 @@ int Hist_plot (Hist_t *h, unsigned int version, Hist_Plot_Tune_Type *info, /*{{{
    if (info->default_labels)
      (void) Plot_set_labels (fmt, "", "", NULL);
 
-   if (malloced != 0)
-     free_plot_copy (&cpy);
+   free_plot_copy (&cpy);
 
    return ret;
 }

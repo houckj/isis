@@ -214,12 +214,13 @@ typedef struct
 {
    double *val, *val_err;
    double *bin_lo, *bin_hi;
+   double *sys_err_frac;
    int nbins;
    int *notice, *notice_list;
    int n_notice;
 }
 Isis_Hist_t;
-#define ISIS_HIST_INIT {NULL,NULL,NULL,NULL,0,NULL,NULL,0}
+#define ISIS_HIST_INIT {NULL,NULL,NULL,NULL,NULL,0,NULL,NULL,0}
 
 extern int Isis_Hist_allocate (unsigned int n, Isis_Hist_t *x);
 extern void Isis_Hist_free (Isis_Hist_t *x);
