@@ -1543,7 +1543,10 @@ int Fit_set_hard_limits (char *fun_name, char *par_name, double *hard_min, doubl
      return -1;
 
    if (NULL == (ff = find_function (Fit_Fun, fun_name)))
-     return -1;
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "function '%s' does not exist", fun_name);
+        return -1;
+     }
 
    for (i = 0; i < ff->nparams; i++)
      {
