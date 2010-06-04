@@ -504,7 +504,7 @@ define load_xspec_local_models () %{{{
      return;
 
    Model_File = lib_path;
-   vmessage ("loading %s", Model_File);
+   vmessage ("Loading %s", Model_File);
 
    variable dir = path_dirname (lib_path);
    variable buf = load_buf (path_concat (dir, "lmodel.dat"), dir);
@@ -574,7 +574,7 @@ private define load_lmodels_from_dir (dir, file) %{{{
         vmessage ("*** xspec: Did not find a shared library in directory %s", dir);
         return NULL;
      }
-   vmessage ("loading %s", Model_File);
+   vmessage ("Loading %s", Model_File);
 
    return load_shared_model_table (load_buf(Model_Dat, dir));
 }

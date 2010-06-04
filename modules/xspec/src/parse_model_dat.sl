@@ -77,6 +77,12 @@ define load_buf (model_dat, model_srcdir) %{{{
 {
    set_model_srcdir (model_srcdir);
 
+#ifnexists Isis_Load_File_Verbose_Mask
+   variable Isis_Load_File_Verbose_Mask = 1;
+#endif
+   if (Isis_Load_File_Verbose_Mask)
+     vmessage ("Parsing $model_dat"$);
+
    variable fp = fopen (model_dat, "r");
    if (fp == NULL)
      {
