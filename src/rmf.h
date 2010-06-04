@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 extern Isis_Rmf_t *Rmf_init_rmf_list (void);
-extern int Rmf_load_rmf (Isis_Rmf_t *head, int method, char *file);
+extern int Rmf_load_rmf (Isis_Rmf_t *head, int method, void *options);
 
 extern Isis_Rmf_t *Rmf_find_rmf_index (Isis_Rmf_t *head, int rmf_index);
 extern int Rmf_is_identity (Isis_Rmf_t *rmf);
@@ -74,6 +74,19 @@ typedef struct
 }
 Rmf_Info_Type;
 
+typedef struct
+{
+   SLang_Ref_Type *func_ref;
+   SLang_Name_Type *func;
+   SLang_Array_Type *arf_bin_lo;       /* keV */
+   SLang_Array_Type *arf_bin_hi;
+   SLang_Array_Type *data_bin_lo;      /* keV */
+   SLang_Array_Type *data_bin_hi;
+   SLang_Any_Type *client_data;
+   double threshold;
+}
+Rmf_SLang_Info_Type;
+
 extern void Rmf_free_info (Rmf_Info_Type *info);
 extern int Rmf_get_info (Isis_Rmf_t *rmf, Rmf_Info_Type *info);
 extern int Rmf_set_info (Isis_Rmf_t *rmf, Rmf_Info_Type *info);
@@ -82,10 +95,12 @@ extern int Rmf_set_info (Isis_Rmf_t *rmf, Rmf_Info_Type *info);
 #define RMF_DELTA 1
 #define RMF_FILE  2
 #define RMF_USER  3
+#define RMF_SLANG 4
 
 /* Specific methods */
-extern int Rmf_load_delta (Isis_Rmf_t *rmf, char *file);
-extern int Rmf_load_file (Isis_Rmf_t *rmf, char *file);
+extern int Rmf_load_delta (Isis_Rmf_t *rmf, void *opt);
+extern int Rmf_load_file (Isis_Rmf_t *rmf, void *opt);
+extern int Rmf_load_slang (Isis_Rmf_t *rmf, void *opt);
 
 #if 0
 {

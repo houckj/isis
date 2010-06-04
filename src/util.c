@@ -86,6 +86,30 @@ int (*Isis_User_Break_Hook)(void);
 
 /*}}}*/
 
+void *isis_malloc(size_t size) /*{{{*/
+{
+   void *m;
+   if (NULL == (m = malloc (size)))
+     {
+        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "allocating %ld bytes", size);
+     }
+   return m;
+}
+
+/*}}}*/
+
+void *isis_realloc(void *ptr, size_t size) /*{{{*/
+{
+   void *m;
+   if (NULL == (m = realloc (ptr, size)))
+     {
+        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "re-allocating %ld bytes", size);
+     }
+   return m;
+}
+
+/*}}}*/
+
 /*{{{ Retrieving NaN */
 
 double isis_nan (void)

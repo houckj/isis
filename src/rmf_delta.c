@@ -304,12 +304,9 @@ static int init_client_data (Isis_Rmf_t *rmf) /*{{{*/
 static int set_grid (Isis_Rmf_Grid_Type **g, double *lo, double *hi, unsigned int n) /*{{{*/
 {
    Isis_free_rmf_grid (*g);
-   *g = Isis_new_rmf_grid (n);
+   *g = Isis_new_rmf_grid (n, lo, hi);
    if ((*g) == NULL)
      return -1;
-
-   memcpy ((char *)(*g)->bin_lo, (char *)lo, n * sizeof(double));
-   memcpy ((char *)(*g)->bin_hi, (char *)hi, n * sizeof(double));
 
    return 0;
 }
@@ -375,7 +372,7 @@ static int get_data_grid (Isis_Rmf_t *rmf, double **lo, double **hi, unsigned in
 
 /*}}}*/
 
-int Rmf_load_delta (Isis_Rmf_t *rmf, char *options) /*{{{*/
+int Rmf_load_delta (Isis_Rmf_t *rmf, void *options) /*{{{*/
 {
    Rmf_Client_Data_t *cl;
 

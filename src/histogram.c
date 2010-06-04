@@ -5082,6 +5082,9 @@ static int set_default_labels (unsigned int version, Hist_Plot_Tune_Type *info, 
      return -1;
 
    /* see plot.c cpgenv/cpgbox usage */
+#ifndef PLOT_NUMBERS_ARE_LOGARITHMS
+# define PLOT_NUMBERS_ARE_LOGARITHMS 0
+#endif
 #if PLOT_NUMBERS_ARE_LOGARITHMS
    if (Plot_get_logx (fmt))
      xlog = "log ";

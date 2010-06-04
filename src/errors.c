@@ -55,8 +55,8 @@ void isis_vmesg (int severity, unsigned int err, const char *file, int line,
 
    if (INVALID_ERR(err))
      {
-        char msg[] = "\n### Internal error [isis_vmesg]:  unknown error code = %d ###\n";
-        fprintf (stderr, msg, err);
+        fprintf (stderr, "\n\
+### Internal error [isis_vmesg]:  unknown error code = %d ###\n", err);
         return;
      }
 

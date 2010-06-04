@@ -245,6 +245,7 @@ private define rmf_string (i) %{{{
      { case _isis->RMF_FILE: type = "file:"; }
      { case _isis->RMF_USER: type = "user:"; }
      { case _isis->RMF_DELTA: type = "delta:"; }
+     { case _isis->RMF_SLANG: type = "slang:"; }
      {
         % default
         type = "???:";
@@ -266,7 +267,7 @@ private define list_rmf_string () %{{{
      return NULL;
    variable title = "Current RMF List:";
    variable colheads =
-     " id grating detector    m type   file";
+     " id grating detector    m type   file/function";
    variable s = array_map (String_Type, &rmf_string, ids);
    return strjoin ([title, colheads, s], "\n");
 }
@@ -688,10 +689,90 @@ define unassign_arf () %{{{
 
 %}}}
 
+private define compute_wv_rmf_on_en_grid (h_en_lo, h_en_hi, en, parms)
+{
+   variable f = parms[0];
+   variable profile;
+   if (parms[1] != NULL)
+     profile = (@f)(_A(h_en_lo, h_en_hi), _A(en), parms[1]);
+   else
+     profile = (@f)(_A(h_en_lo, h_en_hi), _A(en));
+
+   return array_reverse (profile);
+}
+
+define load_slang_rmf () %{{{
+{
+   variable msg = "\
+Usage forms:\n\
+ id = load_slang_rmf (&func, h_bin_lo, h_bin_hi, arf_bin_lo, arf_bin_hi)\n\
+ id = load_slang_rmf (&func, hist_index, arf_index)\n\
+Qualifiers:\n\
+  parms=value        (optional parameter passed to func)\n\
+  threshold=double   (default: 1e-6)\n\
+  grid=\"en|wv\"     (default: \"en\")\n\
+\n\
+The function that computes the profile must be of the form:\n\
+\n\
+    define func (h_bin_lo, h_bin_hi, en_or_wv [,parms])\n\
+\n\
+It must compute the RMF profile integrated over the h_bins at the energy or\n\
+wavelength value en_or_wv (depending upon the grid qualifier).\n\
+";
+   variable func, h_bin_lo, h_bin_hi, arf_bin_lo, arf_bin_hi;
+
+   variable s;
+   if (_NARGS == 3)
+     {
+	variable arf_id, h_id;
+	(func, h_id, arf_id) = ();
+	s = get_arf (arf_id);
+	if (s == NULL)
+	  throw InvalidParmError, "Invalid ARF index: ${arf_id}"$;
+	(arf_bin_lo, arf_bin_hi) = _A(s.bin_lo, s.bin_hi);
+	s = get_data_counts (h_id);
+	if (s == NULL)
+	  throw InvalidParmError, "Invalid Data index: ${h_id}"$;
+	(h_bin_lo, h_bin_hi) = _A(s.bin_lo, s.bin_hi);
+     }
+   else if (_NARGS == 5)
+     {
+	(func, h_bin_lo, h_bin_hi, arf_bin_lo, arf_bin_hi) = ();
+     }
+   else usage (msg);
+
+   variable grid_type = qualifier ("grid", "en");
+   variable opt_parms = qualifier ("parms");
+   variable threshold = qualifier ("threshold", 1e-6);
+
+   s = struct
+     {
+	func = func,
+	data_bin_lo = h_bin_lo,
+	data_bin_hi = h_bin_hi,
+	arf_bin_lo = arf_bin_lo,
+	arf_bin_hi = arf_bin_hi,
+	threshold = threshold,
+	parms = opt_parms,
+     };
+
+   print (s);
+   if (grid_type == "wv")
+     {
+	(h_bin_lo, h_bin_hi) = _A(h_bin_lo, h_bin_hi);
+	s.func = &compute_wv_rmf_on_en_grid;
+	s.parms = {func, opt_parms};
+     }
+
+   return _isis->_load_slang_rmf (s);
+}
+
+%}}}
+
 define load_rmf () %{{{
 {
    variable msg = "status = load_rmf (\"filename[;args]\")";
-   variable arg, method;
+   variable arg;
 
    if (_isis->get_varargs (&arg, _NARGS, 1, msg))
      return;
@@ -699,11 +780,6 @@ define load_rmf () %{{{
    arg = strtrans(arg, " ", "");
 
    if (is_substr (arg, ".so:"))
-     method = _isis->RMF_USER;
-   else
-     method = _isis->RMF_FILE;
-
-   if (method == _isis->RMF_USER)
      {
 	variable n, libname, libpath;
 
@@ -718,9 +794,9 @@ define load_rmf () %{{{
 	  }
 
 	(arg, ) = strreplace (arg, libname, libpath, 1);
+	return _isis->_load_user_rmf (arg);
      }
-
-   return _isis->_load_rmf (arg, method);
+   return _isis->_load_file_rmf (arg);
 }
 
 %}}}
@@ -1952,13 +2028,7 @@ define get_rmf_info () %{{{
 
    id = ();
 
-   variable t, status;
-   (t, status) = _isis->_get_rmf_info (id);
-
-   if (status < 0)
-     return NULL;
-
-   return t;
+   return _isis->_get_rmf_info (id);
 }
 
 %}}}

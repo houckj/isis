@@ -66,8 +66,11 @@ extern char *Isis_Public_Namespace_Name;
 
 /*{{{ memory handling */
 
-#define ISIS_MALLOC  malloc
-#define ISIS_REALLOC  realloc
+extern void *isis_realloc(void *ptr, size_t size);
+extern void *isis_malloc(size_t size);
+
+#define ISIS_MALLOC  isis_malloc
+#define ISIS_REALLOC  isis_realloc
 #define ISIS_FREE(p) do {if (p) free ((void *)p); p = NULL;} while (0)
 
 /*}}}*/
@@ -102,7 +105,7 @@ typedef struct
 Isis_Rmf_Grid_Type;
 
 extern void Isis_free_rmf_grid (Isis_Rmf_Grid_Type *eb);
-extern Isis_Rmf_Grid_Type *Isis_new_rmf_grid (unsigned int nbins);
+extern Isis_Rmf_Grid_Type *Isis_new_rmf_grid (unsigned int nbins, double *lo, double *hi);
 
 typedef struct Isis_Rmf_t Isis_Rmf_t;
 
@@ -135,11 +138,11 @@ struct Isis_Rmf_t
    int order;
    char    grating[ISIS_RMF_BUFSIZE];
    char instrument[ISIS_RMF_BUFSIZE];
-   char *arg_string;
+   char *arg_string;		       /* may be NULL */
    void *client_data;
 };
 
-typedef int Isis_Rmf_Load_Method_t (Isis_Rmf_t *, char *);
+typedef int Isis_Rmf_Load_Method_t (Isis_Rmf_t *, void *);
 
 #ifdef __cplusplus
 # define ISIS_RMF_METHOD(name,a,b) \

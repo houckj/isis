@@ -340,7 +340,7 @@ static int init_client_data (Isis_Rmf_t *rmf) /*{{{*/
 static int set_grid (Isis_Rmf_Grid_Type **g, double *lo, double *hi, unsigned int n) /*{{{*/
 {
    Isis_free_rmf_grid (*g);
-   *g = Isis_new_rmf_grid (n);
+   *g = Isis_new_rmf_grid (n, NULL, NULL);
    if ((*g) == NULL)
      return -1;
 
@@ -400,7 +400,7 @@ static int set_data_grid (Isis_Rmf_t *rmf, double *lo, double *hi, unsigned int 
    int order;
 
    Isis_free_rmf_grid (cl->ebounds);
-   cl->ebounds = Isis_new_rmf_grid (n);
+   cl->ebounds = Isis_new_rmf_grid (n, NULL, NULL);
    if (cl->ebounds == NULL)
      return -1;
 

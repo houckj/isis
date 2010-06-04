@@ -91,10 +91,18 @@ struct Rmf_Vector_t
 typedef struct
 {
    double threshold;
-   char *file;
+   union
+     {
+        char *file;
+        SLang_Name_Type *funct;
+     }
+   f;
+   int type;
+#define RMF_TYPE_FILE        1
+#define RMF_TYPE_SLANG        2
    int swapped_channels;
    int energy_ordered_ebounds;
-   int is_initialized;
+   int is_initialized;                       /* set but not unused */
    int strict;
    char *matrix_extname;
    char *ebounds_extname;
@@ -502,7 +510,7 @@ static int read_rmf_ebounds (cfitsfile *rmf_fp, int chan_range[2], Isis_Rmf_Grid
         return -1;
      }
 
-   *gp = Isis_new_rmf_grid (num_channels);
+   *gp = Isis_new_rmf_grid (num_channels, NULL, NULL);
    if (*gp == NULL) return -1;
    g = *gp;
 
@@ -714,7 +722,7 @@ static int read_rmf (Isis_Rmf_t *rmf, char *file) /*{{{*/
    if (-1 == cfits_read_double_keyword (&cd->threshold, "LO_THRES", rft->ft))
      cd->threshold = 1.e-6;
 
-   if (NULL == (cd->arf = Isis_new_rmf_grid (cd->num_ebins)))
+   if (NULL == (cd->arf = Isis_new_rmf_grid (cd->num_ebins, NULL, NULL)))
      goto finish;
 
    /* FIXME - get arf_grid units from header */
@@ -804,7 +812,11 @@ static void delete_client_data (Isis_Rmf_t *rmf) /*{{{*/
           }
         Isis_free_rmf_grid (cd->arf);
         Isis_free_rmf_grid (cd->ebounds);
-        ISIS_FREE (cd->file);
+        if (cd->type == RMF_TYPE_FILE)
+          ISIS_FREE (cd->f.file);
+        else if (cd->type == RMF_TYPE_SLANG)
+          SLang_free_function (cd->f.funct);
+
         ISIS_FREE (cd->matrix_extname);
         ISIS_FREE (cd->ebounds_extname);
      }
@@ -1429,7 +1441,8 @@ static int parse_options (Rmf_Client_Data_t *cd, char *options) /*{{{*/
    if (NULL == (opts = isis_parse_option_string (options)))
      return -1;
 
-   if (NULL == (cd->file = isis_make_string (opts->subsystem)))
+   cd->type = RMF_TYPE_FILE;
+   if (NULL == (cd->f.file = isis_make_string (opts->subsystem)))
      return -1;
 
    if (-1 == set_options (cd, opts))
@@ -1445,12 +1458,18 @@ static int parse_options (Rmf_Client_Data_t *cd, char *options) /*{{{*/
 
 /*}}}*/
 
-static int print_options_help (Rmf_Client_Data_t *cd)
+static int print_options_help (Rmf_Client_Data_t *cd) /*{{{*/
 {
    Isis_Option_Type *opts;
    int status;
    char *s;
-   if (NULL == (s = isis_mkstrcat (cd->file, ";help", NULL)))
+
+   if (cd->type == RMF_TYPE_SLANG)
+     {
+        return 0;
+     }
+
+   if (NULL == (s = isis_mkstrcat (cd->f.file, ";help", NULL)))
      return -1;
    if (NULL == (opts = isis_parse_option_string (s)))
      {
@@ -1463,10 +1482,10 @@ static int print_options_help (Rmf_Client_Data_t *cd)
    return status;
 }
 
-int Rmf_load_file (Isis_Rmf_t *rmf, char *options)  /*{{{*/
-{
-   Rmf_Client_Data_t *cd;
+/*}}}*/
 
+static int init_rmf_t (Isis_Rmf_t *rmf) /*{{{*/
+{
    rmf->set_arf_grid = set_arf_grid;
    rmf->set_data_grid = set_data_grid;
    rmf->get_arf_grid = get_arf_grid;
@@ -1483,13 +1502,125 @@ int Rmf_load_file (Isis_Rmf_t *rmf, char *options)  /*{{{*/
      return -1;
    memset ((char *)rmf->client_data, 0, sizeof (Rmf_Client_Data_t));
 
-   cd = (Rmf_Client_Data_t *) rmf->client_data;
-
-   if (-1 == parse_options (cd, options))
-     return -1;
-
-   return read_rmf (rmf, cd->file);
+   return 0;
 }
 
 /*}}}*/
 
+int Rmf_load_file (Isis_Rmf_t *rmf, void *options)  /*{{{*/
+{
+   Rmf_Client_Data_t *cd;
+
+   if (-1 == init_rmf_t (rmf))
+     return -1;
+
+   if (NULL == (rmf->arg_string = isis_make_string (options)))
+     return -1;
+
+   cd = (Rmf_Client_Data_t *) rmf->client_data;
+
+   if (-1 == parse_options (cd, (char *)options))
+     return -1;
+
+   return read_rmf (rmf, cd->f.file);
+}
+
+/*}}}*/
+
+int Rmf_load_slang (Isis_Rmf_t *rmf, void *options) /*{{{*/
+{
+   Rmf_SLang_Info_Type *info;
+   Rmf_Client_Data_t *cd;
+   unsigned int i, num_data_bins, num_arf_bins;
+   double *en_lo, *en_hi;
+   int *f_chan = NULL, *n_chan = NULL;
+
+   if (-1 == init_rmf_t (rmf))
+     return -1;
+
+   info = (Rmf_SLang_Info_Type *)options;
+
+   if (NULL == (rmf->arg_string = isis_make_string (info->func->name)))
+     return -1;
+
+   cd = (Rmf_Client_Data_t *)rmf->client_data;
+
+   rmf->includes_effective_area = 0;
+
+   num_arf_bins = cd->num_ebins = info->arf_bin_lo->num_elements;
+   num_data_bins = info->data_bin_lo->num_elements;
+   cd->threshold = info->threshold;
+
+   if (NULL == (cd->arf = Isis_new_rmf_grid (cd->num_ebins,
+                                             (double *)info->arf_bin_lo->data,
+                                             (double *)info->arf_bin_hi->data)))
+     {
+        goto return_error;
+     }
+   cd->arf->units = U_KEV;
+
+   if (NULL == (cd->ebounds = Isis_new_rmf_grid (num_data_bins,
+                                                 (double *)info->data_bin_lo->data,
+                                                 (double *)info->data_bin_hi->data)))
+     {
+        goto return_error;
+     }
+   cd->ebounds->units = U_KEV;
+
+   if (NULL == (cd->v = (Rmf_Vector_t *) ISIS_MALLOC (cd->num_ebins * sizeof(Rmf_Vector_t))))
+     {
+        goto return_error;
+     }
+   memset ((char *)cd->v, 0, cd->num_ebins * sizeof (Rmf_Vector_t));
+
+   if ((NULL == (n_chan = (int *) ISIS_MALLOC (num_data_bins*sizeof(int))))
+       || (NULL == (f_chan = (int *) ISIS_MALLOC (num_data_bins*sizeof(int)))))
+     goto return_error;
+
+   en_lo = (double *) info->arf_bin_lo->data;
+   en_hi = (double *) info->arf_bin_hi->data;
+   for (i = 0; i < num_arf_bins; i++)
+     {
+        double en = 0.5*(en_lo[i] + en_hi[i]);
+        SLang_Array_Type *at_rmf;
+
+        /* Evaluate \int dE' R(E',E). */
+        if ((-1 == SLang_start_arg_list ())
+            || (-1 == SLang_push_array (info->data_bin_lo, 0))
+            || (-1 == SLang_push_array (info->data_bin_hi, 0))
+            || (-1 == SLang_push_double (en))
+            || ((info->client_data != NULL)
+                && (-1 == SLang_push_anytype (info->client_data)))
+            || (-1 == SLang_end_arg_list ())
+            || (-1 == SLexecute_function (info->func))
+            || (-1 == SLang_pop_array_of_type (&at_rmf, SLANG_DOUBLE_TYPE)))
+          goto return_error;
+
+        if (at_rmf->num_elements != num_data_bins)
+          {
+             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "The computed RMF profile does not contain the expected number of bins");
+             SLang_free_array (at_rmf);
+             goto return_error;
+          }
+        if (-1 == store_rmf_histogram ((double *)at_rmf->data, num_data_bins, 0,
+                                       info->threshold, f_chan, n_chan,
+                                       cd->v + i))
+          {
+             SLang_free_array (at_rmf);
+             goto return_error;
+          }
+        SLang_free_array (at_rmf);
+     }
+
+   ISIS_FREE (n_chan);
+   ISIS_FREE (f_chan);
+   return 0;
+
+return_error:
+
+   ISIS_FREE (n_chan);
+   ISIS_FREE (f_chan);
+   return -1;
+}
+
+/*}}}*/

@@ -165,7 +165,7 @@ static int load_arf (char * filename) /*{{{*/
 
 /*}}}*/
 
-static int load_rmf (char *options, int *method) /*{{{*/
+static int load_rmf_internal (int method, void *opt) /*{{{*/
 {
    int id;
 
@@ -176,10 +176,75 @@ static int load_rmf (char *options, int *method) /*{{{*/
         return -1;
      }
 
-   if (-1 == (id = Rmf_load_rmf (Rmf_List_Head, *method, options)))
+   if (-1 == (id = Rmf_load_rmf (Rmf_List_Head, method, opt)))
      return -1;
 
    return id;
+}
+
+/*}}}*/
+
+static int load_user_rmf (char *options) /*{{{*/
+{
+   return load_rmf_internal (RMF_USER, options);
+}
+
+/*}}}*/
+
+static int load_file_rmf (char *options) /*{{{*/
+{
+   return load_rmf_internal (RMF_FILE, options);
+}
+
+/*}}}*/
+
+static SLang_CStruct_Field_Type Rmf_SLang_Info_Layout [] =
+{
+   MAKE_CSTRUCT_FIELD (Rmf_SLang_Info_Type, func_ref, "func", SLANG_REF_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Rmf_SLang_Info_Type, arf_bin_lo, "arf_bin_lo", SLANG_ARRAY_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Rmf_SLang_Info_Type, arf_bin_hi, "arf_bin_hi", SLANG_ARRAY_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Rmf_SLang_Info_Type, data_bin_lo, "data_bin_lo", SLANG_ARRAY_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Rmf_SLang_Info_Type, data_bin_hi, "data_bin_hi", SLANG_ARRAY_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Rmf_SLang_Info_Type, threshold, "threshold", SLANG_DOUBLE_TYPE, 0),
+   SLANG_END_CSTRUCT_TABLE
+};
+
+static int load_slang_rmf (void) /*{{{*/
+{
+   Rmf_SLang_Info_Type info;
+   int ret = -1;
+
+   memset ((char *) &info, 0, sizeof(Rmf_SLang_Info_Type));
+
+   if (-1 == SLang_pop_cstruct ((VOID_STAR)&info, Rmf_SLang_Info_Layout))
+     return -1;
+
+   if ((info.func_ref == NULL)
+       || (NULL == (info.func = SLang_get_fun_from_ref (info.func_ref)))
+       || (info.arf_bin_lo == NULL)
+       || (info.arf_bin_hi == NULL)
+       || (info.data_bin_lo == NULL)
+       || (info.data_bin_hi == NULL)
+       || (info.threshold < 0))
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "One or more load_slang_rmf parmeters are invalid");
+        goto free_and_return;
+     }
+
+   if ((info.arf_bin_lo->num_elements != info.arf_bin_hi->num_elements)
+       || (info.data_bin_lo->num_elements != info.data_bin_hi->num_elements))
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "load_slang_rmf: bin_lo/hi grids are incompatible");
+        goto free_and_return;
+     }
+
+   ret = load_rmf_internal (RMF_SLANG, &info);
+
+free_and_return:
+
+   SLang_free_function (info.func);
+   SLang_free_cstruct ((VOID_STAR)&info, Rmf_SLang_Info_Layout);
+   return ret;
 }
 
 /*}}}*/
@@ -1161,7 +1226,7 @@ static void _set_rmf_info (int *rmf_index) /*{{{*/
 
 /*}}}*/
 
-static int _get_rmf_info (int *rmf_index) /*{{{*/
+static void _get_rmf_info (int *rmf_index) /*{{{*/
 {
    Rmf_Info_Type info;
    Isis_Rmf_t *rmf;
@@ -1173,13 +1238,12 @@ static int _get_rmf_info (int *rmf_index) /*{{{*/
        || (-1 == Rmf_get_info (rmf, &info)))
      {
         Rmf_free_info (&info);
-        return -1;
+        SLang_push_null ();
+        return;
      }
 
    status = SLang_push_cstruct ((VOID_STAR)&info, Rmf_Info_Layout);
    Rmf_free_info (&info);
-
-   return status;
 }
 
 /*}}}*/
@@ -2762,7 +2826,9 @@ static SLang_Intrin_Fun_Type Hist_Intrinsics [] =
    MAKE_INTRINSIC_I("_delete_arf", _delete_arf, V),
    MAKE_INTRINSIC_I("_get_arf", get_arf, V),
    MAKE_INTRINSIC("_put_arf", put_arf, V, 0),
-   MAKE_INTRINSIC_2("_load_rmf", load_rmf, I, S, I),
+   MAKE_INTRINSIC_1("_load_user_rmf", load_user_rmf, I, S),
+   MAKE_INTRINSIC_1("_load_file_rmf", load_file_rmf, I, S),
+   MAKE_INTRINSIC_0("_load_slang_rmf", load_slang_rmf, I),
    MAKE_INTRINSIC_2("_assign_rmf_to_hist", _assign_rmf_to_hist, V, I, I),
    MAKE_INTRINSIC_I("_delete_rmf", _delete_rmf, V),
    MAKE_INTRINSIC_I("_get_rmf_data_grid", _get_rmf_data_grid, V),
@@ -2808,7 +2874,7 @@ static SLang_Intrin_Fun_Type Hist_Intrinsics [] =
    MAKE_INTRINSIC_1("have_data", have_data, I, I),
    MAKE_INTRINSIC_I("_get_hist_info", _get_hist_info, I),
    MAKE_INTRINSIC_I("_set_hist_info", _set_hist_info, V),
-   MAKE_INTRINSIC_I("_get_rmf_info", _get_rmf_info, I),
+   MAKE_INTRINSIC_I("_get_rmf_info", _get_rmf_info, V),
    MAKE_INTRINSIC_I("_set_rmf_info", _set_rmf_info, V),
    MAKE_INTRINSIC_I("_get_arf_info", _get_arf_info, I),
    MAKE_INTRINSIC_I("_set_arf_info", _set_arf_info, V),
@@ -2852,6 +2918,7 @@ static SLang_IConstant_Type Hist_Intrin_Const [] =
    MAKE_ICONSTANT("RMF_DELTA", RMF_DELTA),
    MAKE_ICONSTANT("RMF_FILE", RMF_FILE),
    MAKE_ICONSTANT("RMF_USER", RMF_USER),
+   MAKE_ICONSTANT("RMF_SLANG", RMF_SLANG),
    SLANG_END_ICONST_TABLE
 };
 

@@ -58,7 +58,7 @@ void Isis_free_rmf_grid (Isis_Rmf_Grid_Type *eb) /*{{{*/
 }
 /*}}}*/
 
-Isis_Rmf_Grid_Type *Isis_new_rmf_grid (unsigned int nbins) /*{{{*/
+Isis_Rmf_Grid_Type *Isis_new_rmf_grid (unsigned int nbins, double *lo, double *hi) /*{{{*/
 {
    Isis_Rmf_Grid_Type *g;
 
@@ -76,9 +76,15 @@ Isis_Rmf_Grid_Type *Isis_new_rmf_grid (unsigned int nbins) /*{{{*/
         g = NULL;
         return g;
      }
+   if (lo == NULL)
+     memset ((char *)g->bin_lo, 0, nbins*sizeof(double));
+   else
+     memcpy ((char *)g->bin_lo, (char *)lo, nbins * sizeof(double));
 
-   memset ((char *)g->bin_lo, 0, nbins*sizeof(double));
-   memset ((char *)g->bin_hi, 0, nbins*sizeof(double));
+   if (hi == NULL)
+     memset ((char *)g->bin_hi, 0, nbins*sizeof(double));
+   else
+     memcpy ((char *)g->bin_hi, (char *)hi, nbins * sizeof(double));
 
    return g;
 }
@@ -573,7 +579,21 @@ static Isis_Rmf_Load_Method_t *get_user_rmf_load_method (char *options) /*{{{*/
 
 /*}}}*/
 
-static Isis_Rmf_t *open_rmf (int method, char *options) /*{{{*/
+static int rmf_load_user (Isis_Rmf_t *rmf, void *opt)
+{
+   Isis_Rmf_Load_Method_t *load_method;
+   char *options;
+
+   options = (char *)opt;
+   if ((NULL == (load_method = get_user_rmf_load_method (options)))
+       || (-1 == (*load_method)(rmf, options)))
+     return -1;
+
+   rmf->arg_string = isis_make_string (options);   /* NULL ok */
+   return 0;
+}
+
+static Isis_Rmf_t *open_rmf (int method, void *options) /*{{{*/
 {
    Isis_Rmf_Load_Method_t *load_method = NULL;
    Isis_Rmf_t *rmf;
@@ -589,7 +609,11 @@ static Isis_Rmf_t *open_rmf (int method, char *options) /*{{{*/
         break;
 
       case RMF_USER:
-        load_method = get_user_rmf_load_method (options);
+        load_method = rmf_load_user;
+        break;
+
+      case RMF_SLANG:
+        load_method = Rmf_load_slang;
         break;
 
       default:
@@ -602,20 +626,17 @@ static Isis_Rmf_t *open_rmf (int method, char *options) /*{{{*/
    if (NULL == (rmf = new_rmf ()))
      return NULL;
 
+   rmf->method = method;
    if (-1 == (*load_method)(rmf, options))
      {
         Rmf_free_rmf (rmf);
         return NULL;
      }
-
-   rmf->arg_string = isis_make_string (options);   /* NULL ok */
-   rmf->method = method;
-
    return rmf;
 }
 /*}}}*/
 
-int Rmf_load_rmf (Isis_Rmf_t *head, int method, char *options) /*{{{*/
+int Rmf_load_rmf (Isis_Rmf_t *head, int method, void *options) /*{{{*/
 {
    Isis_Rmf_t *rmf;
 
