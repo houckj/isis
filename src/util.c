@@ -91,7 +91,7 @@ void *isis_malloc(size_t size) /*{{{*/
    void *m;
    if (NULL == (m = malloc (size)))
      {
-        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "allocating %ld bytes", size);
+        isis_vmesg (INTR, I_FAILED, __FILE__, __LINE__, "allocating %ld bytes", size);
      }
    return m;
 }
@@ -103,7 +103,7 @@ void *isis_realloc(void *ptr, size_t size) /*{{{*/
    void *m;
    if (NULL == (m = realloc (ptr, size)))
      {
-        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "re-allocating %ld bytes", size);
+        isis_vmesg (INTR, I_FAILED, __FILE__, __LINE__, "re-allocating %ld bytes", size);
      }
    return m;
 }
@@ -467,10 +467,18 @@ int isis_secure_mode (void) /*{{{*/
 
 int isis_system (char *cmd) /*{{{*/
 {
+   int ret;
    if ((cmd == NULL) || isis_secure_mode ())
      return -1;
 
-   return SLsystem (cmd);
+   ret = SLsystem (cmd);
+
+#if defined(WIFEXITED) && defined(WEXITSTATUS)
+   if ((ret != -1) && WIFEXITED(ret))
+     ret = WEXITSTATUS(ret);
+#endif
+
+   return ret;
 }
 
 /*}}}*/
@@ -573,7 +581,6 @@ static int edit_file (char *fname) /*{{{*/
 {
    static char editor[] = "${EDITOR:-vi}";     /* environment or default */
    char *cmd = NULL;
-   const char *msg = NULL;
    int len, ret = -1;
 
    if (NULL == fname)
@@ -592,21 +599,33 @@ static int edit_file (char *fname) /*{{{*/
         return -1;
      }
 
-   switch (isis_system(cmd))
+   ret = isis_system(cmd);
+   switch (ret)
      {
       case -1:
-        msg = "check EDITOR environment variable";
+        isis_vmesg (INTR, I_FAILED, __FILE__, __LINE__,
+                    "check EDITOR environment variable");
         break;
       case 127:
-        msg = "/bin/sh failed invoking text editor";
+        isis_vmesg (INTR, I_FAILED, __FILE__, __LINE__,
+                    "The editor could not be found.");
+        ret = -1;
+        break;
+      case 126:
+        isis_vmesg (INTR, I_FAILED, __FILE__, __LINE__,
+                    "The editor was found, but could not be executed.");
+        ret = -1;
         break;
       default:
-        ret = 0;        /* success */
+        if (ret)
+          {
+             isis_vmesg (WARN, I_INFO, __FILE__, __LINE__,
+                         "The editor returned a non-zero status (%d)",
+                         ret);
+             ret = 0;
+          }
         break;
      }
-
-   if (msg)
-     isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, msg);
 
    ISIS_FREE (cmd);
    fputs ("\n", stdout);
