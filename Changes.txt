@@ -11,6 +11,7 @@ Changes since 1.6.0 (released Apr 2010)
  6.  set_sys_err_frac now accepts a scalar value
  7.  Error bars in histogram plots now include systematic error
      added in quadrature.
+ 8.  Added slang rmf support (contributed by John E. Davis)
 
 Changes since 1.5.0 (released Aug 2009)
 ---------------------------------------
