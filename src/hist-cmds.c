@@ -206,6 +206,7 @@ static SLang_CStruct_Field_Type Rmf_SLang_Info_Layout [] =
    MAKE_CSTRUCT_FIELD (Rmf_SLang_Info_Type, data_bin_lo, "data_bin_lo", SLANG_ARRAY_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Rmf_SLang_Info_Type, data_bin_hi, "data_bin_hi", SLANG_ARRAY_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Rmf_SLang_Info_Type, threshold, "threshold", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Rmf_SLang_Info_Type, client_data, "parms", SLANG_ANY_TYPE, 0),
    SLANG_END_CSTRUCT_TABLE
 };
 

@@ -756,7 +756,6 @@ wavelength value en_or_wv (depending upon the grid qualifier).\n\
 	parms = opt_parms,
      };
 
-   print (s);
    if (grid_type == "wv")
      {
 	(h_bin_lo, h_bin_hi) = _A(h_bin_lo, h_bin_hi);
