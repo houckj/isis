@@ -111,7 +111,7 @@ define save_conf () %{{{
 
    do_fits_error (_fits_update_key (fp, "CTYPE1P", xname, ""));
    do_fits_error (_fits_update_key (fp, "CRVAL1P", m.px.min, ""));
-   do_fits_error (_fits_update_key (fp, "CRPIX1P", 0.5, ""));
+   do_fits_error (_fits_update_key (fp, "CRPIX1P", 1.0, ""));
    do_fits_error (_fits_update_key (fp, "CDELT1P", dx, ""));
    do_fits_error (_fits_update_key (fp, "WCSTY1P", "PHYSICAL", ""));
    do_fits_error (_fits_update_key (fp, "CUNIT1P", "", ""));
@@ -123,7 +123,7 @@ define save_conf () %{{{
 
    do_fits_error (_fits_update_key (fp, "CTYPE2P", yname, ""));
    do_fits_error (_fits_update_key (fp, "CRVAL2P", m.py.min, ""));
-   do_fits_error (_fits_update_key (fp, "CRPIX2P", 0.5, ""));
+   do_fits_error (_fits_update_key (fp, "CRPIX2P", 1.0, ""));
    do_fits_error (_fits_update_key (fp, "CDELT2P", dy, ""));
    do_fits_error (_fits_update_key (fp, "WCSTY2P", "PHYSICAL", ""));
    do_fits_error (_fits_update_key (fp, "CUNIT2P", "", ""));
