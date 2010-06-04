@@ -3,7 +3,7 @@ define slsh_main ()
    variable test_scripts =
      ["fit", "assign_model", "sys_err", "par_fun", "multi", "pileup",
       "readcol", "rebin", "xgroup", "group", "notice_values", "renorm",
-      "arrayops", "array_fit", "ds_combine", "hist",
+      "arrayops", "array_fit", "ds_combine", "hist", "slangrmf",
       "user_grid_eval", "post_model_hook", "backscale",
       "opfun", "param_defaults", "constraint", "flux_corr",
       "confmap", "rebin_dataset", "region_stats", "stat", "yshift",

@@ -689,7 +689,7 @@ define unassign_arf () %{{{
 
 %}}}
 
-private define compute_wv_rmf_on_en_grid (h_en_lo, h_en_hi, en, parms)
+private define compute_wv_rmf_on_en_grid (h_en_lo, h_en_hi, en, parms) %{{{
 {
    variable f = parms[0];
    variable profile;
@@ -700,6 +700,8 @@ private define compute_wv_rmf_on_en_grid (h_en_lo, h_en_hi, en, parms)
    array_reverse (profile);
    return profile;
 }
+
+%}}}
 
 define load_slang_rmf () %{{{
 {
