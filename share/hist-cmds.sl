@@ -697,8 +697,8 @@ private define compute_wv_rmf_on_en_grid (h_en_lo, h_en_hi, en, parms)
      profile = (@f)(_A(h_en_lo, h_en_hi), _A(en), parms[1]);
    else
      profile = (@f)(_A(h_en_lo, h_en_hi), _A(en));
-
-   return array_reverse (profile);
+   array_reverse (profile);
+   return profile;
 }
 
 define load_slang_rmf () %{{{
