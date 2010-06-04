@@ -11,7 +11,9 @@ Changes since 1.6.0 (released Apr 2010)
  6.  set_sys_err_frac now accepts a scalar value
  7.  Error bars in histogram plots now include systematic error
      added in quadrature.
- 8.  Added slang rmf support (contributed by John E. Davis)
+ 8.  Added slang rmf support (contributed by John E. Davis).
+ 9.  Added 0.5 pixel correction to reference coordinate in confmap
+     WCS header (contributed by Manfred Hanke).
 
 Changes since 1.5.0 (released Aug 2009)
 ---------------------------------------
