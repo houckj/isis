@@ -420,6 +420,13 @@ static int run_default_main (int testing) /*{{{*/
 
 /*}}}*/
 
+int Isis_Load_File_Verbose_Mask = 0;
+static int load_file_verbose (int v)
+{
+   Isis_Load_File_Verbose_Mask = v;
+   return SLang_load_file_verbose (v);
+}
+
 static int initialize (int argc, char **argv) /*{{{*/
 {
    static char *init_file = NULL;
@@ -527,7 +534,7 @@ static int initialize (int argc, char **argv) /*{{{*/
           {
              if (0 == strcmp (argv[i], "-v"))
                {
-                  (void) SLang_load_file_verbose (verbose_mask);
+                  (void) load_file_verbose (verbose_mask);
                   break;
                }
           }
@@ -668,7 +675,7 @@ static int initialize (int argc, char **argv) /*{{{*/
           {
              argc--;
              argv++;
-             (void) SLang_load_file_verbose (verbose_mask);
+             (void) load_file_verbose (verbose_mask);
              continue;
           }
 

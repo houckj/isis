@@ -644,6 +644,7 @@ static SLang_Intrin_Var_Type Global_Intrin_Vars [] =
    MAKE_VARIABLE("Isis_Batch_Mode", &Isis_Batch_Mode, SLANG_INT_TYPE, 1),
    MAKE_VARIABLE("Isis_Silent_Errors", &Isis_Silent_Errors, SLANG_INT_TYPE, 0),
    MAKE_VARIABLE("Isis_Verbose", &Isis_Verbose, SLANG_INT_TYPE, 0),
+   MAKE_VARIABLE("Isis_Load_File_Verbose_Mask", &Isis_Load_File_Verbose_Mask, SLANG_INT_TYPE, 0),
    MAKE_VARIABLE("Isis_Trace", &Isis_Trace, SLANG_INT_TYPE, 0),   
    SLANG_END_INTRIN_VAR_TABLE
 };

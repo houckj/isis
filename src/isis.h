@@ -574,6 +574,7 @@ extern int Isis_Active_Dataset;
 extern int Isis_Batch_Mode;
 extern int Isis_Silent_Errors;
 extern int Isis_Verbose;
+extern int Isis_Load_File_Verbose_Mask;
 
 typedef int Isis_Line_Profile_Type (Isis_Hist_t *, double, double, double, int,
                                     double *, int, void *);
