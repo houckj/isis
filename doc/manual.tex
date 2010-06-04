@@ -5248,15 +5248,17 @@ to an ideal response.
 {load\_rmf} %name
 {Load an RMF} %purpose
 {status = load\_rmf ("filename[:init\_name[;options]]")} %usage
-{load\_dataset, list\_rmf, assign\_rmf, unassign\_rmf}
+{load\_slang\_rmf, load\_dataset, list\_rmf, assign\_rmf, unassign\_rmf}
 \index{User-defined!RMF}
 \index{Rmf\_OGIP\_Compliance@{\tt Rmf\_OGIP\_Compliance}}
 
 An RMF is usually a FITS file which conforms to the OGIP standard
 RMF format.
 
-\isisx also supports RMFs which are defined in software.
-In this case, the RMF is specified by giving the name of a shared
+\isisx also supports RMFs which are defined in software either
+in S-Lang (see \verb|load_slang_rmf|) or in a compiled language
+such as a C.
+In the latter case, the RMF is specified by giving the name of a shared
 library (.so file) which provides the software implementation
 conforming to the interface defined in the \isisx source code in
 \verb|src/isis.h|.  See \verb|test/rmf_user.c|
@@ -5304,6 +5306,66 @@ In particular, isis looks for
 \end{verbatim}
 The \verb|HDUCLASn| keywords are required for full OGIP
 compliance, but will be ignored if \verb|Rmf_OGIP_Compliance=0|.
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{load\_slang\_rmf} %name
+{Define an RMF using a S-Lang function} %purpose
+{id = load\_slang\_rmf (\&func, h\_bin\_lo, h\_bin\_hi, arf\_bin\_lo, arf\_bin\_hi)\\
+ id = load\_slang\_rmf (\&func, hist\_index, arf\_index)} %usage
+{load\_rmf, load\_dataset, list\_rmf, assign\_rmf, unassign\_rmf}
+\index{User-defined!RMF}
+
+A S-Lang function can be used to define a redistribution function (RMF) with
+the effective area (ARF) and data (EBOUNDS) grids specified either as S-Lang
+arrays:
+\begin{verbatim}
+  id = load_slang_rmf (&func, h_bin_lo, h_bin_hi, arf_bin_lo, arf_bin_hi)
+\end{verbatim}
+or by referring to the indices of a dataset and an ARF:
+\begin{verbatim}
+  id = load_slang_rmf (&func, hist_index, arf_index)
+\end{verbatim}
+
+\begin{verbatim}
+Qualifiers:
+  parms=value        (optional parameter passed to func)
+  threshold=double   (default: 1e-6)
+  grid="en|wv"       (default: "en")
+\end{verbatim}
+
+The function that computes the RMF profile must be of the form:
+\begin{verbatim}
+    define func (h_bin_lo, h_bin_hi, en_or_wv [,parms])
+\end{verbatim}
+It must compute the RMF profile integrated over the \verb|h_bins| at the
+energy or wavelength value \verb|en_or_wv| (depending upon the grid
+qualifier).
+
+\begin{verbatim}
+EXAMPLE:
+
+  define rmf_profile (bin_lo, bin_hi, x, parms)
+  {
+     variable resolution = parms;
+     variable rmf = Double_Type[length(bin_lo)];
+
+     if (x < bin_lo[0] || bin_hi[-1] <= x)
+       return rmf;
+
+     variable i = where (x * (1.0 - resolution/2.0) <= bin_lo
+                         and bin_hi < x * (1.0 + resolution/2.0));
+
+     rmf[i] = 1.0 / length(i);
+     return rmf/sum(rmf);
+  }
+
+  rmf_id = load_slang_rmf (&rmf_profile,
+                           linear_grid (0.1, 10, 1024),
+                           linear_grid (0.1, 10, 2048); parms=0.02);
+  assign_rmf (rmf_id, dataset_id);
+\end{verbatim}
 
 \end{isisfunction}
 

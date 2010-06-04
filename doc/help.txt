@@ -3327,11 +3327,13 @@ load_rmf
     An RMF is usually a FITS file which conforms to the OGIP
     standard RMF format.
 
-    ISIS also supports RMFs which are defined in software. In this
-    case, the RMF is specified by giving the name of a shared
-    library (.so file) which provides the software implementation
-    conforming to the interface defined in the ISIS source code in
-    src/isis.h.  See test/rmf_user.c for an example implementation.
+    ISIS also supports RMFs which are defined in software either in
+    S-Lang (see load_slang_rmf) or in a compiled language such as a
+    C. In the latter case, the RMF is specified by giving the name
+    of a shared library (.so file) which provides the software
+    implementation conforming to the interface defined in the ISIS
+    source code in src/isis.h.  See test/rmf_user.c for an example
+    implementation.
 
     The name of the initialization function for the user-defined
     RMF module should be included in the string specifying the name
@@ -3376,7 +3378,68 @@ load_rmf
 
 
  SEE ALSO
-    load_dataset, list_rmf, assign_rmf, unassign_rmf
+    load_slang_rmf, load_dataset, list_rmf, assign_rmf, unassign_rmf
+
+------------------------------------------------------------------------
+load_slang_rmf
+
+ SYNOPSIS
+    Define an RMF using a S-Lang function
+
+ USAGE
+    id = load_slang_rmf (&func, h_bin_lo, h_bin_hi, arf_bin_lo, arf_bin_hi)
+ id = load_slang_rmf (&func, hist_index, arf_index)
+
+ DESCRIPTION
+    A S-Lang function can be used to define a redistribution
+    function (RMF) with the effective area (ARF) and data (EBOUNDS)
+    grids specified either as S-Lang arrays:
+
+      id = load_slang_rmf (&func, h_bin_lo, h_bin_hi, arf_bin_lo, arf_bin_hi)
+
+    or by referring to the indices of a dataset and an ARF:
+
+      id = load_slang_rmf (&func, hist_index, arf_index)
+
+    Qualifiers:
+      parms=value        (optional parameter passed to func)
+      threshold=double   (default: 1e-6)
+      grid="en|wv"       (default: "en")
+
+    The function that computes the RMF profile must be of the form:
+
+        define func (h_bin_lo, h_bin_hi, en_or_wv [,parms])
+
+    It must compute the RMF profile integrated over the h_bins at
+    the energy or wavelength value en_or_wv (depending upon the
+    grid qualifier).
+
+    EXAMPLE:
+
+      define rmf_profile (bin_lo, bin_hi, x, parms)
+      {
+         variable resolution = parms;
+         variable rmf = Double_Type[length(bin_lo)];
+
+         if (x < bin_lo[0] || bin_hi[-1] <= x)
+           return rmf;
+
+         variable i = where (x * (1.0 - resolution/2.0) <= bin_lo
+                             and bin_hi < x * (1.0 + resolution/2.0));
+
+         rmf[i] = 1.0 / length(i);
+         return rmf/sum(rmf);
+      }
+
+      rmf_id = load_slang_rmf (&rmf_profile,
+                               linear_grid (0.1, 10, 1024),
+                               linear_grid (0.1, 10, 2048); parms=0.02);
+      assign_rmf (rmf_id, dataset_id);
+
+
+
+ SEE ALSO
+    load_rmf, load_dataset, list_rmf, assign_rmf, unassign_rmf
 
 ------------------------------------------------------------------------
 match_dataset_grids
