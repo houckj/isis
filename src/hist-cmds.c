@@ -659,7 +659,6 @@ static void put_hist (void) /*{{{*/
        || (binhi->num_elements != n))
      {
         isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__, "inconsistent array sizes");
-        isis_throw_exception (Isis_Error);
         goto free_and_return;
      }
 
@@ -670,7 +669,6 @@ static void put_hist (void) /*{{{*/
                                         (double *) uncert->data, n))
      {
         isis_vmesg (INTR, I_FAILED, __FILE__, __LINE__, "replacing data set %d", hist_index);
-        isis_throw_exception (Isis_Error);
      }
 
    free_and_return:
@@ -710,7 +708,6 @@ static void put_model_intrin (void) /*{{{*/
    if (value->num_elements == 0)
      {
         isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__, "inconsistent array size");
-        isis_throw_exception (Isis_Error);
         goto free_and_return;
      }
 
@@ -718,7 +715,6 @@ static void put_model_intrin (void) /*{{{*/
                                      NULL, value->num_elements))
      {
         isis_vmesg (INTR, I_FAILED, __FILE__, __LINE__, "replacing model for data set %d", hist_index);
-        isis_throw_exception (Isis_Error);
      }
 
    free_and_return:

@@ -531,7 +531,6 @@ static int sl_diff_eval (Fit_Fun_t *ff, Isis_User_Grid_t *ug, double *par) /*{{{
      {
         isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__,
                     "%s does not support this evaluation method", ff->name[0]);
-        isis_throw_exception (Isis_Error);
         return -1;
      }
 
