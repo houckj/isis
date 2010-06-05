@@ -45,6 +45,17 @@ static const char *Msg[] = {
 int Isis_Error;
 int Isis_Trace;
 
+static unsigned int print_traceback (void)
+{
+   unsigned int t = SLang_Traceback;
+#ifndef SL_TB_FULL
+# define SL_TB_FULL  0x1
+#endif
+   if (SLang_Version >= 20100)
+     t &= SL_TB_FULL;
+   return t;
+}
+
 void isis_vmesg (int severity, unsigned int err, const char *file, int line,
                  const char *fmt, ...)
 {
@@ -66,11 +77,11 @@ void isis_vmesg (int severity, unsigned int err, const char *file, int line,
      {
         va_list ap;
         char *b = buf;
-        if (*Msg[err] != 0) 
+        if (*Msg[err] != 0)
           {
              *b++ = ':';
              *b++ = ' ';
-          }        
+          }
         va_start (ap, fmt);
         SLvsnprintf (b, sizeof(buf)-1, (char *) fmt, ap);
         va_end (ap);
@@ -78,14 +89,9 @@ void isis_vmesg (int severity, unsigned int err, const char *file, int line,
 
    /* For severe errors, throw a slang exception */
 
-   if (severity < FAIL)
+   if (severity <= FAIL)
      {
-        unsigned int print_traceback = SLang_Traceback;
-#ifndef SL_TB_FULL
-# define SL_TB_FULL  0x1
-#endif
-        if (SLang_Version >= 20100) print_traceback &= SL_TB_FULL;
-        if (print_traceback)
+        if (print_traceback())
           {
              if (file != NULL)
                fprintf (stderr, "Error: %s:%d\n", file, line);
@@ -100,7 +106,7 @@ void isis_vmesg (int severity, unsigned int err, const char *file, int line,
 
 void _isis_throw_exception (int err, const char *file, int line)
 {
-   if ((SLang_Traceback != 0) && (file != NULL))
+   if ((0 != print_traceback()) && (file != NULL))
      {
         SLang_verror (Isis_Error, "Error :%s:%d", file, line);
      }
