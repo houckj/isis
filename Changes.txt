@@ -14,6 +14,8 @@ Changes since 1.6.0 (released Apr 2010)
  8.  Added slang rmf support (contributed by John E. Davis).
  9.  Added 0.5 pixel correction to reference coordinate in confmap
      WCS header (contributed by Manfred Hanke).
+10.  Added support for response, flux qualifiers to all routines
+     that perform forward folding including conf, conf_loop, etc.
 
 Changes since 1.5.0 (released Aug 2009)
 ---------------------------------------
