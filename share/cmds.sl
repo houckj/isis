@@ -303,7 +303,9 @@ define help () %{{{
          http://space.mit.edu/cxc/isis/docs.html
    S-Lang documentation is available at:
          http://www.jedsoft.org/slang/docs.html
-6. If none of these sources provides an answer to your question,
+6. The ISIS FAQ is available at:
+         http://space.mit.edu/cxc/isis/faq.html
+7. If none of these sources provides an answer to your question,
    feel free to ask isis-users@space.mit.edu`;
 
    if (_NARGS != 1)
@@ -898,3 +900,20 @@ define backtrace_filter () %{{{
 
 %}}}
 
+private variable Motd_Display = 1;
+define motd_display (v)
+{
+   Motd_Display = v;
+}
+define motd_print ()
+{
+   if (Motd_Display == 0)
+     return;
+   variable fp = fopen (path_concat (_isis_srcdir, "etc/motd.txt"), "r");
+   if (fp == NULL)
+     return;
+   variable motd = fgetslines (fp);
+   () = fclose (fp);
+   motd = array_map (String_Type, &strtrim_end, motd, "\n");
+   array_map (Void_Type, &message, motd);
+}

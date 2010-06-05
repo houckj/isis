@@ -810,6 +810,7 @@ static int initialize (int argc, char **argv) /*{{{*/
         fprintf (stdout, "\nWelcome to ISIS Version %s\n%s\n\n",
                  ISIS_VERSION_STRING, Isis_Copyright);
         fflush(stdout);
+        (void) SLang_execute_function ("motd_print");
      }
 
    /* If traceback is non-zero, usage messages will
