@@ -2138,73 +2138,6 @@ static void _cursor_region_stats (int * hist_index, int *version, /*{{{*/
 
 /*{{{ rebinning */
 
-static int default_stat_error_hook (void *cl, /*{{{*/
-                                    double *orig_counts, double *orig_stat_err,
-                                    int *rebin, int orig_nbins,
-                                    double *stat_err, int nbins)
-{
-   SLang_Name_Type *hook = (SLang_Name_Type *)cl;
-   SLang_Array_Type *oc, *ose, *reb, *err;
-   int ret = -1;
-
-   oc = ose = reb = err = NULL;
-
-   oc = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &orig_nbins, 1);
-   ose = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &orig_nbins, 1);
-   reb = SLang_create_array (SLANG_INT_TYPE, 0, NULL, &orig_nbins, 1);
-   if ((oc == NULL) || (ose == NULL) || (reb == NULL))
-     goto finish;
-
-   /* using a do-nothing free_fun() method with read-only SLang_Array_Type's
-    * would be more efficient here, but its not worth forcing
-    * an upgrade to slang-1.4.5 for that alone.
-    */
-   memcpy ((char *)oc->data, (char *)orig_counts, orig_nbins * sizeof(double));
-   memcpy ((char *)ose->data, (char *)orig_stat_err, orig_nbins * sizeof(double));
-   memcpy ((char *)reb->data, (char *)rebin, orig_nbins * sizeof(int));
-
-   SLang_start_arg_list ();
-   SLang_push_array (oc, 1);
-   SLang_push_array (ose, 1);
-   SLang_push_array (reb, 1);
-   SLang_end_arg_list ();
-
-   if (-1 == SLexecute_function (hook))
-     goto finish;
-
-   if (SLANG_NULL_TYPE == SLang_peek_at_stack ())
-     {
-        SLdo_pop ();
-        goto finish;
-     }
-
-   if (-1 == SLang_pop_array_of_type (&err, SLANG_DOUBLE_TYPE)
-       || err == NULL)
-     {
-        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "in rebin error hook");
-        goto finish;
-     }
-
-   if ((int) err->num_elements != nbins)
-     {
-        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "wrong size array returned from rebin error hook", hook);
-        goto finish;
-     }
-
-   memcpy ((char *)stat_err, (char *)err->data, nbins * sizeof(double));
-
-   ret = 0;
-
-   finish:
-   if (ret)
-     isis_throw_exception (Isis_Error);
-   SLang_free_array (err);
-
-   return ret;
-}
-
-/*}}}*/
-
 static void set_stat_error_hook (int *indx) /*{{{*/
 {
    SLang_Name_Type *stat_error_hook = NULL;
@@ -2215,7 +2148,7 @@ static void set_stat_error_hook (int *indx) /*{{{*/
 
    set_hook_from_stack (&stat_error_hook);
 
-   if (-1 == Hist_set_stat_error_hook (h, stat_error_hook, (void (*)(void *))SLang_free_function))
+   if (-1 == Hist_set_stat_error_hook (h, stat_error_hook, SLang_free_function))
      {
         isis_vmesg (INTR, I_FAILED, __FILE__, __LINE__, "setting dataset %d rebin error hook", *indx);
      }
@@ -2986,8 +2919,6 @@ int init_hist_module_ns (char *ns_name) /*{{{*/
        || (-1 == SLns_add_iconstant_table (pub_ns, Hist_Pub_Intrin_Const, NULL))
        || (-1 == SLns_add_intrin_var_table (pub_ns, Hist_Intrin_Vars, NULL)))
      return isis_trace_return(-1);
-
-   Hist_Stat_Error_Hook = default_stat_error_hook;
 
    return 0;
 }

@@ -70,10 +70,6 @@ extern int Hist_Ignore_PHA_Backfile_Keyword;
 extern int Hist_Allow_Multiple_Arf_Factors;
 extern int Hist_Warn_Invalid_Uncertainties;
 
-typedef int Hist_Stat_Error_Hook_Type (void *, double *, double *, int *, int,
-                                       double *, int);
-extern Hist_Stat_Error_Hook_Type *Hist_Stat_Error_Hook;
-
 typedef struct _Hist_t Hist_t;
 typedef struct _Hist_Stat_t Hist_Stat_t;
 
@@ -261,7 +257,7 @@ extern int Hist_do_rebin (Hist_t *h, int (*rebin_fcn)(Hist_t *, void *), void *s
 extern int Hist_apply_rebin_and_notice_list (double *bin_and_notice_result, double *x, Hist_t *h);
 extern int Hist_apply_rebin (double *x, Hist_t *h, double **rebinned, int *nbins);
 extern int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins);
-extern int Hist_set_stat_error_hook (Hist_t *h, void *hook, void (*delete_hook)(void *));
+extern int Hist_set_stat_error_hook (Hist_t *h, SLang_Name_Type *hook, void (*delete_hook)(SLang_Name_Type *));
 
 /* flux correct */
 extern int Hist_flux_correct (Hist_t *h, double threshold, double *bgd, int method,

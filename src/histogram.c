@@ -70,8 +70,6 @@ int Hist_Ignore_PHA_Backfile_Keyword;
 int Hist_Allow_Multiple_Arf_Factors;
 int Hist_Warn_Invalid_Uncertainties;
 
-Hist_Stat_Error_Hook_Type *Hist_Stat_Error_Hook;
-
 /* array must be NULL terminated */
 static const char *Spectrum_Hdu_Names[] = {"SPECTRUM", NULL};
 static const char *Spectrum_Hdu_Names_Hook = "_nonstandard_spectrum_hdu_names";
@@ -140,8 +138,8 @@ struct _Hist_t
    SLang_Name_Type *assigned_model;
    Isis_Arg_Type *assigned_model_args;
 
-   void *stat_error_hook;
-   void (*stat_error_hook_delete)(void *);
+   SLang_Name_Type *stat_error_hook;
+   void (*stat_error_hook_delete)(SLang_Name_Type *);
 
    SLang_Any_Type *user_meta;    /* user-defined metadata */
 
@@ -5690,7 +5688,7 @@ int Hist_rebin_min_counts (Hist_t *h, void * s) /*{{{*/
 
 /*}}}*/
 
-int Hist_set_stat_error_hook (Hist_t *h, void *hook, void (*delete_hook)(void *)) /*{{{*/
+int Hist_set_stat_error_hook (Hist_t *h, SLang_Name_Type *hook, void (*delete_hook)(SLang_Name_Type *)) /*{{{*/
 {
    if (h == NULL)
      return -1;
@@ -5703,12 +5701,74 @@ int Hist_set_stat_error_hook (Hist_t *h, void *hook, void (*delete_hook)(void *)
 
 /*}}}*/
 
+static int slang_stat_error_hook (SLang_Name_Type *hook, /*{{{*/
+                                  double *orig_counts, double *orig_stat_err,
+                                  int *rebin, int orig_nbins,
+                                  double *stat_err, int nbins)
+{
+   SLang_Array_Type *oc, *ose, *reb, *err;
+   int ret = -1;
+
+   oc = ose = reb = err = NULL;
+
+   oc = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &orig_nbins, 1);
+   ose = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &orig_nbins, 1);
+   reb = SLang_create_array (SLANG_INT_TYPE, 0, NULL, &orig_nbins, 1);
+   if ((oc == NULL) || (ose == NULL) || (reb == NULL))
+     goto finish;
+
+   memcpy ((char *)oc->data, (char *)orig_counts, orig_nbins * sizeof(double));
+   memcpy ((char *)ose->data, (char *)orig_stat_err, orig_nbins * sizeof(double));
+   memcpy ((char *)reb->data, (char *)rebin, orig_nbins * sizeof(int));
+
+   SLang_start_arg_list ();
+   SLang_push_array (oc, 1);
+   SLang_push_array (ose, 1);
+   SLang_push_array (reb, 1);
+   SLang_end_arg_list ();
+
+   if (-1 == SLexecute_function (hook))
+     goto finish;
+
+   if (SLANG_NULL_TYPE == SLang_peek_at_stack ())
+     {
+        SLdo_pop ();
+        goto finish;
+     }
+
+   if (-1 == SLang_pop_array_of_type (&err, SLANG_DOUBLE_TYPE)
+       || err == NULL)
+     {
+        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "in rebin error hook");
+        goto finish;
+     }
+
+   if ((int) err->num_elements != nbins)
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "wrong size array returned from rebin error hook", hook);
+        goto finish;
+     }
+
+   memcpy ((char *)stat_err, (char *)err->data, nbins * sizeof(double));
+
+   ret = 0;
+
+   finish:
+   if (ret)
+     isis_throw_exception (Isis_Error);
+   SLang_free_array (err);
+
+   return ret;
+}
+
+/*}}}*/
+
 static int run_stat_error_hook (Hist_t *h) /*{{{*/
 {
    double *oc, *ose;
    int on, val_stat;
 
-   if ((h == NULL) || (Hist_Stat_Error_Hook == NULL))
+   if (h == NULL)
      return -1;
 
    on = h->orig_nbins;
@@ -5716,8 +5776,8 @@ static int run_stat_error_hook (Hist_t *h) /*{{{*/
    ose = h->orig_stat_err;
 
    Isis_Active_Dataset = h->index;
-   if (-1 == (*Hist_Stat_Error_Hook)(h->stat_error_hook,
-                                     oc, ose, h->rebin, on, h->stat_err, h->nbins))
+   if (-1 == slang_stat_error_hook (h->stat_error_hook,
+                                    oc, ose, h->rebin, on, h->stat_err, h->nbins))
      return -1;
 
    val_stat = validate_stat_err (h);
@@ -5735,7 +5795,7 @@ static int update_stat_err (Hist_t *h) /*{{{*/
 {
    int k, val_stat;
 
-   if (Hist_Stat_Error_Hook && h->stat_error_hook)
+   if (h->stat_error_hook != NULL)
      return run_stat_error_hook (h);
 
    /* Assume Poisson */
