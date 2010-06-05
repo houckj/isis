@@ -118,12 +118,12 @@ private define try_conf (index, ctrl)
 
    do
      {
-        (s.pmin, s.pmax) = conf (index, ctrl.level, ctrl.tol);
+        (s.pmin, s.pmax) = conf (index, ctrl.level, ctrl.tol ;; __qualifiers);
         if (s.pmin == s.pmax)
           {
              % conf failed -- refit
              variable info;
-             () = fit_counts (&info ; fit_verbose=fit_verbose);
+             () = fit_counts (&info ;; __qualifiers);
              s.num_retries++;
 
              if (save)
@@ -174,7 +174,7 @@ private define conf_slave (s, indices, ctrl)
         variable result = try_conf (index, ctrl ;; __qualifiers);
 
         variable info;
-        () = eval_counts (&info; fit_verbose=fit_verbose);
+        () = eval_counts (&info;; __qualifiers);
 
         send_msg (s, SLAVE_RESULT);
         send_objs (s, index, param_version,
@@ -391,7 +391,7 @@ public define conf_loop()
      }
 
    variable info, fit_verbose = qualifier ("fit_verbose", -1);
-   () = eval_counts (&info; fit_verbose=fit_verbose);
+   () = eval_counts (&info;; __qualifiers);
 
    variable slaves, num_slaves;
    num_slaves = qualifier ("num_slaves", min ([_num_cpus(), num_indices]));

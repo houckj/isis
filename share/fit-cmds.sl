@@ -1000,7 +1000,7 @@ define fit_fun()
 private define _do_eval_fit (_do_eval, data_type, msg, nargs) %{{{
 {
    variable tmp, ref = &tmp,
-     response_type = Assigned_ARFRMF;
+     response_type = qualifier ("response", Assigned_ARFRMF);
 
    switch (nargs)
      {
@@ -1495,6 +1495,9 @@ private define _conf (num, msg, verbose) %{{{
    if (_isis->get_varargs (&idx, &lev, &tolerance, num, 1, msg))
      return;
 
+   _isis->_set_fit_type (qualifier ("response", Assigned_ARFRMF),
+                         qualifier_exists ("flux"));
+
    idx = _get_index (idx);
    return _isis->_confidlev (idx, Delta_Chisqr[lev], verbose, tolerance);
 }
@@ -1511,6 +1514,9 @@ private define _fconf (num, msg, verbose) %{{{
    if (_isis->get_varargs (&idx, &flev, &tolerance, num, 1, msg))
      return;
 
+   _isis->_set_fit_type (qualifier ("response", Assigned_ARFRMF),
+                         qualifier_exists ("flux"));
+
    idx = _get_index (idx);
    return _isis->_confidlev (idx, flev, verbose, tolerance);
 }
@@ -1521,28 +1527,28 @@ define conf ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "(low, high) = conf (param_index [, level [, tolerance]])";
-   return _conf (_NARGS, msg, 0);         % quiet
+   return _conf (_NARGS, msg, 0 ;; __qualifiers);         % quiet
 }
 
 define vconf ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "(low, high) = vconf (param_index [, level [, tolerance]])";
-   return _conf (_NARGS, msg, 1);         % verbose
+   return _conf (_NARGS, msg, 1 ;; __qualifiers);         % verbose
 }
 
 define fconf ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "(low, high) = fconf (param_index [, dchisqr [, tolerance]])";
-   return _fconf (_NARGS, msg, 0);         % quiet
+   return _fconf (_NARGS, msg, 0 ;; __qualifiers);         % quiet
 }
 
 define vfconf ()
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "(low, high) = vfconf (param_index [, dchisqr [, tolerance]])";
-   return _fconf (_NARGS, msg, 1);         % verbose
+   return _fconf (_NARGS, msg, 1 ;; __qualifiers);         % verbose
 }
 
 %}}}
@@ -1623,7 +1629,7 @@ private define _renorm (fit_ref, response_type) %{{{
    % At this point, there should be exactly one free parameter
 
    variable status, new_pars;
-   status = (@fit_ref) (response_type);
+   status = (@fit_ref) (response_type ;; __qualifiers);
    if (-1 == status)
      {
 	if (Isis_Verbose >= _isis->_WARN)
@@ -1655,7 +1661,7 @@ define renorm_counts () %{{{
    if (_isis->get_varargs (&response_type, _NARGS, 0, msg))
      return;
 
-   _renorm (&fit_counts, response_type);
+   _renorm (&fit_counts, response_type ;; __qualifiers);
 }
 
 %}}}
@@ -1669,7 +1675,7 @@ define renorm_flux () %{{{
    if (_isis->get_varargs (&response_type, _NARGS, 0, msg))
      return;
 
-   _renorm (&fit_flux, response_type);
+   _renorm (&fit_flux, response_type ;; __qualifiers);
 }
 
 %}}}
@@ -2183,19 +2189,19 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
 
              variable masked_out =
                ((mask_ref != NULL)
-                && (0 == (@mask_ref) (p1[i1], p2[i2])));
+                && (0 == (@mask_ref) (p1[i1], p2[i2] ;; __qualifiers)));
 
 	     ifnot (masked_out)
 	       {
 		  if (num_free <= 2)
-		    () = (@eval_ref) (&fit_info);
+		    () = (@eval_ref) (&fit_info ;; __qualifiers);
 		  else
 		    {
 		       try_pars = get_params();
-                       if (-1 == (@fit_ref) (&fit_info))
+                       if (-1 == (@fit_ref) (&fit_info ;; __qualifiers))
                          {
                             if (fail_ref != NULL)
-                              (@fail_ref) (ip1, ip2, @best_pars, try_pars, fit_info);
+                              (@fail_ref) (ip1, ip2, @best_pars, try_pars, fit_info ;; __qualifiers);
                          }
 		    }
                   chisqr[i2, i1] = fit_info.statistic;
@@ -2203,7 +2209,7 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
              else fit_info = NULL;
 
 	     if (save_ref != NULL)
-	       (@save_ref) (fit_info);
+	       (@save_ref) (fit_info ;; __qualifiers);
 
              if (print_status)
                {
@@ -2220,7 +2226,7 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
    Fit_Verbose = save_fit_verbose;
 
    set_params (best_pars);
-   () = (@eval_ref) ();
+   () = (@eval_ref) ( ;; __qualifiers);
 
    return chisqr;
 }
@@ -2433,7 +2439,7 @@ private define _conf_map (px, py, info) %{{{
 
    eval_ref = info.eval_ref;
 
-   () = (@eval_ref) (&fit_info);
+   () = (@eval_ref) (&fit_info;; __qualifiers);
    best_pars = get_params ();
 
    s.px_best = get_par (px.index);
@@ -2446,7 +2452,7 @@ private define _conf_map (px, py, info) %{{{
    s.chisqr -= s.best;
 
    set_params (best_pars);
-   () = (@eval_ref) ();
+   () = (@eval_ref) ( ;; __qualifiers);
 
    Isis_Verbose = save_isis_verbose;
    Fit_Verbose = save_fit_verbose;
@@ -2782,7 +2788,7 @@ private define test_params (p, trial) %{{{
    variable info;
 
    set_params (p);
-   () = (@func_ref)(&info);
+   () = (@func_ref)(&info ;; __qualifiers);
 
    _Fit_Search_Info = @info;
 
@@ -2818,7 +2824,7 @@ private define search_loop (trials, seed, best) %{{{
 	  () = fprintf (stderr, "fit_search:  %3d/%3d\tbest=%7.3f\r",
 			i, num, best.stat);
 
-	variable stat = test_params (random_params (p), i);
+	variable stat = test_params (random_params (p), i ;; __qualifiers);
 
 	if (stat < best.stat)
 	  {
@@ -2887,7 +2893,7 @@ private define iterate_func_ref (num, func_ref) %{{{
    variable i = 0, best = struct {p, stat};
 
    best.p = get_params ();
-   best.stat = test_params (best.p, i);
+   best.stat = test_params (best.p, i ;; __qualifiers);
    best.p = get_params ();
 
    variable trials = [0:num-1];
@@ -2936,9 +2942,9 @@ private define iterate_func_ref (num, func_ref) %{{{
    set_params (best.p);
 
    if (func_ref == __get_reference ("fit_counts"))
-     () = eval_counts;
+     () = eval_counts ( ;; __qualifiers);
    else if (func_ref == __get_reference ("fit_flux"))
-     () = eval_flux;
+     () = eval_flux ( ;; __qualifiers);
 
    return best;
 }

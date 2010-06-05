@@ -10660,6 +10660,17 @@ signal slave processes that the confidence limit search should
 be re-started from the beginning using a new initial set of
 parameters.
 
+\begin{verbatim}
+Qualifiers:
+   response     Specify responses to be used, if any.
+                (default = Assigned_ARFRMF)
+                Ideal_ARF | Ideal_RMF | Ideal_ARFRMF
+                Assigned_ARF | Assigned_RMF | Assigned_ARFRMF
+
+   flux        If present, use flux-corrected data
+               If absent, use counts data
+\end{verbatim}
+
 \end{isisfunction}
 
 \begin{isisfunction}
@@ -10805,6 +10816,14 @@ The return value is a structure containing a 2D array of
 chi-square values and other information.  It has the form:
 \begin{verbatim}
   s = struct {chisqr, px, py, best, px_best, py_best};
+\end{verbatim}
+
+\begin{verbatim}
+Qualifiers:
+   response     Specify responses to be used, if any.
+                (default = Assigned_ARFRMF)
+                Ideal_ARF | Ideal_RMF | Ideal_ARFRMF
+                Assigned_ARF | Assigned_RMF | Assigned_ARFRMF
 \end{verbatim}
 
 Because confidence maps can be quite cpu-intensive to compute, it

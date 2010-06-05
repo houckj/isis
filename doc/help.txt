@@ -9227,6 +9227,16 @@ conf
     be re-started from the beginning using a new initial set of
     parameters.
 
+    Qualifiers:
+       response     Specify responses to be used, if any.
+                    (default = Assigned_ARFRMF)
+                    Ideal_ARF | Ideal_RMF | Ideal_ARFRMF
+                    Assigned_ARF | Assigned_RMF | Assigned_ARFRMF
+
+       flux        If present, use flux-corrected data
+                   If absent, use counts data
+
+
 
  SEE ALSO
     fconf, vconf, conf_loop, fit_counts, fit_flux, conf_joint
@@ -9390,6 +9400,12 @@ conf_map_counts
     chi-square values and other information.  It has the form:
 
       s = struct {chisqr, px, py, best, px_best, py_best};
+
+    Qualifiers:
+       response     Specify responses to be used, if any.
+                    (default = Assigned_ARFRMF)
+                    Ideal_ARF | Ideal_RMF | Ideal_ARFRMF
+                    Assigned_ARF | Assigned_RMF | Assigned_ARFRMF
 
     Because confidence maps can be quite cpu-intensive to compute,
     it may be useful to save the resulting map to a FITS file using
