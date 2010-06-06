@@ -89,7 +89,7 @@ void isis_vmesg (int severity, unsigned int err, const char *file, int line,
 
    /* For severe errors, throw a slang exception */
 
-   if (severity <= FAIL)
+   if (severity < FAIL)
      {
         if (print_traceback())
           {
