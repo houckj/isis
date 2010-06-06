@@ -11565,7 +11565,7 @@ then
     jh_pgplot_libfile=$lib_pgplot_file
   OTHER_PGPLOT_LIBS=""
   if test -f "$jh_pgplot_libfile" ; then
-    jh_png_symbols=`nm $jh_png_symbols | grep -i png`
+    jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
     if test x"$jh_png_symbols" != x ; then
        OTHER_PGPLOT_LIBS="-lpng"
     fi
@@ -11732,7 +11732,7 @@ _ACEOF
     jh_pgplot_libfile=$lib_pgplot_file
   OTHER_PGPLOT_LIBS=""
   if test -f "$jh_pgplot_libfile" ; then
-    jh_png_symbols=`nm $jh_png_symbols | grep -i png`
+    jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
     if test x"$jh_png_symbols" != x ; then
        OTHER_PGPLOT_LIBS="-lpng"
     fi
@@ -12264,7 +12264,7 @@ echo "$as_me: error: unable to find the pgplot library and header file $jd_pgplo
     jh_pgplot_libfile=$lib_pgplot_file
   OTHER_PGPLOT_LIBS=""
   if test -f "$jh_pgplot_libfile" ; then
-    jh_png_symbols=`nm $jh_png_symbols | grep -i png`
+    jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
     if test x"$jh_png_symbols" != x ; then
        OTHER_PGPLOT_LIBS="-lpng"
     fi

@@ -1214,7 +1214,7 @@ dnl
   jh_pgplot_libfile=$1
   OTHER_PGPLOT_LIBS=""
   if test -f "$jh_pgplot_libfile" ; then
-    jh_png_symbols=`nm $jh_png_symbols | grep -i png`
+    jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
     if test x"$jh_png_symbols" != x ; then
        OTHER_PGPLOT_LIBS="-lpng"
     fi
