@@ -4625,7 +4625,7 @@ error, e.g. \verb|SYS_ERR|.
 {group}
 {Group spectral bins using S/N ratio and/or channel}
 {group (datasets[] [; qualifiers])}
-{group\_bin, group\_data, rebin\_data, use\_file\_group, regroup\_file, rebin\_dataset, set\_rebin\_error\_hook, rebin, rebin\_array}
+{group\_bin, group\_data, rebin\_data, use\_file\_group, regroup\_file, rebin\_dataset, set\_rebin\_error\_method, rebin, rebin\_array}
 \index{Rebinning!signal to noise ratio}
 \index{Rebinning!channel}
 
@@ -4687,7 +4687,7 @@ per bin above 18 Angstroms.
 {group\_bin}
 {Group data to approximately match a specified grid}
 {group\_bin (datasets[], lo, hi [; qualifiers])}
-{group, group\_data, rebin\_data, use\_file\_group, regroup\_file, rebin\_dataset, set\_rebin\_error\_hook, rebin, rebin\_array}
+{group, group\_data, rebin\_data, use\_file\_group, regroup\_file, rebin\_dataset, set\_rebin\_error\_method, rebin, rebin\_array}
 
 Regroup the specified datasets to match a particular histogram
 grid as closely as possible without changing the underlying
@@ -4706,14 +4706,14 @@ To regrid a dataset to exactly match a particular grid, use
 {group\_data}
 {Group spectral bins by an integer factor}
 {group\_data (hist\_index\_array, factor)}
-{group, group_bin, rebin\_data, use\_file\_group, regroup\_file, rebin\_dataset, set\_rebin\_error\_hook, rebin, rebin\_array}
+{group, group_bin, rebin\_data, use\_file\_group, regroup\_file, rebin\_dataset, set\_rebin\_error\_method, rebin, rebin\_array}
 \index{Rebinning!integer factor}
 
 The count data of each histogram in {\tt hist\_index\_array} is
 rebinned by summing the contents of the original input data bins
 and the associated bin uncertainties ({\tt stat\_err}) are
 recomputed assuming Poisson statistics.  Use
-\verb|set_rebin_error_hook| to change the way bin uncertainties
+\verb|set_rebin_error_method| to change the way bin uncertainties
 are recomputed. Note that this rebinning does not involve an event
 list.
 
@@ -5708,7 +5708,7 @@ To generate a new, matching model array, do the following:
 {rebin\_combined}
 {Rebin a combination of binned spectra}
 {rebin\_combined (gid[], min\_counts\_per\_bin | index\_array)}
-{combine\_datasets, group\_data, rebin\_dataset, set\_rebin\_error\_hook, rebin, rebin\_array}
+{combine\_datasets, group\_data, rebin\_dataset, set\_rebin\_error\_method, rebin, rebin\_array}
 \index{Rebinning!minimum counts per bin}
 \index{Rebinning!using index array}
 
@@ -5724,7 +5724,7 @@ See \verb|rebin_data| and \verb|combine_datasets| for details.
 {rebin\_data}
 {Rebin a binned spectrum}
 {rebin\_data (hist\_index\_array, min\_counts\_per\_bin | index\_array)}
-{group\_data, rebin\_dataset, set\_rebin\_error\_hook, rebin, rebin\_array}
+{group\_data, rebin\_dataset, set\_rebin\_error\_method, rebin, rebin\_array}
 \index{Rebinning!minimum counts per bin}
 \index{Rebinning!using index array}
 
@@ -5732,7 +5732,7 @@ The count data of each histogram in {\tt hist\_index\_array} is
 rebinned by summing the contents of the original input data bins
 and the associated bin uncertainties ({\tt stat\_err}) are
 recomputed assuming Poisson statistics.  Use
-\verb|set_rebin_error_hook()| to change the way bin uncertainties
+\verb|set_rebin_error_method()| to change the way bin uncertainties
 are recomputed. Note that this rebinning does not involve an event
 list.
 
@@ -5785,7 +5785,7 @@ data.} Similarly, any associated fit-models must be recomputed.
 {rebin\_dataset} %name
 {Rebin an RMF and its assigned spectrum} %purpose
 {rebin\_dataset (dataset, bin\_lo, bin\_hi)} %usage
-{rebin\_rmf, rebin\_data, group\_data, set\_rebin\_error\_hook, rebin}
+{rebin\_rmf, rebin\_data, group\_data, set\_rebin\_error\_method, rebin}
 \index{Rebinning!data and response}
 
 This function rebins a counts spectrum and its assigned instrument
@@ -6466,16 +6466,27 @@ set_pre_combine_hook (ids, &pre_combine_hook);
 \end{isisfunction}
 
 \begin{isisfunction}
+{get\_rebin\_error\_hook}
+{Retrieve error propagation hook}
+{Ref\_Type = get\_rebin\_error\_hook (hist\_index)}
+{set\_rebin\_error\_method, set\_rebin\_error\_hook}
+
+Use this function to retrieve a reference to a dataset's error propagation
+hook, if any.  The function returns \verb|NULL| if the Poisson statistics are
+in effect (or if the dataset does not exist).
+\end{isisfunction}
+
+\begin{isisfunction}
 {set\_rebin\_error\_hook}
 {Change the way rebinning propagates uncertainties}
 {set\_rebin\_error\_hook (hist\_index, \&hook)}
 {rebin\_data, group\_data, rebin\_dataset, Minimum\_Stat\_Err}
 \index{Rebinning!error propagation}
 
-Use this function to define the way uncertainties are propagated
-when a counts spectrum is rebinned. By default, Poisson
-uncertainties are assumed. To change this default, specify the
-name of a S-Lang function of the form
+Use this function to provide a S-Lang function to define how uncertainties are
+propagated when a counts spectrum is rebinned. By default, Poisson
+uncertainties are assumed. To change this default, provide a S-Lang function
+of the form
 \begin{verbatim}
   define hook (orig_cts, orig_stat_err, grouping)
 \end{verbatim}
@@ -6486,14 +6497,13 @@ where
          grouping = index array specifying which bins are to
                     be grouped (see rebin_data() for details)
 \end{verbatim}
-This function should return the array of uncertainties
-corresponding to the specified grouping. To indicate an error, it
-should return \verb|NULL|.  Because ISIS validates the uncertainties
-returned by this routine, it may also be necessary
-to change the value of \verb|Minimum_Stat_Err| to ensure that
-the uncertainties computed by the error-hook are not modified.
-Uncertainties must always be positive -- negative or zero values
-are not allowed.
+This function should return the array of uncertainties corresponding to the
+specified grouping. To indicate an error, the function should return
+\verb|NULL|. Because ISIS validates the uncertainties returned by this
+routine, it may also be necessary to change the value of
+\verb|Minimum_Stat_Err| to ensure that the uncertainties computed by the
+error-hook are not modified. Uncertainties must always be positive -- negative
+or zero values are not allowed.
 
 For example, to add bin uncertainties in quadrature when dataset 1
 is rebinned:
@@ -6504,10 +6514,43 @@ is rebinned:
   }
   set_rebin_error_hook (1, &rebin_error_hook);
 \end{verbatim}
+Note that this error hook is equivalent to the built-in \verb|quadsum|
+method supported by \verb|set_rebin_error_method|.
 
-To delete the error-hook for a particular dataset, use
+To delete the error-hook for a particular dataset (reverting to Poisson
+statistics), use
 \begin{verbatim}
     set_rebin_error_hook (index, NULL);
+\end{verbatim}
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{set\_rebin\_error\_method}
+{Change the way rebinning propagates uncertainties}
+{set\_rebin\_error\_method (hist\_index, "method\_name" [, \&method\_hook])}
+{rebin\_data, group, group\_bin, group\_data, rebin\_dataset, Minimum\_Stat\_Err}
+\index{Rebinning!error propagation}
+
+Use this function to define the way statistical uncertainties are propagated
+when a counts spectrum is rebinned. Supported error propagation methods are:
+
+\begin{verbatim}
+ __Method_Name__      __Definition__
+   poisson (default)  new_stat_err = sqrt (grouped_counts)
+
+   quadsum            new_stat_err = sqrt (sum (stat_err^2))
+
+   user               defined by `method_hook' function reference.
+                      (see set_rebin_error_hook for details)
+\end{verbatim}
+
+\begin{verbatim}
+EXAMPLES:
+    set_rebin_error_method (1, "quadsum");
+    set_rebin_error_method (1, NULL);     % equivalent to "poisson"
+
+    set_rebin_error_method (1, "user", &my_rebin_method);
 \end{verbatim}
 
 \end{isisfunction}

@@ -2702,7 +2702,7 @@ group
 
 
  SEE ALSO
-    group_bin, group_data, rebin_data, use_file_group, regroup_file, rebin_dataset, set_rebin_error_hook, rebin, rebin_array
+    group_bin, group_data, rebin_data, use_file_group, regroup_file, rebin_dataset, set_rebin_error_method, rebin, rebin_array
 
 ------------------------------------------------------------------------
 group_bin
@@ -2727,7 +2727,7 @@ group_bin
     rebin_dataset.
 
  SEE ALSO
-    group, group_data, rebin_data, use_file_group, regroup_file, rebin_dataset, set_rebin_error_hook, rebin, rebin_array
+    group, group_data, rebin_data, use_file_group, regroup_file, rebin_dataset, set_rebin_error_method, rebin, rebin_array
 
 ------------------------------------------------------------------------
 group_data
@@ -2743,7 +2743,7 @@ group_data
     rebinned by summing the contents of the original input data
     bins and the associated bin uncertainties ( stat_err) are
     recomputed assuming Poisson statistics.  Use
-    set_rebin_error_hook to change the way bin uncertainties are
+    set_rebin_error_method to change the way bin uncertainties are
     recomputed. Note that this rebinning does not involve an event
     list.
 
@@ -2753,7 +2753,7 @@ group_data
 
 
  SEE ALSO
-    group, group_bin, rebin_data, use_file_group, regroup_file, rebin_dataset, set_rebin_error_hook, rebin, rebin_array
+    group, group_bin, rebin_data, use_file_group, regroup_file, rebin_dataset, set_rebin_error_method, rebin, rebin_array
 
 ------------------------------------------------------------------------
 back_fun
@@ -3873,7 +3873,7 @@ rebin_combined
 
 
  SEE ALSO
-    combine_datasets, group_data, rebin_dataset, set_rebin_error_hook, rebin, rebin_array
+    combine_datasets, group_data, rebin_dataset, set_rebin_error_method, rebin, rebin_array
 
 ------------------------------------------------------------------------
 rebin_data
@@ -3889,9 +3889,9 @@ rebin_data
     rebinned by summing the contents of the original input data
     bins and the associated bin uncertainties ( stat_err) are
     recomputed assuming Poisson statistics.  Use
-    set_rebin_error_hook() to change the way bin uncertainties are
-    recomputed. Note that this rebinning does not involve an event
-    list.
+    set_rebin_error_method() to change the way bin uncertainties
+    are recomputed. Note that this rebinning does not involve an
+    event list.
 
     The second argument to rebin_data may be either a positive
     scalar value or an integer array of the same size as the
@@ -3939,7 +3939,7 @@ rebin_data
 
 
  SEE ALSO
-    group_data, rebin_dataset, set_rebin_error_hook, rebin, rebin_array
+    group_data, rebin_dataset, set_rebin_error_method, rebin, rebin_array
 
 ------------------------------------------------------------------------
 rebin_dataset
@@ -3958,7 +3958,7 @@ rebin_dataset
 
 
  SEE ALSO
-    rebin_rmf, rebin_data, group_data, set_rebin_error_hook, rebin
+    rebin_rmf, rebin_data, group_data, set_rebin_error_method, rebin
 
 ------------------------------------------------------------------------
 rebin_rmf
@@ -4727,6 +4727,24 @@ set_pre_combine_hook
     combine_datasets, set_eval_grid_method
 
 ------------------------------------------------------------------------
+get_rebin_error_hook
+
+ SYNOPSIS
+    Retrieve error propagation hook
+
+ USAGE
+    Ref_Type = get_rebin_error_hook (hist_index)
+
+ DESCRIPTION
+    Use this function to retrieve a reference to a dataset's error
+    propagation hook, if any.  The function returns NULL if the
+    Poisson statistics are in effect (or if the dataset does not
+    exist).
+
+ SEE ALSO
+    set_rebin_error_method, set_rebin_error_hook
+
+------------------------------------------------------------------------
 set_rebin_error_hook
 
  SYNOPSIS
@@ -4736,10 +4754,10 @@ set_rebin_error_hook
     set_rebin_error_hook (hist_index, &hook)
 
  DESCRIPTION
-    Use this function to define the way uncertainties are
-    propagated when a counts spectrum is rebinned. By default,
-    Poisson uncertainties are assumed. To change this default,
-    specify the name of a S-Lang function of the form
+    Use this function to provide a S-Lang function to define how
+    uncertainties are propagated when a counts spectrum is
+    rebinned. By default, Poisson uncertainties are assumed. To
+    change this default, provide a S-Lang function of the form
 
       define hook (orig_cts, orig_stat_err, grouping)
 
@@ -4752,7 +4770,7 @@ set_rebin_error_hook
 
     This function should return the array of uncertainties
     corresponding to the specified grouping. To indicate an error,
-    it should return NULL.  Because ISIS validates the
+    the function should return NULL. Because ISIS validates the
     uncertainties returned by this routine, it may also be
     necessary to change the value of Minimum_Stat_Err to ensure
     that the uncertainties computed by the error-hook are not
@@ -4768,7 +4786,11 @@ set_rebin_error_hook
       }
       set_rebin_error_hook (1, &rebin_error_hook);
 
-    To delete the error-hook for a particular dataset, use
+    Note that this error hook is equivalent to the built-in quadsum
+    method supported by set_rebin_error_method.
+
+    To delete the error-hook for a particular dataset (reverting to
+    Poisson statistics), use
 
         set_rebin_error_hook (index, NULL);
 
@@ -4776,6 +4798,39 @@ set_rebin_error_hook
 
  SEE ALSO
     rebin_data, group_data, rebin_dataset, Minimum_Stat_Err
+
+------------------------------------------------------------------------
+set_rebin_error_method
+
+ SYNOPSIS
+    Change the way rebinning propagates uncertainties
+
+ USAGE
+    set_rebin_error_method (hist_index, "method_name" [, &method_hook])
+
+ DESCRIPTION
+    Use this function to define the way statistical uncertainties
+    are propagated when a counts spectrum is rebinned. Supported
+    error propagation methods are:
+
+     __Method_Name__      __Definition__
+       poisson (default)  new_stat_err = sqrt (grouped_counts)
+
+       quadsum            new_stat_err = sqrt (sum (stat_err^2))
+
+       user               defined by `method_hook' function reference.
+                          (see set_rebin_error_hook for details)
+
+    EXAMPLES:
+        set_rebin_error_method (1, "quadsum");
+        set_rebin_error_method (1, NULL);     % equivalent to "poisson"
+
+        set_rebin_error_method (1, "user", &my_rebin_method);
+
+
+
+ SEE ALSO
+    rebin_data, group, group_bin, group_data, rebin_dataset, Minimum_Stat_Err
 
 ------------------------------------------------------------------------
 unassign_arf
