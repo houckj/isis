@@ -1076,6 +1076,45 @@ define set_rebin_error_hook () %{{{
 
 %}}}
 
+define get_rebin_error_hook () %{{{
+{
+   variable msg = "Ref_Type = get_rebin_error_hook (hist_index)";
+   if (_isis->chk_num_args (_NARGS, 1, msg))
+     return;
+   variable id = ();
+   _isis->_get_stat_error_hook (id);
+}
+
+%}}}
+
+private define quadsum_error_hook (orig_cts, orig_stat_err, grouping) %{{{
+{
+   return sqrt(_isis->_rebin_array (orig_stat_err^2, grouping));
+}
+
+%}}}
+
+define set_rebin_error_method () %{{{
+{
+   _isis->error_if_fit_in_progress (_function_name);
+   variable msg =
+"set_rebin_error_method (hist_index, method_name [, &method_hook])\n\
+    method_name = poisson | quadsum | user";
+   variable id, method, hook;
+
+   if (_isis->get_varargs (&id, &method, &hook, _NARGS, 2, msg))
+     return;
+
+   if (method == "poisson")
+     hook = NULL;
+   else if (method == "quadsum")
+     hook = &quadsum_error_hook;
+
+   set_rebin_error_hook (id, hook);
+}
+
+%}}}
+
 define rebin_data () %{{{
 {
    _isis->error_if_fit_in_progress (_function_name);
