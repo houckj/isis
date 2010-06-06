@@ -2138,6 +2138,18 @@ static void _cursor_region_stats (int * hist_index, int *version, /*{{{*/
 
 /*{{{ rebinning */
 
+static void get_stat_error_hook (int *indx) /*{{{*/
+{
+   Hist_t *h;
+
+   if (NULL == (h = find_hist (*indx)))
+     return;
+
+   (void) SLang_push_function (Hist_get_stat_error_hook (h));
+}
+
+/*}}}*/
+
 static void set_stat_error_hook (int *indx) /*{{{*/
 {
    SLang_Name_Type *stat_error_hook = NULL;
@@ -2775,6 +2787,7 @@ static SLang_Intrin_Fun_Type Hist_Intrinsics [] =
    MAKE_INTRINSIC("_array_interp", array_interp, V, 0),
    MAKE_INTRINSIC("_array_interp_points", array_interp_points, V, 0),
    MAKE_INTRINSIC_1("_set_stat_error_hook", set_stat_error_hook, V, I),
+   MAKE_INTRINSIC_1("_get_stat_error_hook", get_stat_error_hook, V, I),
    MAKE_INTRINSIC_2("_load_data", _load_data, V, S, I),
    MAKE_INTRINSIC_I("_delete_hist", _delete_hist, V),
    MAKE_INTRINSIC_2("_get_hist", get_hist, V, I, UI),

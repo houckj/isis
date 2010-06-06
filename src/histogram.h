@@ -258,6 +258,7 @@ extern int Hist_apply_rebin_and_notice_list (double *bin_and_notice_result, doub
 extern int Hist_apply_rebin (double *x, Hist_t *h, double **rebinned, int *nbins);
 extern int Hist_rebin (Hist_t *h, double *lo, double *hi, int nbins);
 extern int Hist_set_stat_error_hook (Hist_t *h, SLang_Name_Type *hook, void (*delete_hook)(SLang_Name_Type *));
+extern SLang_Name_Type *Hist_get_stat_error_hook (Hist_t *h);
 
 /* flux correct */
 extern int Hist_flux_correct (Hist_t *h, double threshold, double *bgd, int method,

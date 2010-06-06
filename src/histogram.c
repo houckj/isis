@@ -5688,6 +5688,13 @@ int Hist_rebin_min_counts (Hist_t *h, void * s) /*{{{*/
 
 /*}}}*/
 
+SLang_Name_Type *Hist_get_stat_error_hook (Hist_t *h) /*{{{*/
+{
+   return h ? h->stat_error_hook : NULL;
+}
+
+/*}}}*/
+
 int Hist_set_stat_error_hook (Hist_t *h, SLang_Name_Type *hook, void (*delete_hook)(SLang_Name_Type *)) /*{{{*/
 {
    if (h == NULL)
