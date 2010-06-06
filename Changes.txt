@@ -16,6 +16,7 @@ Changes since 1.6.0 (released Apr 2010)
      WCS header (contributed by Manfred Hanke).
 10.  Added support for response, flux qualifiers to all routines
      that perform forward folding including conf, conf_loop, etc.
+11.  New intrinsics: set_rebin_error_method, get_rebin_error_hook
 
 Changes since 1.5.0 (released Aug 2009)
 ---------------------------------------
