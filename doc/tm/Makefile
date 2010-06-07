@@ -1,9 +1,9 @@
 # -*- sh -*-
 #
-# To create the SGML files, you will need to install the tm-utils
+# To create the SGML files, you will need to install the tmexpand
 # package.  See http://www.jedsoft.org/ for more information.
 #
-TMEXPAND = /aluche/d1/web/tm-dist/bin/tmexpand
+TMEXPAND = tmexpand
 SL2TM = sl2tm
 MACRODIR = /aluche/d1/web/tm-dist/macros
 
