@@ -1,3 +1,4 @@
-      URL:  http://space.mit.edu/cxc/isis
-  Send questions to <isis-users@space.mit.edu>
+          Isis web page: http://space.mit.edu/cxc/isis/
+   Mailing list archive: http://space.mit.edu/cxc/isis/archive/
+ Send questions to the mailing list: <isis-users@space.mit.edu>.
 

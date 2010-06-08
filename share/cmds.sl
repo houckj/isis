@@ -900,15 +900,9 @@ define backtrace_filter () %{{{
 
 %}}}
 
-private variable Motd_Display = 1;
-define motd_display (v)
-{
-   Motd_Display = v;
-}
+% to turn this off, just re-define motd_print() to do nothing.
 define motd_print ()
 {
-   if (Motd_Display == 0)
-     return;
    variable fp = fopen (path_concat (_isis_srcdir, "etc/motd.txt"), "r");
    if (fp == NULL)
      return;
