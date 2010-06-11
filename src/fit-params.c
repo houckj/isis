@@ -621,6 +621,46 @@ Param_Info_t *Fit_variable_param_info (Param_t *pt, unsigned int vary_idx) /*{{{
 
 /*}}}*/
 
+int Fit_set_param_hard_limits1 (Param_t *pt, int idx,
+                                int hard_limits_only, Param_Info_t *pnew)
+{
+   Param_Info_t *p;
+
+   if (NULL == (p = find_param_by_index (pt, idx)))
+     return -1;
+
+   if (hard_limits_only)
+     {
+        if ((pnew->hard_min > p->min) || (p->max > pnew->hard_max))
+          {
+             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                         "parameter %d: new hard limits do not contain current min/max range", idx);
+             return -1;
+          }
+
+        p->hard_min = pnew->hard_min;
+        p->hard_max = pnew->hard_max;
+
+        return 0;
+     }
+
+   if ((pnew->hard_min > pnew->min) || (pnew->min > pnew->value)
+       || (pnew->value > pnew->max) || (pnew->max > pnew->hard_max))
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                    "parameter %d: assigning inconsistent parameter limits", idx);
+        return -1;
+     }
+
+   p->hard_min = pnew->hard_min;
+   p->hard_max = pnew->hard_max;
+   p->min = pnew->min;
+   p->max = pnew->max;
+   p->value = pnew->value;
+
+   return update_derived_params (pt);
+}
+
 int Fit_set_param_control (Param_t *pt, unsigned int idx, int update_minmax,  /*{{{*/
                            double min, double max, int freeze, char *tie)
 {

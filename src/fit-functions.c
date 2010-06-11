@@ -145,53 +145,53 @@ static int set_cfun_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
 
 /*}}}*/
 
-static int set_kernel_param_hard_limits (Fit_Fun_t *ff, unsigned int which, double hard_min, double hard_max) /*{{{*/
+static int set_kernel_param_hard_limits (Fit_Fun_t *ff, unsigned int which, /*{{{*/
+                                         int hard_limits_only,
+                                         double hard_min, double hard_max,
+                                         double p_min, double p_max,
+                                         double value)
 {
    Isis_Kernel_Def_t *def = (Isis_Kernel_Def_t *)ff->client_data;
 
    if (def == NULL)
      return -1;
 
-   if (0 == isnan(hard_min))
+   if ((def->default_hard_min == NULL) || (def->default_hard_max == NULL))
      {
-        if (def->default_hard_min == NULL)
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                    "kernel '%s' does not support parameter hard limits",
+                    ff->name[0]);
+        return -1;
+     }
+
+   if (hard_limits_only)
+     {
+        if ((hard_min > def->default_min[which])
+            || (def->default_max[which] > hard_max))
           {
              isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
-                         "kernel '%s' parameters have no hard lower limits",
-                         ff->name[0]);
-             return -1;
-          }
-        if (def->default_min[which] < hard_min)
-          {
-             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
-                         "parameter %s.%s: default hard minimum not changed. (hard_min=%g is inconsistent with default minimum=%g)",
-                         ff->name[0], ff->name[which+1],
-                         hard_min,
-                         def->default_min[which]);
+                         "parameter %s.%s: default hard limits do not contain current min/max range)",
+                         ff->name[0], ff->name[which+1]);
              return -1;
           }
         def->default_hard_min[which] = hard_min;
-     }
-
-   if (0 == isnan(hard_max))
-     {
-        if (def->default_hard_max == NULL)
-          {
-             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
-                         "kernel '%s' parameters have no hard upper limits",
-                         ff->name[0]);
-             return -1;
-          }
-        if (def->default_max[which] > hard_max)
-          {
-             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
-                         "parameter %s.%s: default hard maximum not changed. (hard_max=%g is inconsistent with default maximum=%g)",
-                         ff->name[0], ff->name[which+1],
-                         hard_max,
-                         def->default_max[which]);
-             return -1;
-          }
         def->default_hard_max[which] = hard_max;
+     }
+   else
+     {
+        if ((hard_min > p_min) || (p_min > value)
+            || (value > p_max) || (p_max > hard_max))
+          {
+             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                         "parameter %s.%s: assigning inconsistent parameter limits",
+                         ff->name[0], ff->name[which+1]);
+             return -1;
+          }
+        def->default_hard_min[which] = hard_min;
+        def->default_hard_max[which] = hard_max;
+        def->default_min[which] = p_min;
+        def->default_max[which] = p_max;
+        def->default_value[which] = value;
      }
 
    return 0;
@@ -199,80 +199,55 @@ static int set_kernel_param_hard_limits (Fit_Fun_t *ff, unsigned int which, doub
 
 /*}}}*/
 
-static int set_cfun_param_hard_limits (Fit_Fun_t *ff, unsigned int which, double hard_min, double hard_max) /*{{{*/
+static int set_cfun_param_hard_limits (Fit_Fun_t *ff, unsigned int which, /*{{{*/
+                                       int hard_limits_only,
+                                       double hard_min, double hard_max,
+                                       double p_min, double p_max,
+                                       double value)
 {
    if (ff == NULL)
      return -1;
 
-   if (0 == isnan(hard_min))
+   if ((ff->s.default_hard_min == NULL) || (ff->s.default_hard_max == NULL))
      {
-        if (ff->s.default_hard_min == NULL)
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                    "function '%s' does not support parameter hard limits",
+                    ff->name[0]);
+        return -1;
+     }
+
+   if (hard_limits_only)
+     {
+        if ((hard_min > ff->s.default_min[which])
+            || (ff->s.default_max[which] > hard_max))
           {
              isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
-                         "function '%s' parameters have no hard lower limits",
-                         ff->name[0]);
-             return -1;
-          }
-        if (ff->s.default_min[which] < hard_min)
-          {
-             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
-                         "parameter %s.%s: default hard minimum not changed. (hard_min=%g is inconsistent with default minimum=%g)",
-                         ff->name[0], ff->name[which+1],
-                         hard_min,
-                         ff->s.default_min[which]);
+                         "parameter %s.%s: default hard minimum do not contain current min/max range)",
+                         ff->name[0], ff->name[which+1]);
              return -1;
           }
         ff->s.default_hard_min[which] = hard_min;
-     }
-
-   if (0 == isnan(hard_max))
-     {
-        if (ff->s.default_hard_max == NULL)
-          {
-             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
-                         "function '%s' parameters have no hard upper limits",
-                         ff->name[0]);
-             return -1;
-          }
-        if (ff->s.default_max[which] > hard_max)
-          {
-             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
-                         "parameter %s.%s: default hard maximum not changed. (hard_max=%g is inconsistent with default maximum=%g)",
-                         ff->name[0], ff->name[which+1],
-                         hard_max,
-                         ff->s.default_max[which]);
-             return -1;
-          }
         ff->s.default_hard_max[which] = hard_max;
+     }
+   else
+     {
+        if ((hard_min > p_min) || (p_min > value)
+            || (value > p_max) || (p_max > hard_max))
+          {
+             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                         "parameter %s.%s: assigning inconsistent parameter limits",
+                         ff->name[0], ff->name[which+1]);
+             return -1;
+          }
+
+        ff->s.default_hard_min[which] = hard_min;
+        ff->s.default_hard_max[which] = hard_max;
+        ff->s.default_min[which] = p_min;
+        ff->s.default_max[which] = p_max;
+        ff->s.default_value[which] = value;
      }
 
    return 0;
-}
-
-/*}}}*/
-
-static int set_slangfun_param_hard_limits (Fit_Fun_t *ff, unsigned int which, double hard_min, double hard_max) /*{{{*/
-{
-   int status;
-   if (ff == NULL)
-     return -1;
-
-   SLang_start_arg_list ();
-   if ((-1 == SLang_push_string (ff->name[0]))
-       || (-1 == SLang_push_string (ff->name[which+1]))
-       || (-1 == SLang_push_uint (which))
-       || (-1 == SLang_push_double (hard_min))
-       || (-1 == SLang_push_double (hard_max)))
-     {
-        return -1;
-     }
-   SLang_end_arg_list ();
-
-   SLang_execute_function ("_isis->set_slangfun_param_hard_limits");
-
-   (void) SLang_pop_integer (&status);
-
-   return status;
 }
 
 /*}}}*/
@@ -300,6 +275,46 @@ static SLang_CStruct_Field_Type Param_Default_Type_Layout [] =
    MAKE_CSTRUCT_FIELD (Param_Default_Type, freeze, "freeze", SLANG_INT_TYPE, 0),
    SLANG_END_CSTRUCT_TABLE
 };
+
+static int set_slangfun_param_hard_limits (Fit_Fun_t *ff, unsigned int which, /*{{{*/
+                                           int hard_limits_only,
+                                           double hard_min, double hard_max,
+                                           double p_min, double p_max,
+                                           double value)
+{
+   Param_Default_Type pdt;
+   int status;
+
+   if (ff == NULL)
+     return -1;
+
+   memset ((char *)&pdt, 0, sizeof(Param_Default_Type));
+
+   pdt.hard_min = hard_min;
+   pdt.hard_max = hard_max;
+   pdt.min = p_min;
+   pdt.max = p_max;
+   pdt.value = value;
+
+   SLang_start_arg_list ();
+   if ((-1 == SLang_push_string (ff->name[0]))
+       || (-1 == SLang_push_string (ff->name[which+1]))
+       || (-1 == SLang_push_uint (which))
+       || (-1 == SLang_push_integer (hard_limits_only))
+       || (-1 == SLang_push_cstruct ((VOID_STAR)&pdt, Param_Default_Type_Layout)))
+     {
+        return -1;
+     }
+   SLang_end_arg_list ();
+
+   SLang_execute_function ("_isis->set_slangfun_param_hard_limits");
+
+   (void) SLang_pop_integer (&status);
+
+   return status;
+}
+
+/*}}}*/
 
 static int pop_slangfun_default_struct (Param_Info_t *p)
 {
@@ -1528,15 +1543,11 @@ push_struct:
 
 /*}}}*/
 
-/* I'm providing a way for users to modify the hard limits primarily
- * because the hard limits are sometimes thoughtlessly set to a range that
- * is too restrictive, e.g. forcing all Doppler shifts to be red-shifts
- * and ruling out blue-shifts.
- */
-int Fit_set_hard_limits (char *fun_name, char *par_name, double *hard_min, double *hard_max) /*{{{*/
+static int set_function_hard_limits (char *fun_name, char *par_name, int hard_limits_only,
+                                     Param_Info_t *p)
 {
    Fit_Fun_t *ff;
-   unsigned int i, which = UINT_MAX;
+   unsigned int i, which;
 
    if (fun_name == NULL || par_name == NULL)
      return -1;
@@ -1565,7 +1576,36 @@ int Fit_set_hard_limits (char *fun_name, char *par_name, double *hard_min, doubl
         return -1;
      }
 
-   return (*ff->set_param_hard_limits)(ff, which, *hard_min, *hard_max);
+   return (*ff->set_param_hard_limits)
+     (ff, which, hard_limits_only, p->hard_min, p->hard_max,
+         p->min, p->max, p->value);
+}
+
+/* I'm providing a way for users to modify the hard limits primarily
+ * because the hard limits are sometimes thoughtlessly set to a range that
+ * is too restrictive, e.g. forcing all Doppler shifts to be red-shifts
+ * and ruling out blue-shifts.
+ */
+int Fit_set_hard_limits (char *fun_name, char *par_name, int *idx, int *hard_limits_only) /*{{{*/
+{
+   Param_Default_Type pdt;
+   Param_Info_t p;
+
+   if (-1 == SLang_pop_cstruct ((VOID_STAR)&pdt, Param_Default_Type_Layout))
+     return -1;
+
+   p.hard_min = pdt.hard_min;
+   p.hard_max = pdt.hard_max;
+   p.min = pdt.min;
+   p.max = pdt.max;
+   p.value = pdt.value;
+
+   SLang_free_cstruct ((VOID_STAR)&pdt, Param_Default_Type_Layout);
+
+   if (*idx < 0)
+     return set_function_hard_limits (fun_name, par_name, *hard_limits_only, &p);
+
+   return Fit_set_param_hard_limits (*idx, *hard_limits_only, &p);
 }
 
 /*}}}*/

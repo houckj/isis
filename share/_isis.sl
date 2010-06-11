@@ -717,49 +717,47 @@ define options_to_struct (options) %{{{
 % named __${fname}_Defaults (and the only functions known
 % to do that are those defined by the xspec module...)
 %
-define set_slangfun_param_hard_limits (fun_name, par_name, index, hard_min, hard_max) %{{{
+define set_slangfun_param_hard_limits (fun_name, par_name, index, hard_limits_only, pdt) %{{{
 {
-   variable msg;
-
    variable default_struct_array_name = "__${fun_name}_Defaults"$;
    variable rs = __get_reference (default_struct_array_name);
 
    if (rs == NULL || 0 == _is_struct_type (@rs))
      {
-        msg = "*** Sorry, I can't change the hard limits for function '$fun_name' (struct $default_struct_array_name is undefined)"$;
-        vmessage(msg);
+        vmessage ("Sorry, I can't change the hard limits for function '$fun_name' (struct $default_struct_array_name is undefined)"$);
         return -1;
      }
 
    variable s = (@rs)[index];
 
-   if (0 == isnan(hard_min))
+   if (hard_limits_only)
      {
-        if (s.min < hard_min)
+        if ((pdt.hard_min > s.min) || (s.max > pdt.hard_max))
           {
-             msg = sprintf ("parameter %s.%s: hard minimum not changed.  (hard_min=%g is inconsistent with default minimum=%g)",
-                            fun_name, par_name,
-                            hard_min,
-                            s.min);
-             vmessage(msg);
+             vmessage ("Error:  parameter %s.%s: new hard limits do not contain current min/max range",
+                       fun_name, par_name);
              return -1;
           }
-        s.hard_min = hard_min;
+
+        s.hard_min = pdt.hard_min;
+        s.hard_max = pdt.hard_max;
+
+        return 0;
      }
 
-   if (0 == isnan(hard_max))
+   if ((pdt.hard_min > pdt.min) || (pdt.min > pdt.value)
+       || (pdt.value > pdt.max) || (pdt.max > pdt.hard_max))
      {
-        if (s.max > hard_max)
-          {
-             msg = sprintf ("parameter %s.%s: hard maximum not changed.  (hard_max=%g is inconsistent with default maximum=%g)",
-                            fun_name, par_name,
-                            hard_max,
-                            s.max);
-             vmessage(msg);
-             return -1;
-          }
-        s.hard_max = hard_max;
+        vmessage ("Error:  parameter %s.%s: inconsistent parameter limits",
+                  fun_name, par_name);
+        return -1;
      }
+
+   s.hard_min = pdt.hard_min;
+   s.hard_max = pdt.hard_max;
+   s.min = pdt.min;
+   s.max = pdt.max;
+   s.value = pdt.value;
 
    return 0;
 }

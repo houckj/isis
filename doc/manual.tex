@@ -13598,59 +13598,56 @@ Example:
 \end{isisfunction}
 
 \begin{isisfunction}
-{set\_hard\_limits}
+{\_\_set\_hard\_limits}
 {Adjust the hard limits constraining a fit parameter's value}
-{set\_hard\_limits (fun\_name, par\_name, [hard\_min], [hard\_max])}
+{\_\_set\_hard\_limits (fun\_name, par\_name, hard\_min, hard\_max)\\
+\_\_set\_hard\_limits (index, hard\_min, hard\_max)}%
 {set\_par}
 
-Because hard limits are intended to define the full range of parameter values
-for which a fit-function is applicable, it should not be necessary for the
-user to modify the hard limits at all.
+Because hard limits of a parameter are intended to provide a way for the
+author of a model to define the full range of parameter values for which the
+model is applicable, it should not be necessary for the user to modify the
+hard limits at all.
 
-Unfortunately, hard limits are sometimes set to an overly restrictive range.
-For example, hard limits may constrain a Doppler shift parameter to always
-correspond to a redshift even though the same code can perfectly well handle a
-blueshift.
+Unfortunately, hard limits are sometimes carelessly set to an overly
+restrictive range. For example, hard limits may constrain a Doppler shift
+parameter to always correspond to a redshift even though the same code can
+perfectly well handle a blueshift.
 
-Use \verb|set_hard_limits| to adjust the hard limits for a given parameter of
-a given function. Note that the new hard limits will apply only to instances
-of the fit-function that are used AFTER the hard limits were changed.
-Specifying a value of \verb|NULL| or \verb|_NaN| leaves the corresponding hard
-limit unchanged. When a fit-function imposes no default hard limits on
-parameter values, calling \verb|set_hard_limits| will not change that.
+Use \verb|__set_hard_limits| to change the hard limits for a given parameter.
+
+This change can be applied either to a specific instance of a function or to
+the default configuration of a function.  If the default configuration is
+modified, all subsequent instances of the function will be affected.
+
+To change the hard limits for a specific instance of a function:
+\begin{verbatim}
+  __set_hard_limits ("mekal(1).redshift", -10, 10);
+\end{verbatim}
+
+To change the hard limits for the default configuration of a function:
+\begin{verbatim}
+  __set_hard_limits ("mekal", "redshift", -10, 10);
+\end{verbatim}
+
+If the specified hard limits do not contain the current parameter value and
+its soft limits, then consistent values for the parameter and its soft limits
+must also be provided using the \verb|parms| qualifier. The \verb|parms|
+qualifier is a numerical array of length 3.  If present, the array will be
+sorted in increasing order and then the three elements will be used as
+the new \verb|min|, \verb|value|, \verb|max|.  For example:
 
 \begin{verbatim}
-EXAMPLE:
-      % Suppose we've been working with this model:
-    isis> fit_fun ("TBabs(1) * mekal(1)");
-
-      % Now we want to add a blue-shifted mekal component,
-      % but the current hard limits on mekal.redshift
-      % do not allow setting redshift < 0.
-
-      % To fix this, first change the hard lower limit on the
-      % redshift parameter to allow blueshifts:
-    isis> set_hard_limits ("mekal", "redshift", -1, NULL);
-
-      % Now introduce the blue-shifted component:
-    isis> fit_fun ("TBabs(1) * (mekal(1) + mekal(2))");
-    isis> set_par ("mekal(2).redshift", -0.04, 0, -0.5, 0.5);
-
-      % Note that the hard lower limit on mekal(1).redshift
-      % is still set to 0:
-    isis> set_par ("mekal(1).redshift", -0.04, 0, -0.5, 0.5);
-    Error: parameter 6 minimum=-0.5 violates hard limits (0, 10)
-    Failed: setting parameter 6
-    Isis Error
-    isis>
+  __set_hard_limits ("mekal(1)", "redshift", -10, 0; parms=[-3, -2, -1]);
 \end{verbatim}
+
 \end{isisfunction}
 
 \begin{isisfunction}
 {set\_par} %name
 {set the value of a fit parameter} %purpose
 {set\_par (idx, value [,freeze, [ min, max [,step]]])} %usage
-{edit\_par, load\_par, get\_par, set\_par\_fun, set\_hard\_limits}
+{edit\_par, load\_par, get\_par, set\_par\_fun, \_\_set\_hard\_limits}
 \begin{verbatim}
       idx    parameter index or string identifier
     value    parameter value

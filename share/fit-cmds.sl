@@ -519,21 +519,67 @@ define get_fit_fun () %{{{
 
 %}}}
 
-define set_hard_limits ()
+define __set_hard_limits ()
 {
    _isis->error_if_fit_in_progress (_function_name);
-   variable msg = "set_hard_limits (fun_name, par_name, [hard_min], [hard_max])";
+   variable msg =
+"__set_hard_limits (fun_name, par_name, hard_min, hard_max);\n\
+  or\n\
+__set_hard_limits (index, hard_min, hard_max);\n\
+          Qualifier:  parm=[min, max, value]";
 
-   if (_isis->chk_num_args (_NARGS, 4, msg))
-     return;
+   variable fun_name = "", par_name = "", idx = -1,
+     hard_min, hard_max;
 
-   variable fun_name, par_name, hard_min, hard_max;
-   (fun_name, par_name, hard_min, hard_max) = ();
+   switch (_NARGS)
+     {
+      case 4:
+        (fun_name, par_name, hard_min, hard_max) = ();
+     }
+     {
+      case 3:
+        (idx, hard_min, hard_max) = ();
+        idx = _get_index (idx);
+     }
+     {
+        %default:
+        _pop_n(_NARGS);
+        message(msg);
+        return;
+     }
 
-   if (hard_min == NULL) hard_min = _NaN;
-   if (hard_max == NULL) hard_max = _NaN;
+   variable p = struct
+     {
+        hard_min = hard_min,
+        hard_max = hard_max,
+        min = _NaN,
+        max = _NaN,
+        value = _NaN,
+        step = _NaN, % unused
+        freeze = 0   % unused
+     };
 
-   if (_isis->set_hard_limits (fun_name, par_name, hard_min, hard_max) != 0)
+   variable
+     hard_limits_only,
+     parm = qualifier ("parm", NULL);
+
+   if (parm == NULL)
+     hard_limits_only = 1;
+   else if (typeof(parm) == Array_Type && length(parm) == 3)
+     {
+        hard_limits_only = 0;
+        variable i = array_sort (parm);
+        p.min = parm[i[0]];
+        p.value = parm[i[1]];
+        p.max = parm[i[2]];
+     }
+   else
+     {
+        message(msg);
+        return;
+     }
+
+   if (_isis->set_hard_limits (p, fun_name, par_name, idx, hard_limits_only) != 0)
      throw IsisError;
 }
 

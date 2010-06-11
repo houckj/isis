@@ -97,7 +97,7 @@ struct _Fit_Fun_t
    Isis_Arg_Type *slangfun_param_default_args;
    SLang_Name_Type *slangfun_diff_eval;
 
-   int (*set_param_hard_limits)(Fit_Fun_t *, unsigned int, double, double);
+   int (*set_param_hard_limits)(Fit_Fun_t *, unsigned int, int, double, double, double, double, double);
 
    void (*destroy_fun)(Fit_Fun_t *);
    void *client_data;
@@ -162,7 +162,11 @@ extern int Fit_set_freeze (Param_t *pt, unsigned int idx, unsigned int freeze_va
 extern int Fit_set_param_control (Param_t *pt, unsigned int idx,
                                   int update_minmax, double min, double max,
                                   int freeze, char *tie);
-extern int Fit_set_hard_limits (char *fun_name, char *par_name, double *hard_min, double *hard_max);
+
+extern int Fit_set_hard_limits (char *fun_name, char *par_name, int *idx, int *hard_limits_only);
+extern int Fit_set_param_hard_limits (int idx, int hard_limits_only, Param_Info_t *p);
+extern int Fit_set_param_hard_limits1 (Param_t *pt, int idx, int hard_limits_only, 
+                                       Param_Info_t *pnew);
 
 extern int Fit_Append_Builtin_Functions (void);
 
