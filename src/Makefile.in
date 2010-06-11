@@ -238,6 +238,7 @@ install-extra:
 	$(INSTALL_DATA) $(config_dir)/isis-version $(prefix)/isis-version
 	$(INSTALL_DATA) $(config_dir)/src/isis.h $(install_include_dir)/isis.h
 	$(INSTALL) $(config_dir)/share/backtrace.sh $(install_share_dir)/backtrace.sh
+	$(INSTALL_DATA) $(config_dir)/Changes.txt $(prefix)/Changes.txt
 	@for i in $(SHARE_FILES); \
 	do \
 	        echo $(INSTALL_DATA) $(config_dir)/share/$$i $(install_share_dir); \

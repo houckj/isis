@@ -317,6 +317,23 @@ define help () %{{{
    topic = ();
    topic = str_delete_chars (topic, ";");
 
+   if (topic == "isis")
+     {
+        message (msg);
+        return;
+     }
+   else if (topic == "changes")
+     {
+        variable change_log = path_concat (_isis_srcdir, "Changes.txt");
+        variable fp = fopen (change_log, "r");
+        if (fp == NULL)
+          throw ApplicationError, "*** Error:  cannot open $change_log for reading"$;
+        variable s = fgetslines (fp);
+        () = fclose (fp);
+        send_to_pager (strjoin (s, ""));
+        return;
+     }
+
    if (0 == show_doc(NULL, topic))
      return;
 
