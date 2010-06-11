@@ -17,6 +17,12 @@ Changes since 1.6.0 (released Apr 2010)
 10.  Added support for response, flux qualifiers to all routines
      that perform forward folding including conf, conf_loop, etc.
 11.  New intrinsics: set_rebin_error_method, get_rebin_error_hook
+12.  Changed set_hard_limits to __set_hard_limits
+       * arbitrary changes to hard limits are now supported
+       * hard limits can be changed either for a specific instance
+         of a model or for the default configuration of a model.
+         In the latter case, all subsequent instances of the model
+         will be affected.
 
 Changes since 1.5.0 (released Aug 2009)
 ---------------------------------------
