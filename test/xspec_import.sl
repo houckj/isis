@@ -6,7 +6,7 @@ if (headas == NULL || NULL == stat_file (headas))
    exit(0);
 }
 
-() = fprintf (stderr, "testing xspec module import.... ");
+() = fprintf (stderr, "testing xspec module import.... \n");
 require ("xspec");
 fit_fun ("mekal");
 () = eval_fun(1,2);
