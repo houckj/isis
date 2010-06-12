@@ -833,50 +833,6 @@ static int initialize (int argc, char **argv) /*{{{*/
 
 /*}}}*/
 
-#ifdef MODULE
-
-SLANG_MODULE(isis);
-int init_isis_module_ns (char *ns_name) /*{{{*/
-{
-   SLang_NameSpace_Type *ns;
-
-   /* silence compiler warning about functions defined but not used */
-   if (0) {(void) initialize;}
-
-   if (NULL == (ns = SLns_create_namespace (ns_name)))
-     return -1;
-
-   Isis_Public_Namespace_Name = SLang_create_slstring (ns_name);
-
-   (void) SLdefine_for_ifdef ("__ISIS_MODULE__");
-
-   Isis_Error = SLerr_new_exception (SL_Usage_Error, "IsisError", "Isis Error");
-
-   if ((-1 == env_setup ())
-       || (-1 == init_isis_intrinsics (Isis_Private_Namespace)))
-     {
-        fprintf (stderr,  "*** Failed loading isis module\n");
-        SLang_free_slstring (Isis_Public_Namespace_Name);
-        Isis_Public_Namespace_Name = NULL;
-        isis_throw_exception (Isis_Error);
-        return -1;
-     }
-
-   return 0;
-}
-
-/*}}}*/
-
-void deinit_isis_module (void) /*{{{*/
-{
-   SLang_free_slstring (Isis_Public_Namespace_Name);
-   quit_isis (0);
-}
-
-/*}}}*/
-
-#else   /* MODULE */
-
 static void check_slang_version (void) /*{{{*/
 {
    if (SLang_Version >= SLANG_VERSION)
@@ -909,8 +865,6 @@ int main (int argc, char **argv) /*{{{*/
 }
 
 /*}}}*/
-
-#endif   /* MODULE */
 
 /*{{{ fortran entry */
 

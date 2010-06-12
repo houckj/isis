@@ -64,14 +64,10 @@ check:	write-permission $(SHARED_LIBRARIES)
 	if test -f "$(HEA)/headas-init.sh" ; then \
 	    HEADAS="$(HEA)" ; export HEADAS ; . $$HEADAS/headas-init.sh ; \
 	fi ; \
-	$$SLSH -n $(WITH_HEADAS) ./run_tests.sl $$TEST_ISIS $$ISIS_SRCDIR ; \
-	$$SLSH -n ./module_import.sl $$ISIS_SRCDIR
-	@echo ""
+	$$SLSH -n $(WITH_HEADAS) ./run_tests.sl $$TEST_ISIS $$ISIS_SRCDIR
 
 install-check:	$(SHARED_LIBRARIES)
-	@$(SLSH_PATH) -n $(WITH_HEADAS) ./run_tests.sl isis $(prefix) ; \
-	@$(SLSH_PATH) -n ./module_import $(prefix)
-	@echo ""
+	@$(SLSH_PATH) -n $(WITH_HEADAS) ./run_tests.sl isis $(prefix)
 
 write-permission:
 	@if ! test -w "." ; then \

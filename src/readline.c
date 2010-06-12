@@ -222,10 +222,9 @@ static void sig_sigtstp (int sig) /*{{{*/
 
 /*{{{ init/exit functions */
 
-#if !defined(MODULE) && defined(WITH_XSPEC_STATIC_LINKED)
+#undef INIT_XSPEC_MODULE
+#ifdef WITH_XSPEC_STATIC_LINKED
 # define INIT_XSPEC_MODULE
-#else
-# undef  INIT_XSPEC_MODULE
 #endif
 
 #ifdef INIT_XSPEC_MODULE

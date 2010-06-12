@@ -17,7 +17,6 @@
 PKG_NAME   = isis
 SHARED_LIB = lib$(PKG_NAME).so
 STATIC_LIB = lib$(PKG_NAME).a
-MODULE     = $(PKG_NAME)-module.so
 
 CC       = @CC@
 CFLAGS   = @CFLAGS@
@@ -152,7 +151,7 @@ EXECDEPS = $(OBJDIR_STATIC_LIB)
 EXECINC =
 
 ELFDEFINES =#
-ELFCOMPILE_CMD = $(ELF_CC) -c -DMODULE $(ELFDEFINES) $(ALL_ELF_CFLAGS)
+ELFCOMPILE_CMD = $(ELF_CC) -c $(ELFDEFINES) $(ALL_ELF_CFLAGS)
 FC_ELFCOMPILE_CMD = $(FC_COMPILE_CMD) $(ELF_FC_FCFLAGS)
 
 ELF_DEP_LIBS = $(RPATH) $(READLINE_LIB) $(CFITSIO_LIB) $(FCLIBS) \
@@ -168,8 +167,6 @@ ETC_FILES = @PROGRAM_ETCFILES@
 DOC_FILES = isis.1 help.txt local_help.txt
 
 ELF_OFILES = $(OFILES)
-ELFDIR_MODULE = $(ELFDIR)/$(MODULE)
-ELFDIR_SHARED_LIB = $(ELFDIR)/$(SHARED_LIB)
 
 isis_C_FLAGS = -DSRCDIR='"$(prefix)"' -DATOMDBDIR='"$(ATOMDBDIR)"'
 miscio_C_FLAGS = -DINSTALL_PREFIX=\"$(install_prefix)\" -DINSTALL_PREFIX_INPUT=\"$(prefix_input)\"
@@ -179,7 +176,7 @@ readline_C_FLAGS = @READLINE_INC@ -DSLANGLIBDIR='"$(SLANG_LIBDIR)"'
 all: isisversion $(OBJDIR) slangversion force_relink \
        $(OBJDIR_STATIC_LIB) xspec-module $(PROGRAMS)
 
-elf: $(ELFDIR) $(CONFIG_H) $(ELFDIR_SHARED_LIB) $(MODULE)
+elf: $(ELFDIR) $(CONFIG_H) $(ELFDIR_SHARED_LIB)
 
 $(OBJDIR_STATIC_LIB): $(OBJDIR) $(OBJS)
 	$(RM) $(OBJDIR_STATIC_LIB)
@@ -193,12 +190,6 @@ xspec-module:
 
 force_relink:
 	-$(RM) $(OBJDIR)/$(PKG_NAME)
-
-$(MODULE): $(ELFDIR) $(CONFIG_H) $(ELFOBJS) $(ELFDIR)/isis.o
-	-$(RM) $(ELFDIR_MODULE)
-	cd $(ELFDIR); $(CC_SHARED) -o $(MODULE) isis.o $(ELF_OFILES) $(LIBS) $(ELF_DEP_LIBS)
-	@echo ""
-	@echo $(MODULE) created in $(ELFDIR).
 
 $(ELFDIR_SHARED_LIB): $(ELFDIR) $(CONFIG_H) $(ELFOBJS)
 	-$(RM) $(ELFDIR_SHARED_LIB)
@@ -304,9 +295,7 @@ install: all install-directories install-extra install-ciao-path
 
 install-elf: elf install-directories install-extra
 	@echo installing $(SHARED_LIB) in $(install_lib_dir)
-	$(INSTALL_DATA) $(ELFDIR_SHARED_LIB) $(install_lib_dir)
-	@echo installing $(MODULE) in $(install_module_dir)
-	$(INSTALL_DATA) $(ELFDIR_MODULE) $(install_module_dir)
+	$(INSTALL) $(ELFDIR_SHARED_LIB) $(install_lib_dir)
 
 #---------------------------------------------------------------------------
 # Housekeeping
