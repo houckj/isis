@@ -449,7 +449,8 @@ static int initialize (int argc, char **argv) /*{{{*/
    argc--;
 
    p_hyphen = strrchr (pgm_basename, '-');
-   is_script = ((p_hyphen != NULL) && (0 == strcmp (p_hyphen, "-script")));
+   is_script = (((p_hyphen != NULL) && (0 == strcmp (p_hyphen, "-script")))
+                || file_is_script (argv[0]));
    if (is_script)
      {
         struct stat st;
@@ -568,8 +569,7 @@ static int initialize (int argc, char **argv) /*{{{*/
      {
         Isis_Verbose = -1;
         Isis_Batch_Mode = 1;
-        /* remove '-script' from pgm_basename */
-        *p_hyphen = 0;
+        if (p_hyphen) *p_hyphen = 0; /* remove '-script' from pgm_basename */
      }
 
    if (is_script && script_name)
@@ -733,12 +733,14 @@ static int initialize (int argc, char **argv) /*{{{*/
         argc++;
      }
 
+#if 0
    if ((argc > 0)
        && file_is_script (script_name))
      {
         is_script = 1;
         Isis_Batch_Mode = 1;
      }
+#endif
 
    if (0 == isatty (fileno(stdout)))
      {
