@@ -1809,7 +1809,6 @@ static int update_line_atomic_data (EM_filemap_t *map, DB_t *db) /*{{{*/
    FILE *progress = stderr;
    cfitsfile *fp = NULL;
    int j, ret = -1;
-   static const char *fmt = "hdu:  %d/%d\r";
 
    if (db == NULL || map == NULL)
      return -1;
@@ -1834,7 +1833,7 @@ static int update_line_atomic_data (EM_filemap_t *map, DB_t *db) /*{{{*/
           }
 
         if (Isis_Verbose >= WARN)
-          fprintf (progress, fmt, j+1, map->num_hdus);
+          fprintf (progress, "hdu:  %d/%d\r", j+1, map->num_hdus);
 
         if (-1 == apply_to_linefile_hdu (fp, db, NULL, &hash))
           {
@@ -1906,7 +1905,6 @@ static int load_line_emissivity_data (EM_line_data_t *ld, DB_t *db) /*{{{*/
    EM_filemap_t *map = ld->map;
    cfitsfile *fp = NULL;
    int j, hdu, ret = -1;
-   static const char *fmt = "hdu:  %d/%d\r";
 
    if (NULL == (fp = cfits_open_file_readonly (map->filename)))
      {
@@ -1929,7 +1927,7 @@ static int load_line_emissivity_data (EM_line_data_t *ld, DB_t *db) /*{{{*/
           }
 
         if (Isis_Verbose >= WARN)
-          fprintf (progress, fmt, j+1, map->num_hdus);
+          fprintf (progress, "hdu:  %d/%d\r", j+1, map->num_hdus);
 
         Unidentified_Lines = 0;
         if (-1 == apply_to_linefile_hdu (fp, db, (void **) &ld->emis[j], &load))
@@ -2367,7 +2365,6 @@ static int load_cont_emissivity_data (EM_cont_data_t *cd, EM_t *em) /*{{{*/
    EM_filemap_t *map = cd->map;
    cfitsfile *fp = NULL;
    int j, hdu, ret = -1;
-   static const char *fmt = "hdu:  %d/%d\r";
 
    if (NULL == (fp = cfits_open_file_readonly (map->filename)))
      {
@@ -2390,7 +2387,7 @@ static int load_cont_emissivity_data (EM_cont_data_t *cd, EM_t *em) /*{{{*/
           }
 
         if (Isis_Verbose >= WARN)
-          fprintf (progress, fmt, j+1, map->num_hdus);
+          fprintf (progress, "hdu:  %d/%d\r", j+1, map->num_hdus);
 
         /* Z_req = 0, q_req = 0, load_all = 1 */
         cd->emis[j] = load_cont_emissivity_hdu (fp, 0, 0, 1, em);
