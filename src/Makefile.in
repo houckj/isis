@@ -122,7 +122,6 @@ THIS_LIB_DEFINES  = -DISIS_SRC#
 OBJDIR_STATIC_LIB = $(OBJDIR)/$(STATIC_LIB)
 ELFDIR_SHARED_LIB = $(ELFDIR)/$(SHARED_LIB)
 PROGRAMS = $(PKG_NAME)
-CONFIG_H = config.h
 
 #---------------------------------------------------------------------------
 # Misc commands (safe to leave these untouched)
@@ -173,29 +172,8 @@ miscio_C_FLAGS = -DINSTALL_PREFIX=\"$(install_prefix)\" -DINSTALL_PREFIX_INPUT=\
 readline_C_FLAGS = @READLINE_INC@ -DSLANGLIBDIR='"$(SLANG_LIBDIR)"'
 
 #---------------------------------------------------------------------------
-all: isisversion $(OBJDIR) slangversion force_relink \
-       $(OBJDIR_STATIC_LIB) xspec-module $(PROGRAMS)
-
-elf: $(ELFDIR) $(CONFIG_H) $(ELFDIR_SHARED_LIB)
-
-$(OBJDIR_STATIC_LIB): $(OBJDIR) $(OBJS)
-	$(RM) $(OBJDIR_STATIC_LIB)
-	cd $(OBJDIR); $(AR_CR) $(STATIC_LIB) $(OFILES)
-	$(RANLIB) $(OBJDIR_STATIC_LIB)
-
-xspec-module:
-	@if test "$(LINK_XSPEC_STATIC)" = "yes" ; then \
-	    cd ../modules ; make xspec-static ; \
-	 fi
-
-force_relink:
-	-$(RM) $(OBJDIR)/$(PKG_NAME)
-
-$(ELFDIR_SHARED_LIB): $(ELFDIR) $(CONFIG_H) $(ELFOBJS)
-	-$(RM) $(ELFDIR_SHARED_LIB)
-	cd $(ELFDIR); $(CC_SHARED) -o $(SHARED_LIB) $(ELF_OFILES) $(LIBS) $(ELF_DEP_LIBS)
-	@echo ""
-	@echo $(SHARED_LIB) created in $(ELFDIR).
+all: check-slang-version stamp-isis-version $(OBJDIR_STATIC_LIB) xspec-module \
+     force-relink $(PROGRAMS) $(ELFDIR_SHARED_LIB)
 
 $(OBJDIR):
 	@mkdir $(OBJDIR)
@@ -203,7 +181,10 @@ $(OBJDIR):
 $(ELFDIR) :
 	@mkdir $(ELFDIR)
 
-slangversion: $(OBJDIR)/chkslang
+force-relink:
+	-$(RM) $(OBJDIR)/$(PKG_NAME)
+
+check-slang-version: $(OBJDIR) $(OBJDIR)/chkslang
 	if test -r "$(SLANG_LIBDIR)/libslang.so" ; then LD_PRELOAD=$(SLANG_LIBDIR)/libslang.so ; export LD_PRELOAD ; fi;\
 	if $(OBJDIR)/chkslang $(PKG_NAME) $(MIN_SLANG_VERSION) $(MAX_SLANG_VERSION);\
 	then exit 0; else $(RM) $(OBJDIR)/chkslang; exit 1; fi
@@ -211,8 +192,24 @@ slangversion: $(OBJDIR)/chkslang
 $(OBJDIR)/chkslang: config.h Makefile chkslang.c
 	$(CC) $(ALL_CFLAGS) $(SLANG_INC) $(SRCDIR)/chkslang.c $(RPATH) $(SLANG_LIB) -o $(OBJDIR)/chkslang
 
-isisversion:
+stamp-isis-version:
 	grep ' ISIS_VERSION ' isis.h | awk '{print $$3}' > $(config_dir)/isis-version
+
+$(OBJDIR_STATIC_LIB): $(OBJDIR) $(OBJS)
+	$(RM) $(OBJDIR_STATIC_LIB)
+	cd $(OBJDIR); $(AR_CR) $(STATIC_LIB) $(OFILES)
+	$(RANLIB) $(OBJDIR_STATIC_LIB)
+
+$(ELFDIR_SHARED_LIB): $(ELFDIR) $(ELFOBJS)
+	-$(RM) $(ELFDIR_SHARED_LIB)
+	cd $(ELFDIR); $(CC_SHARED) -o $(SHARED_LIB) $(ELF_OFILES) $(LIBS) $(ELF_DEP_LIBS)
+	@echo ""
+	@echo $(SHARED_LIB) created in $(ELFDIR).
+
+xspec-module:
+	@if test "$(LINK_XSPEC_STATIC)" = "yes" ; then \
+	    cd ../modules ; make xspec-static ; \
+	 fi
 
 #---------------------------------------------------------------------------
 # Installation rules
@@ -271,8 +268,10 @@ install: all install-directories install-extra
 	-$(RM) $(install_bin_dir)/$(PKG_NAME)
 	$(INSTALL) $(OBJDIR)/$(PKG_NAME) $(install_bin_dir)/$(PKG_NAME)
 	-cd $(install_bin_dir); $(RM) $(PKG_NAME)-script ; ln -s $(PKG_NAME) $(PKG_NAME)-script
-	$(INSTALL_DATA) $(OBJDIR_STATIC_LIB) $(install_lib_dir)
-	$(RANLIB) $(install_lib_dir)/$(STATIC_LIB)
+	@echo installing $(SHARED_LIB) in $(install_lib_dir)
+	$(INSTALL) $(ELFDIR_SHARED_LIB) $(install_lib_dir)
+	#$(INSTALL_DATA) $(OBJDIR_STATIC_LIB) $(install_lib_dir)
+	#$(RANLIB) $(install_lib_dir)/$(STATIC_LIB)
 	# install wrapper script for platforms that need it
 	$(MAKE) install-wrapper-script
 	# Put symlinks in prefix/bin directory
@@ -283,10 +282,6 @@ install: all install-directories install-extra
 	   ln -s ../isis/$(subdir)/bin/isis . ; \
 	   ln -s isis isis-script ; \
 	fi
-
-install-elf: elf install-directories install-extra
-	@echo installing $(SHARED_LIB) in $(install_lib_dir)
-	$(INSTALL) $(ELFDIR_SHARED_LIB) $(install_lib_dir)
 
 #---------------------------------------------------------------------------
 # Housekeeping
