@@ -254,7 +254,7 @@ static int pop_line_modifier_info (Model_Info_Type *info) /*{{{*/
         SLang_free_array (a);
         return -1;
      }
-   
+
    if (-1 == SLang_pop_integer (&num_extra_args))
      {
         SLang_free_array (a);
@@ -670,7 +670,7 @@ static void cl_calc_model (Model_Type *mt) /*{{{*/
 static void cl_get_model_details (Model_Type *mt)
 {
    Model_t *m;
-   
+
    if (NULL == mt || NULL == mt->model)
      {
         isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__, "model not defined");
@@ -778,34 +778,6 @@ static SLang_Intrin_Fun_Type Model_Intrinsics [] = /*{{{*/
 
 /*}}}*/
 
-static void patchup_intrinsic_table (void) /*{{{*/
-{
-   SLang_Intrin_Fun_Type *f;
-
-   f = Model_Intrinsics;
-   while (f->name != NULL)
-     {
-        unsigned int i, nargs;
-        SLtype *args;
-
-        nargs = f->num_args;
-        args = f->arg_types;
-        for (i = 0; i < nargs; i++)
-          {
-             if (args[i] == DUMMY_MODEL_TYPE)
-               args[i] = Model_Type_Id;
-          }
-
-        /* For completeness */
-        if (f->return_type == DUMMY_MODEL_TYPE)
-          f->return_type = Model_Type_Id;
-
-        f++;
-     }
-}
-
-/*}}}*/
-
 static void destroy_model_type (SLtype type, VOID_STAR f) /*{{{*/
 {
    Model_Type *mt = (Model_Type *) f;
@@ -854,7 +826,7 @@ int init_model_module_ns (char *ns_name) /*{{{*/
           return isis_trace_return(-1);
 
         Model_Type_Id = SLclass_get_class_id (cl);
-        patchup_intrinsic_table ();
+        SLclass_patch_intrin_fun_table1 (Model_Intrinsics, DUMMY_MODEL_TYPE, Model_Type_Id);
      }
 
    if (Line_Profile_Type_Id == -1)

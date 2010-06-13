@@ -990,34 +990,6 @@ static SLang_Intrin_Fun_Type Intrinsics [] =
 #undef V
 #undef MT
 
-static void patchup_intrinsic_table (void) /*{{{*/
-{
-   SLang_Intrin_Fun_Type *f;
-
-   f = Intrinsics;
-   while (f->name != NULL)
-     {
-        unsigned int i, nargs;
-        SLtype *args;
-
-        nargs = f->num_args;
-        args = f->arg_types;
-        for (i = 0; i < nargs; i++)
-          {
-             if (args[i] == DUMMY_MODEL_TYPE)
-               args[i] = Xspec_Type_Id;
-          }
-
-        /* For completeness */
-        if (f->return_type == DUMMY_MODEL_TYPE)
-          f->return_type = Xspec_Type_Id;
-
-        f++;
-     }
-}
-
-/*}}}*/
-
 static void free_xspec_fun_type (SLtype type, void *f) /*{{{*/
 {
    Xspec_Type *xt = (Xspec_Type *)f;
@@ -1593,7 +1565,7 @@ int init_xspec_module_ns (char *ns_name) /*{{{*/
           return -1;
 
         Xspec_Type_Id = SLclass_get_class_id (cl);
-        patchup_intrinsic_table ();
+        SLclass_patch_intrin_fun_table1 (Intrinsics, DUMMY_MODEL_TYPE, Xspec_Type_Id);
      }
 
    if (-1 == SLns_add_intrin_fun_table (NULL, Intrinsics, NULL))
