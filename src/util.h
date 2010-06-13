@@ -95,7 +95,7 @@ extern double isis_nan (void);
 extern int isis_coerce_array_to_type (SLang_Array_Type **at, int type);
 #endif
 
-extern int Isis_pop_double_array (double *x, int n);
+extern int Isis_pop_double_array (double *x, SLindex_Type n);
 extern double isis_hypot (double x, double y);
 extern double isis_kahan_sum (double *x, unsigned int n);
 extern double isis_kahan_sum_squares (double *x, unsigned int n);

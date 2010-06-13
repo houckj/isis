@@ -3220,6 +3220,8 @@ int Hist_set_post_model_hook (Hist_t *h, SLang_Name_Type *hook, void (*delete_ho
 
 int Hist_run_post_model_hook (Hist_t *h, double *cts, SLang_Array_Type *sl_bgd) /*{{{*/
 {
+   SLindex_Type orig_nbins;
+
    SLang_Array_Type *sl_cts = NULL;
    SLang_Array_Type *sl_lo = NULL;
    SLang_Array_Type *sl_hi = NULL;
@@ -3227,9 +3229,11 @@ int Hist_run_post_model_hook (Hist_t *h, double *cts, SLang_Array_Type *sl_bgd) 
    if ((h == NULL) || (h->post_model_hook == NULL))
      return -1;
 
-   if ((NULL == (sl_cts = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &h->orig_nbins, 1)))
-       || (NULL == (sl_lo = SLang_create_array (SLANG_DOUBLE_TYPE, 1, h->orig_bin_lo, &h->orig_nbins, 1)))
-       || (NULL == (sl_hi = SLang_create_array (SLANG_DOUBLE_TYPE, 1, h->orig_bin_hi, &h->orig_nbins, 1))))
+   orig_nbins = h->orig_nbins;
+
+   if ((NULL == (sl_cts = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &orig_nbins, 1)))
+       || (NULL == (sl_lo = SLang_create_array (SLANG_DOUBLE_TYPE, 1, h->orig_bin_lo, &orig_nbins, 1)))
+       || (NULL == (sl_hi = SLang_create_array (SLANG_DOUBLE_TYPE, 1, h->orig_bin_hi, &orig_nbins, 1))))
      return -1;
 
    memcpy ((char *)sl_cts->data, (char *)cts, h->orig_nbins * sizeof(double));
@@ -4944,7 +4948,7 @@ int Hist_set_pre_combine_hook (Hist_t *h, SLang_Name_Type *hook) /*{{{*/
 
 /*}}}*/
 
-int Hist_call_pre_combine_hook (Hist_t *h, double *y, int n, double **y_new) /*{{{*/
+int Hist_call_pre_combine_hook (Hist_t *h, double *y, SLindex_Type n, double **y_new) /*{{{*/
 {
    SLang_Array_Type *sl_y = NULL, *sl_new_y = NULL;
    double *new_y = NULL;
@@ -5003,7 +5007,7 @@ int Hist_call_pre_combine_hook (Hist_t *h, double *y, int n, double **y_new) /*{
         goto return_error;
      }
 
-   if ((int) sl_new_y->num_elements != n)
+   if (sl_new_y->num_elements != (unsigned int) n)
      {
         isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
                     "pre_combine hook (dataset id = %d) returned wrong length array (was %d should be %d)",
@@ -5710,7 +5714,7 @@ int Hist_set_stat_error_hook (Hist_t *h, SLang_Name_Type *hook, void (*delete_ho
 
 static int slang_stat_error_hook (SLang_Name_Type *hook, /*{{{*/
                                   double *orig_counts, double *orig_stat_err,
-                                  int *rebin, int orig_nbins,
+                                  int *rebin, SLindex_Type orig_nbins,
                                   double *stat_err, int nbins)
 {
    SLang_Array_Type *oc, *ose, *reb, *err;

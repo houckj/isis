@@ -375,7 +375,7 @@ static void free_model_grid (Model_Result_Type *m) /*{{{*/
 
 static int get_model_grid (Model_Result_Type *m) /*{{{*/
 {
-   int n;
+   SLindex_Type n;
 
    if (-1 == SLang_pop_array_of_type (&m->hi, SLANG_DOUBLE_TYPE)
        || m->hi == NULL
@@ -389,7 +389,7 @@ static int get_model_grid (Model_Result_Type *m) /*{{{*/
 
    n = m->lo->num_elements;
 
-   m->val = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, (int *) &n, 1);
+   m->val = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &n, 1);
    if (NULL == m->val)
      {
         free_model_grid (m);

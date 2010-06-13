@@ -571,7 +571,7 @@ int _Plot_set_line_width (int line_width) /*{{{*/
 
 /*}}}*/
 
-static int push_two_float_arrays (int n, float *a, float *b) /*{{{*/
+static int push_two_float_arrays (SLindex_Type n, float *a, float *b) /*{{{*/
 {
    SLang_Array_Type *sl_a=NULL, *sl_b=NULL;
    int status = -1;
@@ -602,7 +602,7 @@ return_status:
 
 /*}}}*/
 
-static int push_three_float_arrays (int n, float *a, float *b, float *c) /*{{{*/
+static int push_three_float_arrays (SLindex_Type n, float *a, float *b, float *c) /*{{{*/
 {
    SLang_Array_Type *sl_a=NULL, *sl_b=NULL, *sl_c=NULL;
    int status = -1;
@@ -704,7 +704,7 @@ int Plot_points (int n, float *x, float *y, int symbol) /*{{{*/
 
 /*}}}*/
 
-int Plot_symbol_points (int n, float *x, float *y, int *symbol) /*{{{*/
+int Plot_symbol_points (SLindex_Type n, float *x, float *y, int *symbol) /*{{{*/
 {
    SLang_Array_Type *sl_sym=NULL;
    int status = -1;

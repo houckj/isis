@@ -48,7 +48,8 @@ static int slfe_optimize (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
    Isis_Fit_Engine_Type *e;
    SLang_Array_Type *sl_pars=NULL, *sl_pars_min=NULL, *sl_pars_max=NULL;
    SLang_Array_Type *sl_new_pars=NULL;
-   int n, status = -1;
+   SLindex_Type n;
+   int status = -1;
 
    (void) clientdata; (void) x; (void) y; (void) weights; (void) npts;
 
@@ -58,7 +59,7 @@ static int slfe_optimize (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
 
    e = ift->engine;
 
-   n = (int) npars;
+   n = (SLindex_Type) npars;
    sl_pars = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &n, 1);
    sl_pars_min = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &n, 1);
    sl_pars_max = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &n, 1);
@@ -132,7 +133,7 @@ return_error:
 static int slfe_set_options (Isis_Fit_Engine_Type *e, Isis_Option_Type *opts) /*{{{*/
 {
    SLang_Array_Type *sl_opts;
-   int i, n;
+   SLindex_Type i, n;
 
    if (opts == NULL)
      return -1;

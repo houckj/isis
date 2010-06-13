@@ -177,7 +177,8 @@ static int penalty_statistic (Isis_Fit_Statistic_Type *st, /*{{{*/
    SLang_Array_Type *sl_pars = NULL;
    double *pars = NULL;
    double old_stat, new_stat, penalty, b, vec_penalty;
-   unsigned int i, num;
+   SLindex_Type num;
+   unsigned int i, n;
 
    if (-1 == (*st->assigned_fun)(st, y, fx, w, npts, vec, stat))
      return -1;
@@ -185,13 +186,14 @@ static int penalty_statistic (Isis_Fit_Statistic_Type *st, /*{{{*/
    if (st->constraint_fun == NULL)
      return 0;
 
-   if (-1 == Fit_copy_fun_params ("constraint", 1, &pars, &num))
+   if (-1 == Fit_copy_fun_params ("constraint", 1, &pars, &n))
      return -1;
+
+   num = n;
 
    if (num > 0)
      {
-        int n = num;
-        sl_pars = SLang_create_array (SLANG_DOUBLE_TYPE, 0, pars, &n, 1);
+        sl_pars = SLang_create_array (SLANG_DOUBLE_TYPE, 0, pars, &num, 1);
         if (NULL == sl_pars)
           return -1;
      }
@@ -415,8 +417,9 @@ static int sl_statistic_function (Isis_Fit_Statistic_Type *s,/*{{{*/
                                   double *vec, double *stat)
 {
    SLang_Array_Type *a_fx, *a_w, *a_y, *sl_vec;
+   SLindex_Type n;
    double st;
-   int n, ret = -1;
+   int ret = -1;
 
    *stat = -1.0;
 
@@ -425,7 +428,7 @@ static int sl_statistic_function (Isis_Fit_Statistic_Type *s,/*{{{*/
 
    sl_vec = NULL;
    a_fx = a_w = a_y = NULL;
-   n = (int) npts;
+   n = npts;
    st = -1.0;
 
    if ((NULL == (a_y = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &n, 1)))

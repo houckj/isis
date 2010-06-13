@@ -744,7 +744,7 @@ int Model_spectrum (Model_t *h, Model_Info_Type *info, /*{{{*/
    double *tmp_val = NULL;
    char *flag = NULL;
    int i, cont_nbins, include_lines, include_contin, ret = -1;
-   int db_nlines;
+   SLindex_Type db_nlines;
 
    if (NULL == h || NULL == info)
      return -1;

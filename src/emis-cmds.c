@@ -137,7 +137,7 @@ static void _get_filemap (char *emis_file) /*{{{*/
    double *temp = NULL;
    double *dens = NULL;
    unsigned int num = 0;
-   int n;
+   SLindex_Type n;
 
    if (-1 == EM_get_filemap (em, emis_file, NULL, &num, &temp, &dens))
      goto finish;
@@ -198,7 +198,7 @@ static void retrieve_ionization_bal (int *Z, float *temp, /*{{{*/
                                      float *dens, int *ion_table_id)
 {
    SLang_Array_Type *slcharge, *slfrac;
-   int dims[1];
+   SLindex_Type dims[1];
 
    slcharge = slfrac = NULL;
 
@@ -328,9 +328,9 @@ static int get_emissivity_fcn (float **emis, int *nemis, /*{{{*/
 static void retrieve_emissivity_fcn (void) /*{{{*/
 {
    float *emis = NULL;
-   int nemis, dims[2];
+   SLindex_Type dims[2];
    SLang_Array_Type *sltemp, *sldens, *slemis, *slindx;
-   int problem = -1;
+   int nemis, problem = -1;
 
    sltemp = sldens = slemis = slindx = NULL;
 
@@ -481,8 +481,8 @@ static void _get_continuum (void) /*{{{*/
         goto finish;
      }
 
-   if (NULL == (sl_true = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &nbins, 1))
-       || NULL == (sl_pseudo = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &nbins, 1))
+   if ((NULL == (sl_true = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &nbins, 1)))
+       || (NULL == (sl_pseudo = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &nbins, 1)))
        )
      goto finish;
 

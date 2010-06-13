@@ -1910,7 +1910,7 @@ static void free_notice_arrays (Isis_Hist_t *g) /*{{{*/
 static int pop_stored_background (SLang_Array_Type **sl_bgd, Hist_t *h) /*{{{*/
 {
    double *bgd = NULL;
-   int orig_nbins;
+   SLindex_Type orig_nbins;
 
    *sl_bgd = NULL;
 
@@ -2251,7 +2251,7 @@ static int store_combined_data (Fit_Data_t *d, double *data, double *weight)
 {
    SLang_Array_Type *sl_data=NULL, *sl_weight=NULL, *sl_combo_ids=NULL;
    SLang_Array_Type *sl_offsets=NULL, *sl_lengths=NULL;
-   int i, n = d->nbins_after_datasets_combined;
+   SLindex_Type i, n = d->nbins_after_datasets_combined;
 
    if ((NULL == (sl_data = SLang_create_array (SLANG_DOUBLE_TYPE, 1, NULL, &n, 1)))
        ||(NULL == (sl_weight = SLang_create_array (SLANG_DOUBLE_TYPE, 1, NULL, &n, 1)))
@@ -2298,7 +2298,7 @@ static int store_combined_data (Fit_Data_t *d, double *data, double *weight)
 static int store_combined_models (Fit_Data_t *d, double *models)
 {
    SLang_Array_Type *sl_models=NULL, *sl_combo_ids=NULL;
-   int i, n = d->nbins_after_datasets_combined;
+   SLindex_Type i, n = d->nbins_after_datasets_combined;
 
    if ((NULL == (sl_models = SLang_create_array (SLANG_DOUBLE_TYPE, 1, NULL, &n, 1))
         ||(NULL == (sl_combo_ids = SLang_create_array (SLANG_INT_TYPE, 1, NULL, &d->num_datasets, 1))))
@@ -2900,14 +2900,13 @@ void verbose_info_hook (void *cl, double statistic, /*{{{*/
 {
    SLang_Array_Type *sl_param = NULL;
    SLang_Array_Type *sl_param_name = NULL;
-   int i, npar = npars_vary;
+   SLindex_Type i, npar = npars_vary;
 
    (void) cl;
 
    SLsig_block_signals ();
 
-   sl_param = SLang_create_array (SLANG_DOUBLE_TYPE, 1, NULL, &npar, 1);
-   if (sl_param == NULL)
+   if (NULL == (sl_param = SLang_create_array (SLANG_DOUBLE_TYPE, 1, NULL, &npar, 1)))
      {
         isis_throw_exception (Isis_Error);
         goto finish;
@@ -2915,8 +2914,7 @@ void verbose_info_hook (void *cl, double statistic, /*{{{*/
 
    memcpy ((char *)sl_param->data, (char *)par, npar * sizeof(double));
 
-   sl_param_name = SLang_create_array (SLANG_STRING_TYPE, 1, NULL, &npar, 1);
-   if (sl_param == NULL)
+   if (NULL == (sl_param_name = SLang_create_array (SLANG_STRING_TYPE, 1, NULL, &npar, 1)))
      {
         isis_throw_exception (Isis_Error);
         goto finish;
@@ -2953,7 +2951,7 @@ void verbose_info_hook (void *cl, double statistic, /*{{{*/
 
 /*}}}*/
 
-static SLang_Array_Type *make_sl_darray_copy (double *x, int n) /*{{{*/
+static SLang_Array_Type *make_sl_darray_copy (double *x, SLindex_Type n) /*{{{*/
 {
    SLang_Array_Type *s;
 
@@ -3126,7 +3124,7 @@ static int sl_fit_range_hook (void *cl, double *par_min, double *par_max, double
 {
    SLang_Array_Type *sl_pmin, *sl_pmax, *sl_par, *sl_idx;
    int *idx = (int *)cl;
-   int num_pars = npars;
+   SLindex_Type num_pars = npars;
 
    sl_pmin = sl_pmax = sl_par = sl_idx = NULL;
 
@@ -3686,7 +3684,7 @@ static void array_fit (void) /*{{{*/
    SLang_Array_Type *x, *y, *wt;
    double *par_step = NULL;
    double statistic = 0.0;
-   int i, nx, npars, ret = -1;
+   int i, npars, nx, ret = -1;
 
    f = NULL;
    x = y = wt = par = par_min = par_max = NULL;
@@ -4014,7 +4012,7 @@ static SLang_CStruct_Field_Type Fit_Result_Type_Layout [] =
 static int copy_covariance_matrix (Fit_Result_Type *fr, Fit_Object_Type *fo) /*{{{*/
 {
    Isis_Fit_Type *ift = fo->ft;
-   int dims[2] = {0, 0};
+   SLindex_Type dims[2] = {0, 0};
 
    if (ift->covariance_matrix)
      {
@@ -4027,7 +4025,7 @@ static int copy_covariance_matrix (Fit_Result_Type *fr, Fit_Object_Type *fo) /*{
 
    if (ift->covariance_matrix)
      {
-        int i, j, k = 0, pos[2];
+        SLindex_Type i, j, k = 0, pos[2];
         for (i = 0; i < dims[0]; i++)
           {
              pos[0] = i;

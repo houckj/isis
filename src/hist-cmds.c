@@ -745,7 +745,7 @@ static void get_hist (int *hist_index, unsigned int *version) /*{{{*/
    SLang_Array_Type *bin_hi = NULL;
    SLang_Array_Type *value = NULL;
    SLang_Array_Type *uncert = NULL;
-   int nbins;
+   SLindex_Type nbins;
 
    if (NULL == (h = find_hist (*hist_index)))
      goto push_values;
@@ -901,7 +901,7 @@ static void get_arf (int * arf_index) /*{{{*/
    SLang_Array_Type * arf = NULL;
    SLang_Array_Type * arf_err = NULL;
    Isis_Arf_t *a = find_arf (*arf_index);
-   int nbins;
+   SLindex_Type nbins;
 
    if ((a == NULL)
        || -1 == (nbins = Arf_arf_size (a)))
@@ -1092,8 +1092,7 @@ static int push_arf_info (Arf_Info_Type *info) /*{{{*/
    if (-1 == SLang_push_cstruct ((VOID_STAR)info, Arf_Info_Layout))
      return -1;
 
-   f = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &info->nbins, 1);
-   if (f == NULL)
+   if (NULL == (f = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &info->nbins, 1)))
      {
         SLang_push_array (f, 1);
         return -1;
@@ -1107,7 +1106,7 @@ static int push_arf_info (Arf_Info_Type *info) /*{{{*/
      }
    else
      {
-        int i = 0;
+        SLindex_Type i = 0;
         SLang_set_array_element (f, &i, &info->fracexpo.s);
      }
 
@@ -1704,7 +1703,7 @@ static void _all_data (int *noticed) /*{{{*/
 
    if (0 == Hist_id_list (Data_List_Head, *noticed, &ids, &num))
      {
-        int n = num;
+        SLindex_Type n = num;
         if (ids != NULL)
           sl_ids = SLang_create_array (SLANG_UINT_TYPE, 0, ids, &n, 1);
      }
@@ -1722,7 +1721,7 @@ static void _all_arfs (void) /*{{{*/
 
    if (0 == Arf_id_list (Arf_List_Head, &ids, &num))
      {
-        int n = num;
+        SLindex_Type n = num;
         if (ids != NULL)
           sl_ids = SLang_create_array (SLANG_UINT_TYPE, 0, ids, &n, 1);
      }
@@ -1740,7 +1739,7 @@ static void _all_rmfs (void) /*{{{*/
 
    if (0 == Rmf_id_list (Rmf_List_Head, &ids, &num))
      {
-        int n = num;
+        SLindex_Type n = num;
         if (ids != NULL)
           sl_ids = SLang_create_array (SLANG_UINT_TYPE, 0, ids, &n, 1);
      }
@@ -2222,7 +2221,7 @@ static void _rebin_index (void) /*{{{*/
 static void _rebin_histogram (void) /*{{{*/
 {
    SLang_Array_Type *inlo, *inhi, *inval, *outlo, *outhi, *outval;
-   int n;
+   SLindex_Type n;
 
    inlo = inhi = inval = NULL;
    outlo = outhi = outval = NULL;
@@ -2251,7 +2250,7 @@ static void _rebin_histogram (void) /*{{{*/
         goto free_and_return;
      }
 
-   n = (int) outhi->num_elements;
+   n = (SLindex_Type) outhi->num_elements;
 
    outval = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &n, 1);
    if (NULL == outval)
@@ -2321,8 +2320,7 @@ static void _rebin_array (void) /*{{{*/
      }
 
    /* allocate space for the result */
-   sl_ra = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &nr, 1);
-   if (sl_ra == NULL)
+   if (NULL == (sl_ra = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &nr, 1)))
      goto finish;
 
    /* rebin, and we're done */
@@ -2684,8 +2682,9 @@ static int get_rmf_grid (int rmf_index, /*{{{*/
    Grid_Type g;
    Isis_Rmf_t *rmf;
    double *lo, *hi;
+   SLindex_Type num;
    unsigned int n;
-   int num, status = -1;
+   int status = -1;
 
    memset ((char *)&g, 0, sizeof g);
 

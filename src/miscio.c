@@ -333,8 +333,8 @@ static int uniq_cols (unsigned int *cols, unsigned int *ncols) /*{{{*/
 
 static int push_cols (double *d, unsigned int n, unsigned int ncols) /*{{{*/
 {
+   SLindex_Type nrows;
    unsigned int c;
-   int nrows;
 
    if ((ncols == 0) || (d == NULL))
      return -1;

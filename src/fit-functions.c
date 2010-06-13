@@ -477,7 +477,7 @@ static int c_bin_eval (Fit_Fun_t *ff, Isis_Hist_t *g, double *par) /*{{{*/
 static int c_diff_eval (Fit_Fun_t *ff, Isis_User_Grid_t *ug, double *par) /*{{{*/
 {
    SLang_Array_Type *at = NULL;
-   int size = ug->npts;
+   SLindex_Type size = ug->npts;
 
    if (ff->s.unbinned == NULL)
      return -1;
@@ -818,7 +818,7 @@ void function_list (void) /*{{{*/
 {
    Fit_Fun_t *ff = Fit_Fun;
    SLang_Array_Type *sl_names = NULL;
-   int n;
+   SLindex_Type n;
 
    if (ff == NULL)
      return;
@@ -830,8 +830,7 @@ void function_list (void) /*{{{*/
    if (n == 0)
      return;
 
-   sl_names = SLang_create_array (SLANG_STRING_TYPE, 1, NULL, &n, 1);
-   if(sl_names == NULL)
+   if (NULL == (sl_names = SLang_create_array (SLANG_STRING_TYPE, 1, NULL, &n, 1)))
      {
         isis_throw_exception (Isis_Error);
         return;
@@ -1245,12 +1244,11 @@ static void free_udf_info (UDF_Info_Type *u) /*{{{*/
 
 static int copy_slstring_array (unsigned int n, SLang_Array_Type *sl, char **s) /*{{{*/
 {
-   unsigned int i;
+   SLindex_Type i;
 
-   for (i = 0; i < n; i++)
+   for (i = 0; i < (SLindex_Type) n; i++)
      {
-        int si = i;
-        if (-1 == SLang_get_array_element (sl, &si, (VOID_STAR) &s[i]))
+        if (-1 == SLang_get_array_element (sl, &i, (VOID_STAR) &s[i]))
           return -1;
      }
 
@@ -1474,7 +1472,7 @@ void Fit_get_fun_info (char *name) /*{{{*/
    Param_Info_t p;
    Fit_Fun_Info_Type fi;
    Fit_Fun_t *ff;
-   int i, num_pars;
+   SLindex_Type i, num_pars;
 
    memset ((char *)&fi, 0, sizeof fi);
 

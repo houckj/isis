@@ -149,7 +149,7 @@ extern int Hist_combination_id (Hist_t *h);
 extern int Hist_combination_weight (Hist_t *h, double *weight);
 extern int Hist_set_combination (Hist_t *head, unsigned int *members,
                                  double *weights, unsigned int num_members);
-extern int Hist_call_pre_combine_hook (Hist_t *h, double *y, int n, double **y_new);
+extern int Hist_call_pre_combine_hook (Hist_t *h, double *y, SLindex_Type n, double **y_new);
 extern int Hist_set_pre_combine_hook (Hist_t *h, SLang_Name_Type *hook);
 
 /* model evaluation grid */

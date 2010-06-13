@@ -1180,6 +1180,7 @@ static void _pglcur_pgncur_pgolin (SLang_Ref_Type *rx, SLang_Ref_Type *ry,
    SLang_Array_Type *a, *b;
    float x[1024];
    float y[1024];
+   SLindex_Type n_it;
    int n;
 
    n = 0;
@@ -1201,10 +1202,12 @@ static void _pglcur_pgncur_pgolin (SLang_Ref_Type *rx, SLang_Ref_Type *ry,
    
    if (n < 0)
      n = 0;
-   
-   if (NULL == (a = SLang_create_array (SLANG_FLOAT_TYPE, 0, NULL, &n, 1)))
+
+   n_it = n;
+
+   if (NULL == (a = SLang_create_array (SLANG_FLOAT_TYPE, 0, NULL, &n_it, 1)))
      return;
-   if (NULL == (b = SLang_create_array (SLANG_FLOAT_TYPE, 0, NULL, &n, 1)))
+   if (NULL == (b = SLang_create_array (SLANG_FLOAT_TYPE, 0, NULL, &n_it, 1)))
      {
 	SLang_free_array (a);
 	return;

@@ -56,12 +56,12 @@ static DB_t *DB_ptr = NULL;                  /* atomic database */
 static char **copy_string_array (SLang_Array_Type *s) /*{{{*/
 {
    char **a;
-   int i;
+   SLindex_Type i;
 
    if (NULL == (a = (char **) ISIS_MALLOC ((s->num_elements + 1) * sizeof(char *))))
      return NULL;
 
-   for (i = 0; i < (int) s->num_elements; i++)
+   for (i = 0; i < (SLindex_Type) s->num_elements; i++)
      {
         if (-1 == SLang_get_array_element (s, &i, (VOID_STAR) &a[i]))
           {
@@ -801,8 +801,9 @@ static void plot_line_list2 (void) /*{{{*/
    float *lambdas = NULL;
    char **labels = NULL;
    char *label_text = NULL;
+   SLindex_Type i, nlines;
    unsigned int label_size;
-   int use_color, i, nlines;
+   int use_color;
    float redshift;
 
    if (-1 == pop_line_label_style (&s))

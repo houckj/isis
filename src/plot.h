@@ -217,7 +217,7 @@ extern int Plot_put_text (float x, float y, float angle,
 
 extern int Plot_line (int n, float * x, float * y);
 extern int Plot_points (int n, float * x, float * y, int symbol);
-extern int Plot_symbol_points (int n, float * x, float * y, int * symbol);
+extern int Plot_symbol_points (SLindex_Type n, float * x, float * y, int * symbol);
 
 extern int Plot_histogram_data (int nbins, float *lo, float *hi, float *val);
 extern int Plot_y_errorbar (int nbins, float *x, float *top, float *bot,

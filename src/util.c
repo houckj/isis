@@ -2004,7 +2004,7 @@ int Isis_Hist_pop_valid_grid (Isis_Hist_t *g) /*{{{*/
 
 /*}}}*/
 
-int Isis_pop_double_array (double *x, int n) /*{{{*/
+int Isis_pop_double_array (double *x, SLindex_Type n) /*{{{*/
 {
    SLang_Array_Type *s = NULL;
 

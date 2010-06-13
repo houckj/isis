@@ -173,7 +173,7 @@ static int move_to_hook_matched_hdu (cfitsfile *fptr, const char *hook_name)
 {
    SLang_Array_Type *as = NULL;
    int status = -1;
-   int i, num;
+   SLindex_Type i, num;
    char *s;
 
    if (hook_name == NULL)

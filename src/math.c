@@ -274,7 +274,7 @@ static void finite_intrin (void) /*{{{*/
    SLang_Array_Type *sw = NULL;
    unsigned char *w;
    double *x;
-   int i, n;
+   SLindex_Type i, n;
 
    if ((-1 == SLang_pop_array_of_type (&sx, SLANG_DOUBLE_TYPE))
        || (sx == NULL))
@@ -286,8 +286,7 @@ static void finite_intrin (void) /*{{{*/
    x = (double *)sx->data;
    n = sx->num_elements;
 
-   sw = SLang_create_array (SLANG_UCHAR_TYPE, 0, NULL, &n, 1);
-   if (sw == NULL)
+   if (NULL == (sw = SLang_create_array (SLANG_UCHAR_TYPE, 0, NULL, &n, 1)))
      {
         isis_throw_exception (Isis_Error);
         goto finish;
@@ -330,29 +329,25 @@ static int pop_two_darrays (SLang_Array_Type **a, SLang_Array_Type **b) /*{{{*/
 /*}}}*/
 
 /* reverse index converter from John Davis */
-static SLang_Array_Type *convert_reverse_indices (int *r, unsigned int num_r, unsigned int num_h)
+static SLang_Array_Type *convert_reverse_indices (SLindex_Type *r, SLindex_Type num_r, SLindex_Type num_h)
 {
    SLang_Array_Type *new_r;
    SLang_Array_Type **new_r_data;
-   int inum_h;
-   unsigned int i;
-   int *lens;
+   SLindex_Type i, *lens;
 
-   inum_h = (int) num_h;
-
-   if (NULL == (new_r = SLang_create_array (SLANG_ARRAY_TYPE, 0, NULL, &inum_h, 1)))
+   if (NULL == (new_r = SLang_create_array (SLANG_ARRAY_TYPE, 0, NULL, &num_h, 1)))
      return NULL;
 
-   if (NULL == (lens = (int *)SLmalloc (num_h * sizeof (int))))
+   if (NULL == (lens = (SLindex_Type *)SLmalloc (num_h * sizeof (SLindex_Type))))
      {
         SLang_free_array (new_r);
         return NULL;
      }
-   memset ((char *)lens, 0, num_h*sizeof(int));
+   memset ((char *)lens, 0, num_h*sizeof(SLindex_Type));
 
    for (i = 0; i < num_r; i++)
      {
-        int r_i = r[i];
+        SLindex_Type r_i = r[i];
 
         if (r_i >= 0)
           lens[r_i]++;
@@ -361,7 +356,7 @@ static SLang_Array_Type *convert_reverse_indices (int *r, unsigned int num_r, un
    new_r_data = (SLang_Array_Type **) new_r->data;
    for (i = 0; i < num_h; i++)
      {
-        if (NULL == (new_r_data[i] = SLang_create_array (SLANG_INT_TYPE, 0, NULL, &lens[i], 1)))
+        if (NULL == (new_r_data[i] = SLang_create_array (SLANG_ARRAY_INDEX_TYPE, 0, NULL, &lens[i], 1)))
           goto return_error;
 
         lens[i] = 0;
@@ -370,14 +365,14 @@ static SLang_Array_Type *convert_reverse_indices (int *r, unsigned int num_r, un
    for (i = 0; i < num_r; i++)
      {
         SLang_Array_Type *at;
-        int r_i = r[i];
+        SLindex_Type r_i = r[i];
 
         if (r_i < 0)
           continue;
 
         at = new_r_data[r_i];
 
-        ((int *)at->data)[lens[r_i]] = i;
+        ((SLindex_Type *)at->data)[lens[r_i]] = i;
         lens[r_i]++;
      }
 
@@ -395,8 +390,8 @@ static void make_1d_histogram (int *reverse) /*{{{*/
    SLang_Array_Type *v, *lo, *hi, *b, *rev;
    double *xlo, *xhi, *bv;
    unsigned int *num;
-   int i, n, nbins;
-   int *r = NULL;
+   SLindex_Type i, n, nbins;
+   SLindex_Type *r = NULL;
 
    v = lo = hi = b = rev = NULL;
 
@@ -421,7 +416,7 @@ static void make_1d_histogram (int *reverse) /*{{{*/
      r = NULL;
    else
      {
-        if (NULL == (r = (int *) ISIS_MALLOC (n * sizeof(int))))
+        if (NULL == (r = (SLindex_Type *) ISIS_MALLOC (n * sizeof(SLindex_Type))))
           {
              isis_throw_exception (Isis_Error);
              goto push_result;
@@ -454,7 +449,7 @@ static void make_1d_histogram (int *reverse) /*{{{*/
    for (i = 0; i < n; i++)
      {
         double t = bv[i];
-        int k = find_bin (t, xlo, xhi, nbins);
+        int k = find_bin (t, xlo, xhi, (int) nbins);
         if (k >= 0)
           {
              num[k] += 1;
@@ -485,10 +480,10 @@ static void make_2d_histogram (int *reverse) /*{{{*/
    SLang_Array_Type *rev;
    double *x, *y, *bx, *by;
    double xmax, ymax;
-   unsigned int *num;
-   int dims[2];
-   int i, n, nx, ny, nbins;
-   int *r = NULL;
+   SLindex_Type *num;
+   SLindex_Type dims[2];
+   SLindex_Type i, n, nx, ny, nbins;
+   SLindex_Type *r = NULL;
 
    grid_x = grid_y = sl_x = sl_y = b = rev = NULL;
 
@@ -509,7 +504,7 @@ static void make_2d_histogram (int *reverse) /*{{{*/
      r = NULL;
    else
      {
-        if (NULL == (r = (int *) ISIS_MALLOC (n * sizeof (int))))
+        if (NULL == (r = (SLindex_Type *) ISIS_MALLOC (n * sizeof (SLindex_Type))))
           {
              isis_throw_exception (Isis_Error);
              goto push_result;
@@ -523,15 +518,14 @@ static void make_2d_histogram (int *reverse) /*{{{*/
    dims[0] = nx;
    dims[1] = ny;
    nbins = dims[0] * dims[1];
-   b = SLang_create_array (SLANG_INT_TYPE, 0, NULL, dims, 2);
-   if (b == NULL)
+   if (NULL == (b = SLang_create_array (SLANG_INT_TYPE, 0, NULL, dims, 2)))
      {
         isis_throw_exception (Isis_Error);
         goto push_result;
      }
 
-   num = (unsigned int *)b->data;
-   memset ((char *)num, 0, nbins * sizeof(unsigned int));
+   num = (SLindex_Type *)b->data;
+   memset ((char *)num, 0, nbins * sizeof(SLindex_Type));
 
    bx = (double *)sl_x->data;
    by = (double *)sl_y->data;
@@ -545,7 +539,7 @@ static void make_2d_histogram (int *reverse) /*{{{*/
      {
         double b_x = bx[i];
         double b_y = by[i];
-        int ix, iy, k;
+        SLindex_Type ix, iy, k;
 
         if (b_x >= xmax)
           ix = nx-1;
@@ -785,11 +779,11 @@ static void seed_random (unsigned long *seed) /*{{{*/
 
 /*}}}*/
 
-static void rand_array (int num, double (*rand_fun)(void)) /*{{{*/
+static void rand_array (SLindex_Type num, double (*rand_fun)(void)) /*{{{*/
 {
    SLang_Array_Type *at = NULL;
    double *ad;
-   int i;
+   SLindex_Type i;
 
    if (num <= 0)
      return;
@@ -799,8 +793,7 @@ static void rand_array (int num, double (*rand_fun)(void)) /*{{{*/
         return;
      }
 
-   at = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &num, 1);
-   if (NULL == at)
+   if (NULL == (at = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &num, 1)))
      {
         isis_vmesg (INTR, I_FAILED, __FILE__, __LINE__, "creating array of random values");
         return;
@@ -815,7 +808,7 @@ static void rand_array (int num, double (*rand_fun)(void)) /*{{{*/
 
 /*}}}*/
 
-static void urand_array (int *num) /*{{{*/
+static void urand_array (SLindex_Type *num) /*{{{*/
 {
    /* Uniform random numbers */
    rand_array (*num, urand);
@@ -823,7 +816,7 @@ static void urand_array (int *num) /*{{{*/
 
 /*}}}*/
 
-static void grand_array (int *num) /*{{{*/
+static void grand_array (SLindex_Type *num) /*{{{*/
 {
    /* Gaussian random numbers */
    rand_array (*num, grand);
@@ -835,7 +828,7 @@ static void prand_vec (void) /*{{{*/
 {
    SLang_Array_Type *rate = NULL;
    double *r;
-   unsigned int i, n;
+   SLindex_Type i, n;
 
    if (-1 == SLang_pop_array_of_type (&rate, SLANG_DOUBLE_TYPE)
        || rate == NULL)
@@ -858,11 +851,11 @@ static void prand_vec (void) /*{{{*/
 
 /*}}}*/
 
-static void prand_array (double *rate, unsigned int *num) /*{{{*/
+static void prand_array (double *rate, SLindex_Type *num) /*{{{*/
 {
    SLang_Array_Type *at = NULL;
    int *ai;
-   int i, n;
+   SLindex_Type i, n;
 
    n = *num;
 
@@ -874,8 +867,7 @@ static void prand_array (double *rate, unsigned int *num) /*{{{*/
         return;
      }
 
-   at = SLang_create_array (SLANG_INT_TYPE, 0, NULL, &n, 1);
-   if (NULL == at)
+   if (NULL == (at = SLang_create_array (SLANG_INT_TYPE, 0, NULL, &n, 1)))
      {
         isis_vmesg (INTR, I_FAILED, __FILE__, __LINE__, "creating array of random values");
         return;
@@ -896,7 +888,7 @@ typedef struct
 {
    double **a;
    double *b;
-   int n;
+   SLindex_Type n;
 }
 Linear_System_Type;
 
@@ -1020,6 +1012,7 @@ the_return:
 /*{{{ intrinsics */
 
 #define V SLANG_VOID_TYPE
+#define AI SLANG_ARRAY_INDEX_TYPE
 #define I SLANG_INT_TYPE
 #define U SLANG_UINT_TYPE
 #define F SLANG_FLOAT_TYPE
@@ -1038,9 +1031,9 @@ static SLang_Intrin_Fun_Type Math_Intrinsics [] =
    MAKE_INTRINSIC("_ks_difference", ks_difference, D, 0),
    MAKE_INTRINSIC_1("_ks_probability", ks_probability, D, D),
    MAKE_INTRINSIC_1("_seed_random", seed_random, V, SLANG_ULONG_TYPE),
-   MAKE_INTRINSIC_I("_urand_array", urand_array, V),
-   MAKE_INTRINSIC_I("_grand_array", grand_array, V),
-   MAKE_INTRINSIC_2("_prand_array", prand_array, V, D, U),
+   MAKE_INTRINSIC_1("_urand_array", urand_array, V, AI),
+   MAKE_INTRINSIC_1("_grand_array", grand_array, V, AI),
+   MAKE_INTRINSIC_2("_prand_array", prand_array, V, D, AI),
    MAKE_INTRINSIC("_prand_vec", prand_vec, V, 0),
    MAKE_INTRINSIC("lu_solve_intrin", lu_solve_intrin, V, 0),
    MAKE_INTRINSIC("svd_solve_intrin", svd_solve_intrin, V, 0),
@@ -1048,6 +1041,7 @@ static SLang_Intrin_Fun_Type Math_Intrinsics [] =
 };
 
 #undef V
+#undef AI
 #undef I
 #undef F
 #undef D
