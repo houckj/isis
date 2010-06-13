@@ -1347,61 +1347,6 @@ fi
 
 dnl#}}}
 
-AC_DEFUN(JH_CIAO_PATHS, dnl#{{{
-[
-if test "X$1" != "X"
-then
-   SLANG_LIBDIR="$1/ots/lib"
-   SLANG_LIB="-L$1/ots/lib"
-   SLANG_INC="-I$1/ots/include"
-   AC_SUBST(SLANG_LIBDIR)
-   AC_SUBST(SLANG_LIB)
-   AC_SUBST(SLANG_INC)
-   dnl
-   CFITSIO_INC="-I$1/ots/include"
-   JH_CHECK_CFITSIO_LIBNAME("$1/ots/lib")
-   AC_SUBST(CFITSIO_INC)
-   dnl
-   HEADAS_DIR="$1/ots/spectral"
-   HEADAS_LIBDIR="$1/ots/lib"
-   WITH_HEADAS="-DWITH_HEADAS"
-   MODULE_LIST="$MODULE_LIST xspec"
-   AC_SUBST(HEADAS_DIR)
-   AC_SUBST(HEADAS_LIBDIR)
-   AC_SUBST(WITH_HEADAS)
-   AC_SUBST(MODULE_LIST)
-   dnl
-   ATOMDB_DIR="$1/ATOMDB"
-   AC_SUBST(ATOMDB_DIR)
-fi
-])
-dnl#}}}
-
-AC_DEFUN(JH_WITH_CIAO, dnl#{{{
-[
-dnl This must precede the JD_WITH_LIBRARY() macros
-dnl for slang, cfitsio and pgplot
-dnl
-AC_ARG_WITH(ciao,
-  [  --with-ciao[[=DIR]]       Use pgplot/cfitsio/slang from Ciao],
-  [ jh_use_ciao=$withval ], [jh_use_ciao=no])
-if test "x$jh_use_ciao" = "xno"
-then
-   ASCDS_INSTALL=no
-else
-  if test "x$jh_use_ciao" = "xyes"
-  then
-     jh_use_ciao='$(ASCDS_INSTALL)'
-  fi
-  JH_CIAO_PATHS($jh_use_ciao)
-  JD_SET_RPATH($jh_use_ciao/ots/lib)
-  ASCDS_INSTALL=$jh_use_ciao
-fi
-AC_SUBST(ASCDS_INSTALL)
-])
-
-dnl#}}}
-
 AC_DEFUN(JH_HANDLE_PACKAGE_OPTIONS, dnl#{{{
 [
   case "$host_os" in
@@ -1438,8 +1383,6 @@ AC_DEFUN(JH_HANDLE_PACKAGE_OPTIONS, dnl#{{{
      exit 1
   fi
   AC_SUBST(with_xspec_version)
-
-  JH_WITH_CIAO
 ])
 
 dnl#}}}

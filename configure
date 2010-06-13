@@ -717,11 +717,10 @@ PGPLOT_LIBDIR
 XSPEC_MODULE_LIBS
 LINK_XSPEC_STATIC
 with_xspec_version
-SLANG_LIBDIR
 SLANG_LIB
 SLANG_INC
+SLANG_LIBDIR
 ATOMDB_DIR
-ASCDS_INSTALL
 EXTRA_LIB
 EXTRA_INC
 BUILD_ISIS_EXTRAS
@@ -1350,7 +1349,6 @@ Optional Packages:
   --with-headas=DIR      HEADAS install directory
   --with-xspec-static=DIR    Statically link XSPEC models from DIR=$HEADAS
   --with-xspec-version=nn    XSPEC version 11 or 12?
-  --with-ciao[=DIR]       Use pgplot/cfitsio/slang from Ciao
   --with-pgplot=DIR      Use DIR/lib and DIR/include for pgplot
   --with-pgplotlib=DIR   pgplot library in DIR
   --with-pgplotinc=DIR   pgplot include files in DIR
@@ -11827,128 +11825,6 @@ fi
 
 
 
-
-# Check whether --with-ciao was given.
-if test "${with_ciao+set}" = set; then
-  withval=$with_ciao;  jh_use_ciao=$withval
-else
-  jh_use_ciao=no
-fi
-
-if test "x$jh_use_ciao" = "xno"
-then
-   ASCDS_INSTALL=no
-else
-  if test "x$jh_use_ciao" = "xyes"
-  then
-     jh_use_ciao='$(ASCDS_INSTALL)'
-  fi
-
-if test "X$jh_use_ciao" != "X"
-then
-   SLANG_LIBDIR="$jh_use_ciao/ots/lib"
-   SLANG_LIB="-L$jh_use_ciao/ots/lib"
-   SLANG_INC="-I$jh_use_ciao/ots/include"
-
-
-
-      CFITSIO_INC="-I$jh_use_ciao/ots/include"
-
-  jh_cfitsio_library_dir="$jh_use_ciao/ots/lib"
-  case "$host_os" in
-    *darwin* )
-        ext="dylib"
-        ;;
-    *cygwin* )
-        ext="dll"
-        ;;
-    * )
-        ext="so"
-        ;;
-  esac
-  if test -f "${jh_cfitsio_library_dir}/libcfitsio.$ext" ; then
-     cfitsio_libname=cfitsio
-  elif test -f "${jh_cfitsio_library_dir}/libcxccfitsio.$ext" ; then
-     cfitsio_libname=cxccfitsio
-  else
-     cfitsio_libfile_exists=0
-     cfitsio_libname=`/bin/ls ${jh_cfitsio_library_dir}/libcfitsio*.$ext`
-     if test x"$cfitsio_libname" != "x" ; then
-        cfitsio_libname=`basename $cfitsio_libname | sed s/lib// | sed s/\.$ext//`
-        if test -f "${jh_cfitsio_library_dir}/lib${cfitsio_libname}.$ext" ; then
-           cfitsio_libfile_exists=1
-        fi
-     fi
-     if test "$cfitsio_libfile_exists" == 0 ; then
-        echo '*** WARNING:  Cannot find cfitsio library in' "$jh_cfitsio_library_dir"
-     fi
-  fi
-  CFITSIO_LIB="-L${jh_cfitsio_library_dir} -l${cfitsio_libname}#"
-
-
-
-      HEADAS_DIR="$jh_use_ciao/ots/spectral"
-   HEADAS_LIBDIR="$jh_use_ciao/ots/lib"
-   WITH_HEADAS="-DWITH_HEADAS"
-   MODULE_LIST="$MODULE_LIST xspec"
-
-
-
-
-      ATOMDB_DIR="$jh_use_ciao/ATOMDB"
-
-fi
-
-
-if test "X$jh_use_ciao/ots/lib" != "X"
-then
-  if test "X$RPATH" = "X"
-  then
-
-case "$host_os" in
-  *linux*|*solaris* )
-    if test "X$GCC" = Xyes
-    then
-      if test "X$ac_R_nospace" = "Xno"
-      then
-        RPATH="-Wl,-R,"
-      else
-        RPATH="-Wl,-R"
-      fi
-    else
-      if test "X$ac_R_nospace" = "Xno"
-      then
-        RPATH="-R "
-      else
-        RPATH="-R"
-      fi
-    fi
-  ;;
-  *osf*)
-    if test "X$GCC" = Xyes
-    then
-      RPATH="-Wl,-rpath,"
-    else
-      RPATH="-rpath "
-    fi
-  ;;
-esac
-
-    if test "X$RPATH" != "X"
-    then
-      RPATH="$RPATH$jh_use_ciao/ots/lib"
-    fi
-  else
-    RPATH="$RPATH:$jh_use_ciao/ots/lib"
-  fi
-fi
-
-  ASCDS_INSTALL=$jh_use_ciao
-fi
-
-
-
-
 if test "x$PGPLOT_LIB" = "xno" \
    || test "${with_pgplot+set}" = set \
    || test "${with_pgplotlib+set}" = set \
@@ -14498,11 +14374,10 @@ PGPLOT_LIBDIR!$PGPLOT_LIBDIR$ac_delim
 XSPEC_MODULE_LIBS!$XSPEC_MODULE_LIBS$ac_delim
 LINK_XSPEC_STATIC!$LINK_XSPEC_STATIC$ac_delim
 with_xspec_version!$with_xspec_version$ac_delim
-SLANG_LIBDIR!$SLANG_LIBDIR$ac_delim
 SLANG_LIB!$SLANG_LIB$ac_delim
 SLANG_INC!$SLANG_INC$ac_delim
+SLANG_LIBDIR!$SLANG_LIBDIR$ac_delim
 ATOMDB_DIR!$ATOMDB_DIR$ac_delim
-ASCDS_INSTALL!$ASCDS_INSTALL$ac_delim
 EXTRA_LIB!$EXTRA_LIB$ac_delim
 EXTRA_INC!$EXTRA_INC$ac_delim
 BUILD_ISIS_EXTRAS!$BUILD_ISIS_EXTRAS$ac_delim
@@ -14528,7 +14403,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 34; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 33; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

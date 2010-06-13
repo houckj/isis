@@ -266,16 +266,7 @@ install-wrapper-script:
 	   ;; \
 	esac
 
-ASCDS_INSTALL=@ASCDS_INSTALL@
-install-ciao-path:
-	$(RM) $(prefix)/ascds_install_path
-	if test X"$(ASCDS_INSTALL)" != X"no" ; then \
-	   if test -r "$(ASCDS_INSTALL)" ; then \
-	      echo $(ASCDS_INSTALL) > $(prefix)/ascds_install_path ; \
-	   fi ; \
-	fi
-
-install: all install-directories install-extra install-ciao-path
+install: all install-directories install-extra
 	@echo installing in $(prefix)
 	-$(RM) $(install_bin_dir)/$(PKG_NAME)
 	$(INSTALL) $(OBJDIR)/$(PKG_NAME) $(install_bin_dir)/$(PKG_NAME)
