@@ -670,6 +670,19 @@ static int set_par (unsigned int idx, int p_tie, int p_freeze, /*{{{*/
         return -1;
      }
 
+   if ((pi.tie != NULL)
+       || ((pi.freeze != 0) && (strlen (pi.fun_str) != 0)))
+     {
+        /* silently do nothing.
+         * If I generate an error, then set_params() will fail
+         * if any tied parameters are present.
+         * If a parameter is configured as a derived parameter,
+         * then we should not modify its configuration here,
+         * but an error message would often be annoying.
+         */
+        return 0;
+     }
+
    pi.idx = idx;
    pi.value = p_value;
    pi.freeze = p_freeze;

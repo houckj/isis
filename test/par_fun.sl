@@ -9,19 +9,19 @@ set_par ("gauss(2).center", 1.0);
 set_par ("gauss(3).center", 12.0);
 
 % Try simple operations
+set_par ("gauss(2).center", "0.5*(gauss(1).center + gauss(3).center)");
+if (12.0 != get_par("gauss(2).center"))
+  failed ("sum failed");
 set_par_fun ("gauss(2).center", "0.5*(gauss(1).center + gauss(3).center)");
 if (12.0 != get_par("gauss(2).center"))
   failed ("sum failed");
 
+set_par ("gauss(2).center", "gauss(1).center*gauss(3).center");
+if (144.0 != get_par("gauss(2).center"))
+  failed ("product failed");
 set_par_fun ("gauss(2).center", "gauss(1).center*gauss(3).center");
 if (144.0 != get_par("gauss(2).center"))
   failed ("product failed");
-
-% Try self-referential expression
-set_par_fun ("gauss(2).center", "gauss(2).center*10");
-set_par ("gauss(2).center", 12.0);
-if (120.0 != get_par("gauss(2).center"))
-  failed ("self-ref failed");
 
 % Try kernel parameters
 variable lo, hi, n;
@@ -31,6 +31,9 @@ n = prand(20,200);
 set_kernel (1, "pileup");
 variable _silly=1;
 set_par_fun ("gauss(1).center", "pileup(_silly).g0 + 3.5");
+if (4.5 != get_par("gauss(1).center"))
+  failed ("kernel param failed");
+set_par ("gauss(1).center", "pileup(_silly).g0 + 3.5");
 if (4.5 != get_par("gauss(1).center"))
   failed ("kernel param failed");
 
