@@ -84,7 +84,10 @@ define test_basic_ops (freeze_par, tie_par, test_name) %{{{
    save_tie_par = get_par (tie_par);
    fp = get_par (freeze_par);
    fun = sprintf ("_par(%d)*1.1", _get_index(freeze_par));
-   set_par_fun (tie_par, fun);
+   variable x = get_par_info(tie_par);
+   % widen the upper limit before this will work
+   set_par (tie_par, x.value, x.freeze, x.min, 20);
+   set_par (tie_par, fun);
    if (0 != strcmp (get_par_info (tie_par).fun, fun)
        or get_par(tie_par) != fp*1.1)
      failed ("%s: %s", test_name, "set_par_fun[1]");

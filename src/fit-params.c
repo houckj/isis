@@ -553,6 +553,7 @@ static int update_tied_params (Param_t *pt) /*{{{*/
 
 static int update_derived (Param_Info_t *p, void *cl) /*{{{*/
 {
+   double value;
    int err = 0;
    (void) cl;
 
@@ -564,14 +565,24 @@ static int update_derived (Param_Info_t *p, void *cl) /*{{{*/
         Isis_Evaluating_Derived_Param = 1;
 
         if ((-1 == SLexecute_function (p->fun_ptr))
-            ||(-1 == SLang_pop_double (&p->value)))
+            ||(-1 == SLang_pop_double (&value)))
           {
-             isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "updating derived parameter: %s",
+             isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "computing derived parameter: %s",
                          p->fun_str);
              err = -1;
           }
 
         Isis_Evaluating_Derived_Param = 0;
+
+        if ((value < p->min || p->max < value)
+           || (0 != isnan(value)))
+          {
+             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                         "parameter %s:  derived value=%g violates limits min=%g max=%g)",
+                         p->param_name, value, p->min, p->max);
+             err = -1;
+          }
+        else p->value = value;
      }
 
    return err;
