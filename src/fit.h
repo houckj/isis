@@ -270,7 +270,6 @@ Fit_Object_Type;
 
 extern Fit_Param_t *new_fit_param_type (unsigned int num);
 extern void free_fit_param_type (Fit_Param_t *p);
-extern Fit_Data_t *get_fit_data (void);
 extern void free_fit_data (Fit_Data_t *d);
 
 extern int fit_object_config (Fit_Object_Type *fo, Param_t *pt, int unpack_variable);

@@ -2788,7 +2788,7 @@ static int init_model_structs (Hist_t *h, void *cl) /*{{{*/
 
 /*}}}*/
 
-Fit_Data_t *get_fit_data (void) /*{{{*/
+static Fit_Data_t *get_fit_data (void) /*{{{*/
 {
    Fit_Data_t *d;
    int nbins;
@@ -2796,7 +2796,7 @@ Fit_Data_t *get_fit_data (void) /*{{{*/
    nbins = get_num_noticed_bins ();
    if (nbins <= 0)
      return NULL;
-
+#if 0
    /* FIXME?  sync model and data _before_ loading data,
     * so that scaled background gets the right ARF exposure
     * (it would be really nice to find a way to avoid this
@@ -2804,6 +2804,7 @@ Fit_Data_t *get_fit_data (void) /*{{{*/
     */
    if (-1 == sync_model_with_data ())
      return NULL;
+#endif
 
    if (-1 == map_datasets (init_model_structs, NULL))
      return NULL;
@@ -3392,6 +3393,19 @@ static Fit_Object_Type *fit_object_open (void) /*{{{*/
 {
    Fit_Object_Type *fo = NULL;
    Fit_Info_Type *info;
+
+#if 1
+   /* sync model with data
+    *  1. *before* counting the number of parameters
+    *     (a change in the number of datasets may have
+    *      changed the number of parameters)
+    *  2. *before* loading the Fit_Data_t struct
+    *     (the responses must be assigned so that the
+    *      scaled background gets the right ARF exposure)
+    */
+   if (-1 == sync_model_with_data ())
+     return NULL;
+#endif
 
    (void) map_datasets (pre_fit, NULL);
    init_verbose_hook ();

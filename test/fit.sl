@@ -244,4 +244,26 @@ delete_data (all_data);
 check_num_pars (4, "UDF");
 try_user_statistic ();
 
+% parameter counting
+delete_data (all_data);
+set_fit_statistic ("chisqr");
+define cnst_fit(l,h,p){ return p[0] * ones(length(l));}
+add_slang_function ("cnst", "a");
+fit_fun("cnst(Isis_Active_Dataset)");
+()=define_counts(1,2,3,4);
+()=define_counts(2,3,4,5);
+variable info;
+() = eval_counts (&info);
+if ((info.num_variable_params != 2)
+    || (info.num_bins != 2))
+{
+   throw ApplicationError, "*** eval_counts parameter counting problem";
+}
+()=fit_counts (&info);
+if ((info.num_variable_params != 2)
+    || (info.num_bins != 2)
+    || (info.statistic != 0))
+{
+   throw ApplicationError, "*** fit_counts parameter counting problem";
+}
 msg ("ok\n");

@@ -937,11 +937,23 @@ private define _delete_list_members (delete_fun, num, msg) %{{{
 
 %}}}
 
+define set_kernel (); % prototype
 define delete_data () %{{{
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg = "delete_data (hist_index[])";
-   return _delete_list_members (&_isis->_delete_hist, _NARGS, msg);
+   variable ids = _isis->pop_list (_NARGS, msg);
+   if (ids == NULL)
+     return;
+   foreach (ids)
+     {
+        variable i = ();
+        % if this dataset has an entry in fit engine's kernel table,
+        % then remove that.
+        set_kernel (i, "std");
+        % now it's ok to delete the dataset.
+        _isis->_delete_hist (i);
+     }
 }
 
 %}}}

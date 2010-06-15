@@ -801,6 +801,8 @@ int Hist_map (Hist_t *head, int (*fun)(Hist_t *, void *), void *cl, int check_ex
    if (head == NULL)
      return -1;
 
+   Isis_Active_Dataset = 0;
+
    for (h = head->next; h != NULL; h = h->next)
      {
         if (check_exclude && h->exclude)
