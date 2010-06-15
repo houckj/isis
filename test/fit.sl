@@ -259,13 +259,6 @@ if ((info.num_variable_params != 2)
 {
    throw ApplicationError, "*** eval_counts parameter counting problem";
 }
-()=fit_counts (&info);
-if ((info.num_variable_params != 2)
-    || (info.num_bins != 2)
-    || (info.statistic != 0))
-{
-   throw ApplicationError, "*** fit_counts parameter counting problem";
-}
 
 % set_par should respect tied parameters
 tie(2,1);
