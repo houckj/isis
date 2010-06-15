@@ -266,4 +266,14 @@ if ((info.num_variable_params != 2)
 {
    throw ApplicationError, "*** fit_counts parameter counting problem";
 }
+
+% set_par should respect tied parameters
+tie(2,1);
+set_par (1, 3.5);
+private variable p = get_par_info (1);
+if (p.tie != "cnst(2).a")
+{
+   throw ApplicationError, "*** set_par broke parameter tie";
+}
+
 msg ("ok\n");

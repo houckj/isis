@@ -683,10 +683,9 @@ static int set_par (unsigned int idx, int p_tie, int p_freeze, /*{{{*/
         pi.max = p_max;
      }
 
-   if (p_tie <= 0)
-     ISIS_FREE(pi.tie);
-   else if ((-1 == get_param_name (p_tie, tie_name, name_size))
-            || (NULL == (pi.tie = isis_make_string (tie_name))))
+   if ((p_tie > 0)
+       && ((-1 == get_param_name (p_tie, tie_name, name_size))
+           || (NULL == (pi.tie = isis_make_string (tie_name)))))
      {
         _free_param_info (&pi);
         isis_throw_exception (Isis_Error);
