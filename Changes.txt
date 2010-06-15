@@ -23,6 +23,8 @@ Changes since 1.6.0 (released Apr 2010)
          of a model or for the default configuration of a model.
          In the latter case, all subsequent instances of the model
          will be affected.
+13.  Fix parameter table vs. dataset list synchronization bug.
+14.  set_par should respect tied parameters.
 
 Changes since 1.5.0 (released Aug 2009)
 ---------------------------------------
