@@ -605,7 +605,6 @@ static void _get_param_info (int *idx) /*{{{*/
 static int do_set_par (_Param_Info_Type *pi, int update_minmax) /*{{{*/
 {
    Param_Info_t *p;
-   int status;
 
    if (-1 == Fit_set_param_control (Param, pi->idx, update_minmax, pi->min, pi->max, pi->freeze, pi->tie))
      {
@@ -617,10 +616,9 @@ static int do_set_par (_Param_Info_Type *pi, int update_minmax) /*{{{*/
      return -1;
 
    if ((p->min <= pi->value) && (pi->value <= p->max))
-     status = Fit_set_param_value (Param, pi->idx, pi->value);
-   else status = 1;
+     return Fit_set_param_value (Param, pi->idx, pi->value);
 
-   return status;
+   return 1;
 }
 
 /*}}}*/
@@ -677,6 +675,7 @@ static int set_par (unsigned int idx, int p_tie, int p_freeze, /*{{{*/
         isis_vmesg (WARN, I_WARNING, __FILE__, __LINE__,
                     "set_par: param %d is currently tied, settings unchanged\n",
                    idx);
+        _free_param_info (&pi);
         return -1;
      }
 
