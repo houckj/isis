@@ -620,8 +620,6 @@ static int do_set_par (_Param_Info_Type *pi, int update_minmax) /*{{{*/
      status = Fit_set_param_value (Param, pi->idx, pi->value);
    else status = 1;
 
-   (void) Fit_sync_tied_params (Param);
-
    return status;
 }
 
@@ -1053,6 +1051,12 @@ static void _tie (int *idx_a, int *idx_b) /*{{{*/
         isis_vmesg (INTR, I_WARNING, __FILE__, __LINE__, "params (%d, %d) not tied",
                     *idx_a, *idx_b);
      }
+
+   /* Don't call Fit_sync_tied_params parameters here.
+    * If the user goofed and tied the wrong two parameters
+    * together, then the sync call would trash the current
+    * settings of one or more fit parameters.
+    */
 }
 
 /*}}}*/
