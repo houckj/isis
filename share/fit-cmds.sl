@@ -2146,11 +2146,17 @@ define set_params () %{{{
 
    par_info = ();
 
-   foreach (par_info)
+   foreach p (par_info)
      {
-	p = ();
-	set_par_fun (p.index, p.fun);
+        untie (p.index);
+        set_par_fun (p.index, NULL);
+     }
+
+   foreach p (par_info)
+     {
 	set_par (p.index, p.value, p.freeze, p.min, p.max, p.step);
+	set_par_fun (p.index, p.fun);
+        if (p.tie != NULL) tie (p.tie, p.index);
      }
 }
 

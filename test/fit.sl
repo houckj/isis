@@ -284,4 +284,103 @@ if (4 != get_par ("cnst(3).a"))
    throw ApplicationError, "data/model sync error";
 }
 
+% set_params/get_params
+
+private variable Test_Name;
+define check_non_value (p, p0) %{{{
+{
+   if (p.freeze != p0.freeze
+       or p.tie != p0.tie
+       or p.min != p0.min
+       or p.max != p0.max
+       or p.fun != p0.fun)
+     {
+        print(p0);
+        print(p);
+	failed ("restoring initial parameter config: %s", Test_Name);
+     }
+}
+
+%}}}
+
+define check_value (p, p0) %{{{
+{
+   if ((p.is_a_norm == 0)
+       or (p.is_a_norm == 1 and (p.freeze == 1 or p.tie != NULL)))
+     {
+	if (p.value != p0.value)
+	  {
+	     print(p);
+	     print(p0);
+	     failed ("restoring initial parameter values: %s", Test_Name);
+	  }
+	return;
+     }
+
+   % If we get to here, it must be a variable norm.
+
+   if (abs(1.0 - p.value / p0.value) > 1.e-3)
+     {
+	print(p);
+	print(p0);
+	failed ("finding correct normalization: %s", Test_Name);
+     }
+}
+
+%}}}
+
+define apply_pars (fun, pars, pars0) %{{{
+{
+   variable i, ids = [1:get_num_pars()];
+   variable p, p0;
+
+   foreach (ids)
+     {
+	i = ();
+	p = pars[i-1];
+	p0 = pars0[i-1];
+
+	(@fun) (p, p0);
+     }
+}
+
+%}}}
+
+define compare_pars (p, p0)
+{
+   apply_pars (&check_non_value, p, p0);
+   apply_pars (&check_value, p, p0);
+}
+
+delete_data (all_data);
+() = define_counts (1,2,3,4);
+fit_fun ("blackbody(1) + blackbody(2)");
+set_par ("blackbody(1).norm", 1.5, 0, 0.5, 4.5);
+
+define mod1(){ tie("blackbody(1).norm", "blackbody(2).norm");}
+define mod2(){ set_par_fun ("blackbody(2).kT", "2 * blackbody(1).kT");}
+define undo_mod1(){ untie("blackbody(2).norm");}
+define undo_mod2(){ set_par_fun ("blackbody(2).kT", NULL);}
+
+Test_Name = "simple case -- restore state with no ties or derived params";
+variable p0 = get_params();
+mod1(); mod2();
+set_params (p0);
+compare_pars (get_params(),p0);
+
+Test_Name = "restore state with param ties";
+mod1();
+variable p1 = get_params();
+undo_mod1(); undo_mod2();
+set_params (p1);
+compare_pars (get_params(),p1);
+
+Test_Name = "restore state with derived params";
+set_params (p0);
+mod2();
+variable p2 = get_params();
+undo_mod1(); undo_mod2();
+set_params (p2);
+compare_pars (get_params(),p2);
+
 msg ("ok\n");
