@@ -788,7 +788,7 @@ int Fit_set_param_function (Param_t *pt, unsigned int idx, char *str) /*{{{*/
 
    if (str == NULL)
      {
-        p->freeze = 0;
+        if (p->fun_str != NULL) p->freeze = 0;
         free_param_function (p);
         return 0;
      }
