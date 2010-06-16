@@ -775,7 +775,7 @@ static int finish_hist_init (Hist_t *h) /*{{{*/
 
 /*}}}*/
 
-static int histogram_list_append (Hist_t *head, Hist_t *h) /*{{{*/
+static int __histogram_list_append (Hist_t *head, Hist_t *h) /*{{{*/
 {
    Hist_t *prev;
 
@@ -793,6 +793,14 @@ static int histogram_list_append (Hist_t *head, Hist_t *h) /*{{{*/
 }
 
 /*}}}*/
+
+static int histogram_list_append (Hist_t *head, Hist_t *h)
+{
+   int indx = __histogram_list_append (head, h);
+   /* Changing the number of datasets may change the fit-function */
+   update_user_model();
+   return indx;
+}
 
 int Hist_map (Hist_t *head, int (*fun)(Hist_t *, void *), void *cl, int check_exclude) /*{{{*/
 {
@@ -830,6 +838,9 @@ static int delete_after_hist (Hist_t *h) /*{{{*/
    dead = h->next;
    h->next = dead->next;
    free_hist (dead);
+
+   /* Changing the number of datasets may change the fit-function */
+   update_user_model();
 
    return 0;
 }

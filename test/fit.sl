@@ -272,4 +272,16 @@ if (p.tie != "cnst(2).a")
    throw ApplicationError, "*** set_par broke parameter tie";
 }
 
+% data/model sync
+delete_data (all_data);
+()=define_counts(1,2,3,4);
+fit_fun("cnst(Isis_Active_Dataset)");
+()=define_counts(2,3,4,5);
+()=define_counts(2,3,4,5);
+set_par ("cnst(3).a", 4);
+if (4 != get_par ("cnst(3).a"))
+{
+   throw ApplicationError, "data/model sync error";
+}
+
 msg ("ok\n");
