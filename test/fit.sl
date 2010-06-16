@@ -284,7 +284,6 @@ if (caught_e == 0)
    throw ApplicationError, "*** set_par should have thrown an exception";
 }
 
-
 % data/model sync
 delete_data (all_data);
 ()=define_counts(1,2,3,4);
@@ -300,13 +299,14 @@ if (4 != get_par ("cnst(3).a"))
 % set_params/get_params
 
 private variable Test_Name;
-define check_non_value (p, p0) %{{{
+define check_equality (p, p0) %{{{
 {
    if (p.freeze != p0.freeze
        or p.tie != p0.tie
        or p.min != p0.min
        or p.max != p0.max
-       or p.fun != p0.fun)
+       or p.fun != p0.fun
+       or p.value != p0.value)
      {
         print(p0);
         print(p);
@@ -316,33 +316,7 @@ define check_non_value (p, p0) %{{{
 
 %}}}
 
-define check_value (p, p0) %{{{
-{
-   if ((p.is_a_norm == 0)
-       or (p.is_a_norm == 1 and (p.freeze == 1 or p.tie != NULL)))
-     {
-	if (p.value != p0.value)
-	  {
-	     print(p);
-	     print(p0);
-	     failed ("restoring initial parameter values: %s", Test_Name);
-	  }
-	return;
-     }
-
-   % If we get to here, it must be a variable norm.
-
-   if (abs(1.0 - p.value / p0.value) > 1.e-3)
-     {
-	print(p);
-	print(p0);
-	failed ("finding correct normalization: %s", Test_Name);
-     }
-}
-
-%}}}
-
-define apply_pars (fun, pars, pars0) %{{{
+define compare_pars (pars, pars0) %{{{
 {
    variable i, ids = [1:get_num_pars()];
    variable p, p0;
@@ -353,17 +327,11 @@ define apply_pars (fun, pars, pars0) %{{{
 	p = pars[i-1];
 	p0 = pars0[i-1];
 
-	(@fun) (p, p0);
+	check_equality (p, p0);
      }
 }
 
 %}}}
-
-define compare_pars (p, p0)
-{
-   apply_pars (&check_non_value, p, p0);
-   apply_pars (&check_value, p, p0);
-}
 
 delete_data (all_data);
 () = define_counts (1,2,3,4);
