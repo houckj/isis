@@ -1,4 +1,4 @@
-% -*- mode: SLang; mode: fold -*- 
+% -*- mode: SLang; mode: fold -*-
 () = evalfile ("inc.sl");
 msg ("testing renorm.... ");
 
@@ -20,7 +20,7 @@ define init_data (def_ref, fit_ref) %{{{
    set_par (4, 10);
    set_par (5, 10);
    set_par (6, 10);
-   
+
    variable lo, hi, x, i;
    (lo, hi) = linear_grid (10,14,Size);
    x = eval_fun (lo, hi);
@@ -71,8 +71,10 @@ define check_non_value (p, p0) %{{{
        or p.max != p0.max
        or p.fun != p0.fun)
      {
+        print(p0);
+        print(p);
 	failed ("restoring initial parameter config: %s", Test_Name);
-     }   
+     }
 }
 
 %}}}
@@ -107,13 +109,13 @@ define apply_pars (fun, pars, pars0) %{{{
 {
    variable i, ids = [1:get_num_pars()];
    variable p, p0;
-   
+
    foreach (ids)
      {
 	i = ();
 	p = pars[i-1];
 	p0 = pars0[i-1];
-	
+
 	(@fun) (p, p0);
      }
 }
@@ -132,11 +134,11 @@ define recover (pars0) %{{{
 define check_renorm (init_ref, renorm_ref) %{{{
 {
    (@init_ref) ();
-   
+
    variable pars, pars0, initial_pars;
    initial_pars = get_params();
-   
-   Test_Name = "all norms vary";   
+
+   Test_Name = "all norms vary";
    pars0 = get_params();
    apply_factor (0.5, Norms);
    () = (@renorm_ref)();
@@ -153,8 +155,8 @@ define check_renorm (init_ref, renorm_ref) %{{{
    () = (@renorm_ref)();
    recover (pars0);
    set_params (initial_pars);
-   
-   Test_Name = "parameter function";   
+
+   Test_Name = "parameter function";
    variable fun = "_par(1) + 0.0*PI";
    set_par_fun (f, fun);
    () = eval_fun ([1,2], [2,3]);   % so param function is evaluated
@@ -163,7 +165,7 @@ define check_renorm (init_ref, renorm_ref) %{{{
    () = (@renorm_ref)();
    recover (pars0);
    set_params (initial_pars);
-   
+
    Test_Name = "everything frozen";
    freeze ([1:get_num_pars()]);
    pars0 = get_params();
