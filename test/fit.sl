@@ -265,12 +265,25 @@ if ((info.num_variable_params != 2)
 
 % set_par should respect tied parameters
 tie(2,1);
-set_par (1, 3.5);
-private variable p = get_par_info (1);
-if (p.tie != "cnst(2).a")
+variable e, caught_e = 0;
+try (e)
 {
-   throw ApplicationError, "*** set_par broke parameter tie";
+   set_par (1, 3.5);
 }
+catch IsisError:
+{
+   caught_e = 1;
+   private variable p = get_par_info (1);
+   if (p.tie != "cnst(2).a")
+     {
+        throw ApplicationError, "*** set_par broke parameter tie";
+     }
+}
+if (caught_e == 0)
+{
+   throw ApplicationError, "*** set_par should have thrown an exception";
+}
+
 
 % data/model sync
 delete_data (all_data);

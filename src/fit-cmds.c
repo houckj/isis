@@ -672,17 +672,12 @@ static int set_par (unsigned int idx, int p_tie, int p_freeze, /*{{{*/
         return -1;
      }
 
-   if ((pi.tie != NULL)
-       || ((pi.freeze != 0) && (strlen (pi.fun_str) != 0)))
+   if ((p_tie < 0) && (pi.tie != NULL))
      {
-        /* silently do nothing.
-         * If I generate an error, then set_params() will fail
-         * if any tied parameters are present.
-         * If a parameter is configured as a derived parameter,
-         * then we should not modify its configuration here,
-         * but an error message would often be annoying.
-         */
-        return 0;
+        isis_vmesg (WARN, I_WARNING, __FILE__, __LINE__,
+                    "set_par: param %d is currently tied, settings unchanged\n",
+                   idx);
+        return -1;
      }
 
    pi.idx = idx;
