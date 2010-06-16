@@ -25,6 +25,7 @@ Changes since 1.6.0 (released Apr 2010)
          will be affected.
 13.  Fix parameter table vs. dataset list synchronization bug.
 14.  set_par should respect tied parameters.
+15.  Improved synchronization between dataset list and fit parameter list.
 
 Changes since 1.5.0 (released Aug 2009)
 ---------------------------------------
