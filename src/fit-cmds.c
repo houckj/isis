@@ -672,11 +672,20 @@ static int set_par (unsigned int idx, int p_tie, int p_freeze, /*{{{*/
 
    if ((p_tie < 0) && (pi.tie != NULL))
      {
+        _free_param_info (&pi);
+#if 1
+        /* Silently ignore attempt to modify tied parameter.
+         * This is far simpler than prefacing every single set_par
+         * call in a script with a test to see if the relevant parameter
+         * happens to be tied to something.
+         */
+        return 0;
+#else
         isis_vmesg (WARN, I_WARNING, __FILE__, __LINE__,
                     "set_par: param %d is currently tied, settings unchanged\n",
                    idx);
-        _free_param_info (&pi);
         return -1;
+#endif
      }
 
    pi.idx = idx;
@@ -692,7 +701,9 @@ static int set_par (unsigned int idx, int p_tie, int p_freeze, /*{{{*/
         pi.max = p_max;
      }
 
-   if ((p_tie > 0)
+   if (p_tie == 0)
+     ISIS_FREE(pi.tie);
+   else if ((p_tie > 0)
        && ((-1 == get_param_name (p_tie, tie_name, name_size))
            || (NULL == (pi.tie = isis_make_string (tie_name)))))
      {

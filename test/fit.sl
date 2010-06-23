@@ -265,23 +265,11 @@ if ((info.num_variable_params != 2)
 
 % set_par should respect tied parameters
 tie(2,1);
-variable e, caught_e = 0;
-try (e)
+set_par (1, 3.5);
+private variable p = get_par_info (1);
+if (p.tie != "cnst(2).a")
 {
-   set_par (1, 3.5);
-}
-catch IsisError:
-{
-   caught_e = 1;
-   private variable p = get_par_info (1);
-   if (p.tie != "cnst(2).a")
-     {
-        throw ApplicationError, "*** set_par broke parameter tie";
-     }
-}
-if (caught_e == 0)
-{
-   throw ApplicationError, "*** set_par should have thrown an exception";
+   throw ApplicationError, "*** set_par broke parameter tie";
 }
 
 % data/model sync
@@ -363,5 +351,37 @@ variable p2 = get_params();
 undo_mod1(); undo_mod2();
 set_params (p2);
 compare_pars (get_params(),p2);
+
+% load_par should be able to untie parameters %{{{
+
+delete_data(all_data);
+fit_fun ("gauss");
+
+variable pfile = "x.p";
+if (0 == access(pfile, F_OK))
+  throw ApplicationError, "*** $pfile exists!"$;
+
+% save state with no ties
+save_par (pfile);
+
+% tie 2 params together
+tie (1,2);
+
+% check that the tie is established
+if (NULL == get_par_info(2).tie)
+  throw ApplicationError, "*** parameter should be tied!!";
+
+% load the un-tied state
+load_par (pfile);
+
+% check that the tie is now broken
+if (NULL != get_par_info(2).tie)
+  throw ApplicationError, "*** parameter should not be tied!!";
+
+% remove the temporary parameter file
+if (0 != remove(pfile))
+   throw ApplicationError, "*** can't remove $pfile!"$;
+
+%}}}
 
 msg ("ok\n");
