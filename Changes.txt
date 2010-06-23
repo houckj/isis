@@ -28,6 +28,12 @@ Changes since 1.6.0 (released Apr 2010)
 15.  Improved synchronization between dataset list and fit parameter list.
 16.  set_par() should warn about attempts to change tied parameters;
      set_params should be able to create/destroy parameter ties
+17.  Revert part of #16 - set_par once again silently ignores
+     attempts to change tied parameters.
+18.  Fix bug introduced by recent changes to handling of tied
+     parameters:  load_par/edit_par can once again untie parameters.
+     Added a regression test to make sure this feature doesn't get
+     broken again.
 
 Changes since 1.5.0 (released Aug 2009)
 ---------------------------------------
