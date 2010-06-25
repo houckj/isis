@@ -785,25 +785,6 @@ static int buf_has_text (char *buf) /*{{{*/
 
 /*}}}*/
 
-static int handle_fgets_error (char *line) /*{{{*/
-{
-#ifdef EINTR
-   if (errno == EINTR)
-     {
-        (void) SLang_handle_interrupt ();
-        line[0] = 0;
-        return 0;
-     }
-#endif
-
-   fflush (stdout);
-   SLfree (line);
-
-   return -1;
-}
-
-/*}}}*/
-
 static char *read_line_stdin (SLang_RLine_Info_Type *rl, char *prompt, unsigned int *n) /*{{{*/
 {
    char *line;
@@ -822,10 +803,15 @@ static char *read_line_stdin (SLang_RLine_Info_Type *rl, char *prompt, unsigned 
      return NULL;
    bufsize = BUFSIZE*sizeof(char);
 
-   if (NULL == fgets (line, bufsize, stdin))
+   while (NULL == fgets (line, bufsize, stdin))
      {
-        if (-1 == handle_fgets_error (line))
-          return NULL;
+#ifdef EINTR
+        if ((errno == EINTR) && (0 == SLang_handle_interrupt ()))
+          continue;
+#endif
+        fflush (stdout);
+        SLfree (line);
+        return NULL;
      }
 
    *n = strlen (line);
