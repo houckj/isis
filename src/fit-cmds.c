@@ -2869,7 +2869,7 @@ static int Open_Fit_Verbose_Hook;
 
 void init_verbose_hook (void) /*{{{*/
 {
-   if (!Fit_Verbose) return;
+   if (Fit_Verbose < 0) return;
    if (Open_Fit_Verbose_Hook) return;
 
    SLsig_block_signals ();
