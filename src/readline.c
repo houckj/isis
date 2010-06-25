@@ -113,6 +113,43 @@ static SLang_RLine_Info_Type *RLI;
 
 /*{{{ tty configuration */
 
+static SLang_RLine_Info_Type *Active_Rline_Info;
+
+#ifdef SIGWINCH
+static int Want_Window_Size_Change = 0;
+static void sig_winch_handler (int sig)
+{
+   sig = errno;
+   Want_Window_Size_Change = 1;
+   SLsignal_intr (SIGWINCH, sig_winch_handler);
+   errno = sig;
+}
+
+static int screen_size_changed_hook (VOID_STAR cd_unused)
+{
+   (void) cd_unused;
+   if (Want_Window_Size_Change)
+     {
+       Want_Window_Size_Change = 0;
+       if (Active_Rline_Info != NULL)
+         {
+            SLtt_get_screen_size ();
+            SLrline_set_display_width (Active_Rline_Info, SLtt_Screen_Cols);
+         }
+     }
+   return 0;
+}
+#endif
+
+static int add_sigwinch_handlers (void)
+{
+#ifdef SIGWINCH
+   (void) SLang_add_interrupt_hook (screen_size_changed_hook, NULL);
+   (void) SLsignal_intr (SIGWINCH, sig_winch_handler);
+#endif
+   return 0;
+}
+
 #ifdef HAVE_GNU_READLINE
 static void (*last_sig_sigint) (int);
 static void gnu_rl_sigint_handler (int sig) /*{{{*/
@@ -164,6 +201,9 @@ static void init_tty (void) /*{{{*/
 
    SLang_getkey_intr_hook = getkey_intr_hook;
 
+   (void) add_sigwinch_handlers ();
+   SLtt_get_screen_size ();
+
    SLtty_set_suspend_state (1);
    SLsig_unblock_signals ();
 }
@@ -211,7 +251,15 @@ static void sig_sigtstp (int sig) /*{{{*/
         rl_refresh_line (0,0);
 #endif
      }
-   else SLrline_redraw (RLI);
+   else
+     {
+        if (Active_Rline_Info != NULL)
+          {
+
+             SLrline_set_display_width (Active_Rline_Info, SLtt_Screen_Cols);
+             SLrline_redraw (Active_Rline_Info);
+          }
+     }
 
    SLsig_unblock_signals ();
 }
@@ -810,7 +858,10 @@ static char *read_input_line (SLang_RLine_Info_Type *rline, char *prompt) /*{{{*
           }
         else
           {
+             (void) add_sigwinch_handlers ();
+             Active_Rline_Info = rline;
              line = SLrline_read_line (rline, prompt, &n);
+             Active_Rline_Info = NULL;
           }
 
         reset_tty ();
@@ -1246,9 +1297,14 @@ int open_readline (char *namespace_name) /*{{{*/
      }
    else
      {
+#ifndef SL_RLINE_USE_MULTILINE
+#define SL_RLINE_USE_MULTILINE 0
+#endif
+        unsigned int flags = SL_RLINE_BLINK_MATCH|SL_RLINE_USE_MULTILINE;
+
         if (-1 == SLrline_init ("ISIS", NULL, NULL))
           return -1;
-        if (NULL == (RLI = SLrline_open2 ("isis", SLtt_Screen_Cols, SL_RLINE_BLINK_MATCH)))
+        if (NULL == (RLI = SLrline_open2 ("isis", SLtt_Screen_Cols, flags)))
           return -1;
      }
 
