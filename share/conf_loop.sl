@@ -83,9 +83,7 @@ private define valid_param_indices (index_array)
 
 private define try_conf (index, ctrl)
 {
-   variable
-     save = qualifier_exists ("save"),
-     fit_verbose = qualifier ("fit_verbose", -1);
+   variable save = qualifier_exists ("save");
 
    variable
      file_conf = path_concat (Dir, "${Basename}conf"$),
@@ -156,8 +154,6 @@ private define conf_slave (s, indices, ctrl)
 {
    send_msg (s, SLAVE_READY);
 
-   variable fit_verbose = qualifier ("fit_verbose", -1);
-
    forever
      {
         variable objs = recv_objs (s);
@@ -219,6 +215,8 @@ private define recv_slave_result (slv)
 {
    variable x = Parallel_Conf_Loop_Info;
 
+   variable verbose = qualifier ("verbose", 0);
+
    variable objs = recv_objs (slv);
 
    variable
@@ -238,7 +236,7 @@ private define recv_slave_result (slv)
    % happen that the slave's confidence limits fail to bracket the
    % master's current parameter value.
    not_bracketed = (p_value < result.pmin || result.pmax < p_value);
-   if (not_bracketed)
+   if (not_bracketed && (verbose >= 0))
      {
         vmessage ("*** warning:  parameter $index:  confidence limits do not bracket initial parameter value"$);
         vmessage ("              Restarting confidence limit search...");
@@ -333,7 +331,7 @@ private define conf_handler (s, msg)
      }
      {
       case SLAVE_RESULT:
-        if (recv_slave_result (s))
+        if (recv_slave_result (s ;; __qualifiers))
           restart_slaves ();
         else send_next_task (s);
      }
@@ -390,7 +388,7 @@ public define conf_loop()
           }
      }
 
-   variable info, fit_verbose = qualifier ("fit_verbose", -1);
+   variable info;
    () = eval_counts (&info;; __qualifiers);
 
    variable slaves, num_slaves;
@@ -426,7 +424,7 @@ public define conf_loop()
              append_slave (slaves, s);
           }
 
-        manage_slaves (slaves, &conf_handler);
+        manage_slaves (slaves, &conf_handler ;; __qualifiers);
      }
 
    while (ctrl.serial && num_retries <= max_num_retries)
