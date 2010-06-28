@@ -269,7 +269,7 @@ private define handle_message (s, msg)
      {
         % default:
         if (User_Message_Handler != NULL)
-          (@User_Message_Handler)(s, msg);
+          (@User_Message_Handler)(s, msg ;; __qualifiers);
      }
 
    % return non-zero if the number of slaves changed,
@@ -462,7 +462,7 @@ private define handle_pending_messages (slaves)
           continue;
 
         variable s = find_slave (slaves, msg.from_pid);
-        () = handle_message (s, msg);
+        () = handle_message (s, msg ;; __qualifiers);
 
         if (Slaves_Were_Replaced)
           break;
@@ -595,7 +595,7 @@ define manage_slaves (slaves, mesg_handler)
      {
         while (handler_condition( ;; __qualifiers))
           {
-             handle_pending_messages (slaves);
+             handle_pending_messages (slaves ;; __qualifiers);
           }
      }
    catch AnyError:
