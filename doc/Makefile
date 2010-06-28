@@ -1,4 +1,5 @@
-.PHONY:	all postscript patch_index ascii figs pdffigs pdf tpdf clean veryclean world
+.PHONY:	all postscript patch_index ascii figs pdffigs pdf tpdf \
+  clean veryclean world install-doc
 
 DOC = manual
 
@@ -20,7 +21,7 @@ install-doc:	../INSTALL.html ../INSTALL.xml ../INSTALL.pdf
 	asciidoc -a "revdate=${install_mod_date}" ../INSTALL.txt
 ../INSTALL.xml:	../INSTALL.txt
 	asciidoc -a "revdate=${install_mod_date}" -b docbook ../INSTALL.txt
-../INSTALL.pdf:	../INSTALL.txt
+../INSTALL.pdf:	../INSTALL.xml
 	dblatex -T simple ../INSTALL.xml
 
 TOC=\\begin{theindex}\\label{chap:index}\\ifpdf\\pdfbookmark[-1]{Index}{chap:index}\\fi
@@ -85,5 +86,4 @@ clean:
 veryclean:
 	make clean
 	/bin/rm -f $(DOC).ps $(DOC).pdf help.txt
-	/bin/rm -f ../INSTALL.html ../INSTALL.pdf ../INSTALL.xml
 
