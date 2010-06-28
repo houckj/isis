@@ -9393,7 +9393,7 @@ conf_loop
     max_param_retries   0         The number of times a slave process
                                   should restart its assigned confidence
                                   limit search after finding a new best-fit.
-    verbose             0         Control verbosity; values < 0 are quieter.
+    cl_verbose          0         Control verbosity; values < 0 are quieter.
 
     See multicore for more details on controlling parallel
     processes.

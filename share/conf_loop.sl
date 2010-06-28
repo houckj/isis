@@ -215,7 +215,7 @@ private define recv_slave_result (slv)
 {
    variable x = Parallel_Conf_Loop_Info;
 
-   variable verbose = qualifier ("verbose", 0);
+   variable cl_verbose = qualifier ("cl_verbose", Fit_Verbose);
 
    variable objs = recv_objs (slv);
 
@@ -236,7 +236,7 @@ private define recv_slave_result (slv)
    % happen that the slave's confidence limits fail to bracket the
    % master's current parameter value.
    not_bracketed = (p_value < result.pmin || result.pmax < p_value);
-   if (not_bracketed && (verbose >= 0))
+   if (not_bracketed && (cl_verbose >= 0))
      {
         vmessage ("*** warning:  parameter $index:  confidence limits do not bracket initial parameter value"$);
         vmessage ("              Restarting confidence limit search...");
