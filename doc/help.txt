@@ -9393,6 +9393,7 @@ conf_loop
     max_param_retries   0         The number of times a slave process
                                   should restart its assigned confidence
                                   limit search after finding a new best-fit.
+    verbose             0         Control verbosity; values < 0 are quieter.
 
     See multicore for more details on controlling parallel
     processes.
@@ -12808,7 +12809,7 @@ set_par
 
 
  SEE ALSO
-    edit_par, load_par, get_par, set_par_fun, __set_hard_limits
+    edit_par, load_par, get_par, set_par_fun, __set_hard_limits, tie, set_params
 
 ------------------------------------------------------------------------
 set_param_default_hook
@@ -12901,7 +12902,7 @@ set_params
     See get_params for more information.
 
  SEE ALSO
-    get_params, set_par
+    get_params, set_par, tie
 
 ------------------------------------------------------------------------
 set_par_fun
@@ -13112,10 +13113,16 @@ tie
 
       tie ("gauss(1).area", "gauss(2).area");
 
+    The values of tied parameters are updated only when the model
+    is evaluated.
+
+    If set_par is used to modify a tied parameter, the parameter
+    value is not changed and no warning or error message is
+    generated. set_params can be used tie or untie parameters.
 
 
  SEE ALSO
-    untie, freeze, thaw
+    untie, freeze, thaw, set_params, set_par
 
 ------------------------------------------------------------------------
 untie
@@ -13139,7 +13146,7 @@ untie
 
 
  SEE ALSO
-    tie, freeze, thaw
+    tie, freeze, thaw, set_params, set_par
 
 ------------------------------------------------------------------------
 voigt

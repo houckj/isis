@@ -10801,6 +10801,7 @@ serial                        If present, perform computations on
 max_param_retries   0         The number of times a slave process
                               should restart its assigned confidence
                               limit search after finding a new best-fit.
+verbose             0         Control verbosity; values < 0 are quieter.
 \end{verbatim}
 
 See \verb|multicore| for more details on controlling parallel processes.
@@ -13647,7 +13648,7 @@ the new \verb|min|, \verb|value|, \verb|max|.  For example:
 {set\_par} %name
 {set the value of a fit parameter} %purpose
 {set\_par (idx, value [,freeze, [ min, max [,step]]])} %usage
-{edit\_par, load\_par, get\_par, set\_par\_fun, \_\_set\_hard\_limits}
+{edit\_par, load\_par, get\_par, set\_par\_fun, \_\_set\_hard\_limits, tie, set\_params}
 \begin{verbatim}
       idx    parameter index or string identifier
     value    parameter value
@@ -13840,7 +13841,7 @@ exponent is, however, constrained to fall in the range [-5,1].
 {set\_params} %name
 {Reset all fit-parameter information using an array of structs} %purpose
 {set\_params (Struct\_Type[])} %usage
-{get\_params, set\_par}
+{get\_params, set\_par, tie}
 See \verb|get_params| for more information.
 \end{isisfunction}
 
@@ -14021,7 +14022,7 @@ One can also refer to parameters by name:
 {tie} %name
 {tie one or more fit parameters to a single parameter} %purpose
 {tie (par, par\_list)} %usage
-{untie, freeze, thaw}
+{untie, freeze, thaw, set\_params, set\_par}
 \index{Fitting!tieing parameters}
 
 {\tt par\_list} may be either a single parameter index or an integer array
@@ -14039,13 +14040,19 @@ One can also refer to parameters by name:
   tie ("gauss(1).area", "gauss(2).area");
 \end{verbatim}
 
+The values of tied parameters are updated only when the model is evaluated.
+
+If \verb|set_par| is used to modify a tied parameter, the parameter
+value is not changed and no warning or error message is generated.
+\verb|set_params| can be used tie or untie parameters.
+
 \end{isisfunction}
 
 \begin{isisfunction}
 {untie} %name
 {untie one or more fit parameters} %purpose
 {untie (par\_list)} %usage
-{tie, freeze, thaw}
+{tie, freeze, thaw, set\_params, set\_par}
 {\tt par\_list} may be either a single parameter index or an
 integer array of indices.
 \begin{verbatim}
