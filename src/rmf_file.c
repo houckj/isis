@@ -1514,7 +1514,7 @@ int Rmf_load_file (Isis_Rmf_t *rmf, void *options)  /*{{{*/
    if (-1 == init_rmf_t (rmf))
      return -1;
 
-   if (NULL == (rmf->arg_string = isis_make_string (options)))
+   if (NULL == (rmf->arg_string = isis_make_string ((const char *)options)))
      return -1;
 
    cd = (Rmf_Client_Data_t *) rmf->client_data;

@@ -3768,7 +3768,7 @@ static void array_fit (void) /*{{{*/
         goto finish;
      }
 
-   if (NULL == (par_step = ISIS_MALLOC(npars * sizeof(double))))
+   if (NULL == (par_step = (double *) ISIS_MALLOC(npars * sizeof(double))))
      {
         isis_throw_exception (Isis_Error);
         goto finish;

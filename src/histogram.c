@@ -5028,7 +5028,7 @@ int Hist_call_pre_combine_hook (Hist_t *h, double *y, SLindex_Type n, double **y
         goto return_error;
      }
 
-   if (NULL == (new_y = ISIS_MALLOC (n * sizeof(*new_y))))
+   if (NULL == (new_y = (double *) ISIS_MALLOC (n * sizeof(*new_y))))
      goto return_error;
 
    memcpy ((char *)new_y, (char *)sl_new_y->data, n * sizeof(double));
