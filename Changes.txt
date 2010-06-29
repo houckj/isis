@@ -34,6 +34,8 @@ Changes since 1.6.0 (released Apr 2010)
      parameters:  load_par/edit_par can once again untie parameters.
      Added a regression test to make sure this feature doesn't get
      broken again.
+19.  conf_loop now defaults to operating on all free parameters.
+     Setting Fit_Verbose<0 now reduces verbosity during a fit.
 
 Changes since 1.5.0 (released Aug 2009)
 ---------------------------------------
