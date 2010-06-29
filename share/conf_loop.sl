@@ -339,6 +339,8 @@ private define conf_handler (s, msg)
 
 public define conf_loop()
 {
+   variable msg = " (pmin,pmax) = conf_loop([indices[], [,level [,tolerance]]] ;qualifiers);";
+
    variable ctrl = struct
      {
         level = 1,
@@ -349,11 +351,23 @@ public define conf_loop()
    variable indices;
 
    switch(_NARGS)
+     {
+      case 0:
+        variable p, params = get_params();
+        indices = Int_Type[0];
+        foreach p (params)
+          {
+             if (p.freeze == 0 && p.tie == NULL)
+               indices = [indices, p.index];
+          }
+        if (length(indices) == 0)
+          usage(msg);
+     }
      {case 1: indices = ();}
      {case 2: (indices, ctrl.level) = ();}
      {case 3: (indices, ctrl.level, ctrl.tol) = ();}
      {
-        usage (" (pmin,pmax) = conf_loop(indices[], [,level [,tolerance]] ;qualifiers);");
+        usage (msg);
      }
 
    indices = valid_param_indices (indices);
