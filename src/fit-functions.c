@@ -1545,7 +1545,7 @@ static int set_function_hard_limits (char *fun_name, char *par_name, int hard_li
                                      Param_Info_t *p)
 {
    Fit_Fun_t *ff;
-   unsigned int i, which;
+   unsigned int i, which = UINT_MAX;
 
    if (fun_name == NULL || par_name == NULL)
      return -1;
