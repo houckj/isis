@@ -208,7 +208,7 @@ $(ELFDIR_SHARED_LIB): $(ELFDIR) $(ELFOBJS)
 
 xspec-module:
 	@if test "$(LINK_XSPEC_STATIC)" = "yes" ; then \
-	    cd ../modules ; make xspec-static ; \
+	    cd ../modules ; $(MAKE) xspec-static ; \
 	 fi
 
 #---------------------------------------------------------------------------
