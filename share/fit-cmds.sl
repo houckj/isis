@@ -2172,7 +2172,7 @@ define num_free_params () %{{{
    foreach (p)
      {
 	x = ();
-	if (x.freeze == 0)
+	if (x.freeze == 0 && x.tie == NULL)
 	  n++;
      }
 
