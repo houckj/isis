@@ -36,6 +36,9 @@ Changes since 1.6.0 (released Apr 2010)
      broken again.
 19.  conf_loop now defaults to operating on all free parameters.
      Setting Fit_Verbose<0 now reduces verbosity during a fit.
+20.  create_aped_fun: elemental abundance parameter names now have
+     'abund_' prefix.  Use qualifier 'no_abund_prefix' to drop this
+     prefix (for back-compatibility).
 
 Changes since 1.5.0 (released Aug 2009)
 ---------------------------------------

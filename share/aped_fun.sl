@@ -179,12 +179,22 @@ private define init_element_names () %{{{
 %}}}
 init_element_names();
 
+private variable Abund_Prefix;
+
 private define abund_name (Z) %{{{
 {
    if (Max_Element_Name_Index < Z)
      verror ("Unknown element, Z = %d", Z);
 
-   return Element_Names[Z];
+   variable s = Element_Names[Z];
+   return (Abund_Prefix == NULL) ? s : Abund_Prefix + s;
+}
+
+%}}}
+
+private define parse_abund_name (s) %{{{
+{
+   return (Abund_Prefix == NULL) ? s : strreplace (s, Abund_Prefix, "");
 }
 
 %}}}
@@ -240,7 +250,7 @@ private define abund_fields_to_arrays (y, names) %{{{
    _for (0, n-1, 1)
      {
 	i = ();
-	Z = Elements[names[i]];
+	Z = Elements[parse_abund_name(names[i])];
 
 	x.elem[i] = Z;
 	x.elem_abund[i] = get_struct_field (y, names[i])[0];
@@ -570,8 +580,12 @@ define norm_indices (names) %{{{
 
 define create_aped_fun () %{{{
 {
-   variable msg = "create_aped_fun (name, Struct_Type [,hook_ref])";
+   variable msg =
+`create_aped_fun (name, Struct_Type [,hook_ref])
+      qualifiers:    no_abund_prefix`;
    variable fun_name, param_struct, hook_ref = NULL;
+
+   Abund_Prefix = qualifier_exists ("no_abund_prefix") ? NULL : "abund_";
 
    if (_isis->get_varargs (&fun_name, &param_struct, &hook_ref, _NARGS, 2, msg))
      return;
@@ -634,10 +648,10 @@ define create_aped_line_profile () %{{{
 {
    variable msg = "create_aped_line_profile (name, &Line_Profile_Type [, param_names[]])";
    variable profile_name, mmt, param_names = NULL;
-   
+
    if (_isis->get_varargs (&profile_name, &mmt, &param_names, _NARGS, 2, msg))
      return;
-   
+
    variable s;
    % returns id_string, param_array, arg, ...
    s = "define ${profile_name}_fit(l,h,p){"$
@@ -658,8 +672,8 @@ define create_aped_line_modifier () %{{{
    variable msg = "create_aped_line_modifier (name, &ref, param_names[] [,num_extra_args])";
    variable modifier_name, modifier_ref, param_names = NULL;
    variable num_extra_args = 0;
-   
-   if (_isis->get_varargs (&modifier_name, &modifier_ref, &param_names, 
+
+   if (_isis->get_varargs (&modifier_name, &modifier_ref, &param_names,
                            &num_extra_args, _NARGS, 2, msg))
      return;
 

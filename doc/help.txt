@@ -6535,9 +6535,9 @@ create_aped_fun
       8  xaped(1).vturb          0     1         0     0      0
       9  xaped(1).redshift       0     1         0     0      0
      10  xaped(1).metal_abund    0     1       0.5     0      0
-     11  xaped(1).Ne             0     1         1     0      0
-     12  xaped(1).Mg             0     1       3.1     0      0
-     13  xaped(1).Fe             0     1         0     0      0
+     11  xaped(1).abund_Ne       0     1         1     0      0
+     12  xaped(1).abund_Mg       0     1       3.1     0      0
+     13  xaped(1).abund_Fe       0     1         0     0      0
 
     EXAMPLE 4:
 
