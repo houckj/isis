@@ -39,6 +39,7 @@ Changes since 1.6.0 (released Apr 2010)
 20.  create_aped_fun: elemental abundance parameter names now have
      'abund_' prefix.  Use qualifier 'no_abund_prefix' to drop this
      prefix (for back-compatibility).
+21.  set_par was not modifying 'step'
 
 Changes since 1.5.0 (released Aug 2009)
 ---------------------------------------

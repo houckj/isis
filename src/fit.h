@@ -161,7 +161,7 @@ extern int Fit_untie (Param_t *pt, unsigned int idx);
 extern int Fit_set_freeze (Param_t *pt, unsigned int idx, unsigned int freeze_value);
 extern int Fit_set_param_control (Param_t *pt, unsigned int idx,
                                   int update_minmax, double min, double max,
-                                  int freeze, char *tie);
+                                  int freeze, char *tie, double step);
 
 extern int Fit_set_hard_limits (char *fun_name, char *par_name, int *idx, int *hard_limits_only);
 extern int Fit_set_param_hard_limits (int idx, int hard_limits_only, Param_Info_t *p);

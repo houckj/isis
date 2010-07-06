@@ -606,7 +606,7 @@ static int do_set_par (_Param_Info_Type *pi, int update_minmax) /*{{{*/
 {
    Param_Info_t *p;
 
-   if (-1 == Fit_set_param_control (Param, pi->idx, update_minmax, pi->min, pi->max, pi->freeze, pi->tie))
+   if (-1 == Fit_set_param_control (Param, pi->idx, update_minmax, pi->min, pi->max, pi->freeze, pi->tie, pi->step))
      {
         isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "setting parameter %d", pi->idx);
         return -1;
