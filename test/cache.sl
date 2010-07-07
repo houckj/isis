@@ -19,16 +19,19 @@ variable add_cache = cache_fun (add, lo, hi; suffix="X");
 
 fit_fun (add_cache);
 set_par ("$add_cache(1).a"$, a_value);
-variable e;
+variable e, excp_occurred = 0;
 try (e)
 {
    () = eval_fun (0.5, 2);
 }
 catch AnyError:
 {
-   if (e.error != DomainError)
-     failed ("expected DomainError -- got %S", e.descr);
+   excp_occurred = 1;
 }
+if (excp_occurred == 0)
+   failed ("expected DomainError -- got but no exception was caught");
+else if (e.error != DomainError)
+   failed ("expected DomainError -- got %S", e.descr);
 
 fit_fun (add);
 set_par ("$add(1).a"$, a_value);

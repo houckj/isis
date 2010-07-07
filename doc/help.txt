@@ -9199,14 +9199,18 @@ cache_fun
 
     Note that the caching version will not extrapolate the model
     beyond the bounds of the specified wavelength grid; any attempt
-    to do so will generate an error.
+    to do so will generate an error or a warning.
 
-    The mult qualifier should be used when caching multiplicative
-    models.  It ensures that the bin-averaged model value is used.
-    Without this qualifier, the rebinned model is bin-integrated.
-
-    The suffix qualifier can be used to label different caching
-    versions of a single underlying function.
+    Qualifiers:
+       suffix=STR   Identifier string for the caching model
+                    (to label different instances).
+       mult         Use this qualifier when caching multiplicative
+                    models.  It ensures that the bin-averaged model
+                    value is used.  Without this qualifier, the
+                    rebinned model is bin-integrated.
+       warn_grid    Print a warning message when the model is evaluated
+                    on a grid that extends beyond the cached grid;
+                    (the default behavior is to throw an exception).
 
     EXAMPLE:
 

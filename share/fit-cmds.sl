@@ -1359,7 +1359,18 @@ define get_iback ()
 %!%-
 define cache_fun ()%{{{
 {
-   variable msg = "caching_name = cache_fun (name, lo, hi);\n\t qualifiers = suffix,mult";
+   variable msg =
+` caching_name = cache_fun (name, lo, hi);
+     qualifiers:
+         suffix=STR   Identifier string for the caching model
+                      (to label different instances)
+         mult         Use this qualifier when caching multiplicative
+                      models.  It ensures that the bin-averaged model
+                      value is used.  Without this qualifier, the
+                      rebinned model is bin-integrated.
+         warn_grid    Print a warning message when the model is evaluated
+                      on a grid that extends beyond the cached grid;
+                      (the default behavior is to throw an exception).`;
 
    if (_isis->chk_num_args (_NARGS, 3, msg))
      return;
@@ -1386,18 +1397,45 @@ define cache_fun ()%{{{
         value = NULL
      };
 
+   variable handle_grid_extrapolation;
+   variable generate_grid_msg =
+`      variable grid_msg = sprintf ("${caching_name}: dataset %d, evaluation grid=[%g, %g] extends beyond cached grid=[%g, %g]",
+                                    Isis_Active_Dataset,
+                                    lo[0], hi[-1],
+                                    s.bin_lo[0], s.bin_hi[-1])`$;
+
+   if (qualifier_exists ("warn_grid"))
+     {
+        handle_grid_extrapolation =
+`       if (Fit_Verbose >= 0)
+         {
+            ${generate_grid_msg};
+            vmessage ("*** Warning: %s", grid_msg);
+         }
+         return eval_fun2 (s.handle, lo, hi, pars)`$;
+     }
+   else
+     {
+        handle_grid_extrapolation =
+`       ${generate_grid_msg};
+        throw DomainError, grid_msg`$;
+     }
+
    _isis->Model_Cache[caching_name] = s;
 
-   variable m = "define ${caching_name}_fit(lo,hi,pars){"$
-     + "variable s = _isis->Model_Cache[\"${caching_name}\"];"$
-     + "if (lo[0] < s.bin_lo[0] || hi[-1] > s.bin_hi[-1])"
-     +  sprintf ("   throw DomainError, \"*** Error: %s: no support for extrapolating beyond cached grid [%g, %g]\";",
-                 caching_name, s.bin_lo[0], s.bin_hi[-1])
-     + "if(s.pars==NULL || any(pars!=s.pars))"
-     + "{"
-     +   "s.value = eval_fun2 (s.handle, s.bin_lo, s.bin_hi, pars);"
-     +   "s.pars = pars;"
-     + "}";
+   variable m =
+`define ${caching_name}_fit(lo,hi,pars)
+{
+   variable s = _isis->Model_Cache["${caching_name}"];
+   if (lo[0] < s.bin_lo[0] || hi[-1] > s.bin_hi[-1])
+     {
+         ${handle_grid_extrapolation};
+     }
+   if (s.pars==NULL || any(pars!=s.pars))
+     {
+        s.value = eval_fun2 (s.handle, s.bin_lo, s.bin_hi, pars);
+        s.pars = pars;
+     }`$;
 
    % multiplicative models should be bin-averaged,
    % additive models are bin-integrated.
