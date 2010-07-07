@@ -194,7 +194,12 @@ private define abund_name (Z) %{{{
 
 private define parse_abund_name (s) %{{{
 {
-   return (Abund_Prefix == NULL) ? s : strreplace (s, Abund_Prefix, "");
+   if (Abund_Prefix == NULL)
+     return s;
+
+   variable ns;
+   (ns, ) = strreplace (s, Abund_Prefix, "", 1);
+   return ns;
 }
 
 %}}}
