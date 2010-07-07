@@ -2151,12 +2151,12 @@ define get_params () %{{{
 	if (pars == NULL)
 	  return;
 
-        % User might mistake this for get_fun_params().
-        % Maybe both functions should use a single interface?
         if (_NARGS == 1 and typeof(pars) == String_Type)
-          usage(msg);
+          {
+             pars = _get_index(pars);
+          }
 
-	n = length(pars);
+        n = length(pars);
      }
 
    variable i, par_info = Struct_Type [n];
