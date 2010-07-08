@@ -218,11 +218,14 @@ ISIS_USER_SOURCE_MODULE(poly,p,options) /*{{{*/
    static double default_value []= {1.0, 1.0, 1.0};
    static double default_max []= {0.0, 0.0, 0.0};
    static unsigned int norm_indexes [] = {0,1,2};
+   static double default_relstep[3];
 
    (void) options;
 
    if (p == NULL)
      return -1;
+
+   (void) _init_relstep (default_relstep, 3);
 
    p->binned = poly_b;
    p->function_exit = NULL;
@@ -234,6 +237,7 @@ ISIS_USER_SOURCE_MODULE(poly,p,options) /*{{{*/
    p->default_min = default_min;
    p->default_max = default_max;
    p->default_value = default_value;
+   p->default_relstep = default_relstep;
    p->num_parameters = 3;
 
    return 0;
@@ -371,11 +375,14 @@ ISIS_USER_SOURCE_MODULE(Lorentz,p,options) /*{{{*/
    static double default_value []= {1.0, 12.0, 0.025};
    static double default_min []= {0.0, 0.0, 1.e-6};
    static unsigned int norm_indexes[] = {0};
+   static double default_relstep[3];
 
    (void) options;
 
    if (p == NULL)
      return -1;
+
+   (void) _init_relstep (default_relstep, 3);
 
    p->binned = lorentz_b;
    p->function_exit = NULL;
@@ -388,6 +395,7 @@ ISIS_USER_SOURCE_MODULE(Lorentz,p,options) /*{{{*/
    p->default_min = default_min;
    p->default_max = default_max;
    p->default_value = default_value;
+   p->default_relstep = default_relstep;
    p->num_parameters = 3;
 
    return 0;
@@ -513,11 +521,14 @@ ISIS_USER_SOURCE_MODULE(gauss,p,options) /*{{{*/
    static double default_value []= {1.0, 12.0, 0.025};
    static double default_min []= {0.0, 0.0, 1.e-6};
    static unsigned int norm_indexes[] = {0};
+   static double default_relstep[3];
 
    (void) options;
 
    if (p == NULL)
      return -1;
+
+   (void) _init_relstep (default_relstep, 3);
 
    p->binned = gauss_b;
    p->function_exit = NULL;
@@ -530,6 +541,7 @@ ISIS_USER_SOURCE_MODULE(gauss,p,options) /*{{{*/
    p->default_min = default_min;
    p->default_max = default_max;
    p->default_value = default_value;
+   p->default_relstep = default_relstep;
    p->num_parameters = 3;
 
    return 0;
@@ -612,11 +624,14 @@ ISIS_USER_SOURCE_MODULE(egauss,p,options) /*{{{*/
    static double default_value[] = {1.0, 1.0, 0.002};
    static double default_min[]   = {0.0, 0.0, 1.e-6};
    static unsigned int norm_indexes[] = {0};
+   static double default_relstep[3];
 
    (void) options;
 
    if (p == NULL)
      return -1;
+
+   (void) _init_relstep (default_relstep, 3);
 
    p->binned = egauss_b;
    p->function_exit = NULL;
@@ -629,6 +644,7 @@ ISIS_USER_SOURCE_MODULE(egauss,p,options) /*{{{*/
    p->default_min = default_min;
    p->default_max = default_max;
    p->default_value = default_value;
+   p->default_relstep = default_relstep;
    p->num_parameters = 3;
 
    return 0;
@@ -693,11 +709,14 @@ ISIS_USER_SOURCE_MODULE(Powerlaw,p,options) /*{{{*/
    static double default_value []= {1.0, -1.5};
    static double default_min []= {1.e-8, -10.0};
    static unsigned int norm_indexes[] = {0};
+   static double default_relstep[2];
 
    (void) options;
 
    if (p == NULL)
      return -1;
+
+   (void) _init_relstep (default_relstep, 2);
 
    p->binned = powr_b;
    p->function_exit = NULL;
@@ -709,6 +728,7 @@ ISIS_USER_SOURCE_MODULE(Powerlaw,p,options) /*{{{*/
    p->default_min = default_min;
    p->default_max = default_max;
    p->default_value = default_value;
+   p->default_relstep = default_relstep;
    p->num_parameters = 2;
 
    return 0;
@@ -771,11 +791,14 @@ ISIS_USER_SOURCE_MODULE(blackbody,p,options) /*{{{*/
    static double default_value[] = {1.0,  1.0};
    static double default_min[]   = {0.0,  0.1};
    static unsigned int norm_indexes[] = {0};
+   static double default_relstep[2];
 
    (void) options;
 
    if (p == NULL)
      return -1;
+
+   (void) _init_relstep (default_relstep, 2);
 
    p->binned = bbody_b;
    p->function_exit = NULL;
@@ -788,6 +811,7 @@ ISIS_USER_SOURCE_MODULE(blackbody,p,options) /*{{{*/
    p->default_min = default_min;
    p->default_max = default_max;
    p->default_value = default_value;
+   p->default_relstep = default_relstep;
    p->num_parameters = 2;
 
    return 0;

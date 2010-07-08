@@ -481,6 +481,23 @@ static int get_index_for_param_name (char *name) /*{{{*/
 
 /*}}}*/
 
+int _init_relstep (double *relstep, int n) /*{{{*/
+{
+   int i;
+
+   if (relstep == NULL)
+     return -1;
+
+   for (i = 0; i < n; i++)
+     {
+        relstep[i] = Isis_Default_Relstep;
+     }
+
+   return 0;
+}
+
+/*}}}*/
+
 typedef struct
 {
    char *name;
