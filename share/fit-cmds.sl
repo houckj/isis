@@ -1363,6 +1363,7 @@ define get_iback ()
 %\qualifier{mult}{: the model is not additive, but multiplicative}
 %}
 %!%-
+variable __cache_defaults = Assoc_Type[];
 define cache_fun ()%{{{
 {
    variable msg =
@@ -1454,13 +1455,13 @@ define cache_fun ()%{{{
         m+="return rebin(lo,hi, s.bin_lo,s.bin_hi, s.value);}";
      }
 
-   variable i, md = "define ${caching_name}_defaults(i){switch(i)"$;
-   _for i (0, length(info.name)-1, 1)
-     {
-        md += sprintf("{case %d: return(%S, %S, %S, %S);}",
-                      i, info.value[i], info.freeze[i], info.min[i], info.max[i]);
-     }
-   md+="}";
+   __cache_defaults[caching_name] = info;
+
+   variable i, md =
+`     define ${caching_name}_defaults(i)
+      {
+        return struct_filter (__cache_defaults["${caching_name}"], i; copy);
+      }`$;
 
    variable asf = "add_slang_function(\"${caching_name}\", ["$
      + strjoin("\"" + info.name + "\"", ", ")
@@ -1500,6 +1501,7 @@ define cache_fun ()%{{{
 %                           {          "E [keV]", 6.4,  1, 5.8,  7 },
 %                           { "     sigma [keV]", 0.5,  0, 1e-6, 2 } ]);
 %!%-
+variable __alias_defaults = Assoc_Type[];
 define alias_fun ()%{{{
 {
    variable msg = "alias_fun (name, alias_name);\n\t qualifiers = names,values,freeze,min,max,params";
@@ -1535,18 +1537,7 @@ define alias_fun ()%{{{
      }
 
    variable m = "define ${alias_name}_fit(lo,hi,par){return eval_fun2(\"$name\",lo,hi,par);}"$;
-
-   variable md = "define ${alias_name}_defaults(i){"$;
-   if (num_pars > 0)
-     {
-        md += "switch(i)";
-        _for i (0, num_pars-1, 1)
-          {
-             md += sprintf("{case %d: return(%S, %S, %S, %S);}",
-                      i, info.value[i], info.freeze[i], info.min[i], info.max[i]);
-          }
-     }
-   md += "}";
+   eval(m);
 
    variable asf = "add_slang_function(\"$alias_name\""$;
    if (num_pars > 0)
@@ -1556,10 +1547,20 @@ define alias_fun ()%{{{
             + "]";
      }
    asf += ")";
+   eval(asf);
 
-   variable spdh = "set_param_default_hook(\"$alias_name\",&${alias_name}_defaults);"$;
-
-   array_map (Void_Type, &eval, [m, md, asf, spdh]);
+   if (num_pars > 0)
+     {
+        __alias_defaults[alias_name] = info;
+        variable md =
+`       define ${alias_name}_defaults(i)
+        {
+            return struct_filter (__alias_defaults["${alias_name}"], i; copy);
+        }`$;
+        eval(md);
+        variable spdh = "set_param_default_hook(\"$alias_name\",&${alias_name}_defaults);"$;
+        eval(spdh);
+     }
 }
 %}}}
 

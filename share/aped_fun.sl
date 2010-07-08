@@ -606,16 +606,18 @@ define create_aped_fun () %{{{
   +"}";
 
    variable defaults_fmt =
-   "define %s_defaults (i)"
-  +"{"
-  +   "variable v = _Isis_Aped_Model_Table[\"%s\"].param_values;"
-  +   "variable d = struct {value, freeze, min, max};"
-  +   "d.value = v[i];"
-  +   "d.freeze = 1;"
-  +   "d.min = 0.0;"
-  +   "d.max = 0.0;"
-  +   "return (d.value, d.freeze, d.min, d.max);"
-  +"}";
+`   define %s_defaults (i)
+    {
+        variable v = _Isis_Aped_Model_Table["%s"].param_values;
+        variable d = struct
+        {
+           value = v[i], freeze = 1,
+           min = 0.0, max = 0.0,
+           hard_min = -_Inf, hard_max = _Inf,
+           step = 0, relstep = Isis_Default_Relstep
+        };
+        return d;
+     }`;
 
    eval (sprintf (fun_fmt, fun_name, fun_name));
    eval (sprintf (defaults_fmt, fun_name, fun_name));

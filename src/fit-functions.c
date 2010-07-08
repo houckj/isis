@@ -1455,6 +1455,8 @@ typedef struct
    SLang_Array_Type *value;
    SLang_Array_Type *min;
    SLang_Array_Type *max;
+   SLang_Array_Type *hard_min;
+   SLang_Array_Type *hard_max;
    SLang_Array_Type *step;
    SLang_Array_Type *relstep;
    SLang_Array_Type *freeze;
@@ -1469,9 +1471,11 @@ static SLang_CStruct_Field_Type Fit_Fun_Info_Type_Layout [] =
    MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, value, "value", SLANG_ARRAY_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, min, "min", SLANG_ARRAY_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, max, "max", SLANG_ARRAY_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, hard_min, "hard_min", SLANG_ARRAY_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, hard_max, "hard_max", SLANG_ARRAY_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, freeze, "freeze", SLANG_ARRAY_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, step, "step", SLANG_ARRAY_TYPE, 0),
-   MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, step, "relstep", SLANG_ARRAY_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, relstep, "relstep", SLANG_ARRAY_TYPE, 0),
    SLANG_END_CSTRUCT_TABLE
 };
 
@@ -1494,6 +1498,8 @@ void Fit_get_fun_info (char *name) /*{{{*/
        || (NULL == (fi.value = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &num_pars, 1)))
        || (NULL == (fi.min = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &num_pars, 1)))
        || (NULL == (fi.max = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &num_pars, 1)))
+       || (NULL == (fi.hard_min = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &num_pars, 1)))
+       || (NULL == (fi.hard_max = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &num_pars, 1)))
        || (NULL == (fi.freeze = SLang_create_array (SLANG_UINT_TYPE, 0, NULL, &num_pars, 1)))
        || (NULL == (fi.step = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &num_pars, 1)))
        || (NULL == (fi.relstep = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &num_pars, 1)))
@@ -1535,6 +1541,8 @@ void Fit_get_fun_info (char *name) /*{{{*/
             || (0 != SLang_set_array_element (fi.value, &i, &p.value))
             || (0 != SLang_set_array_element (fi.min, &i, &p.min))
             || (0 != SLang_set_array_element (fi.max, &i, &p.max))
+            || (0 != SLang_set_array_element (fi.hard_min, &i, &p.hard_min))
+            || (0 != SLang_set_array_element (fi.hard_max, &i, &p.hard_max))
             || (0 != SLang_set_array_element (fi.freeze, &i, &p.freeze))
             || (0 != SLang_set_array_element (fi.step, &i, &p.step))
             || (0 != SLang_set_array_element (fi.relstep, &i, &p.relstep))
