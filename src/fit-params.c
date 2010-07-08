@@ -674,7 +674,7 @@ int Fit_set_param_hard_limits1 (Param_t *pt, int idx,
 
 int Fit_set_param_control (Param_t *pt, unsigned int idx, int update_minmax,  /*{{{*/
                            double min, double max, int freeze, char *tie,
-                           double step)
+                           double step, double relstep)
 {
    Param_Info_t *p = find_param_by_index (pt, idx);
    if (p == NULL)
@@ -694,10 +694,13 @@ int Fit_set_param_control (Param_t *pt, unsigned int idx, int update_minmax,  /*
         p->set_minmax = 1;
      }
 
-   if (step > 0)
-     {
-        p->step = step;
-     }
+   /* step/relstep values <= 0 may be interpreted as signals
+    * to the optimizer, so we have to accept them.
+    */
+   if (0 == isnan(step))
+     p->step = step;
+   if (0 == isnan(relstep))
+     p->relstep = relstep;
 
    ISIS_FREE(p->tie_param_name);
    if ((tie != NULL) && (*tie != 0))
@@ -937,6 +940,7 @@ static int pack (Param_Info_t *p, void *cl) /*{{{*/
         par->par_min[n] = p->min;
         par->par_max[n] = p->max;
         par->step[n] = p->step;
+        par->relstep[n] = p->relstep;
         par->idx[n] = p->idx;
 
         par->npars++;

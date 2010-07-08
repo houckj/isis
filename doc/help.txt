@@ -10956,6 +10956,7 @@ get_par_info
      hard_min=-inf,
      hard_max=inf,
      step=0.0,
+     relstep=0.0,
      freeze=0,
      tie=NULL,
      units="A",
@@ -12703,14 +12704,17 @@ set_par
     set the value of a fit parameter
 
  USAGE
-    set_par (idx, value [,freeze, [ min, max [,step]]])
+    set_par (idx, value [,freeze, [ min, max]])
 
  DESCRIPTION
           idx    parameter index or string identifier
         value    parameter value
        freeze    [optional] 1(0) if parameter is(is not) frozen
      min, max    [optional] allowed range for parameter value
-         step    [optional] initial parameter step size
+
+    Qualifiers:
+         step=VAL    initial parameter absolute step size
+      relstep=VAL    initial parameter relative step size
 
     If allowed ranges are not specified by the user or if min=
     max=0, the parameter value range is unlimited; this is the
@@ -12808,8 +12812,7 @@ set_par
     }
 
     Depending on which optimization algorithm is used, the initial
-    parameter step value may or may not be used.  Values step<=0
-    indicate that no initial step size information is available.
+    parameter step/relstep value may or may not be used.
 
 
  SEE ALSO
@@ -12837,15 +12840,15 @@ set_param_default_hook
     defined.  The function should return the default values in a
     structure of the form
 
-         struct {value, freeze, min, max, hard_min, hard_max, step}
+         struct {value, freeze, min, max, hard_min, hard_max, step, relstep}
 
     where value is the default parameter value and min and max
     define the user-adjustable parameter range.  The
     user-adjustable parameter range must fall within the hard
     limits defined by hard_min and hard_max.  The initial parameter
-    step size, step, is used by some optimization methods, but only
-    if step > 0. freeze is a boolean value, non-zero if the
-    parameter is frozen by default.
+    absolute step size, step, and relative step size, relstep, may
+    used by some optimization methods. freeze is a boolean value,
+    non-zero if the parameter is frozen by default.
 
     To specify the hook function to be used with a given
     fit-function, provide either a reference to the hook function
@@ -12863,7 +12866,7 @@ set_param_default_hook
         define set_default (value, freeze, lim, hard_lim, step)
         {
            variable x = struct {value, freeze, min, max,
-                                hard_min, hard_max, step};
+                                hard_min, hard_max, step, relstep};
            x.value = value;
            x.freeze = freeze;
            x.min = lim[0];
@@ -12871,6 +12874,7 @@ set_param_default_hook
            x.hard_min = hard_lim[0];
            x.hard_max = hard_lim[1];
            x.step = step;
+           x.relstep = 1.e-5;
 
            return x;
         }

@@ -87,7 +87,7 @@ static variable __Xspec_Symbol = Assoc_Type[];
 
 static define _lmodel_set_default (value, freeze_val, hard_min, min, max, hard_max, step) %{{{
 {
-   variable t = struct {value, freeze, hard_min, hard_max, min, max, step};
+   variable t = struct {value, freeze, hard_min, hard_max, min, max, step, relstep};
    t.value = value;
    t.freeze = freeze_val;
    t.hard_min = hard_min;
@@ -95,6 +95,7 @@ static define _lmodel_set_default (value, freeze_val, hard_min, min, max, hard_m
    t.min = min;
    t.max = max;
    t.step = step;
+   t.relstep = Isis_Default_Relstep;
    return t;
 }
 

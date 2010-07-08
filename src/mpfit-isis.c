@@ -199,7 +199,7 @@ static int mpfit_method (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
         ps->limits[1] = e->par_max[i];
         ps->parname = 0;
         ps->step = e->par_step[i];
-        ps->relstep = 0.01;  /* FIXME !! */
+        ps->relstep = e->par_relstep[i];
         ps->side = 0;        /* FIXME !! */
         /* Note that mpfit's two-sided numerical derivative option
          * does not fully support parameter bounds.  The method used

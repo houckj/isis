@@ -12156,6 +12156,7 @@ isis> print(s);
  hard_min=-inf,
  hard_max=inf,
  step=0.0,
+ relstep=0.0,
  freeze=0,
  tie=NULL,
  units="A",
@@ -13652,14 +13653,19 @@ the new \verb|min|, \verb|value|, \verb|max|.  For example:
 \begin{isisfunction}
 {set\_par} %name
 {set the value of a fit parameter} %purpose
-{set\_par (idx, value [,freeze, [ min, max [,step]]])} %usage
+{set\_par (idx, value [,freeze, [ min, max]])} %usage
 {edit\_par, load\_par, get\_par, set\_par\_fun, \_\_set\_hard\_limits, tie, set\_params}
 \begin{verbatim}
       idx    parameter index or string identifier
     value    parameter value
    freeze    [optional] 1(0) if parameter is(is not) frozen
  min, max    [optional] allowed range for parameter value
-     step    [optional] initial parameter step size
+\end{verbatim}
+
+\begin{verbatim}
+Qualifiers:
+     step=VAL    initial parameter absolute step size
+  relstep=VAL    initial parameter relative step size
 \end{verbatim}
 
 If allowed ranges are not specified by the user or if
@@ -13764,10 +13770,8 @@ public define isis_set_par_hook (p)
 }
 \end{verbatim}
 
-Depending on which optimization algorithm is used, the initial
-parameter step value may or may not be used.  Values
-\verb|step<=0| indicate that no initial step size information
-is available.
+Depending on which optimization algorithm is used, the initial parameter
+\verb|step|/\verb|relstep| value may or may not be used.
 
 \end{isisfunction}
 
@@ -13788,13 +13792,14 @@ optional list of user-defined arguments. The optional arguments are specified
 when the hook function is defined.  The function should return the default
 values in a structure of the form
 \begin{verbatim}
-     struct {value, freeze, min, max, hard_min, hard_max, step}
+     struct {value, freeze, min, max, hard_min, hard_max, step, relstep}
 \end{verbatim}
 where \verb|value| is the default parameter value and \verb|min| and
 \verb|max| define the user-adjustable parameter range.  The user-adjustable
 parameter range must fall within the hard limits defined by \verb|hard_min|
-and \verb|hard_max|.  The initial parameter step size, \verb|step|, is used by
-some optimization methods, but only if \verb|step| $> 0$. \verb|freeze| is a
+and \verb|hard_max|.  The initial parameter absolute step size, \verb|step|,
+and relative step size, \verb|relstep|, may used by
+some optimization methods. \verb|freeze| is a
 boolean value, non-zero if the parameter is frozen by default.
 
 To specify the hook function to be used with a given fit-function,
@@ -13814,7 +13819,7 @@ parameter-default function as follows:
     define set_default (value, freeze, lim, hard_lim, step)
     {
        variable x = struct {value, freeze, min, max,
-                            hard_min, hard_max, step};
+                            hard_min, hard_max, step, relstep};
        x.value = value;
        x.freeze = freeze;
        x.min = lim[0];
@@ -13822,6 +13827,7 @@ parameter-default function as follows:
        x.hard_min = hard_lim[0];
        x.hard_max = hard_lim[1];
        x.step = step;
+       x.relstep = 1.e-5;
 
        return x;
     }

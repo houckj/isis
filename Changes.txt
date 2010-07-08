@@ -40,6 +40,25 @@ Changes since 1.6.0 (released Apr 2010)
      'abund_' prefix.  Use qualifier 'no_abund_prefix' to drop this
      prefix (for back-compatibility).
 21.  set_par was not modifying 'step'
+22.  The set_par interface was modified so that the absolute
+     initial parameter step size, 'step', is now specified
+     using a qualifier.  A 'relstep' qualifier was added
+     to enable setting the relative parameter step size.
+     The 'relstep' value may be obtained using get_par_info()
+     and get_params(). It may also be set using set_params().
+
+     mpfit was previously configured to use an initial relative
+     parameter step size of 1% (e.g. relstep=0.01). This is a
+     bad choice for fits where the min/max range is smaller
+     than 1% of the parameter value and also for parameters
+     constrained to better than 1% by the available data. The
+     fitted center position of strong emission lines in high
+     quality grating data falls into this latter category.
+
+     The default relstep value used by mpfit is now specified
+     on a per-parameter basis and may be user-specified.
+     For xspec functions, the default is set by the intrinsic
+     variable Isis_Default_Relstep, which defaults to 1.e-4.
 
 Changes since 1.5.0 (released Aug 2009)
 ---------------------------------------

@@ -784,11 +784,12 @@ int isis_fit_set_ranges (Isis_Fit_Type *f, double *par_min, double *par_max) /*{
 
 /*}}}*/
 
-int isis_fit_set_param_step (Isis_Fit_Type *f, double *step) /*{{{*/
+int isis_fit_set_param_step (Isis_Fit_Type *f, double *step, double *relstep) /*{{{*/
 {
-   if ((f == NULL) || (step == NULL))
+   if ((f == NULL) || (step == NULL) || (relstep == NULL))
      return -1;
    f->engine->par_step = step;
+   f->engine->par_relstep = relstep;
    return 0;
 }
 

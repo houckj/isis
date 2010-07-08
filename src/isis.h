@@ -36,10 +36,10 @@ extern "C" {
 #include <slang.h>
 
 #define ISIS_VERSION          10600
-#define ISIS_VERSION_STRING  "1.6.0-21"
-#define ISIS_VERSION_PREFIX   1.6.0
+#define ISIS_VERSION_STRING  "1.6.1"
+#define ISIS_VERSION_PREFIX   1.6.1
 
-#define ISIS_API_VERSION 4
+#define ISIS_API_VERSION 5
 
 enum
 {
@@ -265,6 +265,7 @@ struct Isis_Kernel_Def_t
    double *default_hard_max;
    double *default_value;
    double *default_step;
+   double *default_relstep;
    unsigned int *default_freeze;
 
 #ifdef ISIS_SRC
@@ -275,7 +276,7 @@ struct Isis_Kernel_Def_t
 #endif
 };
 
-#define ISIS_NULL_KERNEL_DEF {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+#define ISIS_NULL_KERNEL_DEF {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 
 struct Isis_Kernel_t
 {
@@ -400,6 +401,7 @@ typedef struct
    double *default_hard_max;
    double *default_value;
    double *default_step;
+   double *default_relstep;
    unsigned int *default_freeze;
    unsigned int num_parameters;
    unsigned int category;          /* addmul, operator, etc. */
@@ -524,6 +526,7 @@ struct Isis_Fit_Engine_Type
    double *par_min;
    double *par_max;
    double *par_step;
+   double *par_relstep;
 
    int (*set_options) (Isis_Fit_Engine_Type *, Isis_Option_Type *);
    int (*set_range_hook) (Isis_Fit_Engine_Type *, Isis_Fit_Range_Hook_Type *);

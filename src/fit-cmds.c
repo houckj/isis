@@ -130,6 +130,8 @@ static int Looking_For_Confidence_Limits;
 static int Computing_Statistic_Only;
 static unsigned int Fit_Data_Type;
 
+static double Isis_Default_Relstep = 1.e-4;
+
 /* total number of parameters */
 static unsigned int Num_Params;
 static Param_t *Param;
@@ -486,7 +488,7 @@ typedef struct
    char *tie;
    char *units;
    int idx, freeze, is_a_norm;
-   double value, step;
+   double value, step, relstep;
    double min, max, hard_min, hard_max;
    int malloced_fun_str;
 }
@@ -502,6 +504,7 @@ static SLang_CStruct_Field_Type _Param_Info_Type_Layout [] =
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, hard_min, "hard_min", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, hard_max, "hard_max", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, step, "step", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (_Param_Info_Type, relstep, "relstep", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, freeze, "freeze", SLANG_INT_TYPE, 0),
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, tie, "tie", SLANG_STRING_TYPE, 0),
    MAKE_CSTRUCT_FIELD (_Param_Info_Type, units, "units", SLANG_STRING_TYPE, 0),
@@ -566,6 +569,7 @@ static int _copy_param_info (_Param_Info_Type *pi, unsigned int idx) /*{{{*/
    pi->freeze = p->freeze;
    pi->is_a_norm = p->is_a_norm;
    pi->step = p->step;
+   pi->relstep = p->relstep;
 
    if (p->tie_param_name)
      {
@@ -606,7 +610,7 @@ static int do_set_par (_Param_Info_Type *pi, int update_minmax) /*{{{*/
 {
    Param_Info_t *p;
 
-   if (-1 == Fit_set_param_control (Param, pi->idx, update_minmax, pi->min, pi->max, pi->freeze, pi->tie, pi->step))
+   if (-1 == Fit_set_param_control (Param, pi->idx, update_minmax, pi->min, pi->max, pi->freeze, pi->tie, pi->step, pi->relstep))
      {
         isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "setting parameter %d", pi->idx);
         return -1;
@@ -654,7 +658,7 @@ static int run_set_par_hook (char *hook_name, _Param_Info_Type *pi) /*{{{*/
 
 static int set_par (unsigned int idx, int p_tie, int p_freeze, /*{{{*/
                     double p_value, double p_min, double p_max,
-                    int update_minmax, double p_step)
+                    int update_minmax, double p_step, double p_relstep)
 {
    static char hook_name[] = "isis_set_par_hook";
    char tie_name[OUT_PARAM_NAME_SIZE];
@@ -692,8 +696,13 @@ static int set_par (unsigned int idx, int p_tie, int p_freeze, /*{{{*/
    pi.value = p_value;
    pi.freeze = p_freeze;
 
-   if (p_step >= 0.0)
+   /* step/relstep values <= 0 may be interpreted as signals
+    * to the optimizer, so we have to accept them.
+    */
+   if (0 == isnan(p_step))
      pi.step = p_step;
+   if (0 == isnan(p_relstep))
+     pi.relstep = p_relstep;
 
    if (update_minmax)
      {
@@ -735,10 +744,11 @@ static int set_par (unsigned int idx, int p_tie, int p_freeze, /*{{{*/
 static void set_params (void) /*{{{*/
 {
    int idx, p_tie, p_freeze, update_minmax;
-   double p_value, p_min, p_max, p_step;
+   double p_value, p_min, p_max, p_step, p_relstep;
 
-   /* (idx, tie, freeze, value, min, max, update_minmax, step) */
+   /* (idx, tie, freeze, value, min, max, update_minmax, step, relstep) */
 
+   SLang_pop_double (&p_relstep);
    SLang_pop_double (&p_step);
    SLang_pop_integer (&update_minmax);
 
@@ -750,7 +760,7 @@ static void set_params (void) /*{{{*/
    SLang_pop_integer (&p_tie);
    SLang_pop_integer (&idx);
 
-   if (set_par (idx, p_tie, p_freeze, p_value, p_min, p_max, update_minmax, p_step))
+   if (set_par (idx, p_tie, p_freeze, p_value, p_min, p_max, update_minmax, p_step, p_relstep))
      isis_throw_exception (Isis_Error);
 }
 
@@ -919,8 +929,8 @@ static int parse_param_info (char *line, int line_num, char *fname, unsigned int
 
    *idx = p->idx;
 
-   /* Currently no support for setting param step from parameter file. */
-   return set_par (*idx, p_tie, p_freeze, p_value, p_min, p_max, 1, -1.0);
+   /* Currently no support for setting param step, relstep from parameter file. */
+   return set_par (*idx, p_tie, p_freeze, p_value, p_min, p_max, 1, Isis_Nan, Isis_Nan);
 }
 
 /*}}}*/
@@ -3391,7 +3401,7 @@ int fit_object_config (Fit_Object_Type *fo, Param_t *pt, int unpack_variable) /*
 
    isis_fit_set_verbose_level (fo->ft, info->verbose);
    isis_fit_set_ranges (fo->ft, info->par->par_min, info->par->par_max);
-   isis_fit_set_param_step (fo->ft, info->par->step);
+   isis_fit_set_param_step (fo->ft, info->par->step, info->par->relstep);
 
    return 0;
 }
@@ -3721,7 +3731,7 @@ static void array_fit (void) /*{{{*/
    Isis_Fit_Type *f;
    SLang_Array_Type *par, *par_min, *par_max;
    SLang_Array_Type *x, *y, *wt;
-   double *par_step = NULL;
+   double *par_step = NULL, *par_relstep = NULL;
    double statistic = 0.0;
    int i, npars, nx, ret = -1;
 
@@ -3768,7 +3778,8 @@ static void array_fit (void) /*{{{*/
         goto finish;
      }
 
-   if (NULL == (par_step = (double *) ISIS_MALLOC(npars * sizeof(double))))
+   if ((NULL == (par_step = (double *) ISIS_MALLOC(npars * sizeof(double))))
+       ||(NULL == (par_relstep = (double *) ISIS_MALLOC(npars * sizeof(double)))))
      {
         isis_throw_exception (Isis_Error);
         goto finish;
@@ -3777,12 +3788,13 @@ static void array_fit (void) /*{{{*/
      {
         double value;
         (void) SLang_get_array_element (par, &i, &value);
-        par_step[i] = 0.01 * ((value == 0) ? 1.0 : fabs(value));
+        par_relstep[i] = Isis_Default_Relstep;
+        par_step[i] = par_relstep[i] * ((value == 0) ? 1.0 : fabs(value));
      }
 
    isis_fit_set_verbose_level (f, Fit_Verbose);
    isis_fit_set_ranges (f, DDATA(par_min), DDATA(par_max));
-   isis_fit_set_param_step (f, par_step);
+   isis_fit_set_param_step (f, par_step, par_relstep);
 
    ret = isis_fit_perform_fit (f, NULL, DDATA(x), DDATA(y), DDATA(wt), nx,
                                DDATA(par), npars, &statistic);
@@ -3805,6 +3817,7 @@ static void array_fit (void) /*{{{*/
    SLang_free_array (par_min);
    SLang_free_array (par_max);
    ISIS_FREE(par_step);
+   ISIS_FREE(par_relstep);
 #undef DDATA
 }
 
@@ -3831,19 +3844,20 @@ Fit_Param_t *new_fit_param_type (unsigned int num) /*{{{*/
      return NULL;
    memset ((char *)p, 0, sizeof (*p));
 
-   p->par = (double *) ISIS_MALLOC (num*4 * sizeof(double));
+   p->par = (double *) ISIS_MALLOC (num*5 * sizeof(double));
    p->idx = (int *) ISIS_MALLOC (num * sizeof(int));
    if ((p->par == NULL) || (p->idx == NULL))
      {
         free_fit_param_type (p);
         p = NULL;
      }
-   memset ((char *) p->par, 0, 4*num * sizeof(double));
+   memset ((char *) p->par, 0, 5*num * sizeof(double));
    memset ((char *) p->idx, 0, num * sizeof(int));
 
    p->par_min = p->par + num;
    p->par_max = p->par + num*2;
-   p->step   = p->par + num*3;
+   p->step    = p->par + num*3;
+   p->relstep = p->par + num*4;
    p->npars = 0;
 
    return p;
@@ -4795,6 +4809,7 @@ static SLang_Intrin_Var_Type Fit_Intrin_Vars [] =
     *         a temporary hack to provide back-compatibility in isis-1
     */
    MAKE_VARIABLE("_num_statistic_evaluations", &Num_Statistic_Evaluations, I, 0),
+   MAKE_VARIABLE("Isis_Default_Relstep", &Isis_Default_Relstep, D, 0),
    SLANG_END_INTRIN_VAR_TABLE
 };
 

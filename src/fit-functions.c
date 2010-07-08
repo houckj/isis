@@ -111,6 +111,7 @@ static int set_kernel_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
    if (def->default_freeze) p->freeze = def->default_freeze[p->fun_par];
    if (def->default_value) p->value = def->default_value[p->fun_par];
    if (def->default_step) p->step = def->default_step[p->fun_par];
+   if (def->default_relstep) p->relstep = def->default_relstep[p->fun_par];
    if (def->default_min || def->default_max) p->set_minmax = 1;
 
    if ((-1 == validate_hard_limits (p))
@@ -134,6 +135,7 @@ static int set_cfun_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
    if (ff->s.default_freeze) p->freeze = ff->s.default_freeze[p->fun_par];
    if (ff->s.default_value) p->value = ff->s.default_value[p->fun_par];
    if (ff->s.default_step) p->step = ff->s.default_step[p->fun_par];
+   if (ff->s.default_relstep) p->relstep = ff->s.default_relstep[p->fun_par];
    if (ff->s.default_min || ff->s.default_max) p->set_minmax = 1;
 
    if ((-1 == validate_hard_limits (p))
@@ -260,6 +262,7 @@ typedef struct
    double hard_min;
    double hard_max;
    double step;
+   double relstep;
    int freeze;
 }
 Param_Default_Type;
@@ -272,6 +275,7 @@ static SLang_CStruct_Field_Type Param_Default_Type_Layout [] =
    MAKE_CSTRUCT_FIELD (Param_Default_Type, hard_min, "hard_min", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Param_Default_Type, hard_max, "hard_max", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Param_Default_Type, step, "step", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Param_Default_Type, relstep, "relstep", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Param_Default_Type, freeze, "freeze", SLANG_INT_TYPE, 0),
    SLANG_END_CSTRUCT_TABLE
 };
@@ -329,6 +333,7 @@ static int pop_slangfun_default_struct (Param_Info_t *p)
    if (0 == isnan(pdt.hard_min)) p->hard_min = pdt.hard_min;
    if (0 == isnan(pdt.hard_max)) p->hard_max = pdt.hard_max;
    if (0 == isnan(pdt.step)) p->step = pdt.step;
+   if (0 == isnan(pdt.relstep)) p->relstep = pdt.relstep;
    p->freeze = pdt.freeze;
 
    SLang_free_cstruct ((VOID_STAR)&pdt, Param_Default_Type_Layout);
@@ -388,6 +393,7 @@ static int handle_return_from_slangfun_default_hook (Fit_Fun_t *ff, Param_Info_t
           SLdo_pop();
         else
           {
+             /* relstep not supported via this interface */
              SLang_pop_double (&p->step);
           }
      }
@@ -1450,6 +1456,7 @@ typedef struct
    SLang_Array_Type *min;
    SLang_Array_Type *max;
    SLang_Array_Type *step;
+   SLang_Array_Type *relstep;
    SLang_Array_Type *freeze;
    SLang_Array_Type *unit;
 }
@@ -1464,6 +1471,7 @@ static SLang_CStruct_Field_Type Fit_Fun_Info_Type_Layout [] =
    MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, max, "max", SLANG_ARRAY_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, freeze, "freeze", SLANG_ARRAY_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, step, "step", SLANG_ARRAY_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Fit_Fun_Info_Type, step, "relstep", SLANG_ARRAY_TYPE, 0),
    SLANG_END_CSTRUCT_TABLE
 };
 
@@ -1488,6 +1496,7 @@ void Fit_get_fun_info (char *name) /*{{{*/
        || (NULL == (fi.max = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &num_pars, 1)))
        || (NULL == (fi.freeze = SLang_create_array (SLANG_UINT_TYPE, 0, NULL, &num_pars, 1)))
        || (NULL == (fi.step = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &num_pars, 1)))
+       || (NULL == (fi.relstep = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &num_pars, 1)))
       )
      {
         isis_throw_exception (Isis_Error);
@@ -1510,7 +1519,8 @@ void Fit_get_fun_info (char *name) /*{{{*/
         p.hard_min = -Isis_Inf;
         p.hard_max =  Isis_Inf;
         p.freeze = 0;
-        p.step = 0.0;
+        p.step = Isis_Nan;
+        p.relstep = Isis_Nan;
 
         unit = ff->unit[i];
 
@@ -1527,6 +1537,7 @@ void Fit_get_fun_info (char *name) /*{{{*/
             || (0 != SLang_set_array_element (fi.max, &i, &p.max))
             || (0 != SLang_set_array_element (fi.freeze, &i, &p.freeze))
             || (0 != SLang_set_array_element (fi.step, &i, &p.step))
+            || (0 != SLang_set_array_element (fi.relstep, &i, &p.relstep))
            )
           {
              isis_throw_exception (Isis_Error);
