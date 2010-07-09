@@ -135,7 +135,7 @@ define uncon_setup_fit (name) %{{{
    () = define_counts (d);
 
    fit_fun (name + "(1)");
-   set_par ([1:u.n], u.x);
+   set_par ([1:u.n], u.x ; relstep=1.e-6);
 
    Num_Function_Evaluations = 0;
 }

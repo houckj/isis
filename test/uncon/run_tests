@@ -132,7 +132,7 @@ define make_derror_plots (l, m, s) %{{{
    connect_points(0);
    pointstyle (-10);
 
-   ylabel (latex2pg("|\\epsilon(marquardt)| - |\\epsilon(lmdif)|"));
+   ylabel (latex2pg("|\\epsilon(marquardt)| - |\\epsilon(mpfit)|"));
    plot ([0:n-1], abs(m) - abs(l));
 
    ylabel (latex2pg("|\\epsilon(subplex)| - |\\epsilon(marquardt)|"));
@@ -150,7 +150,7 @@ define make_nfeval_plots (nl, nm, ns) %{{{
 
    title ("Number of Function Evaluations");
 
-   ylabel ("N(marquardt)/N(lmdif)");
+   ylabel ("N(marquardt)/N(mpfit)");
    connect_points(0);
    pointstyle (-10);
    plot ([0:n-1], nm/nl);
@@ -160,11 +160,11 @@ define make_nfeval_plots (nl, nm, ns) %{{{
    oplot ([0, n-1], [1, 1]);
 
    color(blue);
-   xylabel (2, 0.1, sprintf ("lmdif: %d  marquardt: %d",
+   xylabel (2, 0.1, sprintf ("mpfit: %d  marquardt: %d",
                              howmany (nl < nm), howmany (nm < nl)));
    color(1);
 
-   ylabel ("N(subplex)/N(lmdif)");
+   ylabel ("N(subplex)/N(mpfit)");
    connect_points(0);
    pointstyle (-10);
    plot ([0:n-1], ns/nl);
@@ -174,7 +174,7 @@ define make_nfeval_plots (nl, nm, ns) %{{{
    oplot ([0, n-1], [1, 1]);
 
    color(blue);
-   xylabel (2, 0.3, sprintf ("lmdif: %d  subplex: %d  ",
+   xylabel (2, 0.3, sprintf ("mpfit: %d  subplex: %d  ",
                              howmany (nl < ns), howmany (ns < nl)));
    color(1);
 }
@@ -184,9 +184,9 @@ define make_nfeval_plots (nl, nm, ns) %{{{
 define make_plots () %{{{
 {
    variable l, nl, m, nm, s, ns, x, nx, cols = [2, 5];
-   (nl, l) = readcol ("lmdif.out", cols);
+   (nl, l) = readcol ("mpfit.out", cols);
    (nm, m) = readcol ("marquardt.out", cols);
-   (ns, s) = readcol ("subplex.out", cols);  
+   (ns, s) = readcol ("subplex.out", cols);
    (nx, x) = readcol ("simann.out", cols);
 
    variable dl = demerit (l, nl);
@@ -197,7 +197,7 @@ define make_plots () %{{{
    variable r_sl = ds / dl;
    variable r_sm = ds / dm;
    variable r_xl = dx / dl;
-   
+
    variable id = plot_open ("tests.ps/vcps");
 
    multiplot (ones(3));
@@ -207,10 +207,10 @@ define make_plots () %{{{
 
    ylog;
 
-   make_demerit_plot ("marquardt", "lmdif", r_ml, [2, 0.1]);
+   make_demerit_plot ("marquardt", "mpfit", r_ml, [2, 0.1]);
    make_demerit_plot ("subplex", "marquardt", r_sm, [2, 0.7]);
-   make_demerit_plot ("subplex", "lmdif", r_sl, [2, 0.25]);   
-   make_demerit_plot ("simann", "lmdif", r_xl, [2, 0.25]);
+   make_demerit_plot ("subplex", "mpfit", r_sl, [2, 0.25]);
+   make_demerit_plot ("simann", "mpfit", r_xl, [2, 0.25]);
 
    multiplot (1);
    make_derror_plots (l, m, s);
@@ -225,13 +225,13 @@ define make_plots () %{{{
 
 define main()
 {
-   variable methods = ["simann", "marquardt", "lmdif", "subplex"];
-   variable options = ["", "", "", ""];
+   variable methods = ["simann", "marquardt", "mpfit", "subplex"];
+   variable options = ["", "", "ftol=1.e-4", ""];
    variable header =
 "# Test    N       f-calc          f-known          error\n";
-   
+
    variable n = length(methods);
-   
+
    _for (0, n-1, 1)
      {
         variable i = ();
