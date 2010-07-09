@@ -1343,7 +1343,7 @@ static void set_readline_method_intrinsic (char *method) /*{{{*/
 
    if (Readline_Load_Object)
      {
-        fprintf (stderr, "*** no support for interactive changes -- edit .isisrc instead\n");
+        fprintf (stderr, "*** set_readline_method: no support for interactive changes -- edit .isisrc instead\n");
         return;
      }
 
@@ -1363,7 +1363,7 @@ static void set_readline_method_intrinsic (char *method) /*{{{*/
 #endif
    else
      {
-        fprintf (stderr, "readline method '%s' is not supported\n", method);
+        fprintf (stderr, "set_readline_method: readline method '%s' is not supported\n", method);
      }
 }
 
