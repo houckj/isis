@@ -11485,6 +11485,22 @@ mpfit
 
     set_fit_method ("mpfit;help");
 
+    mpfit computes numerical derivatives of the chi-square function
+    with respect to each free parameter.  Computation of these
+    derivatives requires choosing a step size for each parameter.
+    This step size may be specified using either an absolute
+    measure, step, or a relative measure, relstep (see set_par).
+    The numerical derivative step size, h, is determined by the
+    following algorithm:
+
+        eps = sqrt(max([epsfcn, machine_epsilon]));
+        h = eps * abs(param);
+        if (step > 0) h = step;
+        if (relstep > 0) h = relstep * abs(param);
+        if (h == 0) h = eps;
+
+    where param is the parameter value, epsfcn is a parameter of
+    the method, and machine_epsilon=2.2204460e-16.
 
 
  SEE ALSO
