@@ -11,17 +11,17 @@ ELF_CC     = @ELF_CC@
 ELF_CFLAGS = @ELF_CFLAGS@ -Dunix $(CFLAGS)
 CC_SHARED  = @CC_SHARED@
 
-FC      = @FC@
-FCFLAGS = @FCFLAGS@
-FCLIBS  = @FCLIBS@
+FC         = @FC@
+FCFLAGS    = @FCFLAGS@
+FCLIBS     = @FCLIBS@
 
-SLSH_PATH = @SLANG_LIBDIR@/../bin/slsh
+MEMCHECK   = valgrind --tool=memcheck --leak-check=yes --leak-resolution=med --num-callers=20
 
+HEA         = @HEADAS_DIR@
 WITH_HEADAS = @WITH_HEADAS@
-HEA = @HEADAS_DIR@
 
-SLANG_INC  = @SLANG_INC@
-SLANG_LIB  = @SLANG_LIB@ -lslang
+SLANG_INC   = @SLANG_INC@
+SLANG_LIB   = @SLANG_LIB@ -lslang
 CFITSIO_INC = @CFITSIO_INC@
 CFITSIO_LIB = @CFITSIO_LIB@
 LIBS_FOR_MODULES = @ISIS_LIB_FOR_MODULES@  @CFITSIO_LIB_FOR_MODULES@ @SLANG_LIB_FOR_MODULES@#
@@ -30,14 +30,17 @@ INCS = -I$(config_dir)/src $(SLANG_INC)
 
 SHARED_LIBRARIES = rmf_user.so example-profile.so
 
+TEST_SCRIPTS = aped_models array_fit arrayops assign_model \
+   backscale cache confmap constraint ds_combine eval_fun2 fit \
+   flux_corr fs_comm group hist multi notice_values opfun \
+   param_defaults par_fun pileup post_model_hook readcol \
+   rebin_dataset rebin region_stats renorm rmf_slang stat \
+   sys_err user_grid_eval xgroup yshift
+
 check:	write-permission $(SHARED_LIBRARIES)
-	@if test -f "../.binary" ; then \
+	-@if test -f "../.binary" ; then \
 	    TEST_ISIS="../bin/isis"; \
 	    ISIS_SRCDIR=".."; \
-	    export ISIS_SRCDIR ; \
-	    SLSH="../opt/bin/slsh"; \
-	    SLSH_PATH="../opt/share/slsh" ; \
-	    export SLSH SLSH_PATH ; \
 	    LD_LIBRARY_PATH="../opt/lib" ; \
 	    export LD_LIBRARY_PATH ; \
 	    DYLD_LIBRARY_PATH=$$LD_LIBRARY_PATH ; \
@@ -45,9 +48,6 @@ check:	write-permission $(SHARED_LIBRARIES)
 	elif test -x "../src/objs/isis"; then \
 	    TEST_ISIS="../src/objs/isis"; \
 	    ISIS_SRCDIR=".."; \
-	    export ISIS_SRCDIR ; \
-	    SLSH=$(SLSH_PATH); \
-	    export SLSH ; \
 	 else \
 	    TEST_ISIS="`which isis`" ; \
 	    if test ! -x "$$TEST_ISIS" ; then \
@@ -57,17 +57,32 @@ check:	write-permission $(SHARED_LIBRARIES)
 		exit 1 ; \
 	    fi ;            \
 	    ISIS_SRCDIR=$(prefix) ; \
-	    export ISIS_SRCDIR ; \
-	    SLSH=$(SLSH_PATH); \
-	    export SLSH ; \
 	 fi ; \
+	export ISIS_SRCDIR ; \
 	if test -f "$(HEA)/headas-init.sh" ; then \
 	    HEADAS="$(HEA)" ; export HEADAS ; . $$HEADAS/headas-init.sh ; \
 	fi ; \
-	$$SLSH -n $(WITH_HEADAS) ./run_tests.sl $$TEST_ISIS $$ISIS_SRCDIR
+	echo "" ; echo Testing $$TEST_ISIS ; echo "" ;\
+	for t in $(TEST_SCRIPTS); \
+	do \
+	   $$TEST_ISIS -n --batch $${t}.sl ; \
+	done ; \
+	if test "x$(WITH_HEADAS)" != "x" ; then \
+	   $$TEST_ISIS -n --batch xspec_import.sl ; \
+	fi ; \
+	./here_doc.sh $$TEST_ISIS
 
-install-check:	$(SHARED_LIBRARIES)
-	@$(SLSH_PATH) -n $(WITH_HEADAS) ./run_tests.sl isis $(prefix)
+memcheck:	$(SHARED_LIBRARIES)
+	-@for t in $(TEST_SCRIPTS); \
+	do \
+	   $(MEMCHECK) --log-file=log.$${t} isis -n --batch $${t}.sl ; \
+           grep ERROR log.$${t}; grep 'lost: [^0]' log.$${t} ; \
+	done ; \
+	if test "x$(WITH_HEADAS)" != "x" ; then \
+	   t=xspec_import ; \
+	   $(MEMCHECK) --log-file=log.$${t} isis -n --batch $${t}.sl ; \
+           grep ERROR log.$${t}; grep 'lost: [^0]' log.$${t} ; \
+	fi
 
 write-permission:
 	@if ! test -w "." ; then \
@@ -84,7 +99,7 @@ example-profile.so:
 	$(CC_SHARED) -o example-profile.so $(INCS) example-profile.c
 
 clean:
-	$(RM) .##* *.log *.so *.o
+	$(RM) .##* *.log *.so *.o log.*
 	cd uncon ; make clean
 
 distclean:

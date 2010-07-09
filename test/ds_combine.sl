@@ -3,7 +3,7 @@
 msg ("testing dataset combination.... ");
 
 variable elo, ehi, arf;
-(elo, ehi, arf) = readcol ("arf.dat", [1,2,3]);
+(elo, ehi, arf) = readcol ("data/arf.dat", [1,2,3]);
 elo[0] += 1.e-3*ehi[0];
 
 variable a = struct

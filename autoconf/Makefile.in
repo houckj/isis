@@ -41,8 +41,8 @@ all:	makefiles
 check:
 	cd test; $(MAKE) check
 
-install-check:
-	cd test; $(MAKE) install-check
+memcheck:
+	cd test; $(MAKE) memcheck
 
 install:	test_install_dir
 	cd src; $(MAKE) install

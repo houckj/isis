@@ -33,11 +33,11 @@ add_slang_function ("cutoff_plaw", ["norm", "alpha"]);
 define init_data ()
 {
    % simulated data assumes delta-function RMF
-   () = load_data ("pileup.dat");
+   () = load_data ("data/pileup.dat");
    set_frame_time (1, 3.2);
 
    variable elo, ehi, arf;
-   (elo, ehi, arf) = readcol ("arf.dat", [1,2,3]);
+   (elo, ehi, arf) = readcol ("data/arf.dat", [1,2,3]);
    elo[0] += 1.e-3*ehi[0];
 
    variable a = struct
