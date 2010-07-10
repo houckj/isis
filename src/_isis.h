@@ -94,8 +94,6 @@ extern int init_fit_module_internals (void);
 extern Isis_Fit_Statistic_Type *current_fit_statistic (void);
 extern Isis_Fit_Engine_Type *current_fit_method (void);
 
-extern int _init_relstep (double *relstep, int n);
-
 #if 0
 {
 #endif

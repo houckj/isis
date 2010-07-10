@@ -51,6 +51,19 @@
 
 /*}}}*/
 
+#define ISIS_DEFAULT_RELSTEP  1.e-4
+/* This relstep default is a compromise solution -- you probably
+ * should not change it.  For example, relstep=0.01 works
+ * well in many cases, but is too large to use when fitting the
+ * center position of strong lines in high resolution spectral
+ * data with a resolution E/dE >= 1000.  On the other hand,
+ * relstep=1.e-6 may be too small e.g. for models implemented
+ * in single-precision.  In that case, such a small relstep may
+ * at best change only the last signficant figure in a parameter.
+ * Such a small change might easily be lost within the model
+ * itself due to floating point numerical issues.
+ */
+
 /*{{{ imported function prototypes */
 
 extern Hist_t *get_histogram_list_head (void);
@@ -61,6 +74,7 @@ static int (*Unpack)(Param_t *, double *);
 int Fit_Loading_Parameters_From_File = 0;
 
 int Isis_Voigt_Is_Normalized = 1;
+double Isis_Default_Relstep = ISIS_DEFAULT_RELSTEP;
 
 /*{{{ internal globals */
 
@@ -129,19 +143,6 @@ static int Use_Interactive_Param_Init;
 static int Looking_For_Confidence_Limits;
 static int Computing_Statistic_Only;
 static unsigned int Fit_Data_Type;
-
-static double Isis_Default_Relstep = 1.e-4;
-/* This relstep default is a compromise solution. BE VERY
- * CAUTIOUS IF YOU CHANGE IT!  For example, relstep=0.01 works
- * well in many cases, but is too large to use when fitting the
- * center position of strong lines in high resolution spectral
- * data with a resolution E/dE >= 1000.  On the other hand,
- * relstep=1.e-6 may be too small e.g. for models implemented
- * in single-precision.  In that case, such a small relstep may
- * at best change only the last signficant figure in a parameter.
- * Such a small change might easily be lost within the model
- * itself due to floating point numerical "issues".
- */
 
 /* total number of parameters */
 static unsigned int Num_Params;
@@ -488,23 +489,6 @@ static int get_index_for_param_name (char *name) /*{{{*/
    if (p == NULL)
      return -1;
    return p->idx;
-}
-
-/*}}}*/
-
-int _init_relstep (double *relstep, int n) /*{{{*/
-{
-   int i;
-
-   if (relstep == NULL)
-     return -1;
-
-   for (i = 0; i < n; i++)
-     {
-        relstep[i] = Isis_Default_Relstep;
-     }
-
-   return 0;
 }
 
 /*}}}*/

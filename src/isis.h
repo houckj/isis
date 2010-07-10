@@ -426,6 +426,8 @@ typedef int Isis_User_Source_Init_Fun_t (Isis_User_Source_t *, char *);
 extern int isis_eval_model_on_alt_grid (Isis_Hist_t *x);
 extern int Isis_Add_Static_Fun (Isis_User_Source_Init_Fun_t *us_init, char *us_name);
 
+extern double Isis_Default_Relstep;
+
 /*}}}*/
 
 typedef struct Isis_Fit_Type Isis_Fit_Type;

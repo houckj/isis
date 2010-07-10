@@ -498,6 +498,7 @@ int Fit_register_fun (Param_t *pt, Fit_Fun_t *ff, unsigned int fun_id,  /*{{{*/
 
         p->hard_min = -Isis_Inf;
         p->hard_max =  Isis_Inf;
+        p->relstep = Isis_Default_Relstep;
 
         if (-1 == init_parameter_of_type (ff, p))
           {
