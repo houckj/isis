@@ -215,7 +215,7 @@ static int setenv_isis_srcdir (void) /*{{{*/
 
 static int setenv_atomdb_dir (void) /*{{{*/
 {
-   static char *atomdb_dir, *p;
+   static char *p;
 
    if (NULL != getenv ("ATOMDB"))
      return 0;
@@ -224,10 +224,9 @@ static int setenv_atomdb_dir (void) /*{{{*/
    if (p == NULL || *p == 0)
      return 0;
 
-   atomdb_dir = "ATOMDB=" ATOMDBDIR;
-   if (-1 == putenv (atomdb_dir))
+   if (-1 == putenv ("ATOMDB=" ATOMDBDIR))
      {
-        fprintf (stderr, "Failed setting ATOMDB environment variable: %s\n", atomdb_dir);
+        fprintf (stderr, "Failed setting environment variable ATOMDB=" ATOMDBDIR "\n");
         return -1;
      }
 
