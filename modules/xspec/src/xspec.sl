@@ -705,16 +705,36 @@ make_lcase_aliases ();
 private define table_param_default (file, name, is_norm) %{{{
 {
    variable fcn_fmt =
-     "define ${name}_default_hook(i,is_norm,pval,pmin,pmax){"$
-     + "if (is_norm) i--;"
-     + "if ((i < 0) || (i >= length(pval)))"
-     + "  return (0, 0, 0, 0);"
-     + "return pval[i], 0, pmin[i], pmax[i];"
-     + "}";
+`   define ${name}_default_hook(i,is_norm,pval,pmin,pmax)
+    {
+       variable t = struct
+          {
+             value, min, max,
+             freeze = 0,
+             hard_min = -_Inf, hard_max = _Inf,
+             step = 0, relstep = Isis_Default_Relstep
+          };
+       if (is_norm) i--;
+       if (i < 0)
+         {
+            % the norm parameter, eh?
+            t.value = 1.0;  t.min = 0.0;   t.max = 1.e10;
+         }
+       else if (i >= length(pval))
+         {
+            % the redshift, I presume.
+            t.value = 0.0;  t.min = -10.0; t.max = 10.0;
+         }
+       else
+         {
+            t.value = pval[i]; t.min = pmin[i]; t.max = pmax[i];
+         }
+       return t;
+     }`$;
    variable reg_fmt =
-     "variable t = fits_read_table (\"${file}\");"$
-     + "set_param_default_hook(\"${name}\", &${name}_default_hook, ${is_norm},"$
-     + "t.initial, t.minimum, t.maximum);";
+`    variable t = fits_read_table ("${file}");
+     set_param_default_hook ("${name}", &${name}_default_hook, ${is_norm},
+                             t.initial, t.minimum, t.maximum);`$;
    eval(fcn_fmt);
    eval(reg_fmt);
 }
