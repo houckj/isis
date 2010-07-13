@@ -1010,8 +1010,8 @@ define fitswcs_rebin_wcs ()
 
 %!%+
 %\function{fitswcs_bin_wcs}
-%\synopsis{This function may be used to obtain the wcs for a rebinned image}
-%\usage{wcs1 = fitswcs_rebin_wcs (wcs, grid0, grid1, ...)}
+%\synopsis{This function may be used to obtain the wcs for a binned image}
+%\usage{wcs1 = fitswcs_bin_wcs (wcs, grid0, grid1, ...)}
 %\description
 %
 % This function may be used to construct the WCS for an image created

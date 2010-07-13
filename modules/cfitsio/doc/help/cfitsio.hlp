@@ -1358,7 +1358,7 @@ fits_read_key_struct
   Read one or more keywords from a FITS file
 
  USAGE
-  struct = fits_read_key (file, key1, ...)
+  struct = fits_read_key_struct (file, key1, ...)
 
     Fits_File_Type or String_Type file;
     String_Type key1, ...;
@@ -1949,8 +1949,15 @@ fitswcs_get_column_wcs
 
  EXAMPLE
 
-   wcs = fitswcs_get_column_wcs ("evt1.fits[EVENTS]", ["X","Y"]);
+   wcs = fitswcs_get_column_wcs ("evt1.fits[EVENTS]", ["Y","X"]);
 
+
+ NOTES
+ If the intent is to bin the data in the binary table columns, then
+ it is best to specify the columns as `["Y", "X"]' and not the
+ other way around.  This is because the slang routines that deal with
+ images assumes that the slowest varying index corresponds to the
+ first one, whereas FITS assumes the opposite.
 
  SEE ALSO
   fitswcs_put_column_wcs, fitswcs_get_img_wcs, fitswcs_get_vector_wcs
@@ -2133,10 +2140,10 @@ fitswcs_rebin_wcs
 fitswcs_bin_wcs
 
  SYNOPSIS
-  This function may be used to obtain the wcs for a rebinned image
+  This function may be used to obtain the wcs for a binned image
 
  USAGE
-  wcs1 = fitswcs_rebin_wcs (wcs, grid0, grid1, ...)
+  wcs1 = fitswcs_bin_wcs (wcs, grid0, grid1, ...)
 
  DESCRIPTION
 
