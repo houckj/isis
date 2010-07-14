@@ -33,8 +33,7 @@ AC_FC_LIBRARY_LDFLAGS
 AC_FC_DUMMY_MAIN(,
   AC_DEFINE(FC_DUMMY_MAIN,MAIN__)
 )
-
-dnl JH_FORCE_UNDEFINED_SYMBOLS
+SAFE_AC_FC_MANGLE
 
 AC_ARG_WITH(fclibs,
   [  --with-fclibs=libs     Provide extra Fortran libraries, e.g. "-lg2c" ],
@@ -183,10 +182,6 @@ finite \
 JD_SET_OBJ_SRC_DIR(src)
 JD_GCC_WARNINGS
 JH_PURIFY
-
-dnl AC_CONFIG_SUBDIRS(modules/xspec)
-dnl AC_CONFIG_SUBDIRS(modules/cfitsio)
-dnl AC_CONFIG_SUBDIRS(modules/pgplot)
 
 JD_GET_MODULES(src/modules.lis,src)
 JH_GET_FC_MODULES(src/fc_modules.lis,src)

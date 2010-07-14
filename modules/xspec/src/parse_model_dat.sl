@@ -220,7 +220,7 @@ define parse_function (buf) %{{{
      {
           model_name, routine_name, model_type,
 	  num_pars, par_info, init_string,
-	  exec_symbol, exec_symbol_hook,
+	  exec_symbol, exec_symbol_hook, has_fortran_linkage,
           interface
      };
 

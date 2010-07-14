@@ -110,29 +110,7 @@ use_namespace($1);
 
 static define load_xspec_symbol (name) %{{{
 {
-   variable xf = NULL;
-   variable ret;
-   variable nameu = name + "_";
-
-   % To improve portability, try some common
-   % Fortran name-mangling variations
-
-   variable names;
-   names = [nameu, name,
-	    strlow(nameu), strlow(name),
-	    strup(nameu), strup(name)];
-
-   foreach (names)
-     {
-	variable n = ();
-	ret = load_xspec_fun (&xf, Model_File, n);
-	if (ret == 0)
-          {
-             return (xf, NULL);
-          }
-     }
-
-   return (NULL, NULL);
+   return load_xspec_fun (Model_File, name);
 }
 
 %}}}
@@ -141,7 +119,7 @@ static define parse_model_table ();
 private define load_shared_model_table (buf)
 {
    variable names;
-   names = parse_model_table (buf, &load_xspec_symbol);
+   names = parse_model_table (buf, 1, &load_xspec_symbol);
    return names;
 }
 
@@ -247,12 +225,14 @@ private define create_wrapper (m) %{{{
 
 %}}}
 
-static define choose_exec_symbol_hook (m)
+static define choose_exec_symbol_hook (m) %{{{
 {
    if (m.exec_symbol_hook != NULL)
      return;
 
    variable fmt = "_xspec_%s_f_hook";
+   m.has_fortran_linkage = 1;
+
    if (strlen(m.routine_name) > 3)
      {
         variable prefix = m.routine_name[[0:1]];
@@ -261,18 +241,37 @@ static define choose_exec_symbol_hook (m)
            case "C_" or case "c_":
              m.routine_name = m.routine_name[[2:]];
              fmt = "_xspec_%s_C_hook";
+             m.has_fortran_linkage = 0;
           }
           {
            case "F_":
              m.routine_name = m.routine_name[[2:]];
              fmt = "_xspec_%s_F_hook";
+             m.has_fortran_linkage = 1;
           }
      }
 
    m.exec_symbol_hook = sprintf (fmt, m.model_type);
 }
 
-static define parse_model_table (t, load_symbol_ref) %{{{
+%}}}
+
+static define mangle_name (m, name) %{{{
+{
+   variable s = name;
+
+   if (m.has_fortran_linkage)
+     {
+        s += __FC_MANGLE_SUFFIX;
+        s = __FC_MANGLE_UPCASE ? strup(s) : strlow(s);
+     }
+
+   return s;
+}
+
+%}}}
+
+static define parse_model_table (t, mangle, load_symbol_ref) %{{{
 {
    variable buf = t.buf;
 
@@ -314,9 +313,13 @@ static define parse_model_table (t, load_symbol_ref) %{{{
 
         variable nm, try_names;
         try_names = [m.model_name, m.routine_name];
+        if (mangle)
+          {
+             try_names = array_map (String_Type, &mangle_name, m, try_names);
+          }
         foreach nm (try_names)
           {
-             (m.exec_symbol, ) = (@load_symbol_ref) (nm);
+             m.exec_symbol = (@load_symbol_ref) (nm);
              if (m.exec_symbol != NULL)
                break;
           }
@@ -347,15 +350,6 @@ static define parse_model_table (t, load_symbol_ref) %{{{
    xspec_print_link_errors ();
 
    return names;
-}
-
-%}}}
-
-private define find_symbol (name) %{{{
-{
-   variable xf, hook_name;
-   hook_name = find_xspec_fun (&xf, name);
-   return (xf, hook_name);
 }
 
 %}}}
@@ -666,7 +660,7 @@ private define try_loading_local_models () %{{{
    Model_Dat = path_concat (dirs[0], "lmodel.dat");
    if (NULL != stat_file (Model_Dat))
      {
-        () = parse_model_table (load_buf (Model_Dat, NULL), &find_symbol);
+        () = parse_model_table (load_buf (Model_Dat, NULL), 0, &find_xspec_fun);
      }
 }
 
@@ -677,7 +671,7 @@ private define load_xspec_models () %{{{
 {
    % load static models first
    Model_Dat = find_model_dat_file ("$HEADAS"$, Xspec_Version);
-   () = parse_model_table (load_buf (Model_Dat, NULL), &find_symbol);
+   () = parse_model_table (load_buf (Model_Dat, NULL), 0, &find_xspec_fun);
 
    try_loading_local_models ();
 }

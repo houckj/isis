@@ -1114,54 +1114,6 @@ AC_SUBST(SLANG_DLL_CFLAGS)
 
 dnl#}}}
 
-AC_DEFUN(JH_SET_GNU_FCLIBS, dnl#{{{
-[
-FCLIBS=""
-if test "$GCC" = yes
-then
-   jh_gcc_major_version=`$CC -dumpversion | sed -e 's/egcs-//' | cut -d'.' -f1`
-   if test $jh_gcc_major_version -lt 3
-   then
-      FCLIBS="-lg2c"
-   fi
-fi
-])
-
-dnl#}}}
-
-AC_DEFUN(JD_FC_COMPILER, dnl#{{{
-[
-case "$host_os" in
- *linux* )
-   FC="g77"
-   JH_SET_GNU_FCLIBS
- ;;
- *solaris*)
-   FC=f77
-   FCLIBS="-lF77 -lM77 -lsunmath"
-   ;;
- *sunos*)
-   FC=f77
-   FCLIBS="-lM77 -lF77 -lansi -lc"
-   ;;
- *)
-   echo ""
-   echo "WARNING: Assuming f77 as your FORTRAN compiler"
-   echo ""
-   FC=f77
-   FCLIBS=""
-   if test "`$FC -v 2>&1 | grep GNU | wc -l`" -gt 0
-   then
-       JH_SET_GNU_FCLIBS
-   fi
-   ;;
-esac
-AC_SUBST(FC)
-AC_SUBST(FCLIBS)
-])
-
-dnl#}}}
-
 AC_DEFUN(JH_CHECK_CFITSIO_LIBNAME, dnl#{{{
 [
 dnl This nonsense is necessary because we cannot rely on
@@ -1387,30 +1339,6 @@ AC_DEFUN(JH_HANDLE_PACKAGE_OPTIONS, dnl#{{{
 
 dnl#}}}
 
-AC_DEFUN(JH_FORCE_UNDEFINED_SYMBOLS, dnl#{{{
-[
-# If we're using g77 and the GNU loader, force loading
-# of libg2c symbols so they're available in case a user
-# dynamically links to an XSPEC local model
-FORCE_UNDEFINED_SYMBOLS=""
-dnl  Note that the G77 macro is probably no longer available..
-if test "$G77" = yes
-then
-   AC_CHECK_PROG(have_loader,ld,"yes")
-   if test "$have_loader" = yes
-   then
-     loader_info=`ld -V | cut -d' ' -f1`
-     if test "$loader_info" = GNU
-     then
-       FORCE_UNDEFINED_SYMBOLS="-Wl,--undefined=s_rnge"
-     fi
-   fi
-fi
-AC_SUBST(FORCE_UNDEFINED_SYMBOLS)
-])
-
-dnl#}}}
-
 AC_DEFUN(JH_SYS_EXTRA_LIBS, dnl#{{{
 [
 SYS_EXTRA_LIBS=""
@@ -1429,22 +1357,6 @@ case "$host_os" in
      ;;
 esac
 AC_SUBST(SYS_EXTRA_LIBS)
-])
-
-dnl#}}}
-
-AC_DEFUN(JH_FC_DEFS, dnl#{{{
-[
-case "$host_os" in
- *linux*|*darwin*|*cygwin* )
-   FC_DEFS="-Dg77Fortran"
-   ;;
-
- *)
-   FC_DEFS=""
-   ;;
-esac
-AC_SUBST(FC_DEFS)
 ])
 
 dnl#}}}
@@ -1591,3 +1503,24 @@ AC_SUBST(prefix_input)
 
 dnl#}}}
 
+AC_DEFUN(SAFE_AC_FC_MANGLE, dnl #{{{
+[
+   AC_REQUIRE([AC_FC_LIBRARY_LDFLAGS])
+   pushdef([AC_MSG_ERROR], [FC_MANGLE_UPCASE=0; FC_MANGLE_SUFFIX= ;])
+   AC_FC_FUNC(a,ma)
+   case $ma in
+      A)	FC_MANGLE_UPCASE=1; FC_MANGLE_SUFFIX="";;
+      A_)	FC_MANGLE_UPCASE=1; FC_MANGLE_SUFFIX="_";;
+      A__)	FC_MANGLE_UPCASE=1; FC_MANGLE_SUFFIX="__";;
+      a)	FC_MANGLE_UPCASE=0; FC_MANGLE_SUFFIX="";;
+      a_)	FC_MANGLE_UPCASE=0; FC_MANGLE_SUFFIX="_";;
+      a__)	FC_MANGLE_UPCASE=0; FC_MANGLE_SUFFIX="__";;
+      *)	AC_MSG_WARN([unknown Fortran mangling convention])
+                FC_MANGLE_UPCASE=0; FC_MANGLE_SUFFIX="_"
+                ;;
+   esac
+
+   popdef([AC_MSG_ERROR])
+   AC_SUBST(FC_MANGLE_UPCASE)
+   AC_SUBST(FC_MANGLE_SUFFIX)
+])dnl #}}}

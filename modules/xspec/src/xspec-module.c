@@ -844,38 +844,30 @@ static fptr_type *load_function (char *path, char *name) /*{{{*/
 }
 /*}}}*/
 
-static int load_xspec_fun (SLang_Ref_Type *ref, char *file, char *fun_name) /*{{{*/
+static void load_xspec_fun (char *file, char *fun_name) /*{{{*/
 {
-   SLang_MMT_Type *mmt;
+   SLang_MMT_Type *mmt = NULL;
+   Xspec_Type *xt = NULL;
    fptr_type *fptr;
-   Xspec_Type *xt;
 
-   if (-1 == SLang_assign_to_ref (ref, SLANG_NULL_TYPE, NULL))
-     return -1;
-
-   if (NULL == (fptr = (fptr_type *) load_function (file, fun_name)))
-     return -1;
-
-   if (NULL == (xt = (Xspec_Type *) ISIS_MALLOC (sizeof(Xspec_Type))))
-     return -1;
+   if ((NULL == (fptr = (fptr_type *) load_function (file, fun_name)))
+       || (NULL == (xt = (Xspec_Type *) ISIS_MALLOC (sizeof(Xspec_Type)))))
+     goto push_null;
 
    xt->symbol = (fptr_type *)fptr;
    xt->init_string = NULL;
 
-   if (NULL == (mmt = SLang_create_mmt (Xspec_Type_Id, (void *) xt)))
-     {
-        ISIS_FREE (xt);
-        return -1;
-     }
+   if ((NULL == (mmt = SLang_create_mmt (Xspec_Type_Id, (void *) xt)))
+       || (-1 == SLang_push_mmt (mmt)))
+     goto push_null;
 
-   if (-1 == SLang_assign_to_ref (ref, Xspec_Type_Id, &mmt))
-     {
-        ISIS_FREE (xt);
-        SLang_free_mmt (mmt);
-        return -1;
-     }
+   return;
 
-   return 0;
+push_null:
+
+   ISIS_FREE (xt);
+   SLang_free_mmt (mmt);
+   SLang_push_null();
 }
 
 /*}}}*/
@@ -915,17 +907,14 @@ static Xspec_Type Static_Fun_Table[] =
 }
 #endif
 
-static void find_xspec_fun (SLang_Ref_Type *ref, char *fun_name) /*{{{*/
+static void find_xspec_fun (char *fun_name) /*{{{*/
 {
-   SLang_MMT_Type *mmt;
-   Xspec_Type *xt;
+   SLang_MMT_Type *mmt = NULL;
+   Xspec_Type *xt = NULL;
 
    /* silence compiler warnings about unused symbols */
    (void) mul_C;  (void) con_C;  (void) add_C;
    (void) mul_F;  (void) con_F;  (void) add_F;
-
-   if (-1 == SLang_assign_to_ref (ref, SLANG_NULL_TYPE, NULL))
-     return;
 
    for (xt = Static_Fun_Table; xt->name != NULL; xt++)
      {
@@ -933,19 +922,23 @@ static void find_xspec_fun (SLang_Ref_Type *ref, char *fun_name) /*{{{*/
           break;
      }
 
-   if (xt->name != NULL)
+   if (xt->name == NULL)
      {
-        if (NULL == (mmt = SLang_create_mmt (Xspec_Type_Id, (void *) xt)))
-          return;
-
-        if (-1 == SLang_assign_to_ref (ref, Xspec_Type_Id, &mmt))
-          {
-             SLang_free_mmt (mmt);
-             return;
-          }
+        SLang_push_null ();
+        return;
      }
 
-   SLang_push_string (xt->hook_name);
+   if (NULL == (mmt = SLang_create_mmt (Xspec_Type_Id, (void *) xt)))
+     {
+        SLang_push_null ();
+        return;
+     }
+
+   if (-1 == SLang_push_mmt (mmt))
+     {
+        SLang_free_mmt (mmt);
+        return;
+     }
 }
 
 /*}}}*/
@@ -966,8 +959,8 @@ static void find_xspec_fun (SLang_Ref_Type *ref, char *fun_name) /*{{{*/
 
 static SLang_Intrin_Fun_Type Intrinsics [] =
 {
-   MAKE_INTRINSIC_3("load_xspec_fun", load_xspec_fun, I, R, S, S),
-   MAKE_INTRINSIC_2("find_xspec_fun", find_xspec_fun, V, R, S),
+   MAKE_INTRINSIC_2("load_xspec_fun", load_xspec_fun, V, S, S),
+   MAKE_INTRINSIC_1("find_xspec_fun", find_xspec_fun, V, S),
    MAKE_INTRINSIC_1("_xspec_mul_fn_hook", _xspec_mul_fn_hook, V, MT),
    MAKE_INTRINSIC_1("_xspec_add_fn_hook", _xspec_add_fn_hook, V, MT),
    MAKE_INTRINSIC_1("_xspec_con_fn_hook", _xspec_con_fn_hook, V, MT),
@@ -1459,12 +1452,21 @@ static SLang_Intrin_Fun_Type Private_Intrinsics [] =
    SLANG_END_INTRIN_FUN_TABLE
 };
 
+static char *Fc_Mangle_Suffix = FC_MANGLE_SUFFIX;
+
 static SLang_Intrin_Var_Type Private_Vars [] =
 {
    MAKE_VARIABLE("Xspec_Compiled_Headas_Path", &Compiled_Headas_Path, S, 1),
    MAKE_VARIABLE("Xspec_Model_Names_File", &Xspec_Model_Names_File, S, 1),
    MAKE_VARIABLE("Xspec_Version", &Xspec_Version, I, 1),
+   MAKE_VARIABLE("__FC_MANGLE_SUFFIX", &Fc_Mangle_Suffix, S, 1),
    SLANG_END_INTRIN_VAR_TABLE
+};
+
+static SLang_IConstant_Type Private_IConst [] =
+{
+   MAKE_ICONSTANT("__FC_MANGLE_UPCASE", FC_MANGLE_UPCASE),
+   SLANG_END_ICONST_TABLE
 };
 
 #undef V
@@ -1590,8 +1592,9 @@ int init_xspec_module_ns (char *ns_name) /*{{{*/
    Xspec_Model_Names_File = XSPEC_MODEL_NAMES_FILE;
    Xspec_Version = XSPEC_VERSION;
 
-   if (-1 == SLns_add_intrin_fun_table (ns, Private_Intrinsics, NULL)
-      || -1 == SLns_add_intrin_var_table (ns, Private_Vars, NULL))
+   if ((-1 == SLns_add_intrin_fun_table (ns, Private_Intrinsics, NULL))
+      || (-1 == SLns_add_intrin_var_table (ns, Private_Vars, NULL))
+      || (-1 == SLns_add_iconstant_table (ns, Private_IConst, NULL)))
      {
         fprintf (stderr, "Failed initializing XSPEC intrinsics\n");
         goto return_error;

@@ -698,6 +698,8 @@ CFITSIO_LIB_FOR_MODULES
 INSTALL_MODULE
 SLANG_DLL_CFLAGS
 FCLIBS
+FC_MANGLE_UPCASE
+FC_MANGLE_SUFFIX
 FC_EXTRA_LIBS
 XMKMF
 X_CFLAGS
@@ -6070,6 +6072,44 @@ ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+
+
+   ac_ext=${ac_fc_srcext-f}
+ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
+ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_fc_compiler_gnu
+case $ac_cv_fc_mangling in
+  upper*) ac_val="A" ;;
+  lower*) ac_val="a" ;;
+  *)      ac_val="unknown" ;;
+esac
+case $ac_cv_fc_mangling in *," underscore"*) ac_val="$ac_val"_ ;; esac
+
+ma="$ac_val"
+
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+   case $ma in
+      A)	FC_MANGLE_UPCASE=1; FC_MANGLE_SUFFIX="";;
+      A_)	FC_MANGLE_UPCASE=1; FC_MANGLE_SUFFIX="_";;
+      A__)	FC_MANGLE_UPCASE=1; FC_MANGLE_SUFFIX="__";;
+      a)	FC_MANGLE_UPCASE=0; FC_MANGLE_SUFFIX="";;
+      a_)	FC_MANGLE_UPCASE=0; FC_MANGLE_SUFFIX="_";;
+      a__)	FC_MANGLE_UPCASE=0; FC_MANGLE_SUFFIX="__";;
+      *)	{ echo "$as_me:$LINENO: WARNING: unknown Fortran mangling convention" >&5
+echo "$as_me: WARNING: unknown Fortran mangling convention" >&2;}
+                FC_MANGLE_UPCASE=0; FC_MANGLE_SUFFIX="_"
+                ;;
+   esac
+
+
+
 
 
 
@@ -13529,7 +13569,6 @@ fi
 
 
 
-
  if test -z "src/modules.lis"
  then
    Program_Modules=""
@@ -14314,6 +14353,8 @@ CFITSIO_LIB_FOR_MODULES!$CFITSIO_LIB_FOR_MODULES$ac_delim
 INSTALL_MODULE!$INSTALL_MODULE$ac_delim
 SLANG_DLL_CFLAGS!$SLANG_DLL_CFLAGS$ac_delim
 FCLIBS!$FCLIBS$ac_delim
+FC_MANGLE_UPCASE!$FC_MANGLE_UPCASE$ac_delim
+FC_MANGLE_SUFFIX!$FC_MANGLE_SUFFIX$ac_delim
 FC_EXTRA_LIBS!$FC_EXTRA_LIBS$ac_delim
 XMKMF!$XMKMF$ac_delim
 X_CFLAGS!$X_CFLAGS$ac_delim
@@ -14325,8 +14366,6 @@ LD_FLAGS_FOR_XSPEC!$LD_FLAGS_FOR_XSPEC$ac_delim
 HEADAS_DIR!$HEADAS_DIR$ac_delim
 HEADAS_LIBDIR!$HEADAS_LIBDIR$ac_delim
 WITH_HEADAS!$WITH_HEADAS$ac_delim
-CFITSIO_INC!$CFITSIO_INC$ac_delim
-CFITSIO_LIB!$CFITSIO_LIB$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -14368,6 +14407,8 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+CFITSIO_INC!$CFITSIO_INC$ac_delim
+CFITSIO_LIB!$CFITSIO_LIB$ac_delim
 PGPLOT_INC!$PGPLOT_INC$ac_delim
 PGPLOT_LIB!$PGPLOT_LIB$ac_delim
 PGPLOT_LIBDIR!$PGPLOT_LIBDIR$ac_delim
@@ -14403,7 +14444,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 33; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 35; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

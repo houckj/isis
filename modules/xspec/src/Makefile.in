@@ -19,6 +19,9 @@ RPATH    = @RPATH@
 FCLIBS   = @FCLIBS@ @FC_EXTRA_LIBS@
 FCFLAGS  = @FCFLAGS@
 
+FC_MANGLE_SUFFIX = @FC_MANGLE_SUFFIX@
+FC_MANGLE_UPCASE = @FC_MANGLE_UPCASE@
+
 # X Include directory
 X_CFLAGS = @X_CFLAGS@
 
@@ -136,7 +139,11 @@ EXTRA_FILES = _names_xspec11.dat _names_xspec12.dat config-xspec-version \
 
 SHELL = /bin/sh
 
-xspec-module_C_FLAGS = -DHEADAS='"$(HEA)"' -D`cat $(config_dir)/modules/xspec/src/config-xspec-version`#
+xspec-module_C_FLAGS = -DHEADAS='"$(HEA)"' \
+   -D`cat $(config_dir)/modules/xspec/src/config-xspec-version` \
+   -DFC_MANGLE_SUFFIX='"$(FC_MANGLE_SUFFIX)"' \
+   -DFC_MANGLE_UPCASE=$(FC_MANGLE_UPCASE)
+
 xspec-module_O_DEP = $(SRCDIR)/_model_externs_xspec11.inc $(SRCDIR)/_model_table_xspec11.inc \
                      $(SRCDIR)/_model_externs_xspec12.inc $(SRCDIR)/_model_table_xspec12.inc
 xspec_O_DEP = $(SRCDIR)/xspec-compat.inc
