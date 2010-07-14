@@ -35,7 +35,7 @@ extern "C" {
 
 #include <slang.h>
 
-#define ISIS_VERSION          10600
+#define ISIS_VERSION          10601
 #define ISIS_VERSION_STRING  "1.6.1"
 #define ISIS_VERSION_PREFIX   1.6.1
 
