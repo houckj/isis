@@ -1742,12 +1742,6 @@ define back_fun () %{{{
    if (s == NULL) s = "";
    _isis->_set_instrument_background (index, s);
 }
-define iback_fun ()
-{
-   vmessage ("*** %s will soon be renamed to back_fun", _function_name);
-   variable args = __pop_args (_NARGS);
-   back_fun (__push_args(args));
-}
 %}}}
 
 define _define_back () %{{{
@@ -1763,12 +1757,6 @@ define _define_back () %{{{
      return;
 
    return _isis->_define_bgd (area, bgd, i, t);
-}
-define _define_bgd ()
-{
-   vmessage ("*** %s will soon be renamed to _define_back", _function_name);
-   variable args = __pop_args (_NARGS);
-   _define_back (__push_args(args));
 }
 %}}}
 
@@ -1820,12 +1808,6 @@ define define_back () %{{{
      }
 
    return 0;
-}
-define define_bgd ()
-{
-   vmessage ("*** %s will soon be renamed to define_back", _function_name);
-   variable args = __pop_args (_NARGS);
-   define_back (__push_args(args));
 }
 %}}}
 

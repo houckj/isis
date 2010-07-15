@@ -1342,12 +1342,7 @@ define get_back () %{{{
 
    return bgd;
 }
-define get_iback ()
-{
-   vmessage ("*** %s will soon be renamed to get_back", _function_name);
-   variable args = __pop_args (_NARGS);
-   get_back (__push_args(args));
-}
+
 %}}}
 
 %{{{ function caching and cloning

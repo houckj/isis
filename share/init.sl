@@ -23,6 +23,8 @@
 %    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 %
 
+require ("arrayfuns");
+
 $1 =
 [
    "physconst"

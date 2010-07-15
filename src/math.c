@@ -268,44 +268,6 @@ static void moment (void) /*{{{*/
 
 /*}}}*/
 
-static void finite_intrin (void) /*{{{*/
-{
-   SLang_Array_Type *sx = NULL;
-   SLang_Array_Type *sw = NULL;
-   unsigned char *w;
-   double *x;
-   SLindex_Type i, n;
-
-   if ((-1 == SLang_pop_array_of_type (&sx, SLANG_DOUBLE_TYPE))
-       || (sx == NULL))
-     {
-        isis_throw_exception (Isis_Error);
-        goto finish;
-     }
-
-   x = (double *)sx->data;
-   n = sx->num_elements;
-
-   if (NULL == (sw = SLang_create_array (SLANG_UCHAR_TYPE, 0, NULL, &n, 1)))
-     {
-        isis_throw_exception (Isis_Error);
-        goto finish;
-     }
-
-   w = (unsigned char *)sw->data;
-
-   for (i = 0; i < n; i++)
-     {
-        w[i] = (unsigned char) isfinite (x[i]);
-     }
-
-   finish:
-   SLang_free_array (sx);
-   SLang_push_array (sw, 1);
-}
-
-/*}}}*/
-
 static int pop_two_darrays (SLang_Array_Type **a, SLang_Array_Type **b) /*{{{*/
 {
    *a = NULL;
@@ -572,66 +534,6 @@ static void make_2d_histogram (int *reverse) /*{{{*/
 
    SLang_push_array (b, 1);
    SLang_push_array (rev, 1);
-}
-
-/*}}}*/
-
-static void cumsum (unsigned int *axis) /*{{{*/
-{
-   SLang_Array_Type *sx = NULL;
-   unsigned int i, num, stride, dim_size;
-   double *x;
-
-   if ((-1 == SLang_pop_array_of_type (&sx, SLANG_DOUBLE_TYPE))
-       || (sx == NULL)
-       || (sx->num_elements < 1))
-     {
-        isis_throw_exception (Isis_Error);
-        return;
-     }
-
-   if (*axis >= sx->num_dims)
-     {
-        isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__, "invalid array axis");
-        SLang_free_array (sx);
-        return;
-     }
-
-   num = sx->num_elements;
-   x = (double *)sx->data;
-
-   /* Although the general implementation would work,
-    * I'll use simpler, faster code for the most common case
-    */
-   if (sx->num_dims == 1)
-     {
-        double s = 0.0;
-        for (i = 0; i < num; i++)
-          {
-             s += x[i];
-             x[i] = s;
-          }
-        SLang_push_array (sx, 1);
-        return;
-     }
-
-   /* Here's the general algorithm for multi-dimensional arrays */
-
-   stride = 1;
-   for (i = *axis+1; i < sx->num_dims; i++)
-     {
-        stride *= sx->dims[i];
-     }
-
-   dim_size = sx->dims[*axis];
-
-   for (i = stride; i < num; i++)
-     {
-        if (((i/stride) % dim_size) > 0)
-          x[i] += x[i-stride];
-     }
-
-   SLang_push_array (sx, 1);
 }
 
 /*}}}*/
@@ -1026,8 +928,6 @@ static SLang_Intrin_Fun_Type Math_Intrinsics [] =
    MAKE_INTRINSIC_2("_fft1d", _fft1d, V, I, D),
    MAKE_INTRINSIC("_moment", moment, V, 0),
    MAKE_INTRINSIC("_median", median, V, 0),
-   MAKE_INTRINSIC_1("_cumsum", cumsum, V, I),
-   MAKE_INTRINSIC("_finite", finite_intrin, V, 0),
    MAKE_INTRINSIC("_ks_difference", ks_difference, D, 0),
    MAKE_INTRINSIC_1("_ks_probability", ks_probability, D, D),
    MAKE_INTRINSIC_1("_seed_random", seed_random, V, SLANG_ULONG_TYPE),

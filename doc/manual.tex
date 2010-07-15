@@ -2634,17 +2634,6 @@ accessed using either the new name or the original name.
 \end{isisfunction}
 
 \begin{isisfunction}
-{any}
-{Check for non-zero array elements}
-{any (x[])}
-{where, howmany}
-
-\verb|any| is a boolean function which returns non-zero if
-any elements of its array argument are non-zero.  Otherwise,
-it returns zero.
-\end{isisfunction}
-
-\begin{isisfunction}
 {apropos} %name
 {recall object names satisfying a regular expression} %purpose
 {apropos("s")}
@@ -3034,14 +3023,6 @@ the specified array.
 \end{isisfunction}
 
 \begin{isisfunction}
-{hypot} %name
-{Compute the hypotenuse} %purpose
-{r = hypot (x,y)} %usage
-{}
-As usual, r = sqrt(x*x + y*y).
-\end{isisfunction}
-
-\begin{isisfunction}
 {isis\_get\_pager} %name
 {Retrieve the current pager definition string} %purpose
 {s = isis\_get\_pager ()} %usage
@@ -3318,25 +3299,6 @@ To use the command-line editing features provided by the
 To turn off the command-line editing features, use
 \begin{verbatim}
   set_readline_method ("stdin");
-\end{verbatim}
-\end{isisfunction}
-
-\begin{isisfunction}
-{shift} %name
-{Cyclic permutation of array elements} %purpose
-{s[] = shift (s[], num)} %usage
-{howmany, any}
-
-If $num > 0$, the array elements are shifted downward $num$
-positions. If $num < 0$, the array elements are shifted upward
-$num$ positions. For example:
-\begin{verbatim}
-isis> writecol (stdout, x, shift(x,2), shift(x,-2));
-           1             3             4
-           2             4             5
-           3             5             1
-           4             1             2
-           5             2             3
 \end{verbatim}
 \end{isisfunction}
 

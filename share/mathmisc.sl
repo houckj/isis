@@ -27,40 +27,6 @@
 
 _isis->_set_inf_and_nan (_Inf, _NaN);
 
-#ifnexists cumsum
-define cumsum () %{{{
-{
-   variable msg = "s[] = cumsum (x[] [, axis])";
-   variable a, axis;
-
-   axis = 0;
-
-   if (_isis->get_varargs (&a, &axis, _NARGS, 1, msg))
-     return;
-
-   if (typeof(a) != Array_Type)
-     a = [a];
-
-   % pass a copy so the original is not overwritten
-   return _isis->_cumsum (@a, axis);
-}
-%}}}
-#endif
-
-#ifnexists sum
-define sum (a)
-{
-   variable tot = 0.0;
-
-   foreach (a)
-     {
-	tot += ();
-     }
-
-   return tot;
-}
-#endif
-
 % The slang reverse function doesn't support scalars so
 % I'm replacing it.
 %#ifnexists reverse
@@ -74,18 +40,6 @@ define reverse (a)
    __tmp(a)[[i:0:-1]];
 }
 %#endif
-
-#ifnexists shift
-define shift (x, n)
-{
-   variable len = length(x);
-   variable i = [0:len-1];
-
-   % allow n to be negative and large
-   n = len + n mod len;
-   return x[(i + n)mod len];
-}
-#endif
 
 #ifnexists ones
 define ones ()
@@ -105,13 +59,6 @@ define howmany (a)
 }
 #endif
 
-#ifnexists any
-define any (a)
-{
-   return (0 != howmany(a));
-}
-#endif
-
 define moment () %{{{
 {
    variable msg = "stat_struct = moment (values)";
@@ -127,30 +74,10 @@ define moment () %{{{
 
 %}}}
 
-#ifnexists min
-define min (a)
-{
-   a = _reshape(a,[length(a)]);
-
-   return typecast (moment(a).min, _typeof(a));
-}
-#endif
-
-#ifnexists max
-define max (a)
-{
-   a = _reshape(a,[length(a)]);
-
-   return typecast (moment(a).max, _typeof(a));
-}
-#endif
-
 #ifnexists mean
 define mean (a)
 {
-   a = _reshape(a,[length(a)]);
-
-   return moment(a).ave;
+   return sum(a)/length(a);
 }
 #endif
 
@@ -167,56 +94,6 @@ define median () %{{{
    % operate on a copy to preserve the original
    return typecast (_isis->_median (@values), _typeof(values));
 }
-
-%}}}
-
-#ifnexists hypot
-define hypot () %{{{
-{
-   variable msg = "r[] = hypot (x[], y[])";
-   variable x, y;
-
-   if (_isis->chk_num_args (_NARGS, 2, msg))
-     return;
-
-   (x, y) = ();
-
-   variable r = _isis->_hypot (x, y);
-
-   if (r == NULL)
-     return r;
-
-   if (length(r) == 1)
-     return r[0];
-
-   return r;
-}
-#endif
-
-%}}}
-
-#ifnexists finite
-define finite () %{{{
-{
-   variable msg = "k[] = finite (x[])";
-   variable x;
-
-   if (_isis->chk_num_args (_NARGS, 1, msg))
-     return;
-
-   x = ();
-
-   variable r = _isis->_finite(x);
-
-   if (r == NULL)
-     return r;
-
-   if (length(r) == 1)
-     return r[0];
-
-   return r;
-}
-#endif
 
 %}}}
 
@@ -368,7 +245,7 @@ define seed_random () %{{{
 
 %}}}
 
-private define _genrand (nargs, randfun)
+private define _genrand (nargs, randfun) %{{{
 {
    variable num, a = NULL;
 
@@ -401,6 +278,8 @@ private define _genrand (nargs, randfun)
 
    return _reshape(r,a);
 }
+
+%}}}
 
 define urand () %{{{
 {
