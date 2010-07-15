@@ -1114,12 +1114,15 @@ save_input
     save commands to a disk file
 
  USAGE
-    save_input [("filename")]
+    save_input [("filename" | File_Type)]
 
  DESCRIPTION
     If no file name is specified, the command log is saved in the
     file isis.log. If the log file already exists, the log is
     appended to the existing file.
+
+    If passed a File_Type pointer, the associated file will not be
+    closed by save_input.
 
  SEE ALSO
     start_log, stop_log, .source

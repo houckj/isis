@@ -410,7 +410,9 @@ define do_save_input (file) %{{{
    if (Input_Line_List == NULL)
      return;
 
-   variable fp = open_log_file (file);
+   variable file_is_string = typeof(file) == String_Type;
+
+   variable fp = file_is_string ? open_log_file (file) : file;
    if (fp == NULL)
      return;
 
@@ -421,7 +423,8 @@ define do_save_input (file) %{{{
 	l = l.next;
      }
 
-   close_file (fp);
+   if (file_is_string)
+     close_file (fp);
 }
 
 %}}}

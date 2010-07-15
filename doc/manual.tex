@@ -3275,12 +3275,15 @@ provides the feature via the \verb|provide| function.
 \begin{isisfunction}
 {save\_input} %name
 {save commands to a disk file} %purpose
-{save\_input [("filename")]} %usage
+{save\_input [("filename" | File\_Type)]} %usage
 {start\_log, stop\_log, .source}
 
 If no file name is specified, the command log is saved in the file
 {\tt isis.log}. If the log file already exists, the log is
 appended to the existing file.
+
+If passed a \verb|File_Type| pointer, the associated file
+will not be closed by \verb|save_input|.
 \end{isisfunction}
 
 \begin{isisfunction}
