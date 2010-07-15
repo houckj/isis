@@ -163,8 +163,11 @@ static void print_status (struct mp_result_struct *mpfit_result) /*{{{*/
         break;
       default:
         /* nada... */
+        return;
         break;
      }
+
+   fprintf (stderr, "%s\n", m);
 }
 
 /*}}}*/
