@@ -50,9 +50,6 @@ enum
 
 extern int Isis_List_Filenames;
 
-extern int Isis_Secure_Mode;
-extern int isis_secure_mode (void);
-
 extern unsigned int Isis_Version;
 extern int Isis_Error;
 extern int Isis_Trace;

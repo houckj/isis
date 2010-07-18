@@ -317,7 +317,6 @@ static void usage (char *pgm) /*{{{*/
    fprintf (stdout, "     --batch        Exit after loading FILE\n");
    fprintf (stdout, "     --script       Script mode\n");
    fprintf (stdout, "     --force-interactive   Prompt after loading FILE\n");
-   fprintf (stdout, "     --secure       Secure mode\n");
    fprintf (stdout, "     --stdin        Read commands from stdin\n");
    fprintf (stdout, "     -              Read commands from stdin\n");
    fprintf (stdout, "     --version      Show version\n");
@@ -485,12 +484,6 @@ static int initialize (int argc, char **argv) /*{{{*/
         if (0 == strcmp (argv[0], "--preparse"))
           {
              Isis_Preparse_Only = 1;
-             argc--;
-             argv++;
-          }
-        else if (0 == strcmp (argv[0], "--secure"))
-          {
-             Isis_Secure_Mode=1;
              argc--;
              argv++;
           }

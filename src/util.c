@@ -74,7 +74,6 @@
 
 /*{{{ globals */
 int Isis_Verbose;
-int Isis_Secure_Mode;
 int Isis_Errno;
 int Isis_Batch_Mode;
 int Isis_Remove_Spectrum_Gaps;
@@ -456,19 +455,10 @@ int isis_vsnprintf (char *buf, unsigned int bufsize, /*{{{*/
 
 /*}}}*/
 
-int isis_secure_mode (void) /*{{{*/
-{
-   if (Isis_Secure_Mode)
-     fputs ("isis: operation disabled in secure mode\n", stderr);
-   return Isis_Secure_Mode;
-}
-
-/*}}}*/
-
 int isis_system (char *cmd) /*{{{*/
 {
    int ret;
-   if ((cmd == NULL) || isis_secure_mode ())
+   if (cmd == NULL)
      return -1;
 
    ret = SLsystem (cmd);
@@ -486,9 +476,6 @@ int isis_system (char *cmd) /*{{{*/
 FILE *isis_open_pager (void) /*{{{*/
 {
    FILE * fp;
-
-   if (isis_secure_mode())
-     return stdout;
 
    if (Isis_Pager == NULL)
      {

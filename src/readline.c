@@ -1526,24 +1526,6 @@ static void set_inf_and_nan_intrin (double *inf_val, double *nan_val)
    Isis_Nan = *nan_val;
 }
 
-static int safe_system (char *cmd) /*{{{*/
-{
-   (void) cmd;
-   (void) isis_secure_mode ();
-   return -1;
-}
-
-/*}}}*/
-
-static int safe_popen (char *cmd, char *mode) /*{{{*/
-{
-   (void) cmd;  (void) mode;
-   (void) isis_secure_mode ();
-   return -1;
-}
-
-/*}}}*/
-
 /*{{{ SLang intrinsics */
 
 static SLang_Intrin_Var_Type Misc_Intrin_Vars [] =
@@ -1583,20 +1565,6 @@ static SLang_Intrin_Fun_Type Readline_Intrinsics[] =
    MAKE_INTRINSIC_S("slsh_readline_init", init_readline_intrinsic, VOID_TYPE),
    MAKE_INTRINSIC_S("slsh_readline_new", new_slrline_intrinsic, VOID_TYPE),
    MAKE_INTRINSIC_S("slsh_readline", readline_intrinsic, VOID_TYPE),
-   SLANG_END_INTRIN_FUN_TABLE
-};
-
-/* Use these definitions to disable
- *   o command-line shell escapes
- *   o S-Lang system(), popen()
- *
- * Perhaps more functionality should be disabled?
- */
-
-static SLang_Intrin_Fun_Type Secure_Intrinsics [] =
-{
-   MAKE_INTRINSIC_1("system", safe_system, I, S),
-   MAKE_INTRINSIC_2("popen", safe_popen, I, S, S),
    SLANG_END_INTRIN_FUN_TABLE
 };
 
@@ -1666,13 +1634,6 @@ int init_readline_module_ns (char *ns_name) /*{{{*/
 
    if (NULL == (pub_ns = SLns_create_namespace (Isis_Public_Namespace_Name)))
      return isis_trace_return(-1);
-
-   if (Isis_Secure_Mode)
-     {
-        /* redefine insecure functions before any slang code is interpreted */
-        if (-1 == SLns_add_intrin_fun_table (NULL, Secure_Intrinsics, NULL))
-          return isis_trace_return(-1);
-     }
 
    if (-1 == register_rline_type ())
      return -1;
