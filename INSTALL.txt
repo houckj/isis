@@ -375,6 +375,12 @@ d. Configure options
     Use this option to build the xspec module without support for
     xspec table models.
 
+--with-local-setup=FILE::
+    Use this option to indicate that the S-Lang script in FILE
+    should be loaded when isis starts up.  This file can be
+    used to define site-local customizations that may be helpful
+    for all users at your site.
+
 --with-slang=DIR::
     Use this option to indicate that libslang is in 'DIR/lib'
     and slang.h is in 'DIR/include'
