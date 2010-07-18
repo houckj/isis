@@ -3,6 +3,8 @@ doc/figures
 doc/manual.pdf
 doc/manual.ps
 
+etc/local.sl
+
 INSTALL.html
 INSTALL.pdf
 INSTALL.xml

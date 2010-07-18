@@ -28,6 +28,9 @@ JD_IEEE_CFLAGS
 ELF_CFLAGS="$ELF_CFLAGS $IEEE_CFLAGS"
 CFLAGS="$CFLAGS $IEEE_CFLAGS"
 
+# Extra Headers for xlibs
+AC_PATH_XTRA
+
 AC_FC_WRAPPERS
 AC_FC_LIBRARY_LDFLAGS
 AC_FC_DUMMY_MAIN(,
@@ -36,7 +39,7 @@ AC_FC_DUMMY_MAIN(,
 SAFE_AC_FC_MANGLE
 
 AC_ARG_WITH(fclibs,
-  [  --with-fclibs=libs     Provide extra Fortran libraries, e.g. "-lg2c" ],
+  [  --with-fclibs=libs            Provide extra Fortran libraries, e.g. "-lg2c" ],
   [jh_fclibs_extra=$withval], [jh_fclibs_extra=no])
 FC_EXTRA_LIBS=""
 if test "x$jh_fclibs_extra" != "xno"
@@ -46,9 +49,6 @@ fi
 AC_SUBST(FC_EXTRA_LIBS)
 
 JD_LARGE_FILE_SUPPORT
-
-# Extra Headers for xlibs
-AC_PATH_XTRA
 
 AC_CHECK_TYPES(unsigned long long)
 AC_CHECK_SIZEOF(unsigned long long)
@@ -108,8 +108,14 @@ then
   AC_SUBST(SLANG_LIBDIR)
 fi
 
+AC_ARG_WITH(local-setup,
+  [  --with-local-setup=FILE      Load site-local customizations from FILE ],
+  [ jh_local_setup=$withval ], [jh_local_setup=""])
+SITE_LOCAL_SETUP=$jh_local_setup
+AC_SUBST(SITE_LOCAL_SETUP)
+
 AC_ARG_WITH(atomdb,
-  [  --with-atomdb[=DIR]      location of spectroscopy database (ATOMDB)],
+  [  --with-atomdb[=DIR]            location of spectroscopy database (ATOMDB)],
   [jd_use_atomdb=$withval], [jd_use_atomdb=no])
 if test "x$jd_use_atomdb" != "xno"
 then
@@ -118,7 +124,7 @@ fi
 AC_SUBST(ATOMDB_DIR)
 
 AC_ARG_WITH(djbfft,
-[  --with-djbfft=DIR      Use djbfft for pileup FFTs
+[  --with-djbfft=DIR            Use djbfft for pileup FFTs
                                 (from DIR/lib and DIR/include)],
   [ jh_use_djbfft=$withval ], [jh_use_djbfft=no])
 if test "x$jh_use_djbfft" != "xno"
@@ -191,6 +197,7 @@ JH_GET_ETCFILES(etc/modules.lis)
 AC_OUTPUT(\
  Makefile:autoconf/Makefile.in \
  src/Makefile \
+ etc/local.sl:etc/local.sl.in \
  test/Makefile \
  test/uncon/Makefile \
  modules/Makefile \
@@ -240,5 +247,13 @@ echo ""
 echo "If $prefix_input/bin exists,"
 echo "a symbolic link to the isis executable will be placed there."
 echo ""
+if test "x$SITE_LOCAL_SETUP" != "x" ; then
+    echo "Site-local setup script"
+    echo "    --with-local-setup = $SITE_LOCAL_SETUP"
+else
+    echo "No site-local setup script was specified."
+fi
+echo ""
 echo "To see the list of configuration options:"
 echo "         ./configure --help"
+echo ""

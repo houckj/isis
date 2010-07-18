@@ -13,6 +13,7 @@ autoload ("apec_d", path_concat(_isis_srcdir,"etc/apec_d.sl"));
 
 % include paths to local modules and packages
 
-$1 = "/nfs/cxc/a1/setup/isis-setup.sl";
-if (NULL != stat_file ($1)) 
+$1 = "@SITE_LOCAL_SETUP@";
+
+if (0 == access ($1, R_OK))
   () = evalfile ($1, current_namespace());

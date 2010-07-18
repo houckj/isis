@@ -496,7 +496,7 @@ AC_DEFUN(JD_WITH_LIBRARY_PATHS, dnl#{{{
  jd_with_$1_library=""
 
  AC_ARG_WITH($1,
-  [  --with-$1=DIR      Use DIR/lib and DIR/include for $1],
+  [  --with-$1=DIR             Use DIR/lib and DIR/include for $1],
   [jd_with_$1_arg=$withval], [jd_with_$1_arg=unspecified])
 
  case "x$jd_with_$1_arg" in
@@ -517,7 +517,7 @@ AC_DEFUN(JD_WITH_LIBRARY_PATHS, dnl#{{{
  esac
 
  AC_ARG_WITH($1lib,
-  [  --with-$1lib=DIR   $1 library in DIR],
+  [  --with-$1lib=DIR          $1 library in DIR],
   [jd_with_$1lib_arg=$withval], [jd_with_$1lib_arg=unspecified])
  case "x$jd_with_$1lib_arg" in
    xunspecified)
@@ -533,7 +533,7 @@ AC_DEFUN(JD_WITH_LIBRARY_PATHS, dnl#{{{
  esac
 
  AC_ARG_WITH($1inc,
-  [  --with-$1inc=DIR   $1 include files in DIR],
+  [  --with-$1inc=DIR          $1 include files in DIR],
   [jd_with_$1inc_arg=$withval], [jd_with_$1inc_arg=unspecified])
  case "x$jd_with_$1inc_arg" in
    x)
@@ -1228,7 +1228,7 @@ dnl#}}}
 AC_DEFUN(JH_WITH_XSPEC_STATIC, dnl#{{{
 [
 AC_ARG_WITH(xspec-static,
-  [  --with-xspec-static[=DIR]    Statically link XSPEC models from DIR=$HEADAS],
+  [  --with-xspec-static[=DIR]       Statically link XSPEC models from DIR=$HEADAS],
   [jh_use_xspec_static=$withval], [jh_use_xspec_static=no])
 if test "x$jh_use_xspec_static" = "xno"
 then
@@ -1270,7 +1270,7 @@ dnl#}}}
 AC_DEFUN(JH_WITH_HEADAS, dnl#{{{
 [
 AC_ARG_WITH(headas,
-  [  --with-headas[=DIR]      HEADAS install directory],
+  [  --with-headas[=DIR]             HEADAS install directory],
   [jh_use_headas=$withval], [jh_use_headas=no])
 if test "x$jh_use_headas" != "xno"
 then
@@ -1324,7 +1324,7 @@ AC_DEFUN(JH_HANDLE_PACKAGE_OPTIONS, dnl#{{{
     [AC_DEFINE(HAVE_XSPEC_TABLE_MODELS)])
 
   AC_ARG_WITH(xspec-version,
-    [  --with-xspec-version[=nn]    XSPEC version 11 or 12?],
+    [  --with-xspec-version[=nn]       XSPEC version 11 or 12?],
     [jh_with_xspec_version=$withval], [jh_with_xspec_version=no])
   if test x"$jh_with_xspec_version" = "x11" || test x"$jh_with_xspec_version" = "x12" ; then
      with_xspec_version=$jh_with_xspec_version
@@ -1392,10 +1392,10 @@ AC_DEFUN(JH_WITH_READLINE, dnl#{{{
 [
 dnl # Establish readline support: GNU or S-Lang?
   AC_ARG_WITH(readline,
-[  --with-readline[[=arg]]  arg=gnu means use GNU readline
-                         arg=DIR means use GNU readline
-                             (from DIR/lib and DIR/include)
-                         arg=slang means use S-Lang readline only
+[  --with-readline[[=arg]]        arg=gnu means use GNU readline
+                               arg=DIR means use GNU readline
+                                (from DIR/lib and DIR/include)
+                               arg=slang means use S-Lang readline only
                          ],
      [ with_readline_arg=$withval ], [with_readline_arg=""])
   AC_MSG_CHECKING(type of readline support)
