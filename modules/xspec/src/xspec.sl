@@ -23,9 +23,11 @@
 %   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 %
 
-#ifndef __XSPEC__
-import ("xspec");
+#ifdef __XSPEC__
+#stop
 #endif
+
+import ("xspec");
 
 private variable Model_File;    % path to .so file
 
@@ -34,7 +36,6 @@ private variable shared_lib_ext = "so";
   shared_lib_ext = "dylib";
 #endif
 
-#ifnexists load_xspec_local_models
 require ("parse_model_dat");
 
 private variable _Temp_Xspec_Link_Errors, _Xspec_Link_Errors;
@@ -1190,7 +1191,6 @@ private define find_entry (buf, model_name) %{{{
 
 private define default_help_path () %{{{
 {
-#ifndef __HAVE_XSPEC_12__
    variable xanadu = getenv ("XANADU");
    if (xanadu == NULL)
      {
@@ -1210,7 +1210,6 @@ private define default_help_path () %{{{
      }
 
    vmessage ("*** File not found:  xspec.hlp");
-#endif
 
    return NULL;
 }
@@ -1295,6 +1294,5 @@ private define alias_unsupported (name)
 array_map (Void_Type, &alias_unsupported,
            ["_wabs", "_mekal", "_raym", "_brems", "_vaped",
             "_shock", "_nei", "_sedov", "_bmc"]);
-#endif
 
 provide ("xspec");
