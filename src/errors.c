@@ -51,8 +51,7 @@ static unsigned int print_traceback (void)
 #ifndef SL_TB_FULL
 # define SL_TB_FULL  0x1
 #endif
-   if (SLang_Version >= 20100)
-     t &= SL_TB_FULL;
+   t &= SL_TB_FULL;
    return t;
 }
 

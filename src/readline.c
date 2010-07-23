@@ -1480,16 +1480,6 @@ static void clear_errors (void) /*{{{*/
 
    check_fpe ();
 
-   /* Workaround temporary S-Lang problem:
-    * Make sure stack underflow error messages appear
-    * when _traceback=0
-    */
-   if ((SLang_Version < 20103)
-       && SLang_get_error () && (SLang_Traceback == 0))
-     {
-        SLang_verror (0, "%s", SLerr_strerror (0));
-     }
-
    if (SLang_get_error())
      SLang_restart (1);
 
