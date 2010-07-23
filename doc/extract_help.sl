@@ -71,7 +71,7 @@ static define indent_buffer () %{{{
    eob ();
    variable num = what_line();
    bob ();
-   
+
    loop (num)
      {
 	insert_spaces (4);
@@ -120,7 +120,9 @@ static define filter_text () %{{{
    replace ("\\it", "");
    replace ("\\rm", "");
    replace ("|", "");
-   replace ("$", "");
+      replace ("'$'", "__DOLLAR__");
+      replace ("$", "");
+      replace ("__DOLLAR__", "'$'");
    replace ("~", "");
    replace ("{", "");
    replace ("}", "");
@@ -130,9 +132,9 @@ static define filter_text () %{{{
    replace ("\\S\\", "*section*");
    replace ("\\S ", "*section* ");
    replace ("\\", "");
-   
+
    strip_bol_comments ("%");
-   
+
    reflow_paragraphs ();
 
    widen ();
@@ -154,7 +156,7 @@ static define massage_value () %{{{
 
    replace ("\\vspace*{\\baselineskip}", "");
    regex_replace ("\\\\index{[-0-9a-zA-Z _?\\\\]*[!@|]?[-0-9a-zA-Z (){},_?\\\\]*}", "");
-   regex_replace ("\\\\ref{[-0-9a-zA-Z_:]*}", "");   
+   regex_replace ("\\\\ref{[-0-9a-zA-Z_:]*}", "");
 
   while (not(eobp()))
      {
@@ -167,13 +169,13 @@ static define massage_value () %{{{
 	  }
 	del_eol();
 	insert_char ('\n');
-	
+
 	filter_text();
-	
+
 	() = bol_fsearch ("\\end");
 	del_eol();
      }
-   
+
    indent_buffer();
    trim_buffer();
 
@@ -199,7 +201,7 @@ static define get_massaged_text (entry) %{{{
    push_mark ();
    () = bol_fsearch (entry.end);
    go_up_1();
-   
+
    return massage_value ();
 }
 
@@ -223,7 +225,7 @@ static define get_delim_value () %{{{
 
    variable value = bufsubstr();
    pop_mark (0);
-   
+
    if (value == NULL)
      return "";
 
@@ -233,7 +235,7 @@ static define get_delim_value () %{{{
    value = str_replace_all (value, "{", "");
    value = str_replace_all (value, "}", "");
    value = str_replace_all (value, "$", "");
-   value = str_replace_all (value, "~", "");   
+   value = str_replace_all (value, "~", "");
    value = str_replace_all (value, "\\", "");
 
    return strtrim (value);
@@ -248,7 +250,7 @@ static define parse_region (entry) %{{{
      return;
 
    variable f = @Entry_Fields;
-   
+
    f.name = get_delim_value ();
    f.purpose = get_delim_value ();
    f.usage = get_delim_value ();
@@ -301,7 +303,7 @@ define_syntax ("{", "}", '(', Syn);
 
 static define extract_help (entry, infile, outfile) %{{{
 {
-   () = read_file (infile); 
+   () = read_file (infile);
    use_syntax_table (Syn);
 
    parse_file (entry, outfile);
