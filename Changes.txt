@@ -1,3 +1,20 @@
+Changes since 1.6.1 (released Jul 2010)
+---------------------------------------
+ 1.  get_params now works with regular expressions, for example:
+         p = get_params ("mekal(1).*");
+ 2.  xspec module cleanup.  Fortran name mangling scheme now
+     determined at configure time.
+ 3.  save_input now takes a File_Type pointer
+ 4.  Some isis intrinsics were previously available under two
+     names, one deprecated.  The following deprecated names
+     have been removed: iback_fun, _define_bgd, define_bgd. The
+     corresponding supported names are: back_fun, _define_back,
+     define_back.
+ 5.  The path to a site-local setup script can now be specified
+     at configure time using --with-local-setup=FILE.  The
+     specified FILE will be automatically loaded at isis
+     startup.
+
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
  1.  xspec module more closely adheres to local model naming convention
