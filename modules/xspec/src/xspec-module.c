@@ -1265,16 +1265,21 @@ static void xs_ionsneqr(void) /*{{{*/
 
 /*}}}*/
 
-#ifdef HAVE_XSPEC_12
 static int xs_gchat (void)
 {
+#ifdef HAVE_XSPEC_12
    return FGCHAT();
+#else
+   return 0;
+#endif
 }
+
 static void xs_pchat (int *lev)
 {
+#ifdef HAVE_XSPEC_12
    FPCHAT(*lev);
-}
 #endif
+}
 
 static int xs_init (void)
 {
@@ -1445,10 +1450,8 @@ static SLang_Intrin_Fun_Type Private_Intrinsics [] =
    MAKE_INTRINSIC_0("_xs_get_cosmo_hubble", xs_get_cosmo_hubble, D),
    MAKE_INTRINSIC_0("_xs_get_cosmo_decel", xs_get_cosmo_decel, D),
    MAKE_INTRINSIC_0("_xs_get_cosmo_lambda", xs_get_cosmo_lambda, D),
-#ifdef HAVE_XSPEC_12
    MAKE_INTRINSIC_1("_xs_pchat", xs_pchat, V, I),
    MAKE_INTRINSIC_0("_xs_gchat", xs_gchat, I),
-#endif
    SLANG_END_INTRIN_FUN_TABLE
 };
 
@@ -1573,7 +1576,7 @@ int init_xspec_module_ns (char *ns_name) /*{{{*/
    if (-1 == SLns_add_intrin_fun_table (NULL, Intrinsics, NULL))
      return -1;
 
-#if defined(HAVE_XSPEC_11)
+#ifdef HAVE_XSPEC_11
    if (NULL == (Xanadu_Setenv = copy_and_set_env ("XANADU", HEADAS "/..")))
      goto return_error;
 #endif

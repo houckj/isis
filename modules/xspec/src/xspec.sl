@@ -1024,16 +1024,13 @@ define xspec_get_cosmo () %{{{
 
 xspec_set_cosmo (70.0, 0.0, 0.73);  % H0, q0, lambda0
 
-#ifdef __HAVE_XSPEC_12__
 define xspec_get_chatter () %{{{
 {
    _xs_gchat ();
 }
 
 %}}}
-#endif
 
-#ifdef __HAVE_XSPEC_12__
 define xspec_set_chatter () %{{{
 {
    variable msg = "xspec_set_chatter (level);";
@@ -1045,9 +1042,9 @@ define xspec_set_chatter () %{{{
 }
 
 %}}}
+
 % xspec 12's default is too chatty
 xspec_set_chatter(5);
-#endif
 
 %
 % -------- Parse XSPEC help file
