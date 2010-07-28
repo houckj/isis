@@ -817,7 +817,14 @@ define load_par() %{{{
    if (_isis->chk_num_args (_NARGS, 1, msg))
      return;
    variable fname = ();
-   () = _isis->_load_par (fname);
+   variable status, e;
+   try (e)
+     {
+        status = _isis->_load_par (fname);
+     }
+   finally
+     {
+     }
 }
 
 %}}}
