@@ -1356,7 +1356,7 @@ assign_arf
 
 
  SEE ALSO
-    load_arf,  list_arf, unassign_arf, flux_corr, assign_rsp
+    load_arf, list_arf, unassign_arf, flux_corr, assign_rsp
 
 ------------------------------------------------------------------------
 assign_rmf
@@ -1388,7 +1388,7 @@ assign_rmf
     mismatches must be smaller than 1 part in 1000.
 
  SEE ALSO
-    load_rmf,  list_rmf, unassign_rmf, assign_rsp
+    load_rmf, list_rmf, unassign_rmf, assign_rsp
 
 ------------------------------------------------------------------------
 assign_rsp
@@ -1466,7 +1466,8 @@ combination_members
 
 
  SEE ALSO
-    combine_datasets, match_dataset_grids, uncombine_datasets, get_combined, get_combined2, rebin_combined, set_pre_combine_hook
+    combine_datasets, match_dataset_grids, uncombine_datasets,
+    get_combined, get_combined2, rebin_combined, set_pre_combine_hook
 
 ------------------------------------------------------------------------
 combine_datasets
@@ -1592,7 +1593,9 @@ combine_datasets
 
 
  SEE ALSO
-    combination_members, match_dataset_grids, uncombine_datasets, get_combined, get_combined2, set_eval_grid_method, rebin_combined, set_pre_combine_hook
+    combination_members, match_dataset_grids, uncombine_datasets,
+    get_combined, get_combined2, set_eval_grid_method, rebin_combined,
+    set_pre_combine_hook
 
 ------------------------------------------------------------------------
 copy_data_keywords
@@ -1698,7 +1701,8 @@ define_back
 
 
  SEE ALSO
-    define_counts, define_flux, load_data, back_fun, _define_back, get_back
+    define_counts, define_flux, load_data, back_fun, _define_back,
+    get_back
 
 ------------------------------------------------------------------------
 _define_back
@@ -1729,7 +1733,8 @@ _define_back
 
 
  SEE ALSO
-    define_counts, define_flux, load_data, back_fun, define_back, get_back
+    define_counts, define_flux, load_data, back_fun, define_back,
+    get_back
 
 ------------------------------------------------------------------------
 define_counts
@@ -1954,7 +1959,8 @@ fakeit
 
 
  SEE ALSO
-    load_arf, load_rmf, fit_fun, set_frame_time, set_arf_exposure, define_back, set_fake
+    load_arf, load_rmf, fit_fun, set_frame_time, set_arf_exposure,
+    define_back, set_fake
 
 ------------------------------------------------------------------------
 flux_corr
@@ -2029,7 +2035,8 @@ flux_corr
     below this limit are assigned a flux of zero.
 
  SEE ALSO
-    flux_corr_model_counts, load_arf, assign_arf, unassign_arf, back_fun
+    flux_corr_model_counts, load_arf, assign_arf, unassign_arf,
+    back_fun
 
 ------------------------------------------------------------------------
 flux_corr_model_counts
@@ -2203,7 +2210,9 @@ get_combined
 
 
  SEE ALSO
-    get_combined2, combination_members, combine_datasets, uncombine_datasets, match_dataset_grids, rebin_combined, set_pre_combine_hook
+    get_combined2, combination_members, combine_datasets,
+    uncombine_datasets, match_dataset_grids, rebin_combined,
+    set_pre_combine_hook
 
 ------------------------------------------------------------------------
 get_combined2
@@ -2230,7 +2239,9 @@ get_combined2
 
 
  SEE ALSO
-    get_combined, combination_members, combine_datasets, uncombine_datasets, match_dataset_grids, rebin_combined, set_pre_combine_hook
+    get_combined, combination_members, combine_datasets,
+    uncombine_datasets, match_dataset_grids, rebin_combined,
+    set_pre_combine_hook
 
 ------------------------------------------------------------------------
 get_convolved_model_flux
@@ -2648,7 +2659,8 @@ group
 
 
  SEE ALSO
-    group_bin, group_data, rebin_data, use_file_group, regroup_file, rebin_dataset, set_rebin_error_method, rebin, rebin_array
+    group_bin, group_data, rebin_data, use_file_group, regroup_file,
+    rebin_dataset, set_rebin_error_method, rebin, rebin_array
 
 ------------------------------------------------------------------------
 group_bin
@@ -2673,7 +2685,8 @@ group_bin
     rebin_dataset.
 
  SEE ALSO
-    group, group_data, rebin_data, use_file_group, regroup_file, rebin_dataset, set_rebin_error_method, rebin, rebin_array
+    group, group_data, rebin_data, use_file_group, regroup_file,
+    rebin_dataset, set_rebin_error_method, rebin, rebin_array
 
 ------------------------------------------------------------------------
 group_data
@@ -2699,7 +2712,8 @@ group_data
 
 
  SEE ALSO
-    group, group_bin, rebin_data, use_file_group, regroup_file, rebin_dataset, set_rebin_error_method, rebin, rebin_array
+    group, group_bin, rebin_data, use_file_group, regroup_file,
+    rebin_dataset, set_rebin_error_method, rebin, rebin_array
 
 ------------------------------------------------------------------------
 back_fun
@@ -3231,9 +3245,9 @@ load_data
 
 
  SEE ALSO
-    load_dataset, define_counts, define_flux, define_back,
-get_data_*, put_data_*, plot_unit, set_dataset_metadata,
-get_dataset_metadata, get_sys_err_frac, Minimum_Stat_Err
+    load_dataset, define_counts, define_flux, define_back, get_data_*,
+    put_data_*, plot_unit, set_dataset_metadata, get_dataset_metadata,
+    get_sys_err_frac, Minimum_Stat_Err
 
 ------------------------------------------------------------------------
 load_dataset
@@ -3258,7 +3272,8 @@ load_dataset
     response.
 
  SEE ALSO
-    load_data, define_counts, define_flux, load_arf, load_rmf, assign_arf, assign_rmf
+    load_data, define_counts, define_flux, load_arf, load_rmf,
+    assign_arf, assign_rmf
 
 ------------------------------------------------------------------------
 load_rmf
@@ -3411,7 +3426,8 @@ match_dataset_grids
     datasets to improve statistics -- see combine_datasets.
 
  SEE ALSO
-    combination_members, combine_datasets, uncombine_datasets, get_combined, get_combined2, rebin_combined, set_pre_combine_hook
+    combination_members, combine_datasets, uncombine_datasets,
+    get_combined, get_combined2, rebin_combined, set_pre_combine_hook
 
 ------------------------------------------------------------------------
 plot_data
@@ -3545,7 +3561,8 @@ plot_model_counts
     See plot_data_counts for details.
 
  SEE ALSO
-    [o]plot_data_counts, [o]plot_model_flux, [o]plot_convolved_model_flux
+    [o]plot_data_counts, [o]plot_model_flux,
+    [o]plot_convolved_model_flux
 
 ------------------------------------------------------------------------
 plot_model_flux
@@ -3566,7 +3583,8 @@ plot_model_flux
 
 
  SEE ALSO
-    [o]plot_data_flux, [o]plot_model_counts, [o]plot_convolved_model_flux
+    [o]plot_data_flux, [o]plot_model_counts,
+    [o]plot_convolved_model_flux
 
 ------------------------------------------------------------------------
 put_arf
@@ -3819,7 +3837,8 @@ rebin_combined
 
 
  SEE ALSO
-    combine_datasets, group_data, rebin_dataset, set_rebin_error_method, rebin, rebin_array
+    combine_datasets, group_data, rebin_dataset,
+    set_rebin_error_method, rebin, rebin_array
 
 ------------------------------------------------------------------------
 rebin_data
@@ -3885,7 +3904,8 @@ rebin_data
 
 
  SEE ALSO
-    group_data, rebin_dataset, set_rebin_error_method, rebin, rebin_array
+    group_data, rebin_dataset, set_rebin_error_method, rebin,
+    rebin_array
 
 ------------------------------------------------------------------------
 rebin_dataset
@@ -4776,7 +4796,8 @@ set_rebin_error_method
 
 
  SEE ALSO
-    rebin_data, group, group_bin, group_data, rebin_dataset, Minimum_Stat_Err
+    rebin_data, group, group_bin, group_data, rebin_dataset,
+    Minimum_Stat_Err
 
 ------------------------------------------------------------------------
 unassign_arf
@@ -4795,7 +4816,7 @@ unassign_arf
 
 
  SEE ALSO
-    load_arf,  list_arf, assign_arf
+    load_arf, list_arf, assign_arf
 
 ------------------------------------------------------------------------
 unassign_rmf
@@ -4829,7 +4850,8 @@ uncombine_datasets
 
 
  SEE ALSO
-    combine_datasets, match_dataset_grids, combination_members, get_combined, get_combined2, rebin_combined, set_pre_combine_hook
+    combine_datasets, match_dataset_grids, combination_members,
+    get_combined, get_combined2, rebin_combined, set_pre_combine_hook
 
 ------------------------------------------------------------------------
 unset_data_color
@@ -4845,7 +4867,7 @@ unset_data_color
     reverts to the default plot behavior.
 
  SEE ALSO
-    color, plot_data_counts,  plot_auto_color
+    color, plot_data_counts, plot_auto_color
 
 ------------------------------------------------------------------------
 use_file_group
@@ -5205,7 +5227,8 @@ define_group
 
 
  SEE ALSO
-    delete_group, name_group, save_group, brightest, trans, el_ion, wl, flx
+    delete_group, name_group, save_group, brightest, trans, el_ion, wl,
+    flx
 
 ------------------------------------------------------------------------
 delete_group
@@ -5680,7 +5703,8 @@ plot_group
 
 
  SEE ALSO
-    plot_linelist, line_label_default_style, isis_linelabel_hook, page_group, save_group
+    plot_linelist, line_label_default_style, isis_linelabel_hook,
+    page_group, save_group
 
 ------------------------------------------------------------------------
 plot_linelist
@@ -5698,7 +5722,8 @@ plot_linelist
 
 
  SEE ALSO
-    line_label_default_style, isis_linelabel_hook, page_group, save_group
+    line_label_default_style, isis_linelabel_hook, page_group,
+    save_group
 
 ------------------------------------------------------------------------
 save_group
@@ -6741,7 +6766,9 @@ create_aped_fun
 
 
  SEE ALSO
-    plasma, fit_fun, eval_fun2, aped_fun_details, create_aped_line_modifier, create_aped_line_profile, aped_line_modifier_args, aped_line_profile_args, aped_hook_args
+    plasma, fit_fun, eval_fun2, aped_fun_details,
+    create_aped_line_modifier, create_aped_line_profile,
+    aped_line_modifier_args, aped_line_profile_args, aped_hook_args
 
 ------------------------------------------------------------------------
 aped_line_modifier_args
@@ -6805,7 +6832,8 @@ create_aped_line_modifier
 
 
  SEE ALSO
-    aped_line_modifier_args, create_aped_line_profile, fit_fun, eval_fun2
+    aped_line_modifier_args, create_aped_line_profile, fit_fun,
+    eval_fun2
 
 ------------------------------------------------------------------------
 create_aped_line_profile
@@ -6821,7 +6849,8 @@ create_aped_line_profile
 
 
  SEE ALSO
-    load_line_profile_function, aped_line_profile_args, create_aped_line_modifier, fit_fun, eval_fun2
+    load_line_profile_function, aped_line_profile_args,
+    create_aped_line_modifier, fit_fun, eval_fun2
 
 ------------------------------------------------------------------------
 default_plasma_state
@@ -6915,7 +6944,8 @@ define_model
 
 
  SEE ALSO
-    default_plasma_state, model_spectrum, append_model, mt_def_model, create_aped_fun
+    default_plasma_state, model_spectrum, append_model, mt_def_model,
+    create_aped_fun
 
 ------------------------------------------------------------------------
 edit_model
@@ -7169,7 +7199,8 @@ model_spectrum
 
 
  SEE ALSO
-    load_model, edit_model, linear_grid, use_thermal_profile, create_aped_fun, mt_calc_model
+    load_model, edit_model, linear_grid, use_thermal_profile,
+    create_aped_fun, mt_calc_model
 
 ------------------------------------------------------------------------
 mt_calc_model
@@ -7188,7 +7219,8 @@ mt_calc_model
     See model_spectrum for details.
 
  SEE ALSO
-    mt_def_model, mt_list_model,mt_load_model, mt_save_model,create_aped_fun
+    mt_def_model, mt_list_model, mt_load_model, mt_save_model,
+    create_aped_fun
 
 ------------------------------------------------------------------------
 mt_create_from_struct
@@ -7205,7 +7237,8 @@ mt_create_from_struct
 
 
  SEE ALSO
-    mt_def_model, mt_list_model,mt_load_model, mt_save_model, create_aped_fun
+    mt_def_model, mt_list_model, mt_load_model, mt_save_model,
+    create_aped_fun
 
 ------------------------------------------------------------------------
 mt_def_model
@@ -7224,7 +7257,8 @@ mt_def_model
     See define_model for details.
 
  SEE ALSO
-    mt_create_from_struct, mt_calc_model, mt_list_model,mt_load_model, mt_save_model,create_aped_fun
+    mt_create_from_struct, mt_calc_model, mt_list_model, mt_load_model,
+    mt_save_model, create_aped_fun
 
 ------------------------------------------------------------------------
 mt_list_model
@@ -7243,7 +7277,8 @@ mt_list_model
     See list_model for details.
 
  SEE ALSO
-    mt_calc_model, mt_def_model, mt_load_model, mt_save_model,create_aped_fun
+    mt_calc_model, mt_def_model, mt_load_model, mt_save_model,
+    create_aped_fun
 
 ------------------------------------------------------------------------
 mt_load_model
@@ -7262,7 +7297,8 @@ mt_load_model
     See load_model for details.
 
  SEE ALSO
-    mt_calc_model, mt_def_model, mt_list_model, mt_save_model, create_aped_fun
+    mt_calc_model, mt_def_model, mt_list_model, mt_save_model,
+    create_aped_fun
 
 ------------------------------------------------------------------------
 mt_save_model
@@ -7281,7 +7317,8 @@ mt_save_model
     See save_model for details.
 
  SEE ALSO
-    mt_calc_model, mt_def_model, mt_list_model, mt_load_model, create_aped_fun
+    mt_calc_model, mt_def_model, mt_list_model, mt_load_model,
+    create_aped_fun
 
 ------------------------------------------------------------------------
 save_model
@@ -7962,7 +7999,8 @@ open_plot
 
 
  SEE ALSO
-    close_plot, window, dup_plot, plot, hplot, plot_data, plot_model, plot_elev, multiplot
+    close_plot, window, dup_plot, plot, hplot, plot_data, plot_model,
+    plot_elev, multiplot
 
 ------------------------------------------------------------------------
 plot
@@ -8553,7 +8591,8 @@ add_compiled_function
     category field set to ISIS_FUN_OPERATOR.
 
  SEE ALSO
-    del_function, list_functions, add_slang_function, set_function_category
+    del_function, list_functions, add_slang_function,
+    set_function_category
 
 ------------------------------------------------------------------------
 add_slang_function
@@ -8816,7 +8855,8 @@ add_slang_function
     create_aped_line_modifier.
 
  SEE ALSO
-    del_function, list_functions, add_compiled_function, set_function_category, set_param_default_hook
+    del_function, list_functions, add_compiled_function,
+    set_function_category, set_param_default_hook
 
 ------------------------------------------------------------------------
 add_slang_statistic
@@ -9600,7 +9640,8 @@ conf_map_counts
 
 
  SEE ALSO
-    conf_grid, plot_conf, save_conf, load_conf, conf_map_flux, multicore
+    conf_grid, plot_conf, save_conf, load_conf, conf_map_flux,
+    multicore
 
 ------------------------------------------------------------------------
 conf_map_flux
@@ -9667,7 +9708,7 @@ del_function
      support.  Only user-defined functions may be deleted.
 
  SEE ALSO
-    add_compiled_function,  add_slang_function,list_functions
+    add_compiled_function, add_slang_function, list_functions
 
 ------------------------------------------------------------------------
 delta
@@ -9782,7 +9823,8 @@ eval_counts
 
 
  SEE ALSO
-    fit_counts, renorm_counts, ignore, notice, rebin, [un]assign_arf, [un]assign_rmf, eval_stat_counts
+    fit_counts, renorm_counts, ignore, notice, rebin, [un]assign_arf,
+    [un]assign_rmf, eval_stat_counts
 
 ------------------------------------------------------------------------
 eval_flux
@@ -9800,7 +9842,8 @@ eval_flux
 
 
  SEE ALSO
-    fit_flux, factor_rsp, renorm_flux, ignore, notice, rebin, [un]assign_arf, [un]assign_rmf
+    fit_flux, factor_rsp, renorm_flux, ignore, notice, rebin,
+    [un]assign_arf, [un]assign_rmf
 
 ------------------------------------------------------------------------
 eval_fun
@@ -10080,8 +10123,9 @@ fit_counts
 
 
  SEE ALSO
-    eval_counts, renorm_counts, ignore, notice, freeze, thaw,
-rebin, [un]assign_arf, [un]assign_rmf, fit_flux, fit_search, set_post_model_hook
+    eval_counts, renorm_counts, ignore, notice, freeze, thaw, rebin,
+    [un]assign_arf, [un]assign_rmf, fit_flux, fit_search,
+    set_post_model_hook
 
 ------------------------------------------------------------------------
 fit_flux
@@ -10130,7 +10174,8 @@ fit_flux
 
 
  SEE ALSO
-    eval_flux, renorm_flux, factor_rsp, ignore, notice, freeze, thaw, rebin, [un]assign_arf, [un]assign_rmf, fit_counts, fit_search
+    eval_flux, renorm_flux, factor_rsp, ignore, notice, freeze, thaw,
+    rebin, [un]assign_arf, [un]assign_rmf, fit_counts, fit_search
 
 ------------------------------------------------------------------------
 fit_fun
@@ -10233,7 +10278,8 @@ fit_fun
 
 
  SEE ALSO
-    assign_model, get_fit_fun, ifit_fun, Lorentz, gauss, load_par, set_par, set_par_fun
+    assign_model, get_fit_fun, ifit_fun, Lorentz, gauss, load_par,
+    set_par, set_par_fun
 
 ------------------------------------------------------------------------
 fitfun_handle
@@ -10314,7 +10360,8 @@ fit_search
 
 
  SEE ALSO
-    fit_counts, eval_counts, fit_flux, eval_flux, save_par, fit_search_info, multicore
+    fit_counts, eval_counts, fit_flux, eval_flux, save_par,
+    fit_search_info, multicore
 
 ------------------------------------------------------------------------
 fit_search_info
@@ -10667,7 +10714,8 @@ get_fun_components
 
 
  SEE ALSO
-    get_fit_fun, fit_fun, get_par_info, get_par, get_params, get_fun_params
+    get_fit_fun, fit_fun, get_par_info, get_par, get_params,
+    get_fun_params
 
 ------------------------------------------------------------------------
 get_fun_params
@@ -10724,7 +10772,7 @@ get_kernel
     returned by this function will not reflect the change.
 
  SEE ALSO
-    load_kernel, print_kernel,set_kernel, list_kernels
+    load_kernel, print_kernel, set_kernel, list_kernels
 
 ------------------------------------------------------------------------
 get_model_counts
@@ -10838,7 +10886,8 @@ get_par
 
 
  SEE ALSO
-    set_par, list_par, save_par, , get_num_pars, get_par_info, get_fit_fun
+    set_par, list_par, save_par, , get_num_pars, get_par_info,
+    get_fit_fun
 
 ------------------------------------------------------------------------
 get_params
@@ -10982,7 +11031,7 @@ ignore
 
 
  SEE ALSO
-    ignore_en, notice,  xnotice, exclude, include
+    ignore_en, notice, xnotice, exclude, include
 
 ------------------------------------------------------------------------
 ignore_en
@@ -11000,7 +11049,7 @@ ignore_en
 
 
  SEE ALSO
-    ignore, notice_en,  xnotice_en, exclude, include
+    ignore, notice_en, xnotice_en, exclude, include
 
 ------------------------------------------------------------------------
 ignore_list
@@ -11062,7 +11111,8 @@ ignore_values
 
 
  SEE ALSO
-    ignore, ignore_list, notice, notice_values, notice_list, xnotice, exclude, include
+    ignore, ignore_list, notice, notice_values, notice_list, xnotice,
+    exclude, include
 
 ------------------------------------------------------------------------
 include
@@ -11078,7 +11128,7 @@ include
 
 
  SEE ALSO
-    exclude, ignore, notice_en,  xnotice_en
+    exclude, ignore, notice_en, xnotice_en
 
 ------------------------------------------------------------------------
 list_fit_methods
@@ -11716,7 +11766,7 @@ notice_en
     for details.
 
  SEE ALSO
-    notice, ignore_en,  xnotice_en, exclude, include
+    notice, ignore_en, xnotice_en, exclude, include
 
 ------------------------------------------------------------------------
 notice_list
@@ -11779,7 +11829,8 @@ notice_values
 
 
  SEE ALSO
-    ignore_values, ignore, ignore_list, notice, notice_list, xnotice, exclude, include
+    ignore_values, ignore, ignore_list, notice, notice_list, xnotice,
+    exclude, include
 
 ------------------------------------------------------------------------
 open_fit
@@ -12416,8 +12467,8 @@ set_fit_method
 
 
  SEE ALSO
-    load_fit_method, register_slang_optimizer,
-set_fit_statistic, set_fit_constraint, randomize, optimization
+    load_fit_method, register_slang_optimizer, set_fit_statistic,
+    set_fit_constraint, randomize, optimization
 
 ------------------------------------------------------------------------
 set_fit_range_hook
@@ -12778,7 +12829,8 @@ set_par
 
 
  SEE ALSO
-    edit_par, load_par, get_par, set_par_fun, __set_hard_limits, tie, set_params
+    edit_par, load_par, get_par, set_par_fun, __set_hard_limits, tie,
+    set_params
 
 ------------------------------------------------------------------------
 set_param_default_hook
@@ -13199,7 +13251,7 @@ xnotice_en
 
 
  SEE ALSO
-    xnotice, ignore_en,  notice_en
+    xnotice, ignore_en, notice_en
 
 ------------------------------------------------------------------------
 yshift
@@ -13338,7 +13390,8 @@ fork_slave
 
 
  SEE ALSO
-    append_slave, manage_slaves, _num_cpus, send_msg, recv_msg, send_objs, recv_objs
+    append_slave, manage_slaves, _num_cpus, send_msg, recv_msg,
+    send_objs, recv_objs
 
 ------------------------------------------------------------------------
 append_slave

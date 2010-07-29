@@ -243,6 +243,39 @@ static define get_delim_value () %{{{
 
 %}}}
 
+static define indent_wrap (s, pad, line_width) %{{{
+{
+   line_width -= strlen(pad);
+
+   variable toks = strtok (s, ",");
+
+   variable _t,
+     len = 0,
+     new_s = "",
+     delim = "";
+
+   foreach _t (toks)
+     {
+        variable t = strtrim(_t);
+        variable nt = strlen(t) + 2;
+
+        if (len + nt > line_width)
+          {
+             new_s += ",\n$pad"$;
+             delim = "";
+             len = 0;
+          }
+
+        len += nt;
+        new_s += "${delim}${t}"$;
+        delim = ", ";
+     }
+
+   return new_s;
+}
+
+%}}}
+
 static define parse_region (entry) %{{{
 {
    bob();
@@ -254,7 +287,7 @@ static define parse_region (entry) %{{{
    f.name = get_delim_value ();
    f.purpose = get_delim_value ();
    f.usage = get_delim_value ();
-   f.seealso = get_delim_value ();
+   f.seealso = indent_wrap (get_delim_value (), "    ", 72);
    f.description = get_massaged_text (entry);
 
    return f;
