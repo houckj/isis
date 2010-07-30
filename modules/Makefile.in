@@ -22,7 +22,7 @@ all:
 	@for i in $(MODULES) ; \
 	do \
 	   cd $$i; \
-	   $(MAKE) all ; \
+	   $(MAKE) all || exit 1 ; \
 	   cd ..; \
 	done
 
@@ -33,7 +33,7 @@ install:
 	@for i in $(MODULES) ; \
 	do \
 	   cd $$i; \
-	   $(MAKE) install ; \
+	   $(MAKE) install || exit 1 ; \
 	   cd ..; \
 	done
 
