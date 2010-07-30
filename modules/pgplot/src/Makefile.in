@@ -19,6 +19,7 @@ SL_FILES_INSTALL_DIR = @SL_FILES_INSTALL_DIR@
 # C Compiler to create a shared library
 #---------------------------------------------------------------------------
 CC		= @CC@
+CFLAGS          = @CFLAGS@
 CC_SHARED 	= @CC_SHARED@
 
 #---------------------------------------------------------------------------
