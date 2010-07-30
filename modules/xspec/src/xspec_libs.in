@@ -18,6 +18,21 @@ case "$host_os" in
      ;;
 esac
 
+case "$with_xspec_version" in
+  *11* )
+         # no longer supported
+         ;;
+     * )
+         if test ! -f "$libdir/libXSFunctions.${ext}" ; then
+           echo ""
+           echo "*** Incorrect HEADAS path? You are currently using: "
+           echo "***   HEADAS=$HEADAS"
+           echo ""
+           exit 1
+         fi
+         ;;
+esac
+
 # deal with cfitsio back-compatibility issues
 if [ -f "${libdir}/libcxccfitsio.${ext}" ]; then
     cfitsiolib="cxccfitsio"

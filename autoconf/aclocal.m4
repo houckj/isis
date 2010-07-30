@@ -1238,16 +1238,17 @@ else
    AC_DEFINE(WITH_XSPEC_STATIC_LINKED)
 
    HEADAS_DIR=$jh_use_xspec_static
-   AC_SUBST(HEADAS_DIR)
+   if test ! -d "${HEADAS_DIR}" ; then
+      AC_MSG_ERROR(Nonexistent HEADAS directory='$HEADAS_DIR')
+   fi
    HEADAS=$jh_use_xspec_static
-
    HEADAS_LIBDIR="${HEADAS}/lib"
-   AC_SUBST(HEADAS_LIBDIR)
-
    WITH_HEADAS="-DWITH_HEADAS"
-   AC_SUBST(WITH_HEADAS)
-
    XSPEC_MODULE_LIBS="-L\$(config_dir)/modules/xspec/src/objs -lxspec-module \$(XS_LIBS)"
+
+   AC_SUBST(HEADAS_DIR)
+   AC_SUBST(HEADAS_LIBDIR)
+   AC_SUBST(WITH_HEADAS)
    AC_SUBST(XSPEC_MODULE_LIBS)
 
    CFITSIO_INC="-I$HEADAS/include"
@@ -1275,9 +1276,14 @@ AC_ARG_WITH(headas,
 if test "x$jh_use_headas" != "xno"
 then
    HEADAS_DIR=$jh_use_headas
+   if test ! -d "${HEADAS_DIR}" ; then
+      AC_MSG_ERROR(Nonexistent HEADAS directory='$HEADAS_DIR')
+   fi
    HEADAS_LIBDIR="${HEADAS_DIR}/lib"
    WITH_HEADAS="-DWITH_HEADAS"
+
    MODULE_LIST="$MODULE_LIST xspec"
+
    AC_SUBST(HEADAS_DIR)
    AC_SUBST(HEADAS_LIBDIR)
    AC_SUBST(WITH_HEADAS)

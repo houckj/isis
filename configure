@@ -11397,9 +11397,16 @@ fi
 if test "x$jh_use_headas" != "xno"
 then
    HEADAS_DIR=$jh_use_headas
+   if test ! -d "${HEADAS_DIR}" ; then
+      { { echo "$as_me:$LINENO: error: Nonexistent HEADAS directory='$HEADAS_DIR'" >&5
+echo "$as_me: error: Nonexistent HEADAS directory='$HEADAS_DIR'" >&2;}
+   { (exit 1); exit 1; }; }
+   fi
    HEADAS_LIBDIR="${HEADAS_DIR}/lib"
    WITH_HEADAS="-DWITH_HEADAS"
+
    MODULE_LIST="$MODULE_LIST xspec"
+
 
 
 
@@ -11560,16 +11567,19 @@ _ACEOF
 
 
    HEADAS_DIR=$jh_use_xspec_static
-
+   if test ! -d "${HEADAS_DIR}" ; then
+      { { echo "$as_me:$LINENO: error: Nonexistent HEADAS directory='$HEADAS_DIR'" >&5
+echo "$as_me: error: Nonexistent HEADAS directory='$HEADAS_DIR'" >&2;}
+   { (exit 1); exit 1; }; }
+   fi
    HEADAS=$jh_use_xspec_static
-
    HEADAS_LIBDIR="${HEADAS}/lib"
-
-
    WITH_HEADAS="-DWITH_HEADAS"
-
-
    XSPEC_MODULE_LIBS="-L\$(config_dir)/modules/xspec/src/objs -lxspec-module \$(XS_LIBS)"
+
+
+
+
 
 
    CFITSIO_INC="-I$HEADAS/include"
