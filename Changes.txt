@@ -14,6 +14,7 @@ Changes since 1.6.1 (released Jul 2010)
      at configure time using --with-local-setup=FILE.  The
      specified FILE will be automatically loaded at isis
      startup.
+ 6.  Add --with-xspec-modelsonly configure option
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
