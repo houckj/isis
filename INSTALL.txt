@@ -371,6 +371,13 @@ d. Configure options
     Use this option to indicate that the xspec libraries should
     be statically linked to the isis executable.
 
+--with-xspec-modelsonly=DIR::
+    Use this option to provide the path to your xspec modelsonly
+    library installation.  When this option is used, the CCfits
+    library must also be installed on your system.  The location
+    of the CCfits library should be specified unless the library
+    is installed in'$prefix' or another standard location.
+
 --disable-xspec_tables::
     Use this option to build the xspec module without support for
     xspec table models.
@@ -410,6 +417,16 @@ d. Configure options
     Use these options to indicate that libpgplot is in 'LIB_DIR'
     and cpgplot.h is in 'INC_DIR'.  If you use these options,
     do not use the --with-pgplot option.
+
+--with-CCfits=DIR::
+    Use this option to indicate that libCCfits is in 'DIR/lib'
+    and CCfits.h is in 'DIR/include'
+
+--with-CCfitslib=LIB_DIR::
+--with-CCfitsinc=INC_DIR::
+    Use these options to indicate that libCCfits is in 'LIB_DIR'
+    and CCfits.h is in 'INC_DIR'.  If you use these options,
+    do not use the --with-CCfits option.
 
 --with-dep=DIR::
     Use this option to indicate that slang and cfitsio are

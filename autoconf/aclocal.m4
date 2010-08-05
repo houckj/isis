@@ -1120,7 +1120,6 @@ dnl This nonsense is necessary because we cannot rely on
 dnl the name of the cfitsio library.  Common choices are:
 dnl
 dnl   libcfitsio.so
-dnl   libcxccfitsio.so
 dnl   libcfitsio${version_string}.so
 dnl
 dnl And you can forget about about binary compatibility...
@@ -1139,8 +1138,6 @@ dnl
   esac
   if test -f "${jh_cfitsio_library_dir}/libcfitsio.$ext" ; then
      cfitsio_libname=cfitsio
-  elif test -f "${jh_cfitsio_library_dir}/libcxccfitsio.$ext" ; then
-     cfitsio_libname=cxccfitsio
   else
      cfitsio_libfile_exists=0
      cfitsio_libname=`/bin/ls ${jh_cfitsio_library_dir}/libcfitsio*.$ext`
@@ -1154,8 +1151,12 @@ dnl
         echo '*** WARNING:  Cannot find cfitsio library in' "$jh_cfitsio_library_dir"
      fi
   fi
-  CFITSIO_LIB="-L${jh_cfitsio_library_dir} -l${cfitsio_libname}#"
+  CFITSIO_LIB="-L${jh_cfitsio_library_dir} -l${cfitsio_libname}"
+  CFITSIO_LIBDIR="${jh_cfitsio_library_dir}"
+  CFITSIO_LIBNAME="${cfitsio_libname}"
   AC_SUBST(CFITSIO_LIB)
+  AC_SUBST(CFITSIO_LIBDIR)
+  AC_SUBST(CFITSIO_LIBNAME)
 ])
 dnl#}}}
 
@@ -1243,12 +1244,10 @@ else
    fi
    HEADAS=$jh_use_xspec_static
    HEADAS_LIBDIR="${HEADAS}/lib"
-   WITH_HEADAS="-DWITH_HEADAS"
    XSPEC_MODULE_LIBS="-L\$(config_dir)/modules/xspec/src/objs -lxspec-module \$(XS_LIBS)"
 
    AC_SUBST(HEADAS_DIR)
    AC_SUBST(HEADAS_LIBDIR)
-   AC_SUBST(WITH_HEADAS)
    AC_SUBST(XSPEC_MODULE_LIBS)
 
    CFITSIO_INC="-I$HEADAS/include"
@@ -1280,13 +1279,11 @@ then
       AC_MSG_ERROR(Nonexistent HEADAS directory='$HEADAS_DIR')
    fi
    HEADAS_LIBDIR="${HEADAS_DIR}/lib"
-   WITH_HEADAS="-DWITH_HEADAS"
 
    MODULE_LIST="$MODULE_LIST xspec"
 
    AC_SUBST(HEADAS_DIR)
    AC_SUBST(HEADAS_LIBDIR)
-   AC_SUBST(WITH_HEADAS)
    AC_SUBST(MODULE_LIST)
 
    CFITSIO_INC="-I${HEADAS_DIR}/include"
@@ -1298,6 +1295,35 @@ then
    JH_CHECK_PGPLOT_LIBNAME($HEADAS_DIR/lib)
    PGPLOT_LIBDIR="$jh_pgplot_library_dir"
    AC_SUBST(PGPLOT_LIBDIR)
+
+   JD_SET_RPATH($HEADAS_LIBDIR)
+fi
+])
+
+dnl#}}}
+
+AC_DEFUN(JH_WITH_XSPEC_MODELSONLY, dnl#{{{
+[
+AC_ARG_WITH(xspec-modelsonly,
+  [  --with-xspec-modelsonly[=DIR]   XSPEC modelsonly install directory],
+  [jh_use_xspec_modelsonly=$withval], [jh_use_xspec_modelsonly=no])
+if test "x$jh_use_xspec_modelsonly" != "xno"
+then
+   HEADAS_DIR=$jh_use_xspec_modelsonly
+   if test ! -d "${HEADAS_DIR}" ; then
+      AC_MSG_ERROR(Nonexistent HEADAS directory='$HEADAS_DIR')
+   fi
+   HEADAS_LIBDIR="${HEADAS_DIR}/lib"
+
+   MODULE_LIST="$MODULE_LIST xspec"
+   XSPEC_MODELSONLY=yes
+
+   JD_WITH_LIBRARY(CCfits, CCfits/CCfits.h)
+
+   AC_SUBST(XSPEC_MODELSONLY)
+   AC_SUBST(HEADAS_DIR)
+   AC_SUBST(HEADAS_LIBDIR)
+   AC_SUBST(MODULE_LIST)
 
    JD_SET_RPATH($HEADAS_LIBDIR)
 fi
@@ -1323,6 +1349,7 @@ AC_DEFUN(JH_HANDLE_PACKAGE_OPTIONS, dnl#{{{
 
   JH_WITH_HEADAS
   JH_WITH_XSPEC_STATIC
+  JH_WITH_XSPEC_MODELSONLY
 
   AC_ARG_ENABLE(xspec_tables,
     [  --disable-xspec_tables  Compile without XSPEC table models],

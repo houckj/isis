@@ -65,6 +65,7 @@ JH_INIT_MODULE_LIST
 SLANG_LIB=no
 CFITSIO_LIB=no
 PGPLOT_LIB=no
+CCFITS_LIB=no
 
 # reasonable pgplot default
 PGPLOT_LIBDIR=/usr/local/pgplot
@@ -76,6 +77,7 @@ fi
 
 ATOMDB_DIR=""
 HEADAS_DIR=""
+XSPEC_MODELSONLY=""
 
 dnl This must precede the JD_WITH_LIBRARY() macros
 dnl for slang, cfitsio and pgplot
@@ -235,7 +237,12 @@ echo ""
 if test "x$HEADAS_DIR" != "x" ; then
     echo "XSPEC module configuration:"
     echo "    --with-xspec-version = ${with_xspec_version}"
-    echo "    --with-headas = $HEADAS_DIR"
+    if test x"${XSPEC_MODELSONLY}" = xyes ; then
+       headas_arg="xspec-modelsonly"
+    else
+       headas_arg="headas"
+    fi
+    echo "    --with-${headas_arg} = $HEADAS_DIR"
     ./autoconf/compiler_check.sh "$CC" "$FC" "$HEADAS_DIR"
 else
     echo "The XSPEC module will not be compiled."

@@ -6,6 +6,11 @@ with_xspec_version=@with_xspec_version@
 xspec_module_dir=@CONFIG_DIR@/modules/xspec/src
 libdir=@HEADAS_LIBDIR@
 
+modelsonly=@XSPEC_MODELSONLY@
+CCFITS_LIB=@CCFITS_LIB@
+CFITSIO_LIBDIR=@CFITSIO_LIBDIR@
+CFITSIO_LIBNAME=@CFITSIO_LIBNAME@
+
 case "$host_os" in
   *darwin*)
      ext="dylib"
@@ -33,20 +38,19 @@ case "$with_xspec_version" in
          ;;
 esac
 
-# deal with cfitsio back-compatibility issues
-if [ -f "${libdir}/libcxccfitsio.${ext}" ]; then
-    cfitsiolib="cxccfitsio"
-elif [ -f "${libdir}/libcfitsio.${ext}" ]; then
-    cfitsiolib="cfitsio"
+if test x"${modelsonly}" = xyes ; then
+    if test x"${CFITSIO_LIBDIR}" != x ; then
+       cfitsiolib="-L${CFITSIO_LIBDIR} -l${CFITSIO_LIBNAME}"
+    else
+       cfitsiolib="-lcfitsio"
+    fi
 else
     cfitsio_libname=`/bin/ls ${libdir}/libcfitsio*.${ext}`
     cfitsiolib=`basename $cfitsio_libname | sed -e 's/lib//' | sed -e "s/\.${ext}//"`
+    cfitsiolib="-l${cfitsiolib}"
 fi
 
-if test x"${cfitsiolib}" != x ; then
-   cfitsiolib="-l${cfitsiolib}"
-fi
-
+# The xspec11  option is no longer maintained!!!
 Use_Xspec_11() {
    if [ -f "$HEADAS/headas-init.csh" ]; then
 
@@ -121,12 +125,15 @@ Use_Xspec_12() {
      xsmodel_lib=""
   fi
 
-  # look for CCfits library with embedded version number
-  ccfits_libname=`/bin/ls ${libdir}/libCCfits*.${ext}`
-  ccfits_lib=`basename $ccfits_libname | sed -e 's/lib//' | sed -e "s/\.${ext}//"`
-
-  if test x"${ccfits_lib}" != x ; then
-     ccfits_lib="-l${ccfits_lib}"
+  if test x"${modelsonly}" = xyes ; then
+     ccfits_lib="${CCFITS_LIB} -lCCfits"
+  else
+     # look for CCfits library with embedded version number
+     ccfits_libname=`/bin/ls ${libdir}/libCCfits*.${ext}`
+     if test x"${ccfits_libname}" != x ; then
+        ccfits_lib=`basename $ccfits_libname | sed -e 's/lib//' | sed -e "s/\.${ext}//"`
+        ccfits_lib="-l${ccfits_lib}"
+     fi
   fi
 
   # xspec 12:
