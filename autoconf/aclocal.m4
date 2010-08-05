@@ -1147,9 +1147,6 @@ dnl
            cfitsio_libfile_exists=1
         fi
      fi
-     if test "$cfitsio_libfile_exists" == 0 ; then
-        echo '*** WARNING:  Cannot find cfitsio library in' "$jh_cfitsio_library_dir"
-     fi
   fi
   CFITSIO_LIB="-L${jh_cfitsio_library_dir} -l${cfitsio_libname}"
   CFITSIO_LIBDIR="${jh_cfitsio_library_dir}"
@@ -1253,6 +1250,9 @@ else
    CFITSIO_INC="-I$HEADAS/include"
    AC_SUBST(CFITSIO_INC)
    JH_CHECK_CFITSIO_LIBNAME("$HEADAS/lib")
+   if test "$cfitsio_libfile_exists" == 0 ; then
+      AC_MSG_ERROR(Corrupted HEASOFT installation? cannot find cfitsio library in ${HEADAS_DIR}/lib)
+   fi
 
    PGPLOT_INC="-I$HEADAS/include"
    AC_SUBST(PGPLOT_INC)
@@ -1289,6 +1289,9 @@ then
    CFITSIO_INC="-I${HEADAS_DIR}/include"
    AC_SUBST(CFITSIO_INC)
    JH_CHECK_CFITSIO_LIBNAME($HEADAS_DIR/lib)
+   if test "$cfitsio_libfile_exists" == 0 ; then
+      AC_MSG_ERROR(Corrupted HEASOFT installation? cannot find cfitsio library in ${HEADAS_DIR}/lib)
+   fi
 
    PGPLOT_INC="-I${HEADAS_DIR}/include"
    AC_SUBST(PGPLOT_INC)

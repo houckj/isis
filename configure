@@ -11470,9 +11470,6 @@ echo "$as_me: error: Nonexistent HEADAS directory='$HEADAS_DIR'" >&2;}
            cfitsio_libfile_exists=1
         fi
      fi
-     if test "$cfitsio_libfile_exists" == 0 ; then
-        echo '*** WARNING:  Cannot find cfitsio library in' "$jh_cfitsio_library_dir"
-     fi
   fi
   CFITSIO_LIB="-L${jh_cfitsio_library_dir} -l${cfitsio_libname}"
   CFITSIO_LIBDIR="${jh_cfitsio_library_dir}"
@@ -11481,6 +11478,11 @@ echo "$as_me: error: Nonexistent HEADAS directory='$HEADAS_DIR'" >&2;}
 
 
 
+   if test "$cfitsio_libfile_exists" == 0 ; then
+      { { echo "$as_me:$LINENO: error: Corrupted HEASOFT installation? cannot find cfitsio library in ${HEADAS_DIR}/lib" >&5
+echo "$as_me: error: Corrupted HEASOFT installation? cannot find cfitsio library in ${HEADAS_DIR}/lib" >&2;}
+   { (exit 1); exit 1; }; }
+   fi
 
    PGPLOT_INC="-I${HEADAS_DIR}/include"
 
@@ -11640,9 +11642,6 @@ echo "$as_me: error: Nonexistent HEADAS directory='$HEADAS_DIR'" >&2;}
            cfitsio_libfile_exists=1
         fi
      fi
-     if test "$cfitsio_libfile_exists" == 0 ; then
-        echo '*** WARNING:  Cannot find cfitsio library in' "$jh_cfitsio_library_dir"
-     fi
   fi
   CFITSIO_LIB="-L${jh_cfitsio_library_dir} -l${cfitsio_libname}"
   CFITSIO_LIBDIR="${jh_cfitsio_library_dir}"
@@ -11651,6 +11650,11 @@ echo "$as_me: error: Nonexistent HEADAS directory='$HEADAS_DIR'" >&2;}
 
 
 
+   if test "$cfitsio_libfile_exists" == 0 ; then
+      { { echo "$as_me:$LINENO: error: Corrupted HEASOFT installation? cannot find cfitsio library in ${HEADAS_DIR}/lib" >&5
+echo "$as_me: error: Corrupted HEASOFT installation? cannot find cfitsio library in ${HEADAS_DIR}/lib" >&2;}
+   { (exit 1); exit 1; }; }
+   fi
 
    PGPLOT_INC="-I$HEADAS/include"
 
@@ -12698,9 +12702,6 @@ echo "$as_me: error: unable to find the cfitsio library and header file $jd_cfit
         if test -f "${jh_cfitsio_library_dir}/lib${cfitsio_libname}.$ext" ; then
            cfitsio_libfile_exists=1
         fi
-     fi
-     if test "$cfitsio_libfile_exists" == 0 ; then
-        echo '*** WARNING:  Cannot find cfitsio library in' "$jh_cfitsio_library_dir"
      fi
   fi
   CFITSIO_LIB="-L${jh_cfitsio_library_dir} -l${cfitsio_libname}"
