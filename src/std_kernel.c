@@ -551,7 +551,7 @@ static Isis_Kernel_t *allocate_gainshift_kernel (Isis_Obs_t *o, char *options) /
 ISIS_USER_KERNEL_MODULE(gainshift,def,options)
 {
    static char *parm_names[] = {"intercept", "slope", NULL};
-   static char *parm_units[] = {"eV", "", NULL};
+   static char *parm_units[] = {"keV", "", NULL};
    static double default_min [] = {-1.0, 0.8};
    static double default_max [] = { 1.0, 1.2};
    static double default_value [] = {0, 1.0};
