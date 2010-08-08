@@ -177,8 +177,10 @@ private define set_axes (a) %{{{
 
 %}}}
 
+% FIXME -- this is now a no-op.  if nothing broke, get rid of it!
 private define apply_axis_ranges (a, gx, gy) %{{{
 {
+#iffalse
    variable xr = struct {min, max};
    (xr.min, xr.max) = _isis->_get_xrange();
    variable ix = where (xr.min <= gx and gx <= xr.max);
@@ -186,8 +188,9 @@ private define apply_axis_ranges (a, gx, gy) %{{{
    variable yr = struct {min, max};
    (yr.min, yr.max) = _isis->_get_yrange();
    variable iy = where (yr.min <= gy and gy <= yr.max);
+#endif
 
-   return (a[iy,ix], gx[ix], gy[iy]);
+   return (a, gx, gy); %(a[iy,ix], gx[ix], gy[iy]);
 }
 
 %}}}
@@ -329,8 +332,14 @@ private define make_axes (gx, gy, aspect) %{{{
    (r.xmin,r.xmax) = _isis->_get_xrange();
    (r.ymin,r.ymax) = _isis->_get_yrange();
 
-   xrange(gx[0], gx[-1]);
-   yrange(gy[0], gy[-1]);
+   variable
+     _xmin = (r.xmin == -DOUBLE_MAX) ? gx[ 0] : r.xmin,
+     _xmax = (r.xmax == +DOUBLE_MAX) ? gx[-1] : r.xmax,
+     _ymin = (r.ymin == -DOUBLE_MAX) ? gy[ 0] : r.ymin,
+     _ymax = (r.ymax == +DOUBLE_MAX) ? gy[-1] : r.ymax;
+
+   xrange(_xmin, _xmax);
+   yrange(_ymin, _ymax);
 
    if (aspect != 0)
      () = (@pli.match_viewport_to_window)(gx[0], gx[-1], gy[0], gy[-1]);
@@ -361,7 +370,6 @@ define plot_image () %{{{
    Saved_Transform = @tr;
 
    variable pli = isis_plot_library_interface ();
-   _print_stack;
    () = (@pli.plot_image)(a, amin, amax, tr);
 
    restore_axes (r);
@@ -638,14 +646,6 @@ private define set_axis_ranges (s) %{{{
 
 %}}}
 
-private define restore_axis_ranges (r) %{{{
-{
-   xrange (r.xmin, r.xmax);
-   yrange (r.ymin, r.ymax);
-}
-
-%}}}
-
 % Confidence limits for 2 degrees of freedom:
 % 1-sigma (68.3%), 2-sigma (90%) and 3-sigma (99%)
 private variable std_conf_limits = [2.30, 4.61, 9.21];
@@ -664,7 +664,7 @@ define plot_conf () %{{{
    variable r = set_axis_ranges (s);
    plot_box ();
    plot_conf_contours (s, line, c);
-   restore_axis_ranges (r);
+   restore_axes (r);
 }
 
 %}}}
