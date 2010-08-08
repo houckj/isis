@@ -15,6 +15,8 @@ Changes since 1.6.1 (released Jul 2010)
      specified FILE will be automatically loaded at isis
      startup.
  6.  Add --with-xspec-modelsonly configure option
+ 7.  Contours overplotted on a subset of a 2D array were being
+     plotted incorrectly.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
