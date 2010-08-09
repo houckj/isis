@@ -1148,7 +1148,7 @@ dnl
         fi
      fi
   fi
-  CFITSIO_LIB="-L${jh_cfitsio_library_dir} -l${cfitsio_libname}"
+  CFITSIO_LIB="-L${jh_cfitsio_library_dir} -l${cfitsio_libname}#"
   CFITSIO_LIBDIR="${jh_cfitsio_library_dir}"
   CFITSIO_LIBNAME="${cfitsio_libname}"
   AC_SUBST(CFITSIO_LIB)

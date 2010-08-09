@@ -11471,7 +11471,7 @@ echo "$as_me: error: Nonexistent HEADAS directory='$HEADAS_DIR'" >&2;}
         fi
      fi
   fi
-  CFITSIO_LIB="-L${jh_cfitsio_library_dir} -l${cfitsio_libname}"
+  CFITSIO_LIB="-L${jh_cfitsio_library_dir} -l${cfitsio_libname}#"
   CFITSIO_LIBDIR="${jh_cfitsio_library_dir}"
   CFITSIO_LIBNAME="${cfitsio_libname}"
 
@@ -11643,7 +11643,7 @@ echo "$as_me: error: Nonexistent HEADAS directory='$HEADAS_DIR'" >&2;}
         fi
      fi
   fi
-  CFITSIO_LIB="-L${jh_cfitsio_library_dir} -l${cfitsio_libname}"
+  CFITSIO_LIB="-L${jh_cfitsio_library_dir} -l${cfitsio_libname}#"
   CFITSIO_LIBDIR="${jh_cfitsio_library_dir}"
   CFITSIO_LIBNAME="${cfitsio_libname}"
 
@@ -12704,7 +12704,7 @@ echo "$as_me: error: unable to find the cfitsio library and header file $jd_cfit
         fi
      fi
   fi
-  CFITSIO_LIB="-L${jh_cfitsio_library_dir} -l${cfitsio_libname}"
+  CFITSIO_LIB="-L${jh_cfitsio_library_dir} -l${cfitsio_libname}#"
   CFITSIO_LIBDIR="${jh_cfitsio_library_dir}"
   CFITSIO_LIBNAME="${cfitsio_libname}"
 
