@@ -13848,8 +13848,8 @@ See \verb|get_params| for more information.
 Fit parameters may be defined as functions of other fit-parameters and may
 also depend on arbitrary functions.  If the computed parameter value falls
 outside that parameter's \verb|min|/\verb|max| range, then the out of range
-value will be ignored; a warning message will be printed if
-\verb|Isis_Verbose > 0|.
+value will be ignored; a warning message may be printed, depending on
+the context and the current verbosity level (see \verb|Isis_Verbose|).
 
 This has a number of applications and can be used to couple fit-parameters in
 complex ways, derive quantities of interest from fit-parameters, compute

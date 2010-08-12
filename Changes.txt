@@ -22,6 +22,8 @@ Changes since 1.6.1 (released Jul 2010)
      assigned min/max range (see set_par_fun). Instead, the out
      of range value will be ignored and a warning message will
      be printed if Isis_Verbose>0.
+ 9.  Revise error handling introduced in #8 to interrupt
+     model evaluation when derived parameters are out of range.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------

@@ -67,7 +67,7 @@ struct Param_t
 
 int Isis_Evaluating_Derived_Param;
 
-static int update_derived_params (Param_t *);
+static int update_derived_params (Param_t *, int out_of_range_severity);
 
 static void free_param_function (Param_Info_t *p)
 {
@@ -293,7 +293,7 @@ int Fit_get_fun_params (Param_t *pt, unsigned int fun_type, unsigned int fun_id,
 
    /* update derived params here to support dataset dependent
     * parameter values. */
-   if (-1 == update_derived_params (pt))
+   if (-1 == update_derived_params (pt, INTR))
      return -1;
 
    if (NULL == (pt = locate_fun_params (pt, fun_type, fun_id)))
@@ -554,9 +554,9 @@ static int update_tied_params (Param_t *pt) /*{{{*/
 
 static int update_derived (Param_Info_t *p, void *cl) /*{{{*/
 {
+   int out_of_range_severity = cl ? *(int *)cl : FAIL;
    double value;
    int err = 0;
-   (void) cl;
 
    if (Isis_Evaluating_Derived_Param)
      return 0;
@@ -575,33 +575,15 @@ static int update_derived (Param_Info_t *p, void *cl) /*{{{*/
 
         Isis_Evaluating_Derived_Param = 0;
 
-        /* Out of range values are unacceptable.
-         * If the provided value is out of range, there's no advantage
-         * to making up a value, so just leave the current value alone.
-         *
-         * How to warn that an out of range value was generated?
-         * If I call it an error and return -1 then certain reasonable
-         * intermediate states will throw errors (e.g loading a parameter
-         * file containing a forward reference). So returning -1 is
-         * unacceptable.  We'll return 0.
-         *
-         * If we print a high priority warning on every occurrence,
-         * then that produces a *lot* of output, especially during a fit
-         * because this subroutine gets called a lot.
-         * The only remaining option seems to be printing a low priority
-         * message so that users see it only if they asked for it.
-         *
-         * I could provide a hook here, but then it's just as easy
-         * for the user to redefine the function they're using to
-         * derive this parameter in the first place.
-         * So I won't provide a hook for this.
-         */
+        /* Out of range values are unacceptable. */
         if ((value < p->min || p->max < value)
            || (0 != isnan(value)))
           {
-             isis_vmesg (INFO, I_ERROR, __FILE__, __LINE__,
-                         "parameter %s:  derived value=%g violates limits min=%g max=%g)",
+             isis_vmesg (out_of_range_severity, I_ERROR, __FILE__, __LINE__,
+                         "parameter %s:  derived value=%g ignored (violates limits min=%g max=%g)",
                          p->param_name, value, p->min, p->max);
+             if (out_of_range_severity == INTR)
+               err = -1;
           }
         else p->value = value;
      }
@@ -611,9 +593,9 @@ static int update_derived (Param_Info_t *p, void *cl) /*{{{*/
 
 /*}}}*/
 
-static int update_derived_params (Param_t *pt) /*{{{*/
+static int update_derived_params (Param_t *pt, int out_of_range_severity) /*{{{*/
 {
-   return map_table (pt, ALL_PARS, update_derived, NULL);
+   return map_table (pt, ALL_PARS, update_derived, (void *)&out_of_range_severity);
 }
 
 /*}}}*/
@@ -635,7 +617,7 @@ int Fit_set_fun_params (Param_t *pt, unsigned int fun_type, unsigned int fun_id,
           return -1;
      }
 
-   return update_derived_params (pt);
+   return update_derived_params (pt, INFO);
 }
 /*}}}*/
 
@@ -690,7 +672,7 @@ int Fit_set_param_hard_limits1 (Param_t *pt, int idx,
    p->max = pnew->max;
    p->value = pnew->value;
 
-   return update_derived_params (pt);
+   return update_derived_params (pt, FAIL);
 }
 
 int Fit_set_param_control (Param_t *pt, unsigned int idx, int update_minmax,  /*{{{*/
@@ -849,7 +831,7 @@ int Fit_set_param_function (Param_t *pt, unsigned int idx, char *str) /*{{{*/
 
    p->freeze = 1;
 
-   return update_derived_params (pt);
+   return update_derived_params (pt, INFO);
 }
 
 /*}}}*/
@@ -860,7 +842,7 @@ int Fit_set_param_value (Param_t *pt, unsigned int idx, double value) /*{{{*/
    if (NULL == (p = find_param_by_index (pt, idx)))
      return -1;
    p->value = value;
-   return update_derived_params (pt);
+   return update_derived_params (pt, INFO);
 }
 
 /*}}}*/
@@ -976,7 +958,7 @@ int Fit_pack_variable_params (Param_t *pt, Fit_Param_t *p) /*{{{*/
 {
    p->npars = 0;
 
-   if (-1 == update_derived_params (pt))
+   if (-1 == update_derived_params (pt, INTR))
      return -1;
 
    if (-1 == map_table (pt, VARIABLE_PARS, pack, p))
@@ -994,7 +976,7 @@ int Fit_pack_all_params (Param_t *pt, Fit_Param_t *p) /*{{{*/
 {
    p->npars = 0;
 
-   if (-1 == update_derived_params (pt))
+   if (-1 == update_derived_params (pt, INTR))
      return -1;
 
    if (-1 == map_table (pt, ALL_PARS, pack, p))
@@ -1039,7 +1021,7 @@ int Fit_unpack_variable_params (Param_t *pt, double *par) /*{{{*/
    if (-1 == map_table (pt, VARIABLE_PARS, unpack, &x))
      return -1;
 
-   if (-1 == update_derived_params (pt))
+   if (-1 == update_derived_params (pt, INTR))
      return -1;
 
    return update_tied_params (pt);
@@ -1057,7 +1039,7 @@ int Fit_unpack_all_params (Param_t *pt, double *par) /*{{{*/
    if (-1 == map_table (pt, ALL_PARS, unpack, &x))
      return -1;
 
-   if (-1 == update_derived_params (pt))
+   if (-1 == update_derived_params (pt, INTR))
      return -1;
 
    return update_tied_params (pt);
@@ -1072,5 +1054,5 @@ int Fit_sync_tied_params (Param_t *pt)
 
 int Fit_sync_derived_params (Param_t *pt)
 {
-   return update_derived_params (pt);
+   return update_derived_params (pt, INTR);
 }
