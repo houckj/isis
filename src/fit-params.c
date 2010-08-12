@@ -575,13 +575,33 @@ static int update_derived (Param_Info_t *p, void *cl) /*{{{*/
 
         Isis_Evaluating_Derived_Param = 0;
 
+        /* Out of range values are unacceptable.
+         * If the provided value is out of range, there's no advantage
+         * to making up a value, so just leave the current value alone.
+         *
+         * How to warn that an out of range value was generated?
+         * If I call it an error and return -1 then certain reasonable
+         * intermediate states will throw errors (e.g loading a parameter
+         * file containing a forward reference). So returning -1 is
+         * unacceptable.  We'll return 0.
+         *
+         * If we print a high priority warning on every occurrence,
+         * then that produces a *lot* of output, especially during a fit
+         * because this subroutine gets called a lot.
+         * The only remaining option seems to be printing a low priority
+         * message so that users see it only if they asked for it.
+         *
+         * I could provide a hook here, but then it's just as easy
+         * for the user to redefine the function they're using to
+         * derive this parameter in the first place.
+         * So I won't provide a hook for this.
+         */
         if ((value < p->min || p->max < value)
            || (0 != isnan(value)))
           {
-             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+             isis_vmesg (INFO, I_ERROR, __FILE__, __LINE__,
                          "parameter %s:  derived value=%g violates limits min=%g max=%g)",
                          p->param_name, value, p->min, p->max);
-             err = -1;
           }
         else p->value = value;
      }

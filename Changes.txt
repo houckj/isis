@@ -17,6 +17,11 @@ Changes since 1.6.1 (released Jul 2010)
  6.  Add --with-xspec-modelsonly configure option
  7.  Contours overplotted on a subset of a 2D array were being
      plotted incorrectly.
+ 8.  Don't generate an error when a model parameter value,
+     obtained from a function evaluation, falls outside the
+     assigned min/max range (see set_par_fun). Instead, the out
+     of range value will be ignored and a warning message will
+     be printed if Isis_Verbose>0.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------

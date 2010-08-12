@@ -12937,7 +12937,11 @@ set_par_fun
 
  DESCRIPTION
     Fit parameters may be defined as functions of other
-    fit-parameters and may also depend on arbitrary functions.
+    fit-parameters and may also depend on arbitrary functions.  If
+    the computed parameter value falls outside that parameter's
+    min/max range, then the out of range value will be ignored; a
+    warning message will be printed if Isis_Verbose > 0.
+
     This has a number of applications and can be used to couple
     fit-parameters in complex ways, derive quantities of interest
     from fit-parameters, compute confidence limits on derived
