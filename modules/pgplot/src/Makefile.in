@@ -33,7 +33,7 @@ SLANG_LIB	= @SLANG_LIB@ -lslang
 #---------------------------------------------------------------------------
 FC		= @FC@
 FCFLAGS		= @FCFLAGS@
-FC_LIBS		= @FCLIBS@
+FCLIBS		=# @FCLIBS@
 
 #---------------------------------------------------------------------------
 # Additional Libraries required by the module
@@ -44,7 +44,7 @@ PGPLOT_LIB	= @PGPLOT_LIB@
 DRIVER_LIBS	= @OTHER_PGPLOT_LIBS@ #<- Add additional libraries here
 X_LIBS		= @X_LIBS@ -lX11
 X_XTRA_LIBS	= @X_EXTRA_LIBS@
-MODULE_LIBS	= $(PGPLOT_LIB) $(FC_LIBS) $(DRIVER_LIBS) $(X_LIBS) $(X_XTRA_LIBS)
+MODULE_LIBS	= $(PGPLOT_LIB) $(FCLIBS) $(DRIVER_LIBS) $(X_LIBS) $(X_XTRA_LIBS)
 RPATH		= @RPATH@
 
 #---------------------------------------------------------------------------

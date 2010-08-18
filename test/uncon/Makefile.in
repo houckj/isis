@@ -7,7 +7,7 @@
 #   Edit FCFLAGS below to provide the correct option.
 
 FC      = @FC@
-FCLIBS  = @FCLIBS@
+FCLIBS  =# @FCLIBS@
 FCFLAGS = @FCFLAGS@ @ELF_FC_FCFLAGS@ -fno-automatic
 #
 #================================================================

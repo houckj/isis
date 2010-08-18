@@ -13,7 +13,7 @@ CC_SHARED  = @CC_SHARED@
 
 FC         = @FC@
 FCFLAGS    = @FCFLAGS@
-FCLIBS     = @FCLIBS@
+FCLIBS     =# @FCLIBS@
 
 MEMCHECK   = valgrind --tool=memcheck --leak-check=yes --leak-resolution=med --num-callers=20
 
