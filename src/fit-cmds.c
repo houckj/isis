@@ -1552,7 +1552,7 @@ static int register_kernel_pars (Hist_t *h, void *cl) /*{{{*/
 
 /*}}}*/
 
-static int register_iback_pars (Hist_t *h, void *cl) /*{{{*/
+static int register_back_pars (Hist_t *h, void *cl) /*{{{*/
 {
    SLang_Name_Type *fun_ptr;
    char name[MAX_NAME_SIZE];
@@ -1567,7 +1567,7 @@ static int register_iback_pars (Hist_t *h, void *cl) /*{{{*/
    if (NULL == (s = Hist_get_instrumental_background_hook_name (h)))
      return 0;
 
-   sprintf (name, "_iback_%d", Hist_get_index (h));
+   sprintf (name, "_back_%d", Hist_get_index (h));
    fun_ptr = create_registered_model (name, s);
 
    return Hist_set_instrumental_background_hook (h, fun_ptr);
@@ -1671,7 +1671,7 @@ static int do_define_user_model (char *fun_body) /*{{{*/
      return -1;
 
    if (-1 == map_datasets (register_kernel_pars, NULL)
-       || -1 == map_datasets (register_iback_pars, NULL))
+       || -1 == map_datasets (register_back_pars, NULL))
      return -1;
 
    if (-1 == register_constraint_pars ())
