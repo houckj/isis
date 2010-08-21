@@ -285,7 +285,7 @@ static int assign_kernel_to_histogram (Kernel_Table_t *t, unsigned int hist_inde
 
 /*}}}*/
 
-static int pop_kernel (Kernel_Table_t *t, unsigned int hist_index, Kernel_Info_t *ki)
+static int pop_kernel (Kernel_Table_t *t, unsigned int hist_index, Kernel_Info_t *ki) /*{{{*/
 {
    Kernel_Info_t *p, *saved;
 
@@ -307,7 +307,9 @@ static int pop_kernel (Kernel_Table_t *t, unsigned int hist_index, Kernel_Info_t
    return 0;
 }
 
-static int push_kernel (Kernel_Table_t *t, unsigned int hist_index,
+/*}}}*/
+
+static int push_kernel (Kernel_Table_t *t, unsigned int hist_index, /*{{{*/
                         Isis_Kernel_Def_t *def, char *params)
 {
    Kernel_Info_t *p, *saved;
@@ -331,6 +333,8 @@ static int push_kernel (Kernel_Table_t *t, unsigned int hist_index,
 
    return 0;
 }
+
+/*}}}*/
 
 static void _print_kernel (int * hist_index) /*{{{*/
 {
@@ -2294,7 +2298,7 @@ static int combine_marked_datasets (Fit_Data_t *d, int apply_weights, double *y,
 
 /*}}}*/
 
-static int store_combined_data (Fit_Data_t *d, double *data, double *weight)
+static int store_combined_data (Fit_Data_t *d, double *data, double *weight) /*{{{*/
 {
    SLang_Array_Type *sl_data=NULL, *sl_weight=NULL, *sl_combo_ids=NULL;
    SLang_Array_Type *sl_offsets=NULL, *sl_lengths=NULL;
@@ -2342,7 +2346,9 @@ static int store_combined_data (Fit_Data_t *d, double *data, double *weight)
    return 0;
 }
 
-static int store_combined_models (Fit_Data_t *d, double *models)
+/*}}}*/
+
+static int store_combined_models (Fit_Data_t *d, double *models) /*{{{*/
 {
    SLang_Array_Type *sl_models=NULL, *sl_combo_ids=NULL;
    SLindex_Type i, n = d->nbins_after_datasets_combined;
@@ -2374,6 +2380,8 @@ static int store_combined_models (Fit_Data_t *d, double *models)
 
    return 0;
 }
+
+/*}}}*/
 
 static int _fitfun (void *cl, double *x,  unsigned int nbins, /*{{{*/
                     double *par, unsigned int npars, double *model)
