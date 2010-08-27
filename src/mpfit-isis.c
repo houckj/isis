@@ -181,6 +181,7 @@ static int mpfit_method (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
    struct mp_par_struct *mpfit_pars;
    Fun_Info_Type *fi = &Fun_Info;
    unsigned int i;
+   int status = -1;
 
    Isis_Client_Data = clientdata;
 
@@ -242,7 +243,20 @@ static int mpfit_method (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
    free(fi->fx);
    free(mpfit_pars);
 
-   return (mpfit_result.status > 0) ? 0 : -1;
+   switch (mpfit_result.status)
+     {
+      case 1: /* drop */
+      case 2: /* drop */
+      case 3: /* drop */
+      case 4:
+        status = 0;
+        break;
+      default:
+        status = -1;
+        break;
+     }
+
+   return status;
 }
 
 /*}}}*/
