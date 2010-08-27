@@ -24,6 +24,9 @@ Changes since 1.6.1 (released Jul 2010)
      be printed if Isis_Verbose>0.
  9.  Revise error handling introduced in #8 to interrupt
      model evaluation when derived parameters are out of range.
+10.  eval_fun2 wasn't validating the fitfun reference before
+     attempting to use it.
+11.  mpfit exit status was not being signaled correctly
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
