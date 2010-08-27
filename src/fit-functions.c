@@ -724,6 +724,21 @@ static Fit_Fun_t *find_fit_fun (unsigned int fun_type, Fit_Fun_t *head) /*{{{*/
 
 /*}}}*/
 
+int Fit_is_valid_fit_fun (Fit_Fun_t *ff_test) /*{{{*/
+{
+   Fit_Fun_t *ff;
+
+   for (ff = Fit_Fun; ff != NULL; ff = ff->next)
+     {
+        if (ff == ff_test)
+          return 1;
+     }
+
+   return 0;
+}
+
+/*}}}*/
+
 static int append_fit_fun (Fit_Fun_t *pf, Fit_Fun_t *head) /*{{{*/
 {
    Fit_Fun_t *ff;

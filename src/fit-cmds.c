@@ -4365,6 +4365,13 @@ static void eval_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
 
    ff = mmt->ff;
 
+   if (0 == Fit_is_valid_fit_fun (ff))
+     {
+        isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__,
+                    "cannot evaluate function (stale reference)");
+        return;
+     }
+
    memset ((char *)&g, 0, sizeof g);
    if (-1 == Isis_Hist_pop_valid_grid (&g))
      {
@@ -4406,6 +4413,13 @@ static void eval_diff_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
    Fit_Fun_t *ff;
 
    ff = mmt->ff;
+
+   if (0 == Fit_is_valid_fit_fun (ff))
+     {
+        isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__,
+                    "cannot evaluate function (stale reference)");
+        return;
+     }
 
    if ((-1 == SLang_pop_array_of_type (&sl_x, SLANG_DOUBLE_TYPE)
        || (sl_x == NULL)))

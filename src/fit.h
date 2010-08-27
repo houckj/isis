@@ -56,10 +56,11 @@ typedef struct Param_t Param_t;
 typedef struct _Fit_Fun_t Fit_Fun_t;
 typedef char Fit_Fun_Name_t[MAX_NAME_SIZE];
 
-extern Fit_Fun_t * Fit_get_fit_fun (int fun_type);
+extern Fit_Fun_t *Fit_get_fit_fun (int fun_type);
 extern int Fit_get_fun_type (char *name);
 extern int Fit_get_fun_par (Fit_Fun_t *ff, char *par_name);
 extern void Fit_get_fun_info (char *name);
+extern int Fit_is_valid_fit_fun (Fit_Fun_t *ff_test);
 
 struct _Fit_Param_t
 {
