@@ -68,7 +68,7 @@ private define instrument_part_label (instrument, part, order)
      return sprintf ("back%+2d", order);
    else if (order == 0)
      return "      ";
-   else if (order < length(grating_name))
+   else if (part < length(grating_name))
      return sprintf ("%3s%-+3d", grating_name[part], order);
    else
      return sprintf ("%2d/%-3d", part, order);
