@@ -27,6 +27,7 @@ Changes since 1.6.1 (released Jul 2010)
 10.  eval_fun2 wasn't validating the fitfun reference before
      attempting to use it.
 11.  mpfit exit status was not being signaled correctly
+12.  Support for updated aped database
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
