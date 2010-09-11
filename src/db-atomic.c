@@ -76,7 +76,8 @@ static const char *Element_Name[] =
    "",
    "H" , "He", "Li", "Be", "B" , "C" , "N" , "O" , "F" , "Ne",
    "Na", "Mg", "Al", "Si", "P" , "S" , "Cl", "Ar", "K" , "Ca",
-   "Sc", "Ti", "V" , "Cr", "Mn", "Fe", "Co", "Ni",
+   "Sc", "Ti", "V" , "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",
+   "Ga", "Ge", "As", "Se", "Br", "Kr",
    NULL
 };
 
@@ -87,7 +88,8 @@ static const char *Roman [] =
    "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
    "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX",
    "XXI", "XXII", "XXIII", "XXIV", "XXV", "XXVI", "XXVII", "XXVIII", "XXIX", "XXX",
-     NULL
+   "XXXI", "XXXII", "XXXIII", "XXXIV", "XXXV", "XXXVI", "XXXVII",
+   NULL
 };
 
 static int build_internals (DB_t *db);
@@ -150,18 +152,23 @@ struct _DB_ion_t
 
 int DB_get_atomic_weight_amu (float *wt, DB_line_t *line) /*{{{*/
 {
-   /* Atomic weights are from
-    * CRC Handbook of Chemistry and Physics, (1981) 61st ed., p. B-259ff
+   /* http://www.physics.curtin.edu.au/iupac/
+    * http://www.chem.qmul.ac.uk/iupac/AtWt/
+    * Atomic weights from the 2007 table at Pure Appl. Chem., 81, 2131-2156 (2009)
+    * with changes to the values for lutetium, molybdenum, nickel, ytterbium and
+    * zinc from the 2005 table
     */
    static float atomic_weight[] =
      {
         -1.0,
-         1.00797,  4.0026,  6.941,    9.0122, 10.811,    /* H  - B  */
-        12.01115, 14.0067, 15.9994,  18.9984, 20.183,    /* C  - Ne */
-        22.9898,  24.312,  26.98153, 28.086,  30.9738,   /* Na - P  */
-        32.064,   35.453,  39.948,   39.0983, 40.08,     /* S  - Ca */
-        44.95592, 47.90,   50.942,   52.00,   54.9381,   /* Sc - Mn */
-        55.847,   58.9332, 58.71                         /* Fe - Ni */
+         1.00794,     4.002602,  6.941,      9.012182,  10.811,    /* H  - B  */
+        12.0107,     14.0067,   15.9994,    18.9984032, 20.1797,   /* C  - Ne */
+        22.98976928, 24.3050,   26.9815386, 28.0855,    30.973762, /* Na - P  */
+        32.065,      35.453,    39.948,     39.0983,    40.078,    /* S  - Ca */
+        44.955912,   47.867,    50.9415,    51.9961,    54.938045, /* Sc - Mn */
+        55.845,      58.933195, 58.6934,    63.546,     65.38,     /* Fe - Zn */
+        69.723,      72.64,     74.92160,   78.96,      79.904,    /* Ga - Br */
+        83.798                                                     /* Kr -    */
      };
    int Z;
 

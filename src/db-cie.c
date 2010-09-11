@@ -216,7 +216,7 @@ static void free_abund_list (EM_abund_t *head) /*{{{*/
         EM_abund_t *t = head->next;
         free_abund_table (head);
         head = t;
-     }        
+     }
 }
 
 /*}}}*/
@@ -227,7 +227,7 @@ static EM_abund_t *new_abund_table (void) /*{{{*/
    if (NULL != (t = (EM_abund_t *) ISIS_MALLOC(sizeof *t)))
      {
         memset ((char *)t, 0, sizeof *t);
-     }   
+     }
    return t;
 }
 
@@ -237,20 +237,20 @@ static EM_abund_t *make_abundance_table (char *name, float *abun, int *Z, int nu
 {
    EM_abund_t *t;
    int i;
-   
+
    if (NULL == name || NULL == abun || NULL == Z)
      return NULL;
-   
+
    if (NULL == (t = new_abund_table ()))
      return NULL;
-   
+
    isis_strcpy (t->name, name, ABUND_NAME_SIZE);
    for (i = 0; i < num_abun; i++)
      {
         if (0 <= Z[i] && Z[i] <= ISIS_MAX_PROTON_NUMBER)
           t->abundance[Z[i]] = abun[i];
      }
-   
+
    return t;
 }
 
@@ -259,13 +259,13 @@ static EM_abund_t *make_abundance_table (char *name, float *abun, int *Z, int nu
 int EM_add_abundance_table (EM_t *em, char *name, float *abun, int *Z, int num_abun) /*{{{*/
 {
    EM_abund_t *t, *a;
-   
+
    if (em == NULL)
      return -1;
-   
+
    if (NULL == (t = make_abundance_table (name, abun, Z, num_abun)))
      return -1;
-   
+
    if (em->abund)
      {
         for (a = em->abund; a != NULL; a = a->next)
@@ -275,11 +275,11 @@ int EM_add_abundance_table (EM_t *em, char *name, float *abun, int *Z, int num_a
                   a->next = t;
                   t->abund_id = a->abund_id + 1;
                   break;
-               }        
+               }
           }
-     } 
+     }
    else em->abund = t;
-   
+
    return t->abund_id;
 }
 
@@ -361,7 +361,7 @@ static EM_abund_t *load_abundance_file (char *path) /*{{{*/
    for (i = 0; i < nabund; i++)
      {
         if (NULL == (t = new_abund_table ()))
-          goto close_and_return;        
+          goto close_and_return;
         t->abund_id = nabund - i - 1;
         t->next = head;
         head = t;
@@ -378,7 +378,7 @@ static EM_abund_t *load_abundance_file (char *path) /*{{{*/
      {
         isis_strcpy (t->name, tmp_name[i], ABUND_NAME_SIZE);
         t = t->next;
-     }   
+     }
 
    for (Z = 1; Z <= ISIS_MAX_PROTON_NUMBER; Z++)
      {
@@ -389,8 +389,9 @@ static EM_abund_t *load_abundance_file (char *path) /*{{{*/
 
         if (-1 == cfits_read_float_col (tmp_abun, nabund, 1L, el_name, fp))
           {
-             isis_vmesg (FAIL, I_READ_COL_FAILED, __FILE__, __LINE__, "%s", path);
-             goto close_and_return;
+             isis_vmesg (INFO, I_READ_COL_FAILED, __FILE__, __LINE__, "column=%s  file=%s",
+                         el_name, path);
+             memset ((char *)tmp_abun, 0, nabund * sizeof(float));
           }
 
         t = head;
@@ -398,7 +399,7 @@ static EM_abund_t *load_abundance_file (char *path) /*{{{*/
           {
              t->abundance[Z] = tmp_abun[i];
              t = t->next;
-          }        
+          }
      }
 
    isis_vmesg (INFO, I_READ_OK, __FILE__, __LINE__, "%s", path);
@@ -415,7 +416,7 @@ static EM_abund_t *load_abundance_file (char *path) /*{{{*/
      {
         free_abund_list (head);
         head = NULL;
-     }   
+     }
 
    return head;
 }
@@ -484,16 +485,16 @@ int EM_list_abundance_tables (FILE *fp, EM_t *em, int verbose) /*{{{*/
 static EM_abund_t *find_abund_table (EM_t *em, int k) /*{{{*/
 {
    EM_abund_t *t;
-   
+
    if (em == NULL)
      return 0;
-   
+
    for (t = em->abund; t != NULL; t = t->next)
      {
         if (t->abund_id == k)
           return t;
      }
-   
+
    return NULL;
 }
 
@@ -564,7 +565,7 @@ int EM_get_abundance_table (EM_t *em, int k, char **name, float **a, int **z, in
    if ((0 == have_abundance_tables(em))
         || (NULL == (t = find_abund_table (em, k))))
      return -1;
-   
+
    *name = NULL;
    *a = NULL;
    *z = NULL;
@@ -577,10 +578,10 @@ int EM_get_abundance_table (EM_t *em, int k, char **name, float **a, int **z, in
         ISIS_FREE (*a);
         ISIS_FREE (*name);
         return -1;
-     }   
+     }
 
    abund = t->abundance;
-   
+
    for (zz = 1; zz <= num; zz++)
      {
         (*a)[zz-1] = abund[zz];
@@ -955,7 +956,7 @@ static int get_ion_fraction (float *frac, float *par, int Z, int q, EM_ioniz_tab
      }
                             /* temperature not found */
    *frac = 0.0;
-   isis_vmesg (FAIL, I_RANGE_ERROR, __FILE__, __LINE__, 
+   isis_vmesg (FAIL, I_RANGE_ERROR, __FILE__, __LINE__,
                "%11.4e K out of range [%11.4e, %11.4e]",
                etemp,
                t->ionfrac[0  ]->par[ EM_TEMP ],
@@ -1115,7 +1116,7 @@ Hash_t;
 enum
 {
    MAX_ALLOWED_MISSES = 32,
-   DEFAULT_HASH_TABLE_SIZE_HINT = 50000
+   DEFAULT_HASH_TABLE_SIZE_HINT = 200000
 };
 
 unsigned int EM_Hash_Table_Size_Hint = DEFAULT_HASH_TABLE_SIZE_HINT;
@@ -1230,7 +1231,7 @@ static int do_hashing (void **vp, int nread, int start_row, Load_Linefile_Type *
              if (miss++ > MAX_ALLOWED_MISSES)
                {
                   /* Try increasing EM_Hash_Table_Size_Hint */
-                  isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, 
+                  isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
                               "hash table overflow\n Try setting EM_Hash_Table_Size_Hint [currently = %d]\n to a value at least 25%% larger than the number of lines\n in your database\n",
                               EM_Hash_Table_Size_Hint);
                   return -1;
@@ -1499,7 +1500,7 @@ static EM_filemap_t *get_filemap (char *filename, void *cl) /*{{{*/
    finish:
 
    (void) cfits_close_file (fp);
-   if (ret) 
+   if (ret)
      {
         free_filemap (map);
         map = NULL;
@@ -1936,7 +1937,7 @@ static int load_line_emissivity_data (EM_line_data_t *ld, DB_t *db) /*{{{*/
              goto finish;
           }
         if (Unidentified_Lines > 0)
-          isis_vmesg (WARN, I_WARNING, __FILE__, __LINE__, 
+          isis_vmesg (WARN, I_WARNING, __FILE__, __LINE__,
                       "%d unidentified lines in extension %d",
                       Unidentified_Lines, hdu);
      }
@@ -1980,7 +1981,7 @@ static EM_line_data_t *load_line_data (char *filename, void *cl, DB_t *db) /*{{{
 
    if (EM_Maybe_Missing_Lines)
      {
-        isis_vmesg (WARN, I_SCANNING, __FILE__, __LINE__, 
+        isis_vmesg (WARN, I_SCANNING, __FILE__, __LINE__,
                     "line emissivity tables [%d hdu%s]",
                     ld->map->num_hdus,
                     (ld->map->num_hdus > 1) ? "s" : "");
@@ -2455,7 +2456,7 @@ static int find_in_table (float x, float *t, int n) /*{{{*/
 
    if (x < t[0] || t[n-1] < x)
      {
-        isis_vmesg (FAIL, I_RANGE_ERROR, __FILE__, __LINE__, 
+        isis_vmesg (FAIL, I_RANGE_ERROR, __FILE__, __LINE__,
                     "%g is outside [%11.4e, %11.4e]",
                     x, t[0], t[n-1]);
         return -1;

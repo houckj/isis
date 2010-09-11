@@ -43,7 +43,7 @@ extern "C" {
 
 enum
 {
-   ISIS_MAX_PROTON_NUMBER = 28
+   ISIS_MAX_PROTON_NUMBER = 36
 };
 
 /* globals */
