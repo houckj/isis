@@ -110,7 +110,7 @@ static int compress_label (char *label, unsigned int size) /*{{{*/
           }
         else one_space = 0;
 
-        *t++ = *p;
+        *t++ = (*p == '\n') ? ' ' : *p;
      }
 
    if (t < label + size)
