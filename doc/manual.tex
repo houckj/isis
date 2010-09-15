@@ -6807,7 +6807,7 @@ EXAMPLE
 {atoms} %name
 {load the atomic database} %purpose
 {atoms (Struct\_Type)} %usage
-{plasma, db\_push, db\_status, db\_select}
+{plasma, db\_push, db\_list, db\_select}
 
 This function loads all the FITS-format atomic data files listed in
 the ``filemap'' file specified by the {\tt atomic\_data\_filemap}
@@ -6884,9 +6884,9 @@ for comments.
 \end{isisfunction}
 
 \begin{isisfunction}
-{db\_status}%
+{db\_list}%
 {list of currently loaded spectroscopy databases}%
-{db\_status ([Ref\_Type | File\_Type])}% usage
+{db\_list ([Ref\_Type | File\_Type])}% usage
 {db\_push, db\_select, plasma, atoms}
 
 This function produces a numbered list of spectroscopy databases.
@@ -6895,7 +6895,7 @@ The currently selected database is indicated by an asterisk.
 
 \begin{verbatim} 
 EXAMPLE:
-  isis> db_status;
+  isis> db_list;
   Current database list:
    0 * /nfs/blackhole/d1/ji/ATOMDB/filemap_v2.0.0.rc7 
    1   /nfs/cxc/a1/share/atomdb/filemap
@@ -6912,7 +6912,7 @@ assigned a string containing the database list. If called with a
 {db\_push}% 
 {load another spectroscopy database}%
 {db\_push (Struct\_Type)}% usage
-{db\_status, db\_select, plasma, atoms}
+{db\_list, db\_select, plasma, atoms}
 
 Use this function to load another spectroscopy database. The
 \verb|Struct_Type| argument has the same form as the one used 
@@ -6924,10 +6924,10 @@ as input to the \verb|plasma| function.
 {db\_select}%
 {select a spectroscopy database}%
 {db\_select (Int\_Type k)}% usage
-{db\_push, db\_status, plasma, atoms}
+{db\_push, db\_list, plasma, atoms}
 
 Use this function to select a spectroscopy database from the currently list
-displayed by \verb|db_status|.  Subsequent calls to database access functions
+displayed by \verb|db_list|.  Subsequent calls to database access functions
 (e.g. \verb|create_aped_fun|, etc.) will use atomic data and emissivities from
 the selected database.
 

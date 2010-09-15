@@ -74,7 +74,7 @@ define db_push () %{{{
 
 %}}}
 
-define db_status () %{{{
+define db_list () %{{{
 {
    variable args = __pop_list(_NARGS);
    _isis->db_list (__push_list(args));

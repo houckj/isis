@@ -29,7 +29,7 @@ Changes since 1.6.1 (released Jul 2010)
 11.  mpfit exit status was not being signaled correctly.
 12.  Support for updated aped database.
 13.  Support simultaneously loading multiple spectroscopy databases.
-     New intrinsics:  db_push, db_status, db_select
+     New intrinsics:  db_push, db_list, db_select
 14.  Plot energy levels with missing LS quantum numbers.
 
 Changes since 1.6.0 (released Apr 2010)

@@ -5107,7 +5107,7 @@ atoms
     emission lines, etc. ).
 
  SEE ALSO
-    plasma, db_push, db_status, db_select
+    plasma, db_push, db_list, db_select
 
 ------------------------------------------------------------------------
 brightest
@@ -5181,13 +5181,13 @@ change_wl
     plasma, atoms
 
 ------------------------------------------------------------------------
-db_status
+db_list
 
  SYNOPSIS
     list of currently loaded spectroscopy databases
 
  USAGE
-    db_status ([Ref_Type | File_Type])
+    db_list ([Ref_Type | File_Type])
 
  DESCRIPTION
     This function produces a numbered list of spectroscopy
@@ -5196,7 +5196,7 @@ db_status
     an asterisk.
 
     EXAMPLE:
-      isis> db_status;
+      isis> db_list;
       Current database list:
        0 * /nfs/blackhole/d1/ji/ATOMDB/filemap_v2.0.0.rc7
        1   /nfs/cxc/a1/share/atomdb/filemap
@@ -5226,7 +5226,7 @@ db_push
 
 
  SEE ALSO
-    db_status, db_select, plasma, atoms
+    db_list, db_select, plasma, atoms
 
 ------------------------------------------------------------------------
 db_select
@@ -5239,13 +5239,13 @@ db_select
 
  DESCRIPTION
     Use this function to select a spectroscopy database from the
-    currently list displayed by db_status.  Subsequent calls to
+    currently list displayed by db_list.  Subsequent calls to
     database access functions (e.g. create_aped_fun, etc.) will use
     atomic data and emissivities from the selected database.
 
 
  SEE ALSO
-    db_push, db_status, plasma, atoms
+    db_push, db_list, plasma, atoms
 
 ------------------------------------------------------------------------
 define_group
