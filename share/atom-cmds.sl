@@ -32,21 +32,21 @@ define atoms () %{{{
 
    if (_isis->get_varargs (&dir, _NARGS, 0, msg))
      return;
-   
+
    if (dir == NULL)
      {
 	usage (msg);
 	return;
      }
-   
+
    _isis->Dbase = dir;
-   
+
    variable filemap = "";
-   
+
    if (_isis->Dbase.atomic_data_filemap != NULL)
      filemap = path_concat (_isis->Dbase.dir, _isis->Dbase.atomic_data_filemap);
-   
-   _isis->_db_start (filemap);
+
+   _isis->set_atomic_db_pointer (_isis->_db_start (filemap), filemap);
 }
 
 %}}}
@@ -237,7 +237,7 @@ define trans ()
 
    if (_isis->get_varargs (&Z, &ion, &upper, &lower, _NARGS, 0, msg))
      return;
-   
+
    if (Z == NULL)
      Z = -1;
    if (ion == NULL)
@@ -246,10 +246,10 @@ define trans ()
 
    if (NULL == upper) upper = -1;
    else upper = upper[where(upper > 0)];
-   
+
    if (NULL == lower) lower = -1;
    else lower = lower[where (lower > 0)];
-   
+
    _isis->filter_line_by_trans (upper, lower, Z, ion);
 }
 
@@ -347,13 +347,13 @@ private define do_plot_line_group (group, redshift, s, gr_color, msg)
 {
    if (Array_Type == typeof (group))
      {
-	_isis->_plot_line_list (group, redshift, gr_color, 
+	_isis->_plot_line_list (group, redshift, gr_color,
 			 s.angle, s.justify, s.top_frac, s.bottom_frac,
 			 s.offset, s.char_height, s.label_type);
      }
-   else 
+   else
      {
-	_isis->plot_line_group (group, redshift, gr_color, 
+	_isis->plot_line_group (group, redshift, gr_color,
 			 s.angle, s.justify, s.top_frac, s.bottom_frac,
 			 s.offset, s.char_height, s.label_type);
      }
@@ -399,7 +399,7 @@ define plot_linelist ()
    gr_color = 0;
    label_style = 0;
 
-   if (_isis->get_varargs (&lambdas, &labels, &gr_color, 
+   if (_isis->get_varargs (&lambdas, &labels, &gr_color,
 			   &label_style, &redshift, _NARGS, 2, msg))
      {
 	return;
@@ -414,10 +414,10 @@ define plot_linelist ()
 	s = line_label_default_style ();
 	s.label_type = label_style;                    % back-compatibility
      }
-   
+
    variable m_labels = array_map (String_Type, &isis_linelabel_hook, labels);
 
-   _isis->_plot_line_list2 (lambdas, m_labels, redshift, gr_color, 
+   _isis->_plot_line_list2 (lambdas, m_labels, redshift, gr_color,
 			    s.angle, s.justify, s.top_frac, s.bottom_frac,
 			    s.offset, s.char_height, s.label_type);
 }
@@ -458,14 +458,14 @@ define line_info () %{{{
 
    if (_isis->chk_num_args (_NARGS, 1, msg))
      return;
-   
+
    id = ();
 
    s = _isis->_get_line_info (id);
    if (s.Z == 0)
      return NULL;
    s.ion = s.ion + 1;
-   
+
    return s;
 }
 

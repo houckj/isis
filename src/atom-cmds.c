@@ -47,7 +47,92 @@
 
 /*}}}*/
 
-static DB_t *DB_ptr = NULL;                  /* atomic database */
+typedef struct
+{
+   DB_t *ptr;
+}
+DB_MMT_Type;
+static int DB_MMT_Type_Id = -1;
+
+static void destroy_atomic_db_mmt_type (SLtype type, VOID_STAR f) /*{{{*/
+{
+   DB_MMT_Type *mt = (DB_MMT_Type *)f;
+   (void) type;
+
+   if (mt != NULL)
+     {
+        DB_end (mt->ptr);
+     }
+
+   SLfree ((char *)f);
+}
+
+/*}}}*/
+
+static SLang_MMT_Type *create_atomic_db_mmt_type (DB_t *ptr) /*{{{*/
+{
+   SLang_MMT_Type *mmt;
+   DB_MMT_Type *mt;
+
+   if (ptr == NULL)
+     return NULL;
+
+   if (NULL == (mt = (DB_MMT_Type *)SLmalloc (sizeof *mt)))
+     return NULL;
+
+   mt->ptr = ptr;
+
+   mmt = SLang_create_mmt (DB_MMT_Type_Id, (VOID_STAR) mt);
+   if (NULL == mmt)
+     {
+        SLfree ((char *)mt);
+        return NULL;
+     }
+
+   return mmt;
+}
+
+/*}}}*/
+
+static void push_atomic_db_pointer_intrin (DB_t *ptr) /*{{{*/
+{
+   SLang_MMT_Type *mmt = NULL;
+
+   if (NULL == (mmt = create_atomic_db_mmt_type (ptr)))
+     {
+        isis_throw_exception (Isis_Error);
+        return;
+     }
+
+   if (-1 == SLang_push_mmt (mmt))
+     SLang_free_mmt (mmt);
+}
+
+/*}}}*/
+
+static DB_t *pop_atomic_db_pointer_intrin (void) /*{{{*/
+{
+   SLang_MMT_Type *mmt = NULL;
+   DB_MMT_Type *mt;
+
+   SLang_run_hooks ("_isis->get_atomic_db_pointer", 0, NULL);
+
+   if (SLANG_NULL_TYPE == SLang_peek_at_stack ())
+     {
+        SLang_pop_null();
+        return NULL;
+     }
+
+   if (NULL == (mmt = SLang_pop_mmt (DB_MMT_Type_Id)))
+     return NULL;
+
+   mt = (DB_MMT_Type *) SLang_object_from_mmt (mmt);
+   SLang_free_mmt (mmt);
+
+   return mt->ptr;
+}
+
+/*}}}*/
 
 /*{{{ utilities */
 
@@ -122,7 +207,7 @@ static DB_t *try_loading_filemap (char *filemap) /*{{{*/
 extern "C"
 #endif
 void deinit_emis_module (void);
-void db_start (char *filemap) /*{{{*/
+static void db_start (char *filemap) /*{{{*/
 {
    DB_t *db;
 
@@ -142,8 +227,7 @@ void db_start (char *filemap) /*{{{*/
         (void) deinit_emis_module ();
      }
 
-   DB_end (DB_ptr);
-   DB_ptr = db;
+   push_atomic_db_pointer_intrin (db);
 }
 
 /*}}}*/
@@ -151,8 +235,6 @@ void db_start (char *filemap) /*{{{*/
 static void quit_atom (void) /*{{{*/
 {
    DB_Ion_Format = FMT_ROMAN;
-   DB_end (DB_ptr);
-   DB_ptr = NULL;
 }
 
 /*}}}*/
@@ -160,17 +242,17 @@ static void quit_atom (void) /*{{{*/
 /* the silent version */
 DB_t *_ptr_to_atomic_db (void) /*{{{*/
 {
-   return DB_ptr;
+   return pop_atomic_db_pointer_intrin ();
 }
 
 /*}}}*/
 
 DB_t *ptr_to_atomic_db (void) /*{{{*/
 {
-   if (NULL == DB_ptr)
+   DB_t *db = pop_atomic_db_pointer_intrin ();
+   if (NULL == db)
      isis_vmesg (WARN, I_INFO, __FILE__, __LINE__, "atomic database not loaded");
-
-   return DB_ptr;
+   return db;
 }
 
 /*}}}*/
@@ -1239,6 +1321,9 @@ static SLang_Intrin_Var_Type Atom_Intrin_Vars [] =
    SLANG_END_INTRIN_VAR_TABLE
 };
 
+#define DUMMY_DBOBJ_MMT_TYPE 255
+#define MT DUMMY_DBOBJ_MMT_TYPE
+
 static SLang_Intrin_Fun_Type Atom_Intrinsics [] =
 {
    MAKE_INTRINSIC_S("_db_start", db_start, V),
@@ -1269,6 +1354,7 @@ static SLang_Intrin_Fun_Type Atom_Intrinsics [] =
    SLANG_END_INTRIN_FUN_TABLE
 };
 
+#undef MT
 #undef V
 #undef F
 #undef D
@@ -1278,6 +1364,7 @@ static SLang_Intrin_Fun_Type Atom_Intrinsics [] =
 SLANG_MODULE(atom);
 int init_atom_module_ns (char *ns_name)
 {
+   SLang_Class_Type *cl;
    SLang_NameSpace_Type *ns;
    SLang_NameSpace_Type *pub_ns;
 
@@ -1291,6 +1378,18 @@ int init_atom_module_ns (char *ns_name)
       || (-1 == SLns_add_iconstant_table (pub_ns, Atom_Intrin_Const, NULL))
       || (-1 == SLns_add_intrin_var_table (pub_ns, Atom_Intrin_Vars, NULL)))
      return isis_trace_return(-1);
+
+   if (DB_MMT_Type_Id == -1)
+     {
+        if (NULL == (cl = SLclass_allocate_class ("DB_Object_Type")))
+          return isis_trace_return(-1);
+        (void) SLclass_set_destroy_function (cl, destroy_atomic_db_mmt_type);
+        if (-1 == SLclass_register_class (cl, SLANG_VOID_TYPE, sizeof (DB_MMT_Type),
+                                          SLANG_CLASS_TYPE_MMT))
+          return isis_trace_return(-1);
+        DB_MMT_Type_Id = SLclass_get_class_id (cl);
+        SLclass_patch_intrin_fun_table1 (Atom_Intrinsics, DUMMY_DBOBJ_MMT_TYPE, DB_MMT_Type_Id);
+     }
 
    return 0;
 }

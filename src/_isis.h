@@ -51,7 +51,6 @@ extern void isis_set_pager (char *pager);
 extern DB_t *ptr_to_atomic_db (void);
 extern DB_t *_ptr_to_atomic_db (void);  /* silent */
 #endif
-extern void db_start (char *filemap);
 
 #ifdef ISIS_DBEM_H
 extern EM_t *ptr_to_emissivity_db (void);

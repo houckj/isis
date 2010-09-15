@@ -44,7 +44,92 @@
 
 /*}}}*/
 
-static EM_t *EM_ptr = NULL;           /* emissivity database */
+typedef struct
+{
+   EM_t *ptr;
+}
+EM_MMT_Type;
+static int EM_MMT_Type_Id = -1;
+
+static void destroy_emis_db_mmt_type (SLtype type, VOID_STAR f) /*{{{*/
+{
+   EM_MMT_Type *mt = (EM_MMT_Type *)f;
+   (void) type;
+
+   if (mt != NULL)
+     {
+        EM_end (mt->ptr);
+     }
+
+   SLfree ((char *)f);
+}
+
+/*}}}*/
+
+static SLang_MMT_Type *create_emis_db_mmt_type (EM_t *ptr) /*{{{*/
+{
+   SLang_MMT_Type *mmt;
+   EM_MMT_Type *mt;
+
+   if (ptr == NULL)
+     return NULL;
+
+   if (NULL == (mt = (EM_MMT_Type *)SLmalloc (sizeof *mt)))
+     return NULL;
+
+   mt->ptr = ptr;
+
+   mmt = SLang_create_mmt (EM_MMT_Type_Id, (VOID_STAR) mt);
+   if (NULL == mmt)
+     {
+        SLfree ((char *)mt);
+        return NULL;
+     }
+
+   return mmt;
+}
+
+/*}}}*/
+
+static void push_emis_db_pointer_intrin (EM_t *ptr) /*{{{*/
+{
+   SLang_MMT_Type *mmt = NULL;
+
+   if (NULL == (mmt = create_emis_db_mmt_type (ptr)))
+     {
+        isis_throw_exception (Isis_Error);
+        return;
+     }
+
+   if (-1 == SLang_push_mmt (mmt))
+     SLang_free_mmt (mmt);
+}
+
+/*}}}*/
+
+static EM_t *pop_emis_db_pointer_intrin (void) /*{{{*/
+{
+   SLang_MMT_Type *mmt = NULL;
+   EM_MMT_Type *mt;
+
+   SLang_run_hooks ("_isis->get_emis_db_pointer", 0, NULL);
+
+   if (SLANG_NULL_TYPE == SLang_peek_at_stack ())
+     {
+        SLang_pop_null();
+        return NULL;
+     }
+
+   if (NULL == (mmt = SLang_pop_mmt (EM_MMT_Type_Id)))
+     return NULL;
+
+   mt = (EM_MMT_Type *) SLang_object_from_mmt (mmt);
+   SLang_free_mmt (mmt);
+
+   return mt->ptr;
+}
+
+/*}}}*/
 
 /* start / stop / list */
 
@@ -52,8 +137,6 @@ static void quit_emis (void) /*{{{*/
 {
    EM_Use_Memory = EM_USE_MEMORY_DEFAULT;
    EM_Maybe_Missing_Lines = 1;
-   EM_end (EM_ptr);
-   EM_ptr = NULL;
 }
 
 /*}}}*/
@@ -88,11 +171,7 @@ static void em_start (float *tmin, float *tmax, float *dmin, float *dmax) /*{{{*
      }
 
    if (NULL == db)
-     {
-        db_start (f.filemap);
-        if (NULL == (db = ptr_to_atomic_db()))
-          goto finish;
-     }
+     goto finish;
 
    r.trange[0] = *tmin;   r.trange[1] = *tmax;
    r.drange[0] = *dmin;   r.drange[1] = *dmax;
@@ -100,8 +179,7 @@ static void em_start (float *tmin, float *tmax, float *dmin, float *dmax) /*{{{*
    if (NULL == (em = EM_start (&f, (void *) &r, db)))
      goto finish;
 
-   EM_end (EM_ptr);
-   EM_ptr = em;
+   push_emis_db_pointer_intrin (em);
 
    finish:
    SLang_free_cstruct ((VOID_STAR)&f, EM_File_Table);
@@ -114,17 +192,17 @@ static void em_start (float *tmin, float *tmax, float *dmin, float *dmax) /*{{{*
 
 EM_t *_ptr_to_emissivity_db (void) /*{{{*/
 {
-   return EM_ptr;
+   return pop_emis_db_pointer_intrin ();
 }
 
 /*}}}*/
 
 EM_t *ptr_to_emissivity_db (void) /*{{{*/
 {
-   if (NULL == EM_ptr)
+   EM_t *ptr = pop_emis_db_pointer_intrin ();
+   if (NULL == ptr)
      isis_vmesg (WARN, I_INFO, __FILE__, __LINE__, "Emissivity database not initialized");
-
-   return EM_ptr;
+   return ptr;
 }
 
 /*}}}*/
@@ -526,18 +604,18 @@ static void _get_abundance_table (int *k) /*{{{*/
    float *a = NULL;
    int *z = NULL;
    int n, i;
-   
+
    memset ((char *)&t, 0, sizeof t);
-   
+
    i = (*k < 0) ? EM_get_standard_abundance (em) : *k;
-   
+
    if (0 == EM_get_abundance_table (em, i, &name, &a, &z, &n))
      {
         t.abun = SLang_create_array (SLANG_FLOAT_TYPE, 0, a, &n, 1);
         t.z = SLang_create_array (SLANG_INT_TYPE, 0, z, &n, 1);
         t.name = name;
      }
-   
+
    SLang_push_cstruct ((VOID_STAR)&t, Abund_Table_Type_Layout);
    ISIS_FREE(name);
 }
@@ -580,21 +658,21 @@ static void _list_abund_tables (int *verbose) /*{{{*/
 /*}}}*/
 
 static int _add_abund_table (void) /*{{{*/
-{   
+{
    EM_t *em = ptr_to_emissivity_db ();
    Abund_Table_Type t;
    int num_abun, status;
    float *abun;
    int *z;
-   
+
    if (em == NULL)
      return -1;
-   
+
    memset ((char *)&t, 0, sizeof (Abund_Table_Type));
-   
+
    if (-1 == SLang_pop_cstruct ((VOID_STAR)&t, Abund_Table_Type_Layout))
      return -1;
-   
+
    if (t.z->num_elements != t.abun->num_elements)
      {
         isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "mismatched array sizes in abundance table");
@@ -662,6 +740,9 @@ static SLang_Intrin_Var_Type Emis_Intrin_Vars [] = /*{{{*/
 
 /*}}}*/
 
+#define DUMMY_EMOBJ_MMT_TYPE 255
+#define MT DUMMY_EMOBJ_MMT_TYPE
+
 static SLang_Intrin_Fun_Type Emis_Intrinsics [] = /*{{{*/
 {
    MAKE_INTRINSIC_4("_em_start", em_start, V, F, F, F, F),
@@ -690,6 +771,7 @@ static SLang_Intrin_Fun_Type Emis_Intrinsics [] = /*{{{*/
 SLANG_MODULE(emis);
 int init_emis_module_ns (char *ns_name) /*{{{*/
 {
+   SLang_Class_Type *cl;
    SLang_NameSpace_Type *ns;
    SLang_NameSpace_Type *pub_ns;
 
@@ -702,6 +784,18 @@ int init_emis_module_ns (char *ns_name) /*{{{*/
    if ((-1 == SLns_add_intrin_fun_table (ns, Emis_Intrinsics, NULL))
        || (-1 == SLns_add_intrin_var_table (pub_ns, Emis_Intrin_Vars, NULL)))
      return isis_trace_return(-1);
+
+   if (EM_MMT_Type_Id == -1)
+     {
+        if (NULL == (cl = SLclass_allocate_class ("EM_Object_Type")))
+          return isis_trace_return(-1);
+        (void) SLclass_set_destroy_function (cl, destroy_emis_db_mmt_type);
+        if (-1 == SLclass_register_class (cl, SLANG_VOID_TYPE, sizeof (EM_MMT_Type),
+                                          SLANG_CLASS_TYPE_MMT))
+          return isis_trace_return(-1);
+        EM_MMT_Type_Id = SLclass_get_class_id (cl);
+        SLclass_patch_intrin_fun_table1 (Emis_Intrinsics, DUMMY_EMOBJ_MMT_TYPE, EM_MMT_Type_Id);
+     }
 
    return 0;
 }

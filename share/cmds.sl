@@ -460,7 +460,6 @@ private define print_struct () %{{{
 
 %}}}
 
-require ("print");
 #ifnexists print
 % borrowed from John Davis's jdl code
 define print () %{{{

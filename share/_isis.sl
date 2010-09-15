@@ -27,6 +27,9 @@
 
 use_namespace ("_isis");
 
+require ("structfuns.sl");
+require ("print");
+
 define pop_list (num, msg) %{{{
 {
    if (num == 0)
@@ -471,6 +474,132 @@ define take_input_hook () %{{{
 }
 
 %}}}
+
+% Manage list of spectroscopy databases:
+
+private define db_new () %{{{
+{
+   return struct
+     {
+        atomic_data_filemap = "",
+        atomic_data = NULL,
+        emissivities = NULL
+     };
+}
+
+%}}}
+
+private variable Database_List = {};
+private variable Current_Database = NULL;
+
+private define db_free () %{{{
+{
+   foreach (Database_List)
+     {
+        variable db = ();
+        db.atomic_data = NULL;
+        db.emissivities = NULL;
+     }
+}
+
+%}}}
+
+atexit (&db_free);
+
+define db_push () %{{{
+{
+   variable n = db_new();
+
+   if (_NARGS == 1)
+     {
+        variable s = ();
+        if (struct_field_exists (s, "atomic_data")
+                 && struct_field_exists (s, "emissivities"))
+          {
+             n = s;
+          }
+     }
+   else if (_NARGS > 1)
+     {
+        % default:
+        throw ApplicationError, "db_push:  too many input parameters";
+     }
+
+   list_insert (Database_List, n);
+   Current_Database = Database_List[0];
+}
+
+%}}}
+
+define db_list () %{{{
+{
+   variable n, num = length(Database_List);
+   if (num == 0)
+     {
+        _pop_n (_NARGS);
+        return;
+     }
+
+   variable sa = ["Current database list:"];
+   _for n (0, num-1, 1)
+     {
+        variable db = Database_List[n];
+        variable current_flag = _eqs (db, Current_Database) ? "*" : " ";
+        variable s = sprintf ("%2d %s %s ", n, current_flag,
+                              db.atomic_data_filemap);
+        sa = [sa, s];
+     }
+
+   sa = strjoin (sa, "\n");
+
+   if (_NARGS == 1)
+     {
+        variable arg = ();
+        if (typeof (arg) == File_Type)
+          return fprintf (arg, "%s\n", sa);
+        else if (typeof (arg) == Ref_Type)
+          @arg = sa;
+     }
+   else message (sa);
+}
+
+%}}}
+
+define db_select (k) %{{{
+{
+   variable num = length(Database_List);
+   if (k < 0 || num <= k)
+     throw ApplicationError, "db_select: Nonexistent database index=$k"$;
+   Current_Database = Database_List[k];
+}
+
+%}}}
+
+define get_atomic_db_pointer ()
+{
+   if (Current_Database == NULL)
+     db_push();
+   return Current_Database.atomic_data;
+}
+define set_atomic_db_pointer (p, filemap)
+{
+   if (Current_Database == NULL)
+     db_push();
+   Current_Database.atomic_data_filemap = filemap;
+   Current_Database.atomic_data = p;
+}
+define get_emis_db_pointer ()
+{
+   if (Current_Database == NULL)
+     db_push();
+   return Current_Database.emissivities;
+}
+define set_emis_db_pointer (p)
+{
+   if (Current_Database == NULL)
+     db_push();
+   Current_Database.emissivities = p;
+}
 
 variable Dbase = struct
 {
