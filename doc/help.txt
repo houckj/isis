@@ -5107,7 +5107,7 @@ atoms
     emission lines, etc. ).
 
  SEE ALSO
-    plasma
+    plasma, db_push, db_status, db_select
 
 ------------------------------------------------------------------------
 brightest
@@ -5179,6 +5179,73 @@ change_wl
 
  SEE ALSO
     plasma, atoms
+
+------------------------------------------------------------------------
+db_status
+
+ SYNOPSIS
+    list of currently loaded spectroscopy databases
+
+ USAGE
+    db_status ([Ref_Type | File_Type])
+
+ DESCRIPTION
+    This function produces a numbered list of spectroscopy
+    databases. Each database is identified by the path to its
+    filemap file. The currently selected database is indicated by
+    an asterisk.
+
+    EXAMPLE:
+      isis> db_status;
+      Current database list:
+       0 * /nfs/blackhole/d1/ji/ATOMDB/filemap_v2.0.0.rc7
+       1   /nfs/cxc/a1/share/atomdb/filemap
+
+    If called with a Ref_Type argument, the Ref_Type will be
+    assigned a string containing the database list. If called with
+    a File_Type argument, the database list will be written to the
+    indicate File_Type.
+
+
+ SEE ALSO
+    db_push, db_select, plasma, atoms
+
+------------------------------------------------------------------------
+db_push
+
+ SYNOPSIS
+    load another spectroscopy database
+
+ USAGE
+    db_push (Struct_Type)
+
+ DESCRIPTION
+    Use this function to load another spectroscopy database. The
+    Struct_Type argument has the same form as the one used as input
+    to the plasma function.
+
+
+ SEE ALSO
+    db_status, db_select, plasma, atoms
+
+------------------------------------------------------------------------
+db_select
+
+ SYNOPSIS
+    select a spectroscopy database
+
+ USAGE
+    db_select (Int_Type k)
+
+ DESCRIPTION
+    Use this function to select a spectroscopy database from the
+    currently list displayed by db_status.  Subsequent calls to
+    database access functions (e.g. create_aped_fun, etc.) will use
+    atomic data and emissivities from the selected database.
+
+
+ SEE ALSO
+    db_push, db_status, plasma, atoms
 
 ------------------------------------------------------------------------
 define_group
@@ -6306,7 +6373,7 @@ plasma
 
 
  SEE ALSO
-    atoms, [v]list_db
+    atoms, db_push, db_list, db_select, [v]list_db
 
 ------------------------------------------------------------------------
 ratio_em

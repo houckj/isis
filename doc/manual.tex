@@ -6807,7 +6807,7 @@ EXAMPLE
 {atoms} %name
 {load the atomic database} %purpose
 {atoms (Struct\_Type)} %usage
-{plasma}
+{plasma, db\_push, db\_status, db\_select}
 
 This function loads all the FITS-format atomic data files listed in
 the ``filemap'' file specified by the {\tt atomic\_data\_filemap}
@@ -6881,6 +6881,56 @@ proton_number
 \end{verbatim}
 Lines with a \# in column 1 are ignored and may be used
 for comments.
+\end{isisfunction}
+
+\begin{isisfunction}
+{db\_status}%
+{list of currently loaded spectroscopy databases}%
+{db\_status ([Ref\_Type | File\_Type])}% usage
+{db\_push, db\_select, plasma, atoms}
+
+This function produces a numbered list of spectroscopy databases.
+Each database is identified by the path to its filemap file.
+The currently selected database is indicated by an asterisk.
+
+\begin{verbatim} 
+EXAMPLE:
+  isis> db_status;
+  Current database list:
+   0 * /nfs/blackhole/d1/ji/ATOMDB/filemap_v2.0.0.rc7 
+   1   /nfs/cxc/a1/share/atomdb/filemap
+\end{verbatim}
+
+If called with a \verb|Ref_Type| argument, the \verb|Ref_Type| will be
+assigned a string containing the database list. If called with a
+\verb|File_Type| argument, the database list will be written to the indicate
+\verb|File_Type|.
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{db\_push}% 
+{load another spectroscopy database}%
+{db\_push (Struct\_Type)}% usage
+{db\_status, db\_select, plasma, atoms}
+
+Use this function to load another spectroscopy database. The
+\verb|Struct_Type| argument has the same form as the one used 
+as input to the \verb|plasma| function.
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{db\_select}%
+{select a spectroscopy database}%
+{db\_select (Int\_Type k)}% usage
+{db\_push, db\_status, plasma, atoms}
+
+Use this function to select a spectroscopy database from the currently list
+displayed by \verb|db_status|.  Subsequent calls to database access functions
+(e.g. \verb|create_aped_fun|, etc.) will use atomic data and emissivities from
+the selected database.
+
 \end{isisfunction}
 
 \begin{isisfunction}
@@ -7769,7 +7819,7 @@ alternate table using {\tt free\_alt\_ioniz}.
 {plasma} %name
 {load the emissivity database} %purpose
 {plasma (Struct\_Type ~[,density\_range ~[, temp\_range]] )} %usage
-{atoms, [v]list\_db}
+{atoms, db\_push, db\_list, db\_select, [v]list\_db}
 \index{{\tt Use\_Memory}}
 \index{Emissivity Database!memory usage}
 \index{{\tt Incomplete\_Line\_List}}
