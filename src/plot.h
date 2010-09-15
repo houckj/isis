@@ -250,7 +250,7 @@ extern int _Plot_set_charsize (float size);
 extern int _Plot_set_line_width (int width);
 extern int _Plot_get_color (void);
 
-extern int Plot_LS_label (float x, int twoS_plus_1, char L);
+extern int Plot_LS_label (float x, char *text);
 
 #if 0
 {

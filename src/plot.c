@@ -2466,12 +2466,9 @@ int Plot_read_line_endpoints (float bx[/*2*/], float by[/*2*/], int draw_line) /
 
 /*}}}*/
 
-int Plot_LS_label (float x, int twoS_plus_1, char L) /*{{{*/
+int Plot_LS_label (float x, char *text) /*{{{*/
 {
-   char text[16];
    int save;
-
-   (void) sprintf (text, "\\u%d\\d%c", twoS_plus_1, L);
 
    save = _Plot_get_color ();
    _Plot_set_color (PLOT_LINE_COLOR);

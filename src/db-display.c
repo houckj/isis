@@ -539,12 +539,6 @@ int DB_plot_levels (int Z, int q, int *line_idx, int nlines, int subset, /*{{{*/
         orb[k] = e->L;
         spin[k] = e->S;
 
-        if (orb[k] < 0 || spin[k] < 0.0)
-          {
-             isis_vmesg (FAIL, I_INFO, __FILE__, __LINE__, "%s %d+ LS quantum numbers not found", name, q);
-             goto fail;
-          }
-
         scale = (float) MAX(scale, orb[k]);
 
         emin = MIN(emin, energy[k]);
@@ -564,7 +558,9 @@ int DB_plot_levels (int Z, int q, int *line_idx, int nlines, int subset, /*{{{*/
 
    for (k=0; k < nplotlev; k++)
      {
-        x[k] = PLOT_X( scale, orb[k], spin[k] );
+        if (orb[k] < 0.0 || spin[k] < 0.0)
+          x[k] = -2.0/scale;
+        else x[k] = PLOT_X(scale, orb[k], spin[k]);
         xmin = MIN(xmin, x[k]);
         xmax = MAX(xmax, x[k]);
      }
@@ -603,6 +599,7 @@ int DB_plot_levels (int Z, int q, int *line_idx, int nlines, int subset, /*{{{*/
    for (k=0; k < nplotlev; k++)
      {
         float f;
+        char text[16];
 
         Plot_set_color (fmt);
         Plot_set_line_width (fmt);
@@ -610,7 +607,15 @@ int DB_plot_levels (int Z, int q, int *line_idx, int nlines, int subset, /*{{{*/
 
         Plot_set_frame_line_width (fmt);
         f = (x[k] - pxmin) / (pxmax - pxmin);
-        Plot_LS_label (f, (int) (2*spin[k] + 1), symbol[ orb[k] ]);
+        if (x[k] < 0)
+          {
+             (void) sprintf (text, "(X)");
+          }
+        else
+          {
+             (void) sprintf (text, "\\u%d\\d%c", (int) (2*spin[k] + 1), symbol[ orb[k] ]);
+          }
+        Plot_LS_label (f, text);
      }
 
    Plot_set_frame_line_width (fmt);

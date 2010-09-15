@@ -1196,8 +1196,6 @@ static void _plot_elev (void) /*{{{*/
 
    if (-1 == DB_plot_levels (Z, q, lines, nlines, subset, overlay, fmt, db))
      isis_vmesg (FAIL, I_INFO, __FILE__, __LINE__, "plot failed");
-   else
-     Plot_auto_incr_line_type (fmt);
 
    fail:
    SLang_free_array (slline);
