@@ -989,12 +989,15 @@ typedef struct
    float A, A_err;
    int indx;
    int proton_number, ion_charge;
-   int upper_index, lower_index;
+   int   upper_index, lower_index;
+   float upper_E, lower_E;
+   int   upper_L, upper_S;
+   int   lower_L, lower_S;
    char *upper_label;
    char *lower_label;
 }
 Line_Info_Type;
-#define LINE_INFO_TYPE_INIT {0,0,0,0,0,0,0,0,0,0,0,0}
+#define LINE_INFO_TYPE_INIT {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0}
 
 static SLang_CStruct_Field_Type Line_Info_Table [] =
 {
@@ -1008,6 +1011,12 @@ static SLang_CStruct_Field_Type Line_Info_Table [] =
    MAKE_CSTRUCT_FIELD(Line_Info_Type, proton_number, "Z", I, 0),
    MAKE_CSTRUCT_FIELD(Line_Info_Type, upper_index, "upper", I, 0),
    MAKE_CSTRUCT_FIELD(Line_Info_Type, lower_index, "lower", I, 0),
+   MAKE_CSTRUCT_FIELD(Line_Info_Type, upper_E, "upper_E", F, 0),
+   MAKE_CSTRUCT_FIELD(Line_Info_Type, lower_E, "lower_E", F, 0),
+   MAKE_CSTRUCT_FIELD(Line_Info_Type, upper_L, "upper_L", I, 0),
+   MAKE_CSTRUCT_FIELD(Line_Info_Type, upper_S, "upper_S", I, 0),
+   MAKE_CSTRUCT_FIELD(Line_Info_Type, lower_L, "lower_L", I, 0),
+   MAKE_CSTRUCT_FIELD(Line_Info_Type, lower_S, "lower_S", I, 0),
    MAKE_CSTRUCT_FIELD(Line_Info_Type, upper_label, "up_name", S, 0),
    MAKE_CSTRUCT_FIELD(Line_Info_Type, lower_label, "lo_name", S, 0),
    SLANG_END_CSTRUCT_TABLE
@@ -1043,7 +1052,9 @@ static void _get_line_info (int *id) /*{{{*/
 {
    Line_Info_Type li = LINE_INFO_TYPE_INIT;
    DB_t *db = ptr_to_atomic_db ();
-   DB_line_t *line;
+   DB_line_t *line = NULL;
+   DB_ion_t *ion = NULL;
+   DB_level_t *e_upper, *e_lower;
    int Z, q, up, lo;
    char upper_label[LEVEL_NAME_SIZE];
    char lower_label[LEVEL_NAME_SIZE];
@@ -1064,6 +1075,21 @@ static void _get_line_info (int *id) /*{{{*/
 
    li.upper_label = upper_label;
    li.lower_label = lower_label;
+
+   ion = DB_get_ion (db, Z, q);
+   if (NULL != (e_upper = DB_get_ion_level (up, ion)))
+     {
+        li.upper_E = e_upper->energy;
+        li.upper_L = e_upper->L;
+        li.upper_S = e_upper->S;
+     }
+
+   if (NULL != (e_lower = DB_get_ion_level (lo, ion)))
+     {
+        li.lower_E = e_lower->energy;
+        li.lower_L = e_lower->L;
+        li.lower_S = e_lower->S;
+     }
 
    finish:
 
@@ -1191,8 +1217,8 @@ static void _plot_elev (void) /*{{{*/
         goto fail;
      }
 
-   if (overlay)
-     reset_current_pane (fmt);
+   if (overlay == 0)
+     Plot_restart_style_cycle (fmt);
 
    if (-1 == DB_plot_levels (Z, q, lines, nlines, subset, overlay, fmt, db))
      isis_vmesg (FAIL, I_INFO, __FILE__, __LINE__, "plot failed");

@@ -1000,6 +1000,11 @@ static int _restart_style_cycle (Plot_t *fmt) /*{{{*/
 
 /*}}}*/
 
+int Plot_restart_style_cycle (Plot_t *fmt)
+{
+   return _restart_style_cycle (fmt);
+}
+
 int Plot_set_fmt_color (Plot_t *fmt, int color) /*{{{*/
 {
    fmt->color = color;

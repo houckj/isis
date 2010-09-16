@@ -137,6 +137,7 @@ extern int Plot_set_xlabel (Plot_t *fmt, const char *xlabel);
 extern int Plot_set_ylabel (Plot_t *fmt, const char *ylabel);
 extern int Plot_set_title (Plot_t *fmt, const char *title);
 
+extern int Plot_restart_style_cycle (Plot_t *fmt);
 extern void Plot_set_linestyle (Plot_t *fmt);
 extern void Plot_set_line_width (Plot_t *fmt);
 extern void Plot_set_frame_line_width (Plot_t *fmt);
