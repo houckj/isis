@@ -31,6 +31,7 @@ Changes since 1.6.1 (released Jul 2010)
 13.  Support simultaneously loading multiple spectroscopy databases.
      New intrinsics:  db_push, db_list, db_select
 14.  Plot energy levels with missing LS quantum numbers.
+15.  line_info returns more energy level details
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
