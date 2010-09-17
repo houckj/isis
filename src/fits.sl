@@ -203,7 +203,7 @@ define fits_get_num_hdus ()
    variable needs_close, num;
    fp = get_open_fp (fp, &needs_close);
    variable status = _fits_get_num_hdus (fp, &num);
-   if (needs_close) fits_close_file (fp);
+   do_close_file (fp, needs_close);
    if (status == 0)
      return num;
 
@@ -417,7 +417,7 @@ define fits_key_exists ()
    fp = get_open_interesting_hdu (fp, &needs_close);
    variable value;
    variable status = _fits_read_key (fp, key, &value, NULL);
-   if (needs_close) fits_close_file (fp);
+   do_close_file (fp, needs_close);
    if (status == 0)
      return 1;
 
@@ -445,6 +445,34 @@ private define get_fits_btable_info (fp)
 
    return (numrows, names);
 }
+
+private define get_column_number (fp, col)
+{
+   if (typeof (col) == String_Type)
+     {
+	variable col_str = col;
+	fits_check_error (_fits_get_colnum (fp, col_str, &col), col_str);
+	return col;
+     }
+   return int (col);
+}
+
+private define get_column_numbers (fp, col_list)
+{
+   variable column_nums = Int_Type[0];
+   foreach (col_list)
+     {
+	variable col = ();
+	if (typeof (col) == Array_Type)
+	  col = array_map (Int_Type, &get_column_number, fp, col);
+	else
+	  col = get_column_number (fp, col);
+
+	column_nums = [column_nums, col];
+     }
+   return column_nums;
+}
+
 
 %!%+
 %\function{fits_get_colnum}
@@ -512,6 +540,20 @@ define fits_binary_table_column_exists ()
    col = strup (col);
    names = array_map (String_Type, &strup, names);
    return length (where (col == names));
+}
+
+define fits_delete_col ()
+{
+   if (_NARGS != 2)
+     usage ("fits_delete_col (file, col)");
+
+   variable f, col;  (f, col) = ();
+   variable needs_close;
+   f = get_open_binary_table (f, &needs_close);
+
+   col = get_column_number (f, col);
+   fits_check_error (_fits_delete_col (f, col));
+   do_close_file (f, needs_close);
 }
 
 private define get_tdim_string (fp, col)
@@ -624,33 +666,6 @@ private define normalize_names (names)
 	new_names = [new_names, name];
      }
    return new_names;
-}
-
-private define get_column_number (fp, col)
-{
-   if (typeof (col) == String_Type)
-     {
-	variable col_str = col;
-	fits_check_error (_fits_get_colnum (fp, col_str, &col), col_str);
-	return col;
-     }
-   return int (col);
-}
-
-private define get_column_numbers (fp, col_list)
-{
-   variable column_nums = Int_Type[0];
-   foreach (col_list)
-     {
-	variable col = ();
-	if (typeof (col) == Array_Type)
-	  col = array_map (Int_Type, &get_column_number, fp, col);
-	else
-	  col = get_column_number (fp, col);
-
-	column_nums = [column_nums, col];
-     }
-   return column_nums;
 }
 
 private define open_read_cols (fp, columns)
@@ -1012,7 +1027,7 @@ define fits_info ()
    (numrows, names) = get_fits_btable_info (fp);
    numcols = length (names);
 
-   () = fprintf (stdout, "%s contains %d rows and %d columns:\n", file, numrows, numcols);
+   () = fprintf (stdout, "%S contains %d rows and %d columns:\n", file, numrows, numcols);
    _for (1, numcols, 1)
      {
 	variable i = ();
@@ -1562,6 +1577,14 @@ define fits_update_key ()
      }
 
    do_write_xxx (&_fits_update_key, nargs);
+}
+
+define fits_delete_key ()
+{
+   if (_NARGS != 2)
+     usage ("fits_delete_key (fp, key)");
+
+   do_write_xxx (&_fits_delete_key, _NARGS);
 }
 
 %!%+

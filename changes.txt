@@ -8,3 +8,6 @@ Changes since 0.4.6
    changes.txt file.
 5. src/fits.sl: Added wrappers for fits_get_num_hdus, fits_movrel_hdu,
    fits_movabs_hdu.
+6. src/fits.sl: Added fits_delete_key/col wrappers.
+7. src/fits.sl: fits_info: Changed format specifier %s to %S for the fits
+   descriptor.
