@@ -21,8 +21,9 @@
 %else
 import ("cfitsio");
 
-variable _fits_sl_version = 406;
-variable _fits_sl_version_string = "0.4.6-0";
+% Track the modules's version since it now follows the changes.txt file.
+variable _fits_sl_version_string = _cfitsio_module_version_string;
+variable _fits_sl_version = _cfitsio_module_version;
 
 private variable Verbose = 1;
 % Forward declarations
@@ -99,7 +100,7 @@ define fits_set_verbose_errors ()
    Verbose = v;
 }
 
-private define do_fits_error ()
+define fits_check_error ()
 {
    variable status, file = "";
    
@@ -157,7 +158,7 @@ define fits_open_file ()
 
    variable status = _fits_open_file (&fp, file, mode);
    if (status)
-     do_fits_error (status, file);
+     fits_check_error (status, file);
    return fp;
 }
 
@@ -176,7 +177,7 @@ define fits_open_file ()
 %!%-
 define fits_close_file (fp)
 {
-   do_fits_error (_fits_close_file (fp));
+   fits_check_error (_fits_close_file (fp));
 }
 
 private define do_close_file (fp, needs_close)
@@ -191,7 +192,7 @@ private define get_open_fp (fp, needs_close)
    if (typeof (fp) != Fits_File_Type)
      {
 	variable file = fp;
-	do_fits_error (_fits_open_file (&fp, fp, "r"), file);
+	fits_check_error (_fits_open_file (&fp, fp, "r"), file);
 	@needs_close = 1;
      }
    return fp;
@@ -205,7 +206,7 @@ private define find_interesting_hdu (f, hdu_type, check_naxis)
      {
 	variable status;
 
-	do_fits_error (_fits_get_hdu_type (f, &type));
+	fits_check_error (_fits_get_hdu_type (f, &type));
 	if (type == _FITS_ASCII_TBL)
 	  type = _FITS_BINARY_TBL;
 
@@ -215,7 +216,7 @@ private define find_interesting_hdu (f, hdu_type, check_naxis)
 	       return 0;
 	     
 	     variable naxis;
-	     do_fits_error (_fits_read_key (f, "NAXIS", &naxis, NULL));
+	     fits_check_error (_fits_read_key (f, "NAXIS", &naxis, NULL));
 	     if (naxis != 0)
 	       return 0;
 	  }
@@ -253,7 +254,7 @@ private define get_open_hdu_of_type (f, hdu_type, needs_close, check_naxis)
    @needs_close = 0;
    if (typeof (f) == Fits_File_Type)
      {
-	do_fits_error (_fits_get_hdu_type (f, &type));
+	fits_check_error (_fits_get_hdu_type (f, &type));
 	if ((hdu_type == _FITS_BINARY_TBL)
 	    and (type == _FITS_ASCII_TBL))
 	  hdu_type = type;
@@ -381,22 +382,22 @@ define fits_key_exists ()
    if (status == _FITS_KEY_NO_EXIST)
      return 0;
 
-   do_fits_error (status);
+   fits_check_error (status);
 }
 
 private define get_fits_btable_info (fp)
 {
    variable numrows, numcols, names, name, col;
 
-   do_fits_error (_fits_get_num_rows (fp, &numrows));
-   do_fits_error (_fits_get_num_cols (fp, &numcols));
+   fits_check_error (_fits_get_num_rows (fp, &numrows));
+   fits_check_error (_fits_get_num_cols (fp, &numcols));
 
    names = String_Type [numcols];
    _for (1, numcols, 1)
      {
 	col = ();
 
-	do_fits_error (_fits_read_key_string (fp, "TTYPE"+string(col), &name, NULL));
+	fits_check_error (_fits_read_key_string (fp, "TTYPE"+string(col), &name, NULL));
 	names [col-1] = name;
      }
 
@@ -429,7 +430,7 @@ define fits_get_colnum ()
    f = get_open_binary_table (f, &needs_close);
 
    variable colnum;
-   do_fits_error (_fits_get_colnum (f, column_names, &colnum), column_names);
+   fits_check_error (_fits_get_colnum (f, column_names, &colnum), column_names);
 
    do_close_file (f, needs_close);
    return colnum;
@@ -479,7 +480,7 @@ private define get_tdim_string (fp, col)
    !if (fits_key_exists (fp, tdim))
      return NULL;
 
-   do_fits_error (_fits_read_key (fp, tdim, &tdim, NULL), tdim);
+   fits_check_error (_fits_read_key (fp, tdim, &tdim, NULL), tdim);
    return tdim;
 }
 
@@ -516,7 +517,7 @@ private define check_vector_tdim (fp, first_row, tdim_col, data)
    variable len = length (data);
    variable tdim;
 
-   do_fits_error (_fits_read_col (fp, tdim_col, first_row, len, &tdim));
+   fits_check_error (_fits_read_col (fp, tdim_col, first_row, len, &tdim));
    if (_typeof (tdim) != String_Type)
      return;
 
@@ -530,7 +531,7 @@ private define check_vector_tdim (fp, first_row, tdim_col, data)
 private define reshape_string_array (fp, col, data)
 {
    variable tform, repeat, width;
-   do_fits_error (_fits_read_key_string (fp, "TFORM" + string(col), &tform, NULL));
+   fits_check_error (_fits_read_key_string (fp, "TFORM" + string(col), &tform, NULL));
    % Look for rAw
    if (2 != sscanf (tform, "%dA%d", &repeat, &width))
      return data;
@@ -592,7 +593,7 @@ private define get_column_number (fp, col)
    if (typeof (col) == String_Type)
      {
 	variable col_str = col;
-	do_fits_error (_fits_get_colnum (fp, col_str, &col), col_str);
+	fits_check_error (_fits_get_colnum (fp, col_str, &col), col_str);
 	return col;
      }
    return int (col);
@@ -618,7 +619,7 @@ private define open_read_cols (fp, columns)
 {
    variable needs_close, numrows, numcols;
    fp = get_open_binary_table (fp, &needs_close);
-   do_fits_error (_fits_get_num_rows (fp, &numrows));
+   fits_check_error (_fits_get_num_rows (fp, &numrows));
    numcols = length(columns);
    
    variable s = struct
@@ -641,7 +642,7 @@ private define open_read_cols (fp, columns)
 	variable tdim_col = sprintf ("TDIM%d", col);
 	if (fits_binary_table_column_exists (fp, tdim_col))
 	  {
-	     do_fits_error (_fits_get_colnum (fp, tdim_col, &tdim_col));
+	     fits_check_error (_fits_get_colnum (fp, tdim_col, &tdim_col));
 	     if (tdim_col != col)
 	       s.tdim_cols[i] = tdim_col;
 	  }
@@ -679,7 +680,7 @@ private define read_cols (fpinfo, first_row, last_row)
      throw FitsError, "Invalid first or last row parameters";
    
    variable data_arrays;   
-   do_fits_error (_fits_read_cols (fp, columns, first_row, want_num_rows, &data_arrays));
+   fits_check_error (_fits_read_cols (fp, columns, first_row, want_num_rows, &data_arrays));
    _for (0, fpinfo.num_cols-1, 1)
      {
 	variable i = ();
@@ -852,7 +853,7 @@ define fits_get_num_rows ()
    variable fp = ();
    variable needs_close, num_rows;
    fp = get_open_binary_table (fp, &needs_close);
-   do_fits_error (_fits_get_num_rows (fp, &num_rows));
+   fits_check_error (_fits_get_num_rows (fp, &num_rows));
    do_close_file (fp, needs_close);
    return num_rows;
 }
@@ -865,7 +866,7 @@ define fits_get_num_cols ()
    variable fp = ();
    variable needs_close, num_cols;
    fp = get_open_binary_table (fp, &needs_close);
-   do_fits_error (_fits_get_num_cols (fp, &num_cols));
+   fits_check_error (_fits_get_num_cols (fp, &num_cols));
    do_close_file (fp, needs_close);
    return num_cols;
 }
@@ -971,7 +972,7 @@ define fits_info ()
    variable numrows, numcols, names;
    variable needs_close;
 
-   %do_fits_error (_fits_open_file (&fp, file, "r"));
+   %fits_check_error (_fits_open_file (&fp, file, "r"));
    fp = get_open_interesting_hdu (file, &needs_close);
 
    (numrows, names) = get_fits_btable_info (fp);
@@ -984,7 +985,7 @@ define fits_info ()
 	variable tform, name;
 
 	name = names[i-1];
-	do_fits_error (_fits_read_key_string (fp, "TFORM" + string(i), &tform, NULL));
+	fits_check_error (_fits_read_key_string (fp, "TFORM" + string(i), &tform, NULL));
 	variable tdim = get_tdim_string (fp, i);
 	if (tdim == NULL) tdim = "";
 	else tdim = "TDIM=" + tdim;
@@ -1037,7 +1038,7 @@ define fits_read_key ()
 	     _fits_clear_errmsg ();
 	  }
 	else if (status)
-	  do_fits_error (status, key);
+	  fits_check_error (status, key);
 
 	value;
      }
@@ -1080,7 +1081,7 @@ private define get_open_write_fp (fp, mode, needs_close)
    if (typeof (fp) != Fits_File_Type)
      {
 	@needs_close = 1;
-	do_fits_error (_fits_open_file (&fp, fp, mode));
+	fits_check_error (_fits_open_file (&fp, fp, mode));
      }
    
    return fp;
@@ -1117,7 +1118,7 @@ define fits_create_binary_table ()
    variable needs_close;
    fp = get_open_write_fp (fp, "c", &needs_close);
 
-   do_fits_error (_fits_create_binary_tbl (fp, nrows, ttype, tform, tunit, extnam));
+   fits_check_error (_fits_create_binary_tbl (fp, nrows, ttype, tform, tunit, extnam));
    do_close_file (fp, needs_close);
 }
 
@@ -1201,7 +1202,7 @@ private define add_keys_and_history_func (fp, keys, history)
 	  {
 	     variable keyword = ();
 	     val = get_struct_field (keys, keyword);
-	     do_fits_error (_fits_update_key (fp, keyword, val, NULL), keyword);
+	     fits_check_error (_fits_update_key (fp, keyword, val, NULL), keyword);
 	  }
      }
 
@@ -1227,12 +1228,12 @@ private define add_keys_and_history_func (fp, keys, history)
 	     val = ();
 	     if (keyword == "history")
 	       {
-		  do_fits_error (_fits_write_history (fp, val));
+		  fits_check_error (_fits_write_history (fp, val));
 		  continue;
 	       }
 	     if (keyword == "comment")
 	       {
-		  do_fits_error (_fits_write_comment (fp, val));
+		  fits_check_error (_fits_write_comment (fp, val));
 		  continue;
 	       }
 	     vmessage ("*** WARNING: history/comment record name '%s' is not supported",
@@ -1412,7 +1413,7 @@ define fits_write_binary_table ()
      {
 	i = ();
 	if (NULL != tdim[i])
-	  do_fits_error (_fits_update_key (fp, sprintf("TDIM%d", i+1), tdim[i], NULL));
+	  fits_check_error (_fits_update_key (fp, sprintf("TDIM%d", i+1), tdim[i], NULL));
      }
 
    if (keyfunc != NULL)
@@ -1423,7 +1424,7 @@ define fits_write_binary_table ()
      {
 	i = ();
 	val = get_struct_field (s, ttype[i]);
-	do_fits_error (_fits_write_col (fp, i+1, 1, 1, val));
+	fits_check_error (_fits_write_col (fp, i+1, 1, 1, val));
      }
 #else
    
@@ -1453,9 +1454,9 @@ define fits_write_binary_table ()
 		  i = ();
 		  val = get_struct_field (s, ttype[i]);
 		  if (reshapes_to[i] == NULL)
-		    do_fits_error (_fits_write_col (fp, i+1, r+1, 1, val[k]));
+		    fits_check_error (_fits_write_col (fp, i+1, r+1, 1, val[k]));
 		  else
-		    do_fits_error (_fits_write_col (fp, i+1, r+1, 1, val[k,*]));
+		    fits_check_error (_fits_write_col (fp, i+1, r+1, 1, val[k,*]));
 	       }
 	     r = r1;
 	  }
@@ -1480,9 +1481,9 @@ private define do_write_xxx (func, nargs)
    fp = get_open_write_fp (fp, "w", &needs_close);
 
    if (nargs > 1)
-     do_fits_error ((@func)(fp, __push_args(args)));
+     fits_check_error ((@func)(fp, __push_args(args)));
    else
-     do_fits_error ((@func)(fp));
+     fits_check_error ((@func)(fp));
 
    do_close_file (fp, needs_close);
 }
@@ -1496,9 +1497,9 @@ private define do_read_xxx (func, nargs)
    fp = get_open_fp (fp, &needs_close);
 
    if (nargs > 1)
-     do_fits_error ((@func)(fp, __push_args(args)));
+     fits_check_error ((@func)(fp, __push_args(args)));
    else
-     do_fits_error ((@func)(fp));
+     fits_check_error ((@func)(fp));
 
    do_close_file (fp, needs_close);
 }
@@ -1701,7 +1702,7 @@ define fits_read_records ()
    fp = get_open_interesting_hdu (fp, NULL);
 
    variable nkeys;
-   do_fits_error (_fits_get_num_keys (fp, &nkeys));
+   fits_check_error (_fits_get_num_keys (fp, &nkeys));
 
    variable recs = String_Type [nkeys];
    _for (0, nkeys-1, 1)
@@ -1709,7 +1710,7 @@ define fits_read_records ()
 	variable i = ();
 	variable rec;
 
-	do_fits_error (_fits_read_record (fp, i+1, &rec));
+	fits_check_error (_fits_read_record (fp, i+1, &rec));
 	recs[i] = rec;
      }
    return recs;
@@ -1745,7 +1746,7 @@ define fits_write_records ()
    foreach (records)
      {
 	variable rec = ();
-	do_fits_error (_fits_write_record (fp, rec));
+	fits_check_error (_fits_write_record (fp, rec));
      }
    do_close_file (fp, needs_close);
 }
@@ -1839,7 +1840,7 @@ define fits_read_img ()
 
    variable a;
 
-   do_fits_error (_fits_read_img (fp, &a));
+   fits_check_error (_fits_read_img (fp, &a));
    do_close_file (fp, needs_close);
 
    return a;
@@ -1881,9 +1882,9 @@ define fits_create_image_hdu ()
    variable needs_close;
    fp = get_open_write_fp (fp, "c", &needs_close);
 
-   do_fits_error (_fits_create_img (fp, fits_get_bitpix (type), dims));
+   fits_check_error (_fits_create_img (fp, fits_get_bitpix (type), dims));
    if (extname != NULL)
-     do_fits_error (_fits_update_key (fp, "EXTNAME", extname, NULL));
+     fits_check_error (_fits_update_key (fp, "EXTNAME", extname, NULL));
 
    do_close_file (fp, needs_close);
 }
@@ -1980,7 +1981,7 @@ define fits_write_image_hdu ()
 	  {
 	     variable keyword = ();
 	     variable val = get_struct_field (keys, keyword);
-	     do_fits_error (_fits_update_key (fp, keyword, val, NULL), keyword);
+	     fits_check_error (_fits_update_key (fp, keyword, val, NULL), keyword);
 	  }
      }
 
@@ -2005,12 +2006,12 @@ define fits_write_image_hdu ()
 		  val = ();
 		  if (keyword == "history")
 		    {
-		       do_fits_error (_fits_write_history (fp, val));
+		       fits_check_error (_fits_write_history (fp, val));
 		       continue;
 		    }
 		  if (keyword == "comment")
 		    {
-		       do_fits_error (_fits_write_comment (fp, val));
+		       fits_check_error (_fits_write_comment (fp, val));
 		       continue;
 		    }
 		  vmessage ("*** WARNING: history/comment record name '%s' is not supported",
@@ -2019,7 +2020,7 @@ define fits_write_image_hdu ()
 	  }
      }
 
-   do_fits_error (_fits_write_img (fp, image));
+   fits_check_error (_fits_write_img (fp, image));
    do_close_file (fp, needs_close);
 }
 
@@ -2046,7 +2047,7 @@ define fits_write_img ()
      {
 	usage ("%s (fptr, img)", _function_name);
      }
-   do_fits_error (_fits_write_img (fp, data));
+   fits_check_error (_fits_write_img (fp, data));
 }
 
 

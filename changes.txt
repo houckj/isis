@@ -1,2 +1,8 @@
 Changes since 0.4.6
 1. Documentation tweaks (Manfred Hanke)
+2. src/cfitsio-module.c: Added support for SLANG_LONG_TYPE to
+   the read_key function.
+3. src/fits.sl: Renamed the private function do_fits_error to
+   fits_check_error and made it public.
+4. src/fits.sl, src/version.h,...: Version numbers now track the
+   changes.txt file.
