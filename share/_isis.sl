@@ -477,10 +477,16 @@ define take_input_hook () %{{{
 
 % Manage list of spectroscopy databases:
 
+private variable Database_List = {};
+private variable Next_Database_Index = 0,
+  Current_Database_Index = 0;
+
 private define db_new () %{{{
 {
+   Next_Database_Index += 1;
    return struct
      {
+        index = Next_Database_Index,
         atomic_data_filemap = "",
         atomic_data = NULL,
         emissivities = NULL
@@ -488,9 +494,6 @@ private define db_new () %{{{
 }
 
 %}}}
-
-private variable Database_List = {};
-private variable Current_Database_Index = 0;
 
 private define db_free () %{{{
 {
@@ -509,10 +512,15 @@ atexit (&db_free);
 define db_push () %{{{
 {
    variable needs_initialization = 1;
-   variable n = db_new();
+   variable n = NULL;
 
-   if (_NARGS == 1)
+   switch (_NARGS)
      {
+      case 0:
+        n = db_new();
+     }
+     {
+      case 1:
         variable s = ();
         if (struct_field_exists (s, "atomic_data")
                  && struct_field_exists (s, "emissivities"))
@@ -520,15 +528,18 @@ define db_push () %{{{
              n = s;
              needs_initialization = 0;
           }
+        else n = db_new();
      }
-   else if (_NARGS > 1)
      {
         % default:
         throw ApplicationError, "db_push:  too many input parameters";
      }
 
+   if (typeof(n) != Struct_Type)
+     throw ApplicationError, "db_push:  Struct_Type was expected";
+
    list_insert (Database_List, n);
-   Current_Database_Index = 0;
+   Current_Database_Index = n.index;
 
    return needs_initialization;
 }
@@ -537,34 +548,51 @@ define db_push () %{{{
 
 define db_pop (k) %{{{
 {
-   if (length(Database_List) == 0)
+   variable num = length(Database_List);
+
+   if (num == 0)
      return NULL;
 
-   variable db = list_pop (Database_List, k);
+   if (k == NULL)
+     k = Current_Database_Index;
 
-   if (Current_Database_Index > k)
-     Current_Database_Index -= 1;
-   else if (Current_Database_Index == k)
-     Current_Database_Index = 0;
+   variable i;
+   _for i (0, num-1, 1)
+     {
+        if (Database_List[i].index == k)
+          {
+             return list_pop (Database_List, i);
+          }
+     }
 
-   return db;
+   return NULL;
+}
+
+%}}}
+
+define db_find (k) %{{{
+{
+   variable db;
+   foreach db (Database_List)
+     {
+        if (db.index == k)
+          return db;
+     }
+   return NULL;
 }
 
 %}}}
 
 define db_current () %{{{
 {
-   if (length(Database_List) == 0)
-     return NULL;
-   return Database_List[Current_Database_Index];
+   return db_find (Current_Database_Index);
 }
 
 %}}}
 
 define db_select (k) %{{{
 {
-   variable num = length(Database_List);
-   if (k < 0 || num <= k)
+   if (db_find (k) == NULL)
      throw ApplicationError, "db_select: Nonexistent database index=$k"$;
    Current_Database_Index = k;
 }
@@ -580,6 +608,25 @@ define db_indices () %{{{
 
 %}}}
 
+define db_compare (a,b) %{{{
+{
+   if (a.index < b.index)
+     return -1;
+   else if (a.index > b.index)
+     return 1;
+   else return 0;
+}
+
+%}}}
+
+define db_sort () %{{{
+{
+   variable a = list_to_array (Database_List);
+   Database_List[*] = a[array_sort (a, &db_compare)];
+}
+
+%}}}
+
 define db_list () %{{{
 {
    variable n, num = length(Database_List);
@@ -589,13 +636,17 @@ define db_list () %{{{
         return;
      }
 
+   db_sort ();
+
    variable sa = ["Current database list:"];
    _for n (0, num-1, 1)
      {
         variable db = Database_List[n];
-        variable current_flag = _eqs (db, db_current()) ? "*" : " ";
-        variable s = sprintf ("%2d %s %s ", n, current_flag,
-                              db.atomic_data_filemap);
+        variable s =
+          sprintf ("%2d%s  %s",
+                   db.index,
+                   (db.index == Current_Database_Index) ? "*" : " ",
+                   db.atomic_data_filemap);
         sa = [sa, s];
      }
 
@@ -614,32 +665,45 @@ define db_list () %{{{
 
 %}}}
 
-define get_atomic_db_pointer ()
+define get_atomic_db_pointer () %{{{
 {
    if (length(Database_List) == 0)
-     () = db_push();
+     return NULL;
    return db_current().atomic_data;
 }
-define set_atomic_db_pointer (p, filemap)
+
+%}}}
+
+define set_atomic_db_pointer (p, filemap) %{{{
 {
    if (length(Database_List) == 0)
-     () = db_push();
+     () = db_push ();
    variable db = db_current();
    db.atomic_data_filemap = filemap;
    db.atomic_data = p;
 }
-define get_emis_db_pointer ()
+
+%}}}
+
+define get_emis_db_pointer () %{{{
 {
    if (length(Database_List) == 0)
-     () = db_push();
+     return NULL;
    return db_current().emissivities;
 }
-define set_emis_db_pointer (p)
+
+%}}}
+
+define set_emis_db_pointer (p) %{{{
 {
    if (length(Database_List) == 0)
-     () = db_push();
+     () = db_push ();
    db_current().emissivities = p;
 }
+
+%}}}
+
+% spectroscopy database input hooks
 
 variable Dbase = struct
 {
@@ -731,6 +795,8 @@ define emisdb_start_hook () %{{{
 }
 
 %}}}
+
+% misc hooks...
 
 define kernel_init_hook (name, arg_string) %{{{
 {

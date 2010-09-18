@@ -79,7 +79,7 @@ define db_push () %{{{
 define db_pop () %{{{
 {
    variable msg = "Struct_Type = db_pop ([k])";
-   variable k = 0;
+   variable k = NULL;
    if (_NARGS == 1)
      k = ();
    else if (_NARGS > 1)
