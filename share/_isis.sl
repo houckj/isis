@@ -490,7 +490,7 @@ private define db_new () %{{{
 %}}}
 
 private variable Database_List = {};
-private variable Current_Database = NULL;
+private variable Current_Database_Index = 0;
 
 private define db_free () %{{{
 {
@@ -508,6 +508,7 @@ atexit (&db_free);
 
 define db_push () %{{{
 {
+   variable needs_initialization = 1;
    variable n = db_new();
 
    if (_NARGS == 1)
@@ -517,6 +518,7 @@ define db_push () %{{{
                  && struct_field_exists (s, "emissivities"))
           {
              n = s;
+             needs_initialization = 0;
           }
      }
    else if (_NARGS > 1)
@@ -526,7 +528,54 @@ define db_push () %{{{
      }
 
    list_insert (Database_List, n);
-   Current_Database = Database_List[0];
+   Current_Database_Index = 0;
+
+   return needs_initialization;
+}
+
+%}}}
+
+define db_pop (k) %{{{
+{
+   if (length(Database_List) == 0)
+     return NULL;
+
+   variable db = list_pop (Database_List, k);
+
+   if (Current_Database_Index > k)
+     Current_Database_Index -= 1;
+   else if (Current_Database_Index == k)
+     Current_Database_Index = 0;
+
+   return db;
+}
+
+%}}}
+
+define db_current () %{{{
+{
+   if (length(Database_List) == 0)
+     return NULL;
+   return Database_List[Current_Database_Index];
+}
+
+%}}}
+
+define db_select (k) %{{{
+{
+   variable num = length(Database_List);
+   if (k < 0 || num <= k)
+     throw ApplicationError, "db_select: Nonexistent database index=$k"$;
+   Current_Database_Index = k;
+}
+
+%}}}
+
+define db_indices () %{{{
+{
+   if (length(Database_List) == 0)
+     return NULL;
+   return [0:length(Database_List)-1];
 }
 
 %}}}
@@ -544,7 +593,7 @@ define db_list () %{{{
    _for n (0, num-1, 1)
      {
         variable db = Database_List[n];
-        variable current_flag = _eqs (db, Current_Database) ? "*" : " ";
+        variable current_flag = _eqs (db, db_current()) ? "*" : " ";
         variable s = sprintf ("%2d %s %s ", n, current_flag,
                               db.atomic_data_filemap);
         sa = [sa, s];
@@ -565,40 +614,31 @@ define db_list () %{{{
 
 %}}}
 
-define db_select (k) %{{{
-{
-   variable num = length(Database_List);
-   if (k < 0 || num <= k)
-     throw ApplicationError, "db_select: Nonexistent database index=$k"$;
-   Current_Database = Database_List[k];
-}
-
-%}}}
-
 define get_atomic_db_pointer ()
 {
-   if (Current_Database == NULL)
-     db_push();
-   return Current_Database.atomic_data;
+   if (length(Database_List) == 0)
+     () = db_push();
+   return db_current().atomic_data;
 }
 define set_atomic_db_pointer (p, filemap)
 {
-   if (Current_Database == NULL)
-     db_push();
-   Current_Database.atomic_data_filemap = filemap;
-   Current_Database.atomic_data = p;
+   if (length(Database_List) == 0)
+     () = db_push();
+   variable db = db_current();
+   db.atomic_data_filemap = filemap;
+   db.atomic_data = p;
 }
 define get_emis_db_pointer ()
 {
-   if (Current_Database == NULL)
-     db_push();
-   return Current_Database.emissivities;
+   if (length(Database_List) == 0)
+     () = db_push();
+   return db_current().emissivities;
 }
 define set_emis_db_pointer (p)
 {
-   if (Current_Database == NULL)
-     db_push();
-   Current_Database.emissivities = p;
+   if (length(Database_List) == 0)
+     () = db_push();
+   db_current().emissivities = p;
 }
 
 variable Dbase = struct

@@ -9,7 +9,6 @@ fits_module_dep.sl
 group.sl
 hist-cmds.sl
 init.sl
-isis.sl
 isisdb.sl
 isisprof.sl
 mathmisc.sl
