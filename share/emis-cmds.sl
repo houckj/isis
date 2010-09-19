@@ -67,18 +67,16 @@ define db_push () %{{{
 
    variable s = ();
 
-   if (_isis->db_push(s))
-     {
-        atoms(s);
-        plasma(s);
-     }
+   _isis->db_push();
+   atoms(s);
+   plasma(s);
 }
 
 %}}}
 
 define db_pop () %{{{
 {
-   variable msg = "Struct_Type = db_pop ([k])";
+   variable msg = "db_pop ([k])";
    variable k = NULL;
    if (_NARGS == 1)
      k = ();

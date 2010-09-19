@@ -6884,20 +6884,28 @@ for comments.
 \end{isisfunction}
 
 \begin{isisfunction}
+{db\_indices}%
+{Get indices of currently loaded spectroscopy databases}%
+{Integer\_Type[] = db\_indices ()}% usage
+{db\_push, db\_pop, db\_select, db\_list, plasma, atoms}
+
+\end{isisfunction}
+
+\begin{isisfunction}
 {db\_list}%
-{list of currently loaded spectroscopy databases}%
+{list currently loaded spectroscopy databases}%
 {db\_list ([Ref\_Type | File\_Type])}% usage
-{db\_push, db\_select, plasma, atoms}
+{db\_push, db\_pop, db\_select, db\_indices, plasma, atoms}
 
 This function produces a numbered list of spectroscopy databases.
 Each database is identified by the path to its filemap file.
 The currently selected database is indicated by an asterisk.
 
-\begin{verbatim} 
+\begin{verbatim}
 EXAMPLE:
   isis> db_list;
   Current database list:
-   0 * /nfs/blackhole/d1/ji/ATOMDB/filemap_v2.0.0.rc7 
+   0 * /nfs/blackhole/d1/ji/ATOMDB/filemap_v2.0.0.rc7
    1   /nfs/cxc/a1/share/atomdb/filemap
 \end{verbatim}
 
@@ -6905,18 +6913,29 @@ If called with a \verb|Ref_Type| argument, the \verb|Ref_Type| will be
 assigned a string containing the database list. If called with a
 \verb|File_Type| argument, the database list will be written to the indicate
 \verb|File_Type|.
+\end{isisfunction}
+
+\begin{isisfunction}
+{db\_pop}%
+{Remove a spectroscopy database from the internal list}%
+{db\_pop ([index])}% usage
+{db\_push, db\_select, db\_list, db\_indices, plasma, atoms}
+
+This function removes a spectroscopy database from the internal database list.
+If no database index is specified, the operation applies to the currently
+selected database.
 
 \end{isisfunction}
 
 \begin{isisfunction}
-{db\_push}% 
+{db\_push}%
 {load another spectroscopy database}%
 {db\_push (Struct\_Type)}% usage
-{db\_list, db\_select, plasma, atoms}
+{db\_pop, db\_list, db\_select, db\_indices, plasma, atoms}
 
-Use this function to load another spectroscopy database. The
-\verb|Struct_Type| argument has the same form as the one used 
-as input to the \verb|plasma| function.
+Use this function to load another spectroscopy database by reading its
+contents from files. The \verb|Struct_Type| argument should have the same form
+as the one used as input to the \verb|plasma| function.
 
 \end{isisfunction}
 
@@ -6924,7 +6943,7 @@ as input to the \verb|plasma| function.
 {db\_select}%
 {select a spectroscopy database}%
 {db\_select (Int\_Type k)}% usage
-{db\_push, db\_list, plasma, atoms}
+{db\_push, db\_list, db\_pop, db\_indices, plasma, atoms}
 
 Use this function to select a spectroscopy database from the currently list
 displayed by \verb|db_list|.  Subsequent calls to database access functions

@@ -5181,10 +5181,25 @@ change_wl
     plasma, atoms
 
 ------------------------------------------------------------------------
+db_indices
+
+ SYNOPSIS
+    Get indices of currently loaded spectroscopy databases
+
+ USAGE
+    Integer_Type[] = db_indices ()
+
+ DESCRIPTION
+
+
+ SEE ALSO
+    db_push, db_pop, db_select, db_list, plasma, atoms
+
+------------------------------------------------------------------------
 db_list
 
  SYNOPSIS
-    list of currently loaded spectroscopy databases
+    list currently loaded spectroscopy databases
 
  USAGE
     db_list ([Ref_Type | File_Type])
@@ -5206,9 +5221,26 @@ db_list
     a File_Type argument, the database list will be written to the
     indicate File_Type.
 
+ SEE ALSO
+    db_push, db_pop, db_select, db_indices, plasma, atoms
+
+------------------------------------------------------------------------
+db_pop
+
+ SYNOPSIS
+    Remove a spectroscopy database from the internal list
+
+ USAGE
+    db_pop ([index])
+
+ DESCRIPTION
+    This function removes a spectroscopy database from the internal
+    database list. If no database index is specified, the operation
+    applies to the currently selected database.
+
 
  SEE ALSO
-    db_push, db_select, plasma, atoms
+    db_push, db_select, db_list, db_indices, plasma, atoms
 
 ------------------------------------------------------------------------
 db_push
@@ -5220,13 +5252,14 @@ db_push
     db_push (Struct_Type)
 
  DESCRIPTION
-    Use this function to load another spectroscopy database. The
-    Struct_Type argument has the same form as the one used as input
-    to the plasma function.
+    Use this function to load another spectroscopy database by
+    reading its contents from files. The Struct_Type argument
+    should have the same form as the one used as input to the
+    plasma function.
 
 
  SEE ALSO
-    db_list, db_select, plasma, atoms
+    db_pop, db_list, db_select, db_indices, plasma, atoms
 
 ------------------------------------------------------------------------
 db_select
@@ -5245,7 +5278,7 @@ db_select
 
 
  SEE ALSO
-    db_push, db_list, plasma, atoms
+    db_push, db_list, db_pop, db_indices, plasma, atoms
 
 ------------------------------------------------------------------------
 define_group
