@@ -532,7 +532,7 @@ define db_pop (k) %{{{
      {
         if (Current_Database != NULL)
           {
-             _for k (0, num-1, 1)
+             for (k = 0; k < num; k++)
                {
                   if (__is_same (Database_List[k], Current_Database))
                     break;
