@@ -2854,26 +2854,6 @@ imaginary parts separately. See \verb|fft| for details.
 \end{isisfunction}
 
 \begin{isisfunction}
-{finite} %name
-{Return boolean array indicating which array values are finite} %purpose
-{w[] = finite (x[])} %usage
-{ }
-
-Finite array values are those which for which
-\begin{verbatim}
-  x[i] != NaN and |x[i]| != Infinity
-\end{verbatim}
-
-\begin{verbatim}
-For Example:
-   x = urand(100) - 0.5;
-   y = log(x);
-   i = where(finite(y));
-\end{verbatim}
-
-\end{isisfunction}
-
-\begin{isisfunction}
 {get\_isis\_load\_path}
 {Get the current script load path}
 {value = get\_isis\_load\_path ()}

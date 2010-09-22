@@ -579,30 +579,6 @@ fft1d
     fft
 
 ------------------------------------------------------------------------
-finite
-
- SYNOPSIS
-    Return boolean array indicating which array values are finite
-
- USAGE
-    w[] = finite (x[])
-
- DESCRIPTION
-    Finite array values are those which for which
-
-      x[i] != NaN and |x[i]| != Infinity
-
-    For Example:
-       x = urand(100) - 0.5;
-       y = log(x);
-       i = where(finite(y));
-
-
-
- SEE ALSO
-    
-
-------------------------------------------------------------------------
 get_isis_load_path
 
  SYNOPSIS
