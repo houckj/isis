@@ -195,6 +195,32 @@ private define apply_axis_ranges (a, gx, gy) %{{{
 
 %}}}
 
+private define validate_array_sizes (a, gx, gy) %{{{
+{
+   variable
+     a_dims = array_shape (a),
+     gx_dims = array_shape (gx),
+     gy_dims = array_shape (gy);
+
+   % a[row,col]  dim[0] = row = "y-axis"
+   %             dim[1] = col = "x-axis"
+
+   variable ok = ((length(a_dims) == 2 && length(gx_dims) == 1 && length(gy_dims) == 1)
+                 && (gy_dims[0] == a_dims[0])
+                 && (gx_dims[0] == a_dims[1]));
+
+   ifnot (ok)
+     {
+        vmessage ("*** Error:  Inconsistent array shapes:");
+        vmessage ("   2D array shape is [nrow, ncol] = %S", a);
+        vmessage ("    axis array shapes are X[ncol] = %S", gx);
+        vmessage ("                          Y[nrow] = %S", gy);
+        throw UsageError;
+     }
+}
+
+%}}}
+
 private define plot_image_args (nargs, msg) %{{{
 {
    variable a, aspect, gx, gy, amin, amax;
@@ -234,6 +260,8 @@ private define plot_image_args (nargs, msg) %{{{
 	usage (msg);
 	return;
      }
+
+   validate_array_sizes (a, gx, gy);
 
    return (a, aspect, gx, gy, amin, amax);
 }
@@ -288,6 +316,8 @@ private define plot_contour_args (nargs, msg) %{{{
 	usage (msg);
 	return;
      }
+
+   validate_array_sizes (a, gx, gy);
 
    return (a, aspect, gx, gy, c);
 }
