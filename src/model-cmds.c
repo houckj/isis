@@ -321,6 +321,19 @@ static int init_model_info (Model_Info_Type *info) /*{{{*/
         else if (0 == strcmp (s, "aped_hook"))
           {
              status = SLang_pop_cstruct ((VOID_STAR)info, Model_Info_Layout);
+             if (info->line_list != NULL)
+               {
+                  SLang_Array_Type *at = info->line_list;
+                  SLtype data_type = at->data_type;
+
+                  if ((data_type != SLANG_INT_TYPE) && (at->num_elements > 0))
+                    {
+                       isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__,
+                                   "aped_hook: expected Integer_Type line_list array (data_type=%d), got data_type=%d",
+                                   SLANG_INT_TYPE, data_type);
+                       status = -1;
+                    }
+               }
           }
         else
           {
