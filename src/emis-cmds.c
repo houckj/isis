@@ -553,7 +553,7 @@ static void _get_continuum (void) /*{{{*/
    s.Z = Z;
    s.q = q;
    s.rel_abun = rel_abun;
-   if (-1 == EM_get_continuum (p, par, &s, em))
+   if (-1 == EM_get_continuum (p, par, NULL /* FIXME - ionpop_new? */, &s, em))
      {
         isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "retrieving continuum data");
         goto finish;

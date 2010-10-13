@@ -57,6 +57,8 @@ struct _Model_t
    int id;                 /* id number of this component in the list */
 
    SLang_Array_Type *line_flux;       /* line fluxes */
+   SLang_Array_Type *last_ionpop;
+   /* last user-provided ionization balance */
 };
 
 typedef struct
@@ -76,6 +78,11 @@ typedef struct
    Isis_Line_Profile_Type *profile;
    SLang_Array_Type *profile_params;
    char *profile_options;
+
+   /* ionization balance hook */
+   SLang_Name_Type *ionpop_hook;
+   SLang_Array_Type *ionpop_params;
+   Isis_Arg_Type *ionpop_args;
 }
 Model_Info_Type;
 

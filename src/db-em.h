@@ -105,11 +105,11 @@ extern void EM_free_alt_ionization_table (EM_t *em);
 
 extern int EM_get_nlines (EM_line_emis_t *t);
 extern void EM_free_line_emis_list (EM_line_emis_t *p);
-extern EM_line_emis_t *EM_get_line_spectrum (char *flag, float *par, EM_t *em);
+extern EM_line_emis_t *EM_get_line_spectrum (char *flag, float *par, float *ionpop_new, EM_t *em);
 
 extern EM_cont_type_t *EM_new_continuum (int nbins);
 extern void EM_free_continuum (EM_cont_type_t *t);
-extern int EM_get_continuum (EM_cont_type_t *cont, float *par, EM_cont_select_t *s, EM_t *em);
+extern int EM_get_continuum (EM_cont_type_t *cont, float *par, float *ionpop_new, EM_cont_select_t *s, EM_t *em);
 
 extern int EM_sum_line_emissivity (float *emis, float *par,
                                    int *list, int nlines, EM_t *em);

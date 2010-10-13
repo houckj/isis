@@ -62,6 +62,8 @@ static void free_model_node (Model_t *m) /*{{{*/
      {
         SLang_free_array (m->line_flux);
         m->line_flux = NULL;
+        SLang_free_array (m->last_ionpop);
+        m->last_ionpop = NULL;
      }
    ISIS_FREE (m);
 }
@@ -82,6 +84,7 @@ static Model_t *new_model_node (void) /*{{{*/
    m->metal_abund = 1.0;
    m->redshift = 0.0;
    m->line_flux = NULL;
+   m->last_ionpop = NULL;
 
    memset ((char *) m->rel_abund, 0, (ISIS_MAX_PROTON_NUMBER+1)*sizeof(float));
 
@@ -500,7 +503,7 @@ static int profile_thermal (double *f, double wllo, double wlhi, /*{{{*/
  * line wings.   Smaller will take more time, but should be more accurate.
  */
 
-static int map_thermal_profile (Isis_Hist_t *g, double flux, double wl, double atomic_weight, int mid,
+static int map_thermal_profile (Isis_Hist_t *g, double flux, double wl, double atomic_weight, int mid, /*{{{*/
                                 double *profile_params, int num_profile_params, void *profile_options)
 {
    double f, av, de, faint;
@@ -542,27 +545,29 @@ static int map_thermal_profile (Isis_Hist_t *g, double flux, double wl, double a
         if (faint)
           break;
      }
-   
+
    return 0;
 }
+
+/*}}}*/
 
 typedef struct
 {
    double temperature;
    double ndensity;
 }
-Line_Modifier_State_Type;
+Plasma_State_Type;
 
-static SLang_CStruct_Field_Type Line_Modifier_State_Layout [] =
+static SLang_CStruct_Field_Type Plasma_State_Layout [] =
 {
-   MAKE_CSTRUCT_FIELD (Line_Modifier_State_Type, temperature, "temperature", SLANG_DOUBLE_TYPE, 0),
-   MAKE_CSTRUCT_FIELD (Line_Modifier_State_Type, ndensity, "ndensity", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Plasma_State_Type, temperature, "temperature", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Plasma_State_Type, ndensity, "ndensity", SLANG_DOUBLE_TYPE, 0),
    SLANG_END_CSTRUCT_TABLE
 };
 
-static int apply_line_modifier (Model_t *m, Model_Info_Type *info, DB_line_t *line, double *emis)
+static int apply_line_modifier (Model_t *m, Model_Info_Type *info, DB_line_t *line, double *emis) /*{{{*/
 {
-   Line_Modifier_State_Type lm_state;
+   Plasma_State_Type lm_state;
 
    lm_state.temperature = m->temperature;
    lm_state.ndensity = m->density;
@@ -570,7 +575,7 @@ static int apply_line_modifier (Model_t *m, Model_Info_Type *info, DB_line_t *li
    SLang_start_arg_list ();
    SLang_push_array (info->line_emis_modifier_params, 0);
    SLang_push_int (line->indx);
-   if (-1 == SLang_push_cstruct ((VOID_STAR)&lm_state, Line_Modifier_State_Layout))
+   if (-1 == SLang_push_cstruct ((VOID_STAR)&lm_state, Plasma_State_Layout))
      return -1;
    SLang_push_double (*emis);
    if (info->line_emis_modifier_args != NULL)
@@ -585,6 +590,72 @@ static int apply_line_modifier (Model_t *m, Model_Info_Type *info, DB_line_t *li
 
    return 0;
 }
+
+/*}}}*/
+
+static int call_ionpop_hook (Model_t *m, Model_Info_Type *info, float *ionpop_new) /*{{{*/
+{
+   Plasma_State_Type s;
+   SLang_Array_Type *sl_ionpop = NULL;
+   int Z, q, status = -1;
+   int n = ISIS_MAX_PROTON_NUMBER;
+
+   s.temperature = m->temperature;
+   s.ndensity = m->density;
+
+   /* Float_Type[n,n] = ionpop_hook (params, state, last_ionpop, [,args]) */
+   SLang_start_arg_list ();
+   SLang_push_array (info->ionpop_params, 0);
+   if (-1 == SLang_push_cstruct ((VOID_STAR)&s, Plasma_State_Layout))
+     {
+        SLang_end_arg_list ();
+        return -1;
+     }
+   SLang_push_array (m->last_ionpop, 0);
+   if (info->ionpop_args != NULL)
+     isis_push_args (info->ionpop_args);
+   SLang_end_arg_list ();
+
+   if (-1 == SLexecute_function (info->ionpop_hook))
+     return -1;
+
+   if (-1 == SLang_pop_array_of_type (&sl_ionpop, SLANG_FLOAT_TYPE))
+     return -1;
+
+   if ((sl_ionpop == NULL)
+       || (sl_ionpop->num_dims != 2)
+       || ((sl_ionpop->dims[0] != n+1) || (sl_ionpop->dims[1] != n+1)))
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                    "ionpop_hook: invalid return value, expecting: Float_Type[n,n] with n=%d", n+1);
+        goto return_status;
+     }
+
+   for (Z = 1; Z <= n; Z++)
+     {
+        for (q = 0; q <= Z; q++)
+          {
+             int i[2];
+             i[0] = Z;  i[1] = q;
+             if (-1 == SLang_get_array_element (sl_ionpop, i, &ionpop_new[Z*n+q]))
+               goto return_status;
+          }
+     }
+
+   SLang_free_array (m->last_ionpop);
+   m->last_ionpop = sl_ionpop;
+
+   status = 0;
+return_status:
+   if (status != 0)
+     {
+       SLang_free_array (sl_ionpop);
+     }
+
+   return status;
+}
+
+/*}}}*/
 
 static int add_spread_lines (double *val, double *wllo, double *wlhi, int nbins, /*{{{*/
                              EM_line_emis_t *t, Model_t *m, Model_Info_Type *info)
@@ -742,6 +813,7 @@ int Model_spectrum (Model_t *h, Model_Info_Type *info, /*{{{*/
    Model_t *m;
    EM_cont_type_t *cont = NULL;
    double *tmp_val = NULL;
+   float *ionpop_new = NULL;
    char *flag = NULL;
    int i, cont_nbins, include_lines, include_contin, ret = -1;
    SLindex_Type db_nlines;
@@ -778,8 +850,8 @@ int Model_spectrum (Model_t *h, Model_Info_Type *info, /*{{{*/
         isis_vmesg (WARN, I_INVALID, __FILE__, __LINE__, "contrib_flag=%d; using default",
                     info->contrib_flag);
         info->contrib_flag = MODEL_LINES_AND_CONTINUUM;
-        include_lines = 0;
-        include_contin = 0;
+        include_lines = 1;
+        include_contin = 1;
         break;
      }
 
@@ -805,6 +877,14 @@ int Model_spectrum (Model_t *h, Model_Info_Type *info, /*{{{*/
              if (NULL == flag)
                return -1;
           }
+     }
+
+   if (info->ionpop_hook != NULL)
+     {
+        int n = ISIS_MAX_PROTON_NUMBER+1;
+        if (NULL == (ionpop_new = ISIS_MALLOC (n*n*sizeof(float))))
+          goto finish;
+        memset ((char *)ionpop_new, 0, n*n*sizeof(float));
      }
 
    if ((NULL == (cont = EM_new_continuum (nbins)))
@@ -855,9 +935,15 @@ int Model_spectrum (Model_t *h, Model_Info_Type *info, /*{{{*/
         if (-1 == shift_grid_to_emitter_frame (cont, wllo, wlhi, m->redshift))
           goto finish;
 
+        if (info->ionpop_hook != NULL)
+          {
+             if (-1 == call_ionpop_hook (m, info, ionpop_new))
+               goto finish;
+          }
+
         if (include_lines)
           {
-             emis_list = EM_get_line_spectrum (flag, par, info->em);
+             emis_list = EM_get_line_spectrum (flag, par, ionpop_new, info->em);
              if (NULL == emis_list)
                goto finish;
 
@@ -875,9 +961,8 @@ int Model_spectrum (Model_t *h, Model_Info_Type *info, /*{{{*/
              double m_norm;
              double *c_val, *p_val;
 
-             /* FIXME:  ion-summed continuum only! */
              s.Z = 0; s.q = -1;  s.rel_abun = m->rel_abund;
-             if (-1 == EM_get_continuum (cont, par, &s, info->em))
+             if (-1 == EM_get_continuum (cont, par, ionpop_new, &s, info->em))
                goto finish;
 
              m_norm = m->norm;
@@ -920,6 +1005,7 @@ int Model_spectrum (Model_t *h, Model_Info_Type *info, /*{{{*/
    if (ret)
      isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "computing model spectrum");
 
+   ISIS_FREE (ionpop_new);
    ISIS_FREE (flag);
    ISIS_FREE (tmp_val);
    EM_free_continuum (cont);

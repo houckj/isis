@@ -279,6 +279,45 @@ static int pop_line_modifier_info (Model_Info_Type *info) /*{{{*/
 
 /*}}}*/
 
+static int pop_ionpop_hook_info (Model_Info_Type *info) /*{{{*/
+{
+   SLang_Array_Type *a;
+   SLang_Name_Type *f;
+   int num_extra_args;
+
+   if (-1 == SLang_pop_array_of_type (&a, SLANG_DOUBLE_TYPE))
+     return -1;
+
+   if (NULL == (f = SLang_pop_function()))
+     {
+        SLang_free_array (a);
+        return -1;
+     }
+
+   if (-1 == SLang_pop_integer (&num_extra_args))
+     {
+        SLang_free_array (a);
+        return -1;
+     }
+
+   isis_free_args (info->ionpop_args);
+   info->ionpop_args = NULL;
+   if (num_extra_args)
+     {
+        info->ionpop_args = isis_pop_args (num_extra_args);
+     }
+
+   SLang_free_array (info->ionpop_params);
+   info->ionpop_params = a;
+
+   SLang_free_function (info->ionpop_hook);
+   info->ionpop_hook = f;
+
+   return 0;
+}
+
+/*}}}*/
+
 static SLang_CStruct_Field_Type Model_Info_Layout [] =
 {
    MAKE_CSTRUCT_FIELD (Model_Info_Type, contrib_flag, "contrib_flag", SLANG_INT_TYPE, 0),
@@ -317,6 +356,10 @@ static int init_model_info (Model_Info_Type *info) /*{{{*/
         else if (0 == strcmp (s, "aped_line_modifier"))
           {
              status = pop_line_modifier_info (info);
+          }
+        else if (0 == strcmp (s, "aped_ionpop_hook"))
+          {
+             status = pop_ionpop_hook_info (info);
           }
         else if (0 == strcmp (s, "aped_hook"))
           {
@@ -365,6 +408,9 @@ static void free_model_info (Model_Info_Type *info) /*{{{*/
    SLang_free_function (info->line_emis_modifier);
    SLang_free_array (info->profile_params);
    SLang_free_cstruct ((VOID_STAR)info, Model_Info_Layout);
+   isis_free_args (info->ionpop_args);
+   SLang_free_array (info->ionpop_params);
+   SLang_free_function (info->ionpop_hook);
 }
 
 /*}}}*/

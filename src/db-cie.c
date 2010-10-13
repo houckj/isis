@@ -991,13 +991,16 @@ static int use_alt_ioniz (EM_t *em) /*{{{*/
 /*}}}*/
 
 static int get_ioniz_factor (float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PROTON_NUMBER+1], /*{{{*/
-                             float * par, EM_ioniz_table_t *t_new, EM_ioniz_table_t *t_old)
+                             float *par, EM_ioniz_table_t *t_new, EM_ioniz_table_t *t_old,
+                             float *ionpop_new)
 {
-   float f_old, f_new;
-   int size = (ISIS_MAX_PROTON_NUMBER+1)*(ISIS_MAX_PROTON_NUMBER+1);
+   int dim = ISIS_MAX_PROTON_NUMBER+1;
+   int size = dim*dim;
    int Z;
 
-   if (NULL == t_old || NULL == t_new || par == NULL)
+   if ((NULL == t_old)
+       || (par == NULL)
+       || (NULL == t_new && ionpop_new == NULL))
      return -1;
 
    memset ((char *) f_ioniz, 0, size * sizeof(float));
@@ -1005,8 +1008,8 @@ static int get_ioniz_factor (float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PR
    for (Z = 1; Z <= ISIS_MAX_PROTON_NUMBER; Z++)
      {
         int q;
-        if (-1 == t_old->offset[Z]
-            || -1 == t_new->offset[Z])
+        if ((-1 == t_old->offset[Z])
+            || (t_new != NULL && -1 == t_new->offset[Z]))
           {
              for (q = 0; q <= Z; q++)
                f_ioniz[Z][q] = 1.0;
@@ -1015,12 +1018,22 @@ static int get_ioniz_factor (float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PR
           {
              for (q = 0; q <= Z; q++)
                {
-                  if (0 == get_ion_fraction (&f_old, par, Z, q, t_old)
-                      && 0 == get_ion_fraction (&f_new, par, Z, q, t_new)
-                      && f_old > 0.0)
-                    f_ioniz[Z][q] = f_new / f_old;
+                  float f_old, f_new;
+
+                  if (get_ion_fraction (&f_old, par, Z, q, t_old) != 0)
+                    f_old = 1.0;
+
+                  if (t_new != NULL)
+                    {
+                       if (get_ion_fraction (&f_new, par, Z, q, t_new) != 0)
+                         f_new = 1.0;
+                    }
                   else
-                    f_ioniz[Z][q] = 1.0;
+                    {
+                       f_new = ionpop_new[Z*dim + q];
+                    }
+
+                  f_ioniz[Z][q] = f_new / f_old;
                }
           }
      }
@@ -1030,7 +1043,7 @@ static int get_ioniz_factor (float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PR
 
 /*}}}*/
 
-static int scale_line_ionization (EM_line_emis_t *t, float * par, EM_t *em) /*{{{*/
+static int scale_line_ionization (EM_line_emis_t *t, float *par, float *ionpop_new, EM_t *em) /*{{{*/
 {
    EM_ioniz_table_t *t_old;
    EM_ioniz_table_t *t_new;
@@ -1044,10 +1057,11 @@ static int scale_line_ionization (EM_line_emis_t *t, float * par, EM_t *em) /*{{
    t_old = em->ioniz_table[0];
    t_new = em->ioniz_table[1];
 
-   if (NULL == t_old || NULL == t_new)
+   if (NULL == t_old
+       || ((NULL == t_new) && (ionpop_new == NULL)))
      return 0;
 
-   if (-1 == get_ioniz_factor (f_ioniz, par, t_new, t_old))
+   if (-1 == get_ioniz_factor (f_ioniz, par, t_new, t_old, ionpop_new))
      return -1;
 
    for (k = 0; k < t->nlines; k++)
@@ -2785,7 +2799,7 @@ static EM_line_emis_t *interpolate_line_emis (char *flag, EM_line_emis_t **table
 }
 /*}}}*/
 
-EM_line_emis_t *EM_get_line_spectrum (char *flag, float *par, EM_t *em) /*{{{*/
+EM_line_emis_t *EM_get_line_spectrum (char *flag, float *par, float *ionpop_new, EM_t *em) /*{{{*/
 {
    EM_line_data_t *ld;
    EM_line_emis_t *line = NULL;
@@ -2809,7 +2823,7 @@ EM_line_emis_t *EM_get_line_spectrum (char *flag, float *par, EM_t *em) /*{{{*/
      goto close_and_return;
 
    if (-1 == scale_line_abundance (line, em)
-       || -1 == scale_line_ionization (line, par, em))
+       || -1 == scale_line_ionization (line, par, ionpop_new, em))
      goto close_and_return;
 
    line->par[EM_TEMP] = par[EM_TEMP];
@@ -2873,7 +2887,7 @@ int EM_sum_line_emissivity (float * emis, float *par, /*{{{*/
 
    /* also applies abundance and ion-fraction factors */
 
-   if (NULL == (t = EM_get_line_spectrum (NULL, par, em)))
+   if (NULL == (t = EM_get_line_spectrum (NULL, par, NULL /* FIXME - ionpop_new? */, em)))
      return -1;
 
    max_index = DB_get_nlines (em->db);
@@ -2909,7 +2923,7 @@ int EM_get_line_emissivity_function (float **emis, float **temps, float **densit
    EM_line_data_t *ld;
    EM_filemap_t *map;
    cfitsfile *fp = NULL;
-   int i, not_found = 1;;
+   int i, not_found = 1;
 
    if (NULL == em)
      return -1;
@@ -3176,7 +3190,7 @@ static int add_cont_contrib (EM_cont_type_t *r, EM_cont_emis_t *t, float weight)
 static int interpolate_cont_emis (EM_t *em, EM_cont_select_t *s,  /*{{{*/
                                   EM_cont_emis_t **table,
                                   float *coef, int n, float *par,
-                                  EM_cont_type_t *r)
+                                  float *ionpop_new, EM_cont_type_t *r)
 {
    EM_cont_emis_t *t;
    float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PROTON_NUMBER+1];
@@ -3221,14 +3235,14 @@ static int interpolate_cont_emis (EM_t *em, EM_cont_select_t *s,  /*{{{*/
           }
      }
 
-   alt_ioniz = use_alt_ioniz (em);
+   alt_ioniz = use_alt_ioniz (em) || (ionpop_new != NULL);
 
    if (alt_ioniz)
      {
         EM_ioniz_table_t *t_old = em->ioniz_table[0];
         EM_ioniz_table_t *t_new = em->ioniz_table[1];
 
-        if (-1 == get_ioniz_factor (f_ioniz, par, t_new, t_old))
+        if (-1 == get_ioniz_factor (f_ioniz, par, t_new, t_old, ionpop_new))
           return -1;
      }
    else
@@ -3266,23 +3280,23 @@ static int interpolate_cont_emis (EM_t *em, EM_cont_select_t *s,  /*{{{*/
                {
                   float weight;
 
-                  if (NULL == (t = find_cont_type (table[i], iz, iq)))
-                    continue;
-
-                  found_something = 1;
-                  found_Z[iz] = 1;
-
-                  weight = coef[i];
-
-                  if (iz > 0)
+                  if (NULL != (t = find_cont_type (table[i], iz, iq)))
                     {
-                       weight *= f_abund[iz] * s->rel_abun[iz];
-                       if (iq >= 0)
-                         weight *= f_ioniz[iz][iq];
-                    }
+                       found_something = 1;
+                       found_Z[iz] = 1;
 
-                  if (-1 == add_cont_contrib (r, t, weight))
-                    return -1;
+                       weight = coef[i];
+
+                       if (iz > 0)
+                         {
+                            weight *= f_abund[iz] * s->rel_abun[iz];
+                            if (iq >= 0)
+                              weight *= f_ioniz[iz][iq];
+                         }
+
+                       if (-1 == add_cont_contrib (r, t, weight))
+                         return -1;
+                    }
 
                   iq++;
                } while (iq < iq1);        /* end loop over ions */
@@ -3375,7 +3389,7 @@ static int get_cont_interp_points (EM_t *em, EM_cont_select_t *s, /*{{{*/
 
 /*}}}*/
 
-int EM_get_continuum (EM_cont_type_t *cont, float *par, EM_cont_select_t *s, EM_t *em) /*{{{*/
+int EM_get_continuum (EM_cont_type_t *cont, float *par, float *ionpop_new, EM_cont_select_t *s, EM_t *em) /*{{{*/
 {
    EM_cont_data_t *cd;
    EM_cont_emis_t *tbl[4] = {NULL, NULL, NULL, NULL};
@@ -3417,7 +3431,7 @@ int EM_get_continuum (EM_cont_type_t *cont, float *par, EM_cont_select_t *s, EM_
    if (-1 == get_cont_interp_points (em, s, npoints, idx, tbl))
      goto finish;
 
-   if (-1 == interpolate_cont_emis (em, s, tbl, coef, npoints, par, cont))
+   if (-1 == interpolate_cont_emis (em, s, tbl, coef, npoints, par, ionpop_new, cont))
      goto finish;
 
    ret = 0;
