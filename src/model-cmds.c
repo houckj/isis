@@ -279,7 +279,7 @@ static int pop_line_modifier_info (Model_Info_Type *info) /*{{{*/
 
 /*}}}*/
 
-static int pop_ionpop_hook_info (Model_Info_Type *info) /*{{{*/
+static int pop_ionpop_modifier_info (Model_Info_Type *info) /*{{{*/
 {
    SLang_Array_Type *a;
    SLang_Name_Type *f;
@@ -310,8 +310,8 @@ static int pop_ionpop_hook_info (Model_Info_Type *info) /*{{{*/
    SLang_free_array (info->ionpop_params);
    info->ionpop_params = a;
 
-   SLang_free_function (info->ionpop_hook);
-   info->ionpop_hook = f;
+   SLang_free_function (info->ionpop_modifier);
+   info->ionpop_modifier = f;
 
    return 0;
 }
@@ -357,9 +357,9 @@ static int init_model_info (Model_Info_Type *info) /*{{{*/
           {
              status = pop_line_modifier_info (info);
           }
-        else if (0 == strcmp (s, "aped_ionpop_hook"))
+        else if (0 == strcmp (s, "aped_ionpop_modifier"))
           {
-             status = pop_ionpop_hook_info (info);
+             status = pop_ionpop_modifier_info (info);
           }
         else if (0 == strcmp (s, "aped_hook"))
           {
@@ -410,7 +410,7 @@ static void free_model_info (Model_Info_Type *info) /*{{{*/
    SLang_free_cstruct ((VOID_STAR)info, Model_Info_Layout);
    isis_free_args (info->ionpop_args);
    SLang_free_array (info->ionpop_params);
-   SLang_free_function (info->ionpop_hook);
+   SLang_free_function (info->ionpop_modifier);
 }
 
 /*}}}*/
@@ -803,6 +803,7 @@ static SLang_IConstant_Type Model_Intrin_Const [] = /*{{{*/
    MAKE_ICONSTANT("MODEL_CONTIN", MODEL_CONTIN),
    MAKE_ICONSTANT("MODEL_CONTIN_PSEUDO", MODEL_CONTIN_PSEUDO),
    MAKE_ICONSTANT("MODEL_CONTIN_TRUE", MODEL_CONTIN_TRUE),
+   MAKE_ICONSTANT("_isis_max_proton_number", ISIS_MAX_PROTON_NUMBER),
    SLANG_END_ICONST_TABLE
 };
 /*}}}*/

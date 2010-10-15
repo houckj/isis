@@ -153,7 +153,7 @@ private variable Struct_Field_Names =
 variable _Isis_Aped_Model_Table = Assoc_Type[Struct_Type];
 variable _Isis_Aped_Profile_Table = Assoc_Type[Line_Profile_Type];
 variable _Isis_Aped_Line_Modifier_Table = Assoc_Type[Ref_Type];
-variable _Isis_Ionpop_Hook_Table = Assoc_Type[Ref_Type];
+variable _Isis_Ionpop_Modifier_Table = Assoc_Type[Ref_Type];
 
 private variable Element_Names = %{{{
 [
@@ -506,24 +506,24 @@ private define struct_to_param_array (x) %{{{
 
 %}}}
 
-% Generate ionpop_hook args
-define aped_ionpop_hook_args () %{{{
+% Generate ionpop_modifier args
+define aped_ionpop_modifier_args () %{{{
 {
-   variable msg = "args = aped_ionpop_hook_args (name, p [,num_extra_args])";
+   variable msg = "args = aped_ionpop_modifier_args (name, p, [,num_extra_args])";
    variable name, p, num_extra_args = 0;
 
    switch (_NARGS)
-     {case 2:  (name, p) = ();}
-     {case 3:  (name, p, num_extra_args) = ();}
-     { usage(msg); }
+     {case 2: (name, p) = ();}
+     {case 3: (name, p, num_extra_args) = ();}
+     { usage(msg);}
 
-   variable ref = _Isis_Ionpop_Hook_Table[name];
+   variable ref = _Isis_Ionpop_Modifier_Table[name];
 
-   if (num_extra_args == 0)
-     return 0, ref, p, "aped_ionpop_hook";
+   if (num_extra_args <= 0)
+     return 0, ref, p, "aped_ionpop_modifier";
 
    variable extra_args = __pop_args (num_extra_args);
-   return __push_args (extra_args), num_extra_args, ref, p, "aped_ionpop_hook";
+   return __push_args (extra_args), num_extra_args, ref, p, "aped_ionpop_modifier";
 }
 
 %}}}
@@ -535,13 +535,13 @@ define aped_line_modifier_args () %{{{
    variable name, p, num_extra_args = 0;
 
    switch (_NARGS)
-     {case 2:  (name, p) = ();}
-     {case 3:  (name, p, num_extra_args) = ();}
-     { usage(msg); }
+     {case 2: (name, p) = ();}
+     {case 3: (name, p, num_extra_args) = ();}
+     { usage(msg);}
 
    variable ref = _Isis_Aped_Line_Modifier_Table[name];
 
-   if (num_extra_args == 0)
+   if (num_extra_args <= 0)
      return 0, ref, p, "aped_line_modifier";
 
    variable extra_args = __pop_args (num_extra_args);
@@ -724,29 +724,29 @@ define create_aped_line_modifier () %{{{
 
 %}}}
 
-define create_aped_ionpop_hook () %{{{
+define create_aped_ionpop_modifier () %{{{
 {
-   variable msg = "create_aped_ionpop_hook (name, &ref, param_names[] [,num_extra_args])";
-   variable ionpop_hook_name, ionpop_hook_ref, param_names = NULL;
+   variable msg = "create_aped_ionpop_modifier (name, &ref, param_names[] [,num_extra_args])";
+   variable ionpop_modifier_name, ionpop_modifier_ref, param_names = NULL;
    variable num_extra_args = 0;
 
-   if (_isis->get_varargs (&ionpop_hook_name, &ionpop_hook_ref, &param_names,
+   if (_isis->get_varargs (&ionpop_modifier_name, &ionpop_modifier_ref, &param_names,
                            &num_extra_args, _NARGS, 2, msg))
      return;
 
    variable s;
    % returns id_string, param_array, arg, ...
-   s = "define ${ionpop_hook_name}_fit(l,h,p){"$
-     + "     return aped_ionpop_hook_args (\"${ionpop_hook_name}\", p, ${num_extra_args});"$
+   s = "define ${ionpop_modifier_name}_fit(l,h,p){"$
+     + "     return aped_ionpop_modifier_args (\"${ionpop_modifier_name}\", p, ${num_extra_args});"$
      + "}";
    eval(s);
 
    if (param_names != NULL)
-     add_slang_function (ionpop_hook_name, param_names);
+     add_slang_function (ionpop_modifier_name, param_names);
    else
-     add_slang_function (ionpop_hook_name);
+     add_slang_function (ionpop_modifier_name);
 
-   _Isis_Ionpop_Hook_Table[ionpop_hook_name] = ionpop_hook_ref;
+   _Isis_Ionpop_Modifier_Table[ionpop_modifier_name] = ionpop_modifier_ref;
 }
 
 %}}}

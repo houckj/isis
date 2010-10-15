@@ -593,7 +593,7 @@ static int apply_line_modifier (Model_t *m, Model_Info_Type *info, DB_line_t *li
 
 /*}}}*/
 
-static int call_ionpop_hook (Model_t *m, Model_Info_Type *info, float *ionpop_new) /*{{{*/
+static int call_ionpop_modifier (Model_t *m, Model_Info_Type *info, float *ionpop_new) /*{{{*/
 {
    Plasma_State_Type s;
    SLang_Array_Type *sl_ionpop = NULL;
@@ -603,7 +603,7 @@ static int call_ionpop_hook (Model_t *m, Model_Info_Type *info, float *ionpop_ne
    s.temperature = m->temperature;
    s.ndensity = m->density;
 
-   /* Float_Type[n,n] = ionpop_hook (params, state, last_ionpop, [,args]) */
+   /* Float_Type[n,n] = ionpop_modifier (params, state, last_ionpop, [,args]) */
    SLang_start_arg_list ();
    SLang_push_array (info->ionpop_params, 0);
    if (-1 == SLang_push_cstruct ((VOID_STAR)&s, Plasma_State_Layout))
@@ -616,7 +616,7 @@ static int call_ionpop_hook (Model_t *m, Model_Info_Type *info, float *ionpop_ne
      isis_push_args (info->ionpop_args);
    SLang_end_arg_list ();
 
-   if (-1 == SLexecute_function (info->ionpop_hook))
+   if (-1 == SLexecute_function (info->ionpop_modifier))
      return -1;
 
    if (-1 == SLang_pop_array_of_type (&sl_ionpop, SLANG_FLOAT_TYPE))
@@ -627,7 +627,7 @@ static int call_ionpop_hook (Model_t *m, Model_Info_Type *info, float *ionpop_ne
        || ((sl_ionpop->dims[0] != n+1) || (sl_ionpop->dims[1] != n+1)))
      {
         isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
-                    "ionpop_hook: invalid return value, expecting: Float_Type[n,n] with n=%d", n+1);
+                    "ionpop_modifier: invalid return value, expecting: Float_Type[n,n] with n=%d", n+1);
         goto return_status;
      }
 
@@ -879,7 +879,7 @@ int Model_spectrum (Model_t *h, Model_Info_Type *info, /*{{{*/
           }
      }
 
-   if (info->ionpop_hook != NULL)
+   if (info->ionpop_modifier != NULL)
      {
         int n = ISIS_MAX_PROTON_NUMBER+1;
         if (NULL == (ionpop_new = ISIS_MALLOC (n*n*sizeof(float))))
@@ -935,9 +935,9 @@ int Model_spectrum (Model_t *h, Model_Info_Type *info, /*{{{*/
         if (-1 == shift_grid_to_emitter_frame (cont, wllo, wlhi, m->redshift))
           goto finish;
 
-        if (info->ionpop_hook != NULL)
+        if (info->ionpop_modifier != NULL)
           {
-             if (-1 == call_ionpop_hook (m, info, ionpop_new))
+             if (-1 == call_ionpop_modifier (m, info, ionpop_new))
                goto finish;
           }
 

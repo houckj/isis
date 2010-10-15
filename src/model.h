@@ -80,7 +80,7 @@ typedef struct
    char *profile_options;
 
    /* ionization balance hook */
-   SLang_Name_Type *ionpop_hook;
+   SLang_Name_Type *ionpop_modifier;
    SLang_Array_Type *ionpop_params;
    Isis_Arg_Type *ionpop_args;
 }
