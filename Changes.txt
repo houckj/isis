@@ -32,6 +32,8 @@ Changes since 1.6.1 (released Jul 2010)
      New intrinsics:  db_push, db_list, db_select
 14.  Plot energy levels with missing LS quantum numbers.
 15.  line_info returns more energy level details
+16.  create_aped_fun now supports user-defined ionization balance
+     (create_aped_ionpop_modifier, aped_ionpop_modifier_args).
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
