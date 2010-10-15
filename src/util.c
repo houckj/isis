@@ -2177,7 +2177,11 @@ Isis_Arg_Type *isis_pop_args (int n) /*{{{*/
              isis_free_args (at);
              return NULL;
           }
-        t->type = SLang_peek_at_stack();
+        if (-1 == (t->type = SLang_peek_at_stack()))
+          {
+             isis_free_args (at);
+             return NULL;
+          }
         SLang_pop_value (t->type, &t->arg);
         t->next = at;
         at = t;
