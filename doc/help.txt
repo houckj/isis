@@ -6466,6 +6466,8 @@ create_aped_fun
     structure provide default values for the associated fit
     parameters. The optional third argument is used to select
     specific lines and continua and is discussed further below.
+    Further customization can be achieved by making use of one or
+    more modifier functions as described in the examples below.
 
     The Struct_Type argument has the form of the structure returned
     by the default_plasma_state() function:
@@ -6661,12 +6663,17 @@ create_aped_fun
       }
 
     This function accepts an array of parameters, an integer line
-    index, a structure containing plasma state information (e.g
-    temperature and number density) and the value of the line
-    emissivity for the current plasma state, and it should return a
-    new value for the line emissivity. This function will be called
-    while the xaped function is being computed and its adjustable
-    parameters will be included in the fit.
+    index, a structure containing plasma state information, and the
+    value of the line emissivity for the current plasma state. The
+    function should return a new value for the line emissivity. The
+    plasma state structure has the form form:
+
+       state = struct {temperature, ndensity}
+
+    where temperature is the Kelvin temperature and ndensity is the
+    number density in cm^-3. This function will be called while the
+    xaped function is being computed and its adjustable parameters
+    will be included in the fit.
 
     To enable this function to perform these tasks, we must
     register it as a line-modifier function:
@@ -6758,7 +6765,7 @@ create_aped_fun
       create_aped_line_profile ("square_profile", &fptr, ["width"]);
 
     Note that we have provided a name for the function and each of
-    its parameters.  These names will appear in the output of
+    its parameters. These names will appear in the output of
     list_par.
 
     To invoke this helper function, we specify a fit-function using
@@ -6790,6 +6797,65 @@ create_aped_fun
 
     EXAMPLE 7:
 
+    In some applications, it may be useful to introduce a
+    user-defined ionization balance.  This can be achieved by using
+    an ionization balance modifier function (see
+    create_aped_ionpop_modifier). When this user-defined function
+    has adjustable parameters, it may be useful to allow those
+    parameters to vary during a fit.
+
+    User-defined ionization balance functions can be introduced
+    using a helper function in a manner similar to that described
+    in the previous examples. The help function should have the
+    form:
+
+        define ionpop_modifier (params, state, last_ionpop [, args])
+        {
+           variable n = _isis_max_proton_number+1;
+           variable new_ionpop = Float_Type[n,n];
+
+           return new_ionpop;
+        }
+
+    To register the ionization balance function as a helper
+    function, use
+
+      create_aped_ionpop_modifier ("ionpop", &ionpop_modifier, param_names
+                        [,num_extra_args]);
+
+    Note that we have provided a name for the function and each of
+    its parameters. These names will appear in the output of
+    list_par.
+
+    To invoke this helper function, we specify a fit-function using
+    the syntax:
+
+       fit_fun ("xaped(1, ionpop(1))");
+
+    This syntax is a generalization of the "operator function"
+    syntax (see set_function_category).  At run-time, the helper
+    function ionpop(1) is evaluated and returns values that are
+    interpreted by the xaped model function. With this model
+    definition, the list of fit parameters looks something like:
+
+    xaped (1, ionpop(1))
+     idx  param                tie-to  freeze  value     min      max
+      1  ionpop(1).time            0     0         0       0        0
+      2  xaped(1).norm             0     1         1       0        0
+      3  xaped(1).temperature      0     1     1e+07       0        0
+      4  xaped(1).density          0     1         1       0        0
+      5  xaped(1).vturb            0     1         0       0        0
+      6  xaped(1).redshift         0     1         0       0        0
+      7  xaped(1).metal_abund      0     1         1       0        0
+
+    Note that multiple "helper" functions maybe used simultaneously
+    by providing a comma-separated list of helper functions in the
+    model definition.  For example:
+
+    fit_fun ("xaped(1, ionpop(1), line_profile(1))");
+
+    EXAMPLE 8:
+
     Models created by create_aped_fun can also be evaluated using
     the eval_fun2 interface, without using fit_fun at all.  When
     one or more "helper" functions are used, the eval_fun2
@@ -6808,7 +6874,13 @@ create_aped_fun
                      aped_line_modifier_args ("modifier", modifier_pars))
 
     assuming matching wavelength grids, lo, hi, and parameter
-    arrays, xaped_pars and modifier_pars.
+    arrays, xaped_pars and modifier_pars. Any additional arguments
+    to be passed to the modifier should be supplied after the
+    aped_line_modifier_args call, e.g.:
+
+      f = eval_fun2 ("xaped", lo, hi, xaped_pars,
+                     aped_line_modifier_args ("modifier", modifier_pars),
+                     mod_arg1, mod_arg2).
 
     Similarly, when the newly created function uses a "hook", as
     described above, e.g.:
@@ -6847,13 +6919,29 @@ create_aped_fun
     aped_line_modifier_args, aped_line_profile_args, aped_hook_args
 
 ------------------------------------------------------------------------
+aped_ionpop_modifier_args
+
+ SYNOPSIS
+    Return extra arguments needed for eval_fun2 call.
+
+ USAGE
+    args = aped_ionpop_modifier_args (modifier_name, modifier_params[][, num_extra_args])
+
+ DESCRIPTION
+    See create_aped_fun for details.
+
+
+ SEE ALSO
+    create_aped_fun, create_aped_ionpop_modifier, eval_fun2
+
+------------------------------------------------------------------------
 aped_line_modifier_args
 
  SYNOPSIS
     Return extra arguments needed for eval_fun2 call.
 
  USAGE
-    args = aped_line_modifier_args (modifier_name, modifier_params[])
+    args = aped_line_modifier_args (modifier_name, modifier_params[] [, num_extra_args])
 
  DESCRIPTION
     See create_aped_fun for details.
@@ -6893,6 +6981,23 @@ aped_hook_args
 
  SEE ALSO
     create_aped_fun, eval_fun2
+
+------------------------------------------------------------------------
+create_aped_ionpop_modifier
+
+ SYNOPSIS
+    Register an ionization balance modifer function as an APED model helper function
+
+ USAGE
+    create_aped_ionpop_modifier (name, Ref_Type [, param_name_array [,num_extra_args]])
+
+ DESCRIPTION
+    See create_aped_fun for details.
+
+
+ SEE ALSO
+    aped_line_modifier_args, create_aped_line_profile, fit_fun,
+    eval_fun2
 
 ------------------------------------------------------------------------
 create_aped_line_modifier

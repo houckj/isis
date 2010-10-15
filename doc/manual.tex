@@ -7976,18 +7976,21 @@ See \verb|define_model| for details.
 \index{Fitting a spectrum model}
 \index{model spectrum, Fitting a}
 \index{spectrum model}
+\index{spectrum model!custom line profile}
+\index{spectrum model!modified line emissivities}
+\index{spectrum model!custom ionization balance}
 \index{Emissivity Database!fitting a spectrum model}
 \index{APED!fitting a spectrum model}
 
-This function creates a custom fit-function which computes a
-multi-component APED model. The first argument gives the name of
-the new fit-function and the second argument is a
-\verb|Struct_Type| which defines the number of spectrum components
-in the function's fit-parameter list. The values contained
-in this structure provide default values for the associated fit
-parameters. The optional third argument
-is used to select specific lines and continua and is discussed
-further below.
+This function creates a custom fit-function which computes a multi-component
+APED model. The first argument gives the name of the new fit-function and the
+second argument is a \verb|Struct_Type| which defines the number of spectrum
+components in the function's fit-parameter list. The values contained in this
+structure provide default values for the associated fit parameters. The
+optional third argument is used to select specific lines and continua and is
+discussed further below.  Further customization can be achieved by
+making use of one or more modifier functions as described in the examples
+below.
 
 The \verb|Struct_Type| argument has the form of the structure
 returned by the \verb|default_plasma_state()| function:
@@ -8193,15 +8196,21 @@ write a \slang\ function of the form:
   }
 \end{verbatim}
 This function accepts an array of parameters, an integer line
-index, a structure containing plasma state information (e.g
-temperature and number density) and the value of the line
-emissivity for the current plasma state, and it should return a
-new value for the line emissivity. This function will be called
-while the \verb|xaped| function is being computed and its
-adjustable parameters will be included in the fit.
+index, a structure containing plasma state information,
+and the value of the line emissivity for the current plasma state.
+The function should return a
+new value for the line emissivity.
+The plasma state structure has the form form:
+\begin{verbatim}
+   state = struct {temperature, ndensity}
+\end{verbatim}
+where \verb|temperature| is the Kelvin temperature and \verb|ndensity| is the
+number density in \verb|cm^-3|. This function will be called while the
+\verb|xaped| function is being computed and its adjustable parameters will be
+included in the fit.
 
-To enable this function to perform these tasks, we must
-register it as a line-modifier function:
+To enable this function to perform these tasks, we must register it as a
+line-modifier function:
 \begin{verbatim}
   create_aped_line_modifier ("modifier", &line_emis_modifier, ["a", "b", "c"]);
 \end{verbatim}
@@ -8234,21 +8243,20 @@ xaped (1, modifier(1))
   9  xaped(1).metal_abund   0     1          1       0       0
 \end{verbatim}
 
-The \verb|modifier| function may require additional
-user-defined data to perform the necessary computations.
-One solution to this problem is to store the additional data
-in global variables, but this is sometimes inconvenient because
-the implementation of the \verb|modifier| function then
-depends on symbols with global scope.
+The \verb|modifier| function may require additional user-defined data to
+perform the necessary computations. One solution to this problem is to store
+the additional data in global variables, but this is sometimes inconvenient
+because the implementation of the \verb|modifier| function then depends on
+symbols with global scope.
 
-An alternative is to have additional user-defined arguments
-passed to the modifier function when it is called.  The
-advantage to this approach is that the line modifier function
-can be defined without referring to global variables.
+An alternative is to have additional user-defined arguments passed to the
+modifier function when it is called.  The advantage to this approach is that
+the line modifier function can be defined without referring to global
+variables.
 
-For example, suppose we want to pass 2 additional arguments to
-the line modifier function.  First, write a line modifier
-function that handles the additional arguments:
+For example, suppose we want to pass 2 additional arguments to the line
+modifier function.  First, write a line modifier function that handles the
+additional arguments:
 \begin{verbatim}
   define my_mod (params, line_id, state, emis, extra1, extra2)
   {
@@ -8266,48 +8274,40 @@ definition:
 \begin{verbatim}
   fit_fun ("xaped (1, my_mod(1, Value1, Value2))");
 \end{verbatim}
-When this fit-function is evaluated, the extra arguments
-provided will be passed to \verb|my_mod|.  In this case,
-\verb|my_mod| will be called with \verb|extra1=Value1| and
-\verb|extra2=Value2|.
+When this fit-function is evaluated, the extra arguments provided will be
+passed to \verb|my_mod|.  In this case, \verb|my_mod| will be called with
+\verb|extra1=Value1| and \verb|extra2=Value2|.
 
 EXAMPLE 6:
 
-In some applications, it may be useful to introduce a
-user-defined line profile function. When this user-defined
-function has adjustable parameters, it may be useful to allow
-those parameters to vary during a fit.
+In some applications, it may be useful to introduce a user-defined line
+profile function. When this user-defined function has adjustable parameters,
+it may be useful to allow those parameters to vary during a fit.
 
-User-defined line profile functions can be introduced using a
-helper function in a manner similar to that described in the
-previous example. Because line profile functions are evaluated
-a large number of times and are not easily vectorized, these
-functions are best implemented in a compiled language.
-A user-defined line profile function can be compiled as a
-shared library and imported at run-time using the function
-\verb|load_line_profile_function|.
+User-defined line profile functions can be introduced using a helper function
+in a manner similar to that described in the previous example. Because line
+profile functions are evaluated a large number of times and are not easily
+vectorized, these functions are best implemented in a compiled language. A
+user-defined line profile function can be compiled as a shared library and
+imported at run-time using the function \verb|load_line_profile_function|.
 
-To register the line profile function as a helper function,
-use
+To register the line profile function as a helper function, use
 \begin{verbatim}
   fptr = load_line_profile_function ("example-profile.so", "square");
   create_aped_line_profile ("square_profile", &fptr, ["width"]);
 \end{verbatim}
-Note that we have provided a name for the function and each of
-its parameters.  These names will appear in the output of
-\verb|list_par|.
+Note that we have provided a name for the function and each of its parameters.
+These names will appear in the output of \verb|list_par|.
 
-To invoke this helper function, we specify a fit-function using
-the syntax:
+To invoke this helper function, we specify a fit-function using the syntax:
 \begin{verbatim}
    fit_fun ("xaped(1, square_profile(1))");
 \end{verbatim}
-This syntax is a generalization of the ``operator function''
-syntax (see \verb|set_function_category|).  At run-time, the
-helper function \verb|square_profile(1)| is evaluated and returns
-values that are interpreted by the \verb|xaped| model function.
-With this model definition, the list of fit parameters looks
-something like:
+This syntax is a generalization of the ``operator function'' syntax (see
+\verb|set_function_category|).  At run-time, the helper function
+\verb|square_profile(1)| is evaluated and returns values that are interpreted
+by the \verb|xaped| model function. With this model definition, the list of
+fit parameters looks something like:
 \begin{verbatim}
 xaped (1, square_profile(1))
  idx  param                tie-to  freeze  value     min      max
@@ -8320,20 +8320,75 @@ xaped (1, square_profile(1))
   7  xaped(1).metal_abund      0     1         1       0        0
 \end{verbatim}
 
-Note that multiple ``helper'' functions maybe used
-simultaneously by providing a comma-separated list of helper
-functions in the model definition.  For example:
+Note that multiple ``helper'' functions maybe used simultaneously by providing
+a comma-separated list of helper functions in the model definition.  For
+example:
 \begin{verbatim}
 fit_fun ("xaped(1, modifier(1), square_profile(1))");
 \end{verbatim}
 
 EXAMPLE 7:
 
-Models created by \verb|create_aped_fun| can also be evaluated
-using the \verb|eval_fun2| interface, without using
-\verb|fit_fun| at all.  When one or more ``helper'' functions
-are used, the \verb|eval_fun2| arguments associated with each
-helper can be obtained by calling the corresponding
+In some applications, it may be useful to introduce a user-defined ionization
+balance.  This can be achieved by using an ionization balance modifier
+function (see \verb|create_aped_ionpop_modifier|). When this user-defined
+function has adjustable parameters, it may be useful to allow those parameters
+to vary during a fit.
+
+User-defined ionization balance functions can be introduced using a helper
+function in a manner similar to that described in the previous examples.
+The help function should have the form:
+\begin{verbatim}
+    define ionpop_modifier (params, state, last_ionpop [, args])
+    {
+       variable n = _isis_max_proton_number+1;
+       variable new_ionpop = Float_Type[n,n];
+
+       return new_ionpop;
+    }
+\end{verbatim}
+To register the ionization balance function as a helper function, use
+\begin{verbatim}
+  create_aped_ionpop_modifier ("ionpop", &ionpop_modifier, param_names
+                    [,num_extra_args]);
+\end{verbatim}
+Note that we have provided a name for the function and each of its parameters.
+These names will appear in the output of \verb|list_par|.
+
+To invoke this helper function, we specify a fit-function using the syntax:
+\begin{verbatim}
+   fit_fun ("xaped(1, ionpop(1))");
+\end{verbatim}
+This syntax is a generalization of the ``operator function'' syntax (see
+\verb|set_function_category|).  At run-time, the helper function
+\verb|ionpop(1)| is evaluated and returns values that are interpreted by the
+\verb|xaped| model function. With this model definition, the list of fit
+parameters looks something like:
+\begin{verbatim}
+xaped (1, ionpop(1))
+ idx  param                tie-to  freeze  value     min      max
+  1  ionpop(1).time            0     0         0       0        0
+  2  xaped(1).norm             0     1         1       0        0
+  3  xaped(1).temperature      0     1     1e+07       0        0
+  4  xaped(1).density          0     1         1       0        0
+  5  xaped(1).vturb            0     1         0       0        0
+  6  xaped(1).redshift         0     1         0       0        0
+  7  xaped(1).metal_abund      0     1         1       0        0
+\end{verbatim}
+
+Note that multiple ``helper'' functions maybe used simultaneously by providing
+a comma-separated list of helper functions in the model definition.  For
+example:
+\begin{verbatim}
+fit_fun ("xaped(1, ionpop(1), line_profile(1))");
+\end{verbatim}
+
+EXAMPLE 8:
+
+Models created by \verb|create_aped_fun| can also be evaluated using the
+\verb|eval_fun2| interface, without using \verb|fit_fun| at all.  When one or
+more ``helper'' functions are used, the \verb|eval_fun2| arguments associated
+with each helper can be obtained by calling the corresponding
 \verb|aped_|\$\{\verb|helper|\}\verb|_args| function.
 
 For example, the model computed using
@@ -8349,6 +8404,13 @@ is identical to the model computed using:
 \end{verbatim}
 assuming matching wavelength grids, \verb|lo|, \verb|hi|, and
 parameter arrays, \verb|xaped_pars| and \verb|modifier_pars|.
+Any additional arguments to be passed to the modifier should
+be supplied after the \verb|aped_line_modifier_args| call, e.g.:
+\begin{verbatim}
+  f = eval_fun2 ("xaped", lo, hi, xaped_pars,
+                 aped_line_modifier_args ("modifier", modifier_pars),
+                 mod_arg1, mod_arg2).
+\end{verbatim}
 
 Similarly, when the newly created function uses a ``hook'', as
 described above, e.g.:
@@ -8383,9 +8445,19 @@ assuming matching grids and function parameters in each case.
 \end{isisfunction}
 
 \begin{isisfunction}
+{aped\_ionpop\_modifier\_args}% name
+{Return extra arguments needed for {\tt eval\_fun2} call.}%
+{args = aped\_ionpop\_modifier\_args (modifier\_name, modifier\_params[][, num\_extra\_args])}%
+{create\_aped\_fun, create\_aped\_ionpop\_modifier, eval\_fun2}
+
+See \verb|create_aped_fun| for details.
+
+\end{isisfunction}
+
+\begin{isisfunction}
 {aped\_line\_modifier\_args}% name
 {Return extra arguments needed for {\tt eval\_fun2} call.}%
-{args = aped\_line\_modifier\_args (modifier\_name, modifier\_params[])}%
+{args = aped\_line\_modifier\_args (modifier\_name, modifier\_params[] [, num\_extra\_args])}%
 {create\_aped\_fun, create\_aped\_line\_modifier, eval\_fun2}
 
 See \verb|create_aped_fun| for details.
@@ -8407,6 +8479,16 @@ See \verb|create_aped_fun| for details.
 {Return extra arguments needed for {\tt eval\_fun2} call.}
 {args = aped\_hook\_args (Ref\_Type hook, Integer\_Type aped\_fun\_instance)}
 {create\_aped\_fun, eval\_fun2}
+
+See \verb|create_aped_fun| for details.
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{create\_aped\_ionpop\_modifier}%name
+{Register an ionization balance modifer function as an APED model helper function} %purpose
+{create\_aped\_ionpop\_modifier (name, Ref\_Type [, param\_name\_array [,num\_extra\_args]])} %usage
+{aped\_line\_modifier\_args, create\_aped\_line\_profile, fit\_fun, eval\_fun2}
 
 See \verb|create_aped_fun| for details.
 
