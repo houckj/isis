@@ -1149,6 +1149,13 @@ extern void INITNEI_FC(int *ni, int *nz);
 extern void IONSNEQR_FC(float *tmp, float *tau, int *n, int*nzmax, int *nionp,
                         float *fout, int *ionel, int *ionstage);
 
+#define NONEQ_FC FC_FUNC(noneq,NONEQ)
+extern void NONEQ_FC(float *tempr, int *ntp, float *tau, int *n, float *weight,
+                     int *nzmax, int *nzpmax, int *nionp, double *vr, double *vl,
+                     double *eig, double *feqb, double *feqs, double *fs,
+                     double *fspec, double *work, int *lt, float *fout,
+                     int *ionel, int *ionstage);
+
 /* To pass a C string to Fortran:  for each string, append to the Fortran
  * function's parameter list a 'long' containing the length of the string.
  * This works with gcc/gfortran, but may not be totally portable.
@@ -1258,6 +1265,90 @@ static void xs_ionsneqr(void) /*{{{*/
    push_results:
    SLang_free_array (sl_tmp);
    SLang_free_array (sl_tau);
+   SLang_push_array (sl_fout,1);
+   SLang_push_array (sl_ionel,1);
+   SLang_push_array (sl_ionstage,1);
+}
+
+/*}}}*/
+
+static void xs_noneq (void) /*{{{*/
+{
+   SLang_Array_Type *sl_tempr=NULL, *sl_tau=NULL, *sl_weight=NULL;
+   SLang_Array_Type *sl_fout=NULL, *sl_ionel=NULL, *sl_ionstage=NULL;
+   float *tempr=NULL, *tau=NULL, *weight=NULL, *fout=NULL;
+   double *vr=NULL, *vl=NULL, *eig=NULL, *feqb=NULL, *feqs=NULL, *fs=NULL,
+     *fspec=NULL, *work=NULL;
+   double *feqs_p1=NULL, *fs_p1=NULL;
+   int *ionel=NULL, *ionstage=NULL, *lt=NULL;
+   int nionp, nzmax, nzpmax, ntp, n;
+
+   if (-1 == pop_2_matched_arrays (SLANG_FLOAT_TYPE, &sl_tau, &sl_weight))
+     goto push_results;
+
+   if (-1 == SLang_pop_array_of_type (&sl_tempr, SLANG_FLOAT_TYPE))
+     goto push_results;
+
+   ntp = sl_tempr->num_elements;
+   n = sl_tau->num_elements;
+   xs_initnei (&nionp, &nzmax);
+   nzpmax = nzmax + 1;
+
+   sl_fout = SLang_create_array (SLANG_FLOAT_TYPE, 0, NULL, &nionp, 1);
+   sl_ionel= SLang_create_array (SLANG_INT_TYPE, 0, NULL, &nionp, 1);
+   sl_ionstage= SLang_create_array (SLANG_INT_TYPE, 0, NULL, &nionp, 1);
+   if ((sl_fout == NULL) || (sl_ionel == NULL) || (sl_ionstage == NULL))
+     {
+        SLang_set_error (Isis_Error);
+        goto push_results;
+     }
+
+   tempr = (float *)sl_tempr->data;
+   tau = (float *)sl_tau->data;
+   weight = (float *)sl_weight->data;
+   fout = (float *)sl_fout->data;
+   ionel = (int *)sl_ionel->data;
+   ionstage = (int *)sl_ionstage->data;
+
+   memset ((char *)fout, 0, nionp*sizeof(float));
+
+   if (   (NULL == (vr    = ISIS_MALLOC (sizeof(double) * nzmax*nzmax*ntp)))
+       || (NULL == (vl    = ISIS_MALLOC (sizeof(double) * nzmax*nzmax*ntp)))
+       || (NULL == (eig   = ISIS_MALLOC (sizeof(double) * nzmax*ntp)))
+       || (NULL == (feqb  = ISIS_MALLOC (sizeof(double) * nzpmax*ntp)))
+       || (NULL == (feqs  = ISIS_MALLOC (sizeof(double) * (nzpmax + 1))))
+       || (NULL == (fs    = ISIS_MALLOC (sizeof(double) * (nzpmax + 1))))
+       || (NULL == (fspec = ISIS_MALLOC (sizeof(double) * nzmax)))
+       || (NULL == (work  = ISIS_MALLOC (sizeof(double) * nzmax)))
+       || (NULL == (lt    = ISIS_MALLOC (sizeof(int) * ntp)))
+      )
+     {
+        SLang_set_error (Isis_Error);
+        goto push_results;
+     }
+
+   /* The fortran code will access feqs(0) and fs(0) */
+   feqs_p1 = feqs + 1;
+   fs_p1 = fs + 1;
+
+   NONEQ_FC(tempr,&ntp,tau,&n,weight,&nzmax,&nzpmax,&nionp,vr,vl,
+            eig,feqb,feqs_p1,fs_p1,fspec,work,lt,fout,ionel,ionstage);
+
+push_results:
+   ISIS_FREE(vr);
+   ISIS_FREE(vl);
+   ISIS_FREE(eig);
+   ISIS_FREE(feqb);
+   ISIS_FREE(feqs);
+   ISIS_FREE(fs);
+   ISIS_FREE(fspec);
+   ISIS_FREE(work);
+   ISIS_FREE(lt);
+
+   SLang_free_array (sl_tempr);
+   SLang_free_array (sl_tau);
+   SLang_free_array (sl_weight);
+
    SLang_push_array (sl_fout,1);
    SLang_push_array (sl_ionel,1);
    SLang_push_array (sl_ionstage,1);
@@ -1442,6 +1533,7 @@ static SLang_Intrin_Fun_Type Private_Intrinsics [] =
    MAKE_INTRINSIC_3("_xs_gphoto", xs_gphoto, D, F,F,I),
    MAKE_INTRINSIC_4("_xs_phfit2", xs_phfit2, D, I,I,I,F),
    MAKE_INTRINSIC_0("_xs_ionsneqr", xs_ionsneqr, V),
+   MAKE_INTRINSIC_0("_xs_noneq", xs_noneq, V),
    MAKE_INTRINSIC_S("_xs_get_element_solar_abundance", xs_get_element_solar_abundance, D),
    MAKE_INTRINSIC_2("_xs_fpmstr", xs_fpmstr, V, S, S),
    MAKE_INTRINSIC_1("_xs_set_cosmo_hubble", xs_set_cosmo_hubble, V, F),

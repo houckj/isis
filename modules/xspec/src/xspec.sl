@@ -972,6 +972,42 @@ define xspec_ionsneqr () %{{{
 
 %}}}
 
+define xspec_noneq () %{{{
+{
+   variable msg =
+`Struct_Type = xspec_noneq(tempr, tau, weight);  %% T [K], tau [s/cm^3]
+               tempr = Float_Type[ntmp]
+         tau, weight = Float_Type[ntau]
+ Note: the 'weight' array will be normalized so that sum(weight)=1
+`;
+   variable temp, tau, weight;
+
+   if (_NARGS != 3)
+     usage(msg);
+
+   (temp, tau, weight) = ();
+
+   % normalize weights.
+   weight /= sum(weight);
+
+   % Stupid routine *requires* two temperatures
+   % or it doesn't work at all.
+   if (length (temp) == 1)
+     {
+        temp = [temp, temp];
+     }
+
+   variable s = struct
+     {
+        fout, ionel, ionstage
+     };
+
+   (s.fout, s.ionel, s.ionstage) = _xs_noneq (temp, tau, weight);
+   return s;
+}
+
+%}}}
+
 define xspec_elabund () %{{{
 {
    if (_NARGS == 0)
