@@ -369,7 +369,9 @@ static int init_model_info (Model_Info_Type *info) /*{{{*/
                   SLang_Array_Type *at = info->line_list;
                   SLtype data_type = at->data_type;
 
-                  if ((data_type != SLANG_INT_TYPE) && (at->num_elements > 0))
+                  if ((data_type != SLANG_NULL_TYPE)
+                      && (data_type != SLANG_INT_TYPE)
+                      && (at->num_elements > 0))
                     {
                        isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__,
                                    "aped_hook: expected Integer_Type line_list array (data_type=%d), got data_type=%d",
