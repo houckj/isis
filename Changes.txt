@@ -34,6 +34,8 @@ Changes since 1.6.1 (released Jul 2010)
 15.  line_info returns more energy level details
 16.  create_aped_fun now supports user-defined ionization balance
      (create_aped_ionpop_modifier, aped_ionpop_modifier_args).
+17.  Fix array indexing bug in ionpop modifier introduced in #16
+18.  Added xspec_noneq() function.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
