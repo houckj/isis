@@ -637,7 +637,7 @@ static int call_ionpop_modifier (Model_t *m, Model_Info_Type *info, float *ionpo
           {
              int i[2];
              i[0] = Z;  i[1] = q;
-             if (-1 == SLang_get_array_element (sl_ionpop, i, &ionpop_new[Z*n+q]))
+             if (-1 == SLang_get_array_element (sl_ionpop, i, &ionpop_new[Z*(n+1)+q]))
                goto return_status;
           }
      }
