@@ -81,8 +81,8 @@ enum
 unsigned int EM_Use_Memory = EM_USE_MEMORY_DEFAULT;
 /* EM_Use_Memory is a bitmap.  See set_memory_usage_level() for details */
 
-static int EM_Load_Cont_Emis;
-static int EM_Load_Line_Emis;
+static unsigned int EM_Load_Cont_Emis;
+static unsigned int EM_Load_Line_Emis;
 
 /*EM_Load_Line_Emis != 0 means line emissivities all loaded into memory at once
  *                       (the emissivity database is "memory resident")

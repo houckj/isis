@@ -45,7 +45,16 @@ extern "C" {
 
 enum
 {
-  EM_USE_MEMORY_DEFAULT=1
+  EM_USE_MEMORY_DEFAULT=3
+   /* FIXME:  setting this to 1 (meaning load lines into RAM
+    * but load cont emissivity from disk on-demand) reveals
+    * a bug in the continuum lookup for the case when
+    * per-ion continua are available and the user imposes
+    * a user-defined ionization balance.  This should be
+    * fixed at some point, but at this moment, that mode
+    * isn't so important.  (The bug is just that the
+    * on-demand continuum lookup doesn't happen when it should.)
+    */
 };
 
 extern unsigned int EM_Use_Memory;
@@ -66,7 +75,7 @@ typedef struct
    char *filemap;
 }
 EM_File_Type;
-#define NULL_EM_FILE_TYPE {NULL,NULL,NULL,NULL,NULL}   
+#define NULL_EM_FILE_TYPE {NULL,NULL,NULL,NULL,NULL}
 
 typedef struct
 {

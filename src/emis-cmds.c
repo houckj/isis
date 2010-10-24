@@ -732,7 +732,7 @@ static void _load_alt_ionization_table (char *file) /*{{{*/
 
 static SLang_Intrin_Var_Type Emis_Intrin_Vars [] = /*{{{*/
 {
-   MAKE_VARIABLE("Use_Memory", &EM_Use_Memory, SLANG_INT_TYPE, 0),
+   MAKE_VARIABLE("Use_Memory", &EM_Use_Memory, SLANG_UINT_TYPE, 0),
    MAKE_VARIABLE("Incomplete_Line_List", &EM_Maybe_Missing_Lines, SLANG_INT_TYPE, 0),
    MAKE_VARIABLE("EM_Hash_Table_Size_Hint", &EM_Hash_Table_Size_Hint, SLANG_UINT_TYPE, 0),
    SLANG_END_INTRIN_VAR_TABLE
