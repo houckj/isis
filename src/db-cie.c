@@ -996,7 +996,8 @@ static int get_ioniz_factor (float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PR
 {
    int dim = ISIS_MAX_PROTON_NUMBER+1;
    int size = dim*dim;
-   int Z;
+   int Z, num_rescale_failures = 0;
+   int num_failures[ISIS_MAX_PROTON_NUMBER+1];
 
    if ((NULL == t_old)
        || (par == NULL)
@@ -1008,6 +1009,7 @@ static int get_ioniz_factor (float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PR
    for (Z = 1; Z <= ISIS_MAX_PROTON_NUMBER; Z++)
      {
         int q;
+        num_failures[Z] = 0;
         if ((-1 == t_old->offset[Z])
             || (t_new != NULL && -1 == t_new->offset[Z]))
           {
@@ -1018,7 +1020,7 @@ static int get_ioniz_factor (float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PR
           {
              for (q = 0; q <= Z; q++)
                {
-                  float f_old, f_new;
+                  float f_old, f_new, ff;
 
                   if (get_ion_fraction (&f_old, par, Z, q, t_old) != 0)
                     f_old = 1.0;
@@ -1028,13 +1030,46 @@ static int get_ioniz_factor (float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PR
                        if (get_ion_fraction (&f_new, par, Z, q, t_new) != 0)
                          f_new = 1.0;
                     }
-                  else
+                  else f_new = ionpop_new[Z*dim + q];
+
+                  if ((f_old == 0.0) && (f_new > 0.0))
                     {
-                       f_new = ionpop_new[Z*dim + q];
+                       num_rescale_failures++;
+                       num_failures[Z] += 1;
                     }
 
-                  f_ioniz[Z][q] = f_new / f_old;
+                  ff = f_new / f_old;
+
+                  /* avoid NaN if f_new=f_old=0
+                   * For example, H is usually present with abund > 0
+                   * but with neutral fraction = 0.  To avoid 0/0 for
+                   * neutral H when rescaling the ionization fractions,
+                   * we have to force the correction factor =1 at this point.
+                   */
+                  f_ioniz[Z][q] = isfinite(ff) ? ff : 1.0;
                }
+          }
+     }
+
+   if (num_rescale_failures)
+     {
+        isis_vmesg (WARN, I_WARNING, __FILE__, __LINE__,
+                    "Ion fraction rescaling problem: at T=%g K, n=%g cm^-3, %d ion fractions could not be rescaled because the `old' ion fraction is zero.",
+                    par[0], par[1], num_rescale_failures);
+        if (Isis_Verbose >= WARN)
+          {
+             fprintf (stderr, "Num failures: ");
+             for (Z = 1; Z <= ISIS_MAX_PROTON_NUMBER; Z++)
+               {
+                  char el_name[3];
+                  if (num_failures[Z] == 0)
+                    continue;
+                  if (0 == _DB_get_element_name (el_name, Z))
+                    fprintf (stderr, " %s:%d", el_name, num_failures[Z]);
+                  else
+                    fprintf (stderr, " <Z=%d>:%d", Z, num_failures[Z]);
+               }
+             fprintf (stderr, "\n");
           }
      }
 
@@ -3267,7 +3302,14 @@ static int interpolate_cont_emis (EM_t *em, EM_cont_select_t *s,  /*{{{*/
 
    for (i = 0; i < n; i++)               /* loop over interpolation points */
      {
+        float abund_factor;
+
         iz = iz0;
+
+        abund_factor = f_abund[iz] * s->rel_abun[iz];
+        if (abund_factor <= 0)
+          continue;
+
         do
           {
              if (s->q < 0 && alt_ioniz)
@@ -3285,14 +3327,9 @@ static int interpolate_cont_emis (EM_t *em, EM_cont_select_t *s,  /*{{{*/
                        found_something = 1;
                        found_Z[iz] = 1;
 
-                       weight = coef[i];
-
-                       if (iz > 0)
-                         {
-                            weight *= f_abund[iz] * s->rel_abun[iz];
-                            if (iq >= 0)
-                              weight *= f_ioniz[iz][iq];
-                         }
+                       weight = coef[i] * abund_factor;
+                       if (iq >= 0)
+                         weight *= f_ioniz[iz][iq];
 
                        if (-1 == add_cont_contrib (r, t, weight))
                          return -1;
