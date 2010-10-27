@@ -34,7 +34,7 @@
 
 #include <errno.h>
 
-#include <fitsio.h>
+#include "cfitsio.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -1084,7 +1084,7 @@ static int delete_key (FitsFile_Type *ft, char *key)
    return fits_delete_key (ft->fptr, key, &status);
 }
 
-static int get_colnum (FitsFile_Type *ft, char *name, SLang_Ref_Type *ref)
+static int get_colnum_internal (FitsFile_Type *ft, char *name, SLang_Ref_Type *ref, int casesen)
 {
    int status = 0;
    int col;
@@ -1093,13 +1093,24 @@ static int get_colnum (FitsFile_Type *ft, char *name, SLang_Ref_Type *ref)
      return -1;
    /* FIXME: fits_get_colnum may be used to get columns matching a pattern */
    col = 1;
-   fits_get_colnum (ft->fptr, CASEINSEN, name, &col, &status);
+   fits_get_colnum (ft->fptr, casesen, name, &col, &status);
 
    if (-1 == SLang_assign_to_ref (ref, SLANG_INT_TYPE, (VOID_STAR) &col))
      status = -1;
 
    return status;
 }
+
+static int get_colnum (FitsFile_Type *ft, char *name, SLang_Ref_Type *ref)
+{
+   return get_colnum_internal (ft, name, ref, CASEINSEN);
+}
+
+static int get_colnum_casesen (FitsFile_Type *ft, char *name, SLang_Ref_Type *ref)
+{
+   return get_colnum_internal (ft, name, ref, CASESEN);
+}
+
 
 static int insert_rows (FitsFile_Type *ft, int *first, int *num)
 {
@@ -2389,6 +2400,7 @@ static SLang_Intrin_Fun_Type Fits_Intrinsics [] =
 
    MAKE_INTRINSIC_2("_fits_delete_key", delete_key, I, F, S),
    MAKE_INTRINSIC_3("_fits_get_colnum", get_colnum, I, F, S, R),
+   MAKE_INTRINSIC_3("_fits_get_colnum_casesen", get_colnum_casesen, I, F, S, R),
 
    MAKE_INTRINSIC_3("_fits_insert_rows", insert_rows, I, F, I, I),
    MAKE_INTRINSIC_3("_fits_delete_rows", delete_rows, I, F, I, I),

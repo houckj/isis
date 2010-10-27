@@ -13,6 +13,7 @@ MODULE_VERSION	= `./mkversion.sh`
 #---------------------------------------------------------------------------
 prefix = @prefix@
 exec_prefix = @exec_prefix@
+datarootdir = @datarootdir@
 MODULE_INSTALL_DIR = @MODULE_INSTALL_DIR@
 SL_FILES_INSTALL_DIR = @SL_FILES_INSTALL_DIR@
 HLP_FILES_INSTALL_DIR = $(SL_FILES_INSTALL_DIR)/help
@@ -33,6 +34,7 @@ SLANG_LIB	= @SLANG_LIB@ -lslang
 # Additional Libraries required by the module
 #---------------------------------------------------------------------------
 CFITSIO_INC	= @CFITSIO_INC@
+CFITSIO_INC_DIR = @CFITSIO_INC_DIR@
 CFITSIO_LIB	= @CFITSIO_LIB@ -lcfitsio
 OTHER_LIBS	= @X_EXTRA_LIBS@
 MODULE_LIBS	= $(CFITSIO_LIB) $(OTHER_LIBS)
@@ -64,11 +66,17 @@ all: $(MODULES)
 #---------------------------------------------------------------------------
 # Put Rules to create the modules here
 #---------------------------------------------------------------------------
-cfitsio-module.so: cfitsio-module.c version.h
+cfitsio-module.so: cfitsio-module.c version.h config.h cfitsio.h
 	$(CC_SHARED) $(INCS) cfitsio-module.c -o cfitsio-module.so $(LIBS)
 version.h: ../changes.txt
 	if [ -x $(UPDATE_VERSION_SCRIPT) ]; then \
 	  $(UPDATE_VERSION_SCRIPT) ../changes.txt ./version.h; \
+	fi
+cfitsio.h: Makefile
+	@if [ "X$(CFITSIO_INC_DIR)" != "X" ]; then \
+	  echo "#include <$(CFITSIO_INC_DIR)/fitsio.h>" > cfitsio.h; \
+	else \
+	  echo "#include <fitsio.h>"; \
 	fi
 #---------------------------------------------------------------------------
 # Regression tests
@@ -125,4 +133,4 @@ install: all install_directories install_modules install_slfiles install_hlpfile
 clean:
 	-/bin/rm -f $(MODULES) *~ \#*
 distclean: clean
-	-/bin/rm -f config.h Makefile $(MODULES) *.fit
+	-/bin/rm -f config.h cfitsio.h Makefile $(MODULES) *.fit

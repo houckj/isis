@@ -1,6 +1,6 @@
   S-Lang CFITSIO Module Reference
   John E. Davis, davis@space.mit.edu
-  Jun 6, 2010
+  Oct 27, 2010
   ____________________________________________________________
 
   Table of Contents
@@ -174,8 +174,6 @@
 
   2.  The high-level interface
 
-
-
   2.1.  Overview
 
 
@@ -196,8 +194,6 @@
 
 
   It can't get much easier than that!
-
-
 
   2.2.  Opening and Closing Files
 
@@ -239,11 +235,10 @@
   that is to specify the extension using CFITSIO's virtual file syntax,
   e.g.,
 
-
-           (object, ra_targ, dec_targ)
-              = fits_read_key ("foo.fits+1", "OBJECT", "RA_TARG", "DEC_TARG");
-           (object, ra_targ, dec_targ)
-              = fits_read_key ("foo.fits[EVENTS]", "OBJECT", "RA_TARG", "DEC_TARG");
+      (object, ra_targ, dec_targ)
+         = fits_read_key ("foo.fits+1", "OBJECT", "RA_TARG", "DEC_TARG");
+      (object, ra_targ, dec_targ)
+         = fits_read_key ("foo.fits[EVENTS]", "OBJECT", "RA_TARG", "DEC_TARG");
 
 
 
@@ -281,12 +276,12 @@
   ule will silently close the file. While this is a convenient feature
   for many purposes, it is always better to explicitly close a file when
   it has been modified. The reason for this is that CFITSIO writes to
-  internal buffers and then flushes those to the disk. Often some
-  buffers will not get written to the disk until the file is closed. If
-  the disk is full, or something else goes wrong then the file will not
-  be properly closed resulting in a incomplete or corrupt file. Hence it
-  is strongly recommended that one explicitly close a file after writing
-  to a file, i.e.,
+  internal buffers and then flushes those to the disk. Often some buf-
+  fers will not get written to the disk until the file is closed. If the
+  disk is full, or something else goes wrong then the file will not be
+  properly closed resulting in a incomplete or corrupt file. Hence it is
+  strongly recommended that one explicitly close a file after writing to
+  a file, i.e.,
 
 
             define write_image_to_file (file, img)
@@ -297,12 +292,12 @@
                fits_close_file (fptr);
             }
 
-  2.3.  Keywords
 
+
+  2.3.  Keywords
 
   The high-level interface contains several functions for manipulating
   header keywords and records.
-
 
   2.3.1.  Reading Header Keywords
 
@@ -360,9 +355,8 @@
 
   3. If the first character of the resulting name is numeric, then the
      name will be prefixed with an underscore.
+
      To illustrate the normalization process, consider:
-
-
             keys = fits_read_key_struct ("foo.fits", "OBJECT", "2CRVL3",
                                          "DATE-OBS");
 
@@ -372,8 +366,6 @@
   object, _2crvl3, and date_obs. If any of these keywords do not exist
   in the header, the value of the corresponding structure field will be
   NULL.
-
-
 
   2.3.2.  Writing Header Keywords
 
@@ -390,8 +382,6 @@
   Finally the fits_write_comment and fits_write_history functions may be
   used to write comments and history records to the header,
   respectively.
-
-
 
   2.4.  Binary Tables
 
@@ -411,25 +401,24 @@
   table whose structure is defined by the FITS header:
 
 
-
-     XTENSION= 'BINTABLE'
-     BITPIX  =                   8
-     NAXIS   =                   2
-     NAXIS1  =                  34
-     NAXIS2  =                 500
-     PCOUNT  =                   0
-     GCOUNT  =                   1
-     TFIELDS =                   4
-     TTYPE1  = 'TIME    '
-     TFORM1  = 'D       '
-     TTYPE2  = 'X       '
-     TFORM2  = 'E       '
-     TTYPE3  = 'Y       '
-     TFORM3  = 'E       '
-     TTYPE4  = 'PHAS    '
-     TFORM4  = '9I      '
-     EXTNAME = 'EXAMPLE '
-     TDIM4   = '(3,3)   '
+          XTENSION= 'BINTABLE'
+          BITPIX  =                   8
+          NAXIS   =                   2
+          NAXIS1  =                  34
+          NAXIS2  =                 500
+          PCOUNT  =                   0
+          GCOUNT  =                   1
+          TFIELDS =                   4
+          TTYPE1  = 'TIME    '
+          TFORM1  = 'D       '
+          TTYPE2  = 'X       '
+          TFORM2  = 'E       '
+          TTYPE3  = 'Y       '
+          TFORM3  = 'E       '
+          TTYPE4  = 'PHAS    '
+          TFORM4  = '9I      '
+          EXTNAME = 'EXAMPLE '
+          TDIM4   = '(3,3)   '
 
 
 
@@ -473,8 +462,7 @@
   specified columns, e.g.,
 
 
-
-      tbl = fits_read_table ("foo.fits[EXAMPLE]", "x", "y");
+           tbl = fits_read_table ("foo.fits[EXAMPLE]", "x", "y");
 
 
 
@@ -494,7 +482,8 @@
   table. For example
 
 
-          phas = fits_read_cell ("foo.fits[EXAMPLE]", "phas", 4);
+
+     phas = fits_read_cell ("foo.fits[EXAMPLE]", "phas", 4);
 
 
 
@@ -508,8 +497,6 @@
 
 
   will read the first 1000 rows of the X and Y columns in the table.
-
-
 
   2.4.2.  Writing Binary Tables
 
@@ -549,17 +536,18 @@
   tory, and fits_write_comment functions:
 
 
-           fp = fits_open_file ("foo.fits[LISSAJOUS]");
-           fits_write_comment (fp, "This table contains data for a Lissajous pattern");
-           fits_update_key (fp, "A_X", A_x, "x(t) Amplitude");
-           fits_update_key (fp, "A_Y", A_y, "y(t) Amplitude");
-           fits_update_key (fp, "OMEGA_X", omega_x, "x(t) omega");
-           fits_update_key (fp, "OMEGA_Y", omega_y, "y(t) omega");
-           fits_update_key (fp, "PHI_X", phi_x, "x(t) phase");
-           fits_update_key (fp, "PHI_Y", phi_y, "y(t) phase");
-           fits_write_history (fp, "This was written as an example for the " +
-                                   "documentation of the slang cfitsio module");
-           fits_close_file (fp);
+
+      fp = fits_open_file ("foo.fits[LISSAJOUS]");
+      fits_write_comment (fp, "This table contains data for a Lissajous pattern");
+      fits_update_key (fp, "A_X", A_x, "x(t) Amplitude");
+      fits_update_key (fp, "A_Y", A_y, "y(t) Amplitude");
+      fits_update_key (fp, "OMEGA_X", omega_x, "x(t) omega");
+      fits_update_key (fp, "OMEGA_Y", omega_y, "y(t) omega");
+      fits_update_key (fp, "PHI_X", phi_x, "x(t) phase");
+      fits_update_key (fp, "PHI_Y", phi_y, "y(t) phase");
+      fits_write_history (fp, "This was written as an example for the " +
+                              "documentation of the slang cfitsio module");
+      fits_close_file (fp);
 
 
 
@@ -585,31 +573,30 @@
   to produce:
 
 
-
-      XTENSION= 'BINTABLE' / binary table extension
-      BITPIX  =                   8 / 8-bit bytes
-      NAXIS   =                   2 / 2-dimensional binary table
-      NAXIS1  =                  24 / width of table in bytes
-      NAXIS2  =               10000 / number of rows in table
-      PCOUNT  =                   0 / size of special data area
-      GCOUNT  =                   1 / one data group (required keyword)
-      TFIELDS =                   3 / number of fields in each row
-      TTYPE1  = 't       ' / label for field   1
-      TFORM1  = 'D       ' / data format of field: 8-byte DOUBLE
-      TTYPE2  = 'x       ' / label for field   2
-      TFORM2  = 'D       ' / data format of field: 8-byte DOUBLE
-      TTYPE3  = 'y       ' / label for field   3
-      TFORM3  = 'D       ' / data format of field: 8-byte DOUBLE
-      EXTNAME = 'LISSAJOUS' / name of this binary table extension
-      A_X     =                  10
-      OMEGA_X =                   3
-      PHI_X   =                   0
-      A_Y     =                  20
-      OMEGA_Y =                   7
-      PHI_Y   =                   1
-      COMMENT This table contains data for a Lissajous pattern
-      HISTORY This was written as an example for the documentation of the slang cfitsi
-      HISTORY o module
+           XTENSION= 'BINTABLE' / binary table extension
+           BITPIX  =                   8 / 8-bit bytes
+           NAXIS   =                   2 / 2-dimensional binary table
+           NAXIS1  =                  24 / width of table in bytes
+           NAXIS2  =               10000 / number of rows in table
+           PCOUNT  =                   0 / size of special data area
+           GCOUNT  =                   1 / one data group (required keyword)
+           TFIELDS =                   3 / number of fields in each row
+           TTYPE1  = 't       ' / label for field   1
+           TFORM1  = 'D       ' / data format of field: 8-byte DOUBLE
+           TTYPE2  = 'x       ' / label for field   2
+           TFORM2  = 'D       ' / data format of field: 8-byte DOUBLE
+           TTYPE3  = 'y       ' / label for field   3
+           TFORM3  = 'D       ' / data format of field: 8-byte DOUBLE
+           EXTNAME = 'LISSAJOUS' / name of this binary table extension
+           A_X     =                  10
+           OMEGA_X =                   3
+           PHI_X   =                   0
+           A_Y     =                  20
+           OMEGA_Y =                   7
+           PHI_Y   =                   1
+           COMMENT This table contains data for a Lissajous pattern
+           HISTORY This was written as an example for the documentation of the slang cfitsi
+           HISTORY o module
 
 
 
@@ -649,8 +636,6 @@
 
   2.5.  Images
 
-
-
   2.5.1.  Preliminaries
 
 
@@ -670,8 +655,6 @@
   trap of indexing a S-lang array the same as you would of indexing a
   point in Cartesian space (x,y), instead think in terms of rows and
   columns.
-
-
 
   2.5.2.  Reading and Writing Images
 
@@ -727,14 +710,9 @@
   is referred to the discussion of the fits_write_binary_table function
   for more information.
 
-
-
   2.6.  WCS Routines
 
-
-
   2.6.1.  Introduction
-
 
   The FITS package includes a set of routines for reading and writing
   WCS <http://fits.gsfc.nasa.gov/fits_wcs.html> keywords in the form
@@ -769,7 +747,6 @@
      cdelt
         Species the gradient at the reference pixel (Double_Type[naxis])
 
-
      pc An array used to linearly transform the WCS.
         (Double_Type[naxis,naxis] or NULL)
 
@@ -787,9 +764,7 @@
   possible for the most common uses. A few examples will illustrate
   this.
 
-
   2.6.2.  Examples
-
 
   Consider once again the example of creating a FITS image by binning
   two columns of a FITS binary table:
@@ -832,8 +807,7 @@
   transform the WCS:
 
 
-
-      wcs = fitswcs_bin_wcs (wcs, ygrid, xgrid);
+           wcs = fitswcs_bin_wcs (wcs, ygrid, xgrid);
 
 
 
@@ -859,7 +833,6 @@
 
   2.6.3.  Alternate WCS
 
-
   Sometimes it is useful to attach more than one coordinate system to an
   image. For example, it is useful to have a coordinate system that maps
   the pixel coordinates back to (X,Y) coordinates from which they were
@@ -880,39 +853,37 @@
 
   2.6.4.  Degenerate Axes
 
-
   Consider a FITS file hydra.fits containing an image HDU with the
   following FITS header:
 
 
-
-      SIMPLE  =                   T / file does conform to FITS standard
-      BITPIX  =                 -32 / number of bits per data pixel
-      NAXIS   =                   4 / number of data axes
-      NAXIS1  =                 657 / length of data axis
-      NAXIS2  =                 657 / length of data axis
-      NAXIS3  =                   1 / length of data axis
-      NAXIS4  =                   1 / length of data axis
-      CTYPE1  = 'RA---SIN'
-      CRVAL1  =         139.5235701
-      CRPIX1  =                 330
-      CDELT1  =    -0.0004166666768
-      CTYPE2  = 'DEC--SIN'
-      CRVAL2  =      -12.0955450949
-      CRPIX2  =                 328
-      CDELT2  =     0.0004166666768
-      PC1_1   =                   1
-      PC1_2   =-1.7318465835227e-09
-      PC2_1   = 1.7318465835227e-09
-      PC2_2   =                   1
-      CTYPE3  = 'FREQ    '
-      CRVAL3  =        332902343.75
-      CRPIX3  =                   1
-      CDELT3  =           2490234.5
-      CTYPE4  = 'STOKES  '
-      CRVAL4  =                   1
-      CRPIX4  =                   1
-      CDELT4  =                   1
+           SIMPLE  =                   T / file does conform to FITS standard
+           BITPIX  =                 -32 / number of bits per data pixel
+           NAXIS   =                   4 / number of data axes
+           NAXIS1  =                 657 / length of data axis
+           NAXIS2  =                 657 / length of data axis
+           NAXIS3  =                   1 / length of data axis
+           NAXIS4  =                   1 / length of data axis
+           CTYPE1  = 'RA---SIN'
+           CRVAL1  =         139.5235701
+           CRPIX1  =                 330
+           CDELT1  =    -0.0004166666768
+           CTYPE2  = 'DEC--SIN'
+           CRVAL2  =      -12.0955450949
+           CRPIX2  =                 328
+           CDELT2  =     0.0004166666768
+           PC1_1   =                   1
+           PC1_2   =-1.7318465835227e-09
+           PC2_1   = 1.7318465835227e-09
+           PC2_2   =                   1
+           CTYPE3  = 'FREQ    '
+           CRVAL3  =        332902343.75
+           CRPIX3  =                   1
+           CDELT3  =           2490234.5
+           CTYPE4  = 'STOKES  '
+           CRVAL4  =                   1
+           CRPIX4  =                   1
+           CDELT4  =                   1
 
 
 
@@ -947,8 +918,7 @@
   last two dimensions of the WCS:
 
 
-
-     wcs = fitswcs_slice (wcs, [2,3]);
+          wcs = fitswcs_slice (wcs, [2,3]);
 
 
 
@@ -974,7 +944,6 @@
 
   2.7.  High-level Function Reference
 
-
   2.7.1.  fits_read_errmsgs
 
 
@@ -995,7 +964,6 @@
       See Also
         ``_fits_read_errmsg'', ``fits_set_verbose_errors''
 
-
   2.7.2.  fits_set_verbose_errors
 
 
@@ -1014,7 +982,6 @@
 
       See Also
         ``fits_read_errmsgs''
-
 
   2.7.3.  fits_open_file
 
@@ -1043,7 +1010,6 @@
       See Also
         ``fits_close_file'', ``fits_create_binary_table''
 
-
   2.7.4.  fits_close_file
 
 
@@ -1064,7 +1030,6 @@
       See Also
         ``fits_open_file''
 
-
   2.7.5.  fits_move_to_interesting_hdu
 
 
@@ -1073,6 +1038,8 @@
 
       Usage
         fits_move_to_interesting_hdu (fp [, hdu_type]
+
+
 
        Fits_File_Type fp;
        Int_Type hdu_type;
@@ -1093,7 +1060,6 @@
 
       See Also
         ``fits_open_file''
-
 
   2.7.6.  fits_key_exists
 
@@ -1121,7 +1087,6 @@
       See Also
         ``fits_read_key'', ``fits_read_header''
 
-
   2.7.7.  fits_get_colnum
 
 
@@ -1142,9 +1107,11 @@
         specified name.  The file-descriptor fd must specify the name of
         a file, or an open fits file pointer.
 
+      Qualifiers
+        ; casesen: use case-sensitive column names
+
       See Also
         ``fits_binary_table_column_exists''
-
 
   2.7.8.  fits_binary_table_column_exists
 
@@ -1170,9 +1137,11 @@
         If the specified column exists, 1 will be returned; otherwise
         the function will return 0.
 
+      Qualifiers
+        ; casesen: use case-sensitive column names
+
       See Also
         ``fits_key_exists'', ``fits_open_file''
-
 
   2.7.9.  fits_read_col
 
@@ -1198,6 +1167,10 @@
         either be strings denoting the column names, or integers
         representing the column numbers.
 
+
+      Qualifiers
+        ; casesen: use case-sensitive column names
+
       See Also
         ``fits_read_cell'', ``fits_read_row'', ``fits_read_table''
 
@@ -1221,11 +1194,15 @@
         the values in a structure. See the documentation on that
         function for more information.
 
+        Field names are converted to lowercase unless the casesen
+        qualifier is set.
+
+      Qualifiers
+        ; casesen: use case-sensitive column names
 
       See Also
         ``fits_read_col'', ``fits_read_key_struct'', ``fits_read_row'',
         ``fits_read_header''
-
 
   2.7.11.  fits_read_cell
 
@@ -1253,6 +1230,7 @@
         ``fits_read_col'', ``fits_read_row''
 
 
+
   2.7.12.  fits_read_row
 
 
@@ -1263,9 +1241,8 @@
         Struct_Type fits_read_cell (file, r)
 
 
-
-        Fits_File_Type or String_Type file;
-        Int_Type r;
+             Fits_File_Type or String_Type file;
+             Int_Type r;
 
 
 
@@ -1278,7 +1255,6 @@
 
       See Also
         ``fits_read_col'', ``fits_read_cell''
-
 
   2.7.13.  fits_read_header
 
@@ -1304,7 +1280,6 @@
       See Also
         ``fits_read_table''
 
-
   2.7.14.  fits_read_table
 
 
@@ -1321,18 +1296,22 @@
 
       Description
         fits_read_table reads the data in a table of the FITS file
-        specified by file and returns it as a structure. If the optional
-        column name parameters are specified, then only those columns
-        will be read.  Otherwise, the entire table will be returned.
+        specified by file and returns it as a structure. Field names are
+        converted to lowercase unless the casesen qualifier is set. If
+        the optional column name parameters are specified, then only
+        those columns will be read. Otherwise, the entire table will be
+        returned.
 
         If file is a string, then the file will be opened via the
         virtual file specification implied by file. Otherwise, file
         should represent an already opened FITS file.
 
+      Qualifiers
+        ; casesen: do not convert field names to lowercase
+
       See Also
         ``fits_read_col'', ``fits_read_cell'', ``fits_read_row'',
         ``fits_read_header''
-
 
   2.7.15.  fits_read_key
 
@@ -1362,7 +1341,6 @@
         ``fits_read_key_struct'', ``fits_read_col'', ``fits_read_cell'',
         ``fits_read_row'', ``fits_read_header''
 
-
   2.7.16.  fits_read_key_struct
 
 
@@ -1379,15 +1357,19 @@
 
 
       Description
-        This function works exactly like fits_read_key excepts returns
+        This function works exactly like fits_read_key except it returns
         the values in a structure. See the documentation on that
         function for more information.
+
+        Field names are converted to lowercase unless the casesen
+        qualifier is set.
+
+      Qualifiers
+        ; casesen: do not convert field names to lowercase
 
       See Also
         ``fits_read_key'', ``fits_read_col'', ``fits_read_cell'',
         ``fits_read_row'', ``fits_read_header''
-
-
 
   2.7.17.  fits_create_binary_table
 
@@ -1418,7 +1400,6 @@
 
       See Also
         ``fits_write_binary_table'', ``fits_open_file''
-
 
   2.7.18.  fits_write_binary_table
 
@@ -1453,6 +1434,8 @@
 
       Example
         The following code
+
+
               variable data = struct { x, cosx, sinx };
               data.x = [0:2*PI:0.01];
               data.cosx = cos(data.x);
@@ -1502,9 +1485,9 @@
         records. As the example shows, this function places the comment
         and history records at the end of the table.
 
+
       See Also
         ``fits_create_binary_table'', ``fits_open_file''
-
 
   2.7.19.  fits_update_key
 
@@ -1516,11 +1499,10 @@
         fits_update_key (fd, key, val [,comment])
 
 
-
-         String_Type or Fits_File_Type fd;
-         String_Type key;
-         Any type val;
-         String_Type comment;
+              String_Type or Fits_File_Type fd;
+              String_Type key;
+              Any type val;
+              String_Type comment;
 
 
 
@@ -1532,7 +1514,6 @@
 
       See Also
         ``fits_update_logical'', ``fits_read_key''
-
 
   2.7.20.  fits_update_logical
 
@@ -1560,7 +1541,6 @@
       See Also
         ``fits_update_key''
 
-
   2.7.21.  fits_write_comment
 
 
@@ -1570,9 +1550,8 @@
       Usage
         fits_write_comment (fd, comment)
 
-
-            Fits_File_Type or String_Type fd;
-            String_Type comment;
+       Fits_File_Type or String_Type fd;
+       String_Type comment;
 
 
 
@@ -1580,9 +1559,9 @@
         As the name indicates, this function writes a comment record to
         the specified fits file. The file-descriptor fd must either be
         the name of a fits file or an open fits file pointer.
+
       See Also
         ``fits_update_key'', ``fits_write_history''
-
 
   2.7.22.  fits_write_history
 
@@ -1607,7 +1586,6 @@
       See Also
         ``fits_update_key'', ``fits_write_comment''
 
-
   2.7.23.  fits_write_date
 
 
@@ -1630,18 +1608,17 @@
       See Also
         ``fits_update_key''
 
-
   2.7.24.  fits_write_chksum
 
 
       Synopsis
         Compute and write the DATASUM and CHECKSUM keywords
-
       Usage
         fits_write_chksum (fd)
 
 
              Fits_File_Type or String_Type fd;
+
 
 
       Description
@@ -1652,7 +1629,6 @@
 
       See Also
         ``fits_update_key'', ``fits_verify_chksum''
-
 
   2.7.25.  fits_verify_chksum
 
@@ -1680,7 +1656,6 @@
       See Also
         ``fits_write_chksum''
 
-
   2.7.26.  fits_read_records
 
 
@@ -1698,8 +1673,8 @@
       See Also
         ``fits_write_records'', ``fits_read_key''
 
-
   2.7.27.  fits_write_records
+
 
 
       Synopsis
@@ -1709,8 +1684,8 @@
         fits_write_records (fd, records)
 
 
-        Fits_File_Type or String_Type fd;
-        Array_Type records;
+             Fits_File_Type or String_Type fd;
+             Array_Type records;
 
 
 
@@ -1720,7 +1695,6 @@
 
       See Also
         ``fits_read_records''
-
 
   2.7.28.  fits_get_keyclass
 
@@ -1751,7 +1725,6 @@
       See Also
         ``fits_read_records'', ``fits_read_key''
 
-
   2.7.29.  fits_get_bitpix
 
 
@@ -1767,10 +1740,9 @@
         point type, otherwise and error will be generated. The bitpix
         value is returned.
 
+
       See Also
         ``fits_write_image_hdu'', ``fits_read_img''
-
-
 
   2.7.30.  fits_read_img
 
@@ -1795,7 +1767,6 @@
       See Also
         ``fits_read_table'', ``fits_read_col'', ``fits_open_file'',
         ``fits_write_img''
-
 
   2.7.31.  fits_create_image_hdu
 
@@ -1832,8 +1803,8 @@
         ``fits_write_image_hdu''
 
 
-  2.7.32.  fits_write_image_hdu
 
+  2.7.32.  fits_write_image_hdu
 
 
       Synopsis
@@ -1897,8 +1868,6 @@
                COMMENT This is a comment
                COMMENT And this is another
 
-
-
       Notes
         This function provides no mechanism to mix comments and keyword
         records. As the example shows, this function places the comment
@@ -1906,7 +1875,6 @@
 
       See Also
         ``fits_create_binary_table'', ``fits_open_file''
-
 
   2.7.33.  fits_write_img
 
@@ -1924,10 +1892,7 @@
       See Also
         ``fits_write_image_hdu'', ``fits_create_image_hdu''
 
-
-
   2.8.  WCS Function Reference
-
 
   2.8.1.  fitswcs_new
 
@@ -1947,7 +1912,6 @@
         ``fitswcs_get_img_wcs'', ``fitswcs_get_column_wcs'',
         ``fitswcs_get_vector_wcs''
 
-
   2.8.2.  fitswcs_slice
 
 
@@ -1965,7 +1929,8 @@
       Example
         Suppose that wcs represents a 4 dimensional WCS. Then
 
-         wcs2 = fitswcs_slice (wcs, [0,1]);
+
+              wcs2 = fitswcs_slice (wcs, [0,1]);
 
 
 
@@ -1982,7 +1947,6 @@
       See Also
         ``fitswcs_get_img_wcs'', ``fitswcs_get_column_wcs'',
         ``fitswcs_get_vector_wcs''
-
 
   2.8.3.  fitswcs_get_img_wcs
 
@@ -2010,7 +1974,6 @@
         ``fitswcs_put_img_wcs'', ``fitswcs_get_column_wcs'',
         ``fitswcs_get_vector_wcs''
 
-
   2.8.4.  fitswcs_get_column_wcs
 
 
@@ -2026,7 +1989,6 @@
         specify a binary table. The columns-array parameter should be an
         array of columns names. The third parameter is optional and is
         used to specify an alternate WCS.
-
 
       Example
 
@@ -2045,7 +2007,6 @@
       See Also
         ``fitswcs_put_column_wcs'', ``fitswcs_get_img_wcs'',
         ``fitswcs_get_vector_wcs''
-
 
   2.8.5.  fitswcs_get_vector_wcs
 
@@ -2080,7 +2041,6 @@
       See Also
         ``fitswcs_get_column_wcs'', ``fitswcs_get_img_wcs''
 
-
   2.8.6.  fitswcs_new_img_wcs
 
 
@@ -2100,17 +2060,17 @@
         corresponding WCS:
 
 
-              (x,y) = fits_read_col ("table.fits", "X", "Y");
-              gridx = [min(x):max(x):0.5];
-              gridy = [min(y):max(y):0.5];
-              img = hist2d (y,x,gridy,gridx);
-              wcs = fitswcs_new_img_wcs (gridy, gridx);
+
+         (x,y) = fits_read_col ("table.fits", "X", "Y");
+         gridx = [min(x):max(x):0.5];
+         gridy = [min(y):max(y):0.5];
+         img = hist2d (y,x,gridy,gridx);
+         wcs = fitswcs_new_img_wcs (gridy, gridx);
 
 
 
       See Also
         ``fitswcs_new'', ``fitswcs_get_img_wcs''
-
 
   2.8.7.  fitswcs_put_img_wcs
 
@@ -2141,7 +2101,6 @@
       See Also
         ``fitswcs_put_column_wcs''
 
-
   2.8.8.  fitswcs_put_column_wcs
 
 
@@ -2169,7 +2128,6 @@
       See Also
         ``fitswcs_get_column_wcs'', ``fitswcs_put_img_wcs'',
         ``fitswcs_get_img_wcs''
-
 
   2.8.9.  fitswcs_linear_transform_wcs
 
@@ -2213,9 +2171,7 @@
       See Also
         ``fitswcs_rebin_wcs'', ``fitswcs_bin_wcs''
 
-
   2.8.10.  fitswcs_rebin_wcs
-
 
 
       Synopsis
@@ -2238,7 +2194,6 @@
         ``fitswcs_bin_wcs'', ``fitswcs_linear_transform_wcs'',
         ``fitswcs_slice''
 
-
   2.8.11.  fitswcs_bin_wcs
 
 
@@ -2255,7 +2210,6 @@
         unbinnned coordinates. The grid parameters specify the linear
         grids that were used to create the image.
 
-
       See Also
         ``fitswcs_rebin_wcs'', ``fitswcs_linear_transform_wcs'',
         ``fitswcs_slice''
@@ -2263,8 +2217,6 @@
 
 
   3.  The low-level interface
-
-
 
   3.1.  Overview
 
@@ -2315,8 +2267,6 @@
 
   3.2.  Low-level Function Reference
 
-
-
   3.2.1.  _fits_get_errstatus
 
 
@@ -2333,8 +2283,6 @@
 
       See Also
         ``fits_read_errmsgs'', ``_fits_read_errmsg''
-
-
 
   3.2.2.  _fits_read_errmsg
 
@@ -2356,8 +2304,6 @@
 
       See Also
         ``fits_read_errmsgs'', ``fits_set_verbose_errors''
-
-
 
   3.2.3.  _fits_open_file
 
@@ -2383,14 +2329,14 @@
               "w"     Open the file in read-write mode
               "c"     Create a new file.
 
+
+
      Note that if the mode argument is "c", then the cfitsio fits_cre-
      ate_file function will be called. An important difference between
      this intrinsic function and the fits_create_file library function
      is that if the file already exists, the library function will
      return an error, whereas _fits_open_file will simply delete the
      file before creating a new one.
-
-
 
   3.2.4.  _fits_delete_file
 
@@ -2406,8 +2352,6 @@
         fits_delete_file. See its documentation for additional
         information.
 
-
-
   3.2.5.  _fits_close_file
 
 
@@ -2421,8 +2365,6 @@
         This function is a wrapper around the cfitsio library function
         fits_close_file. See its documentation for additional
         information.
-
-
 
   3.2.6.  _fits_movabs_hdu
 
@@ -2442,13 +2384,12 @@
         The cfitsio counterpart also returns the HDU type of the
         resulting HDU.
 
-
-
   3.2.7.  _fits_movrel_hdu
 
 
       Synopsis
         Move a relative number of HDUs
+
       Usage
         status = _fits_movrel_hdu (Fits_File_Type fptr, Int_Type nmove)
 
@@ -2461,8 +2402,6 @@
         The cfitsio counterpart also returns the HDU type of the
         resulting HDU.
 
-
-
   3.2.8.  _fits_movnam_hdu
 
 
@@ -2471,8 +2410,6 @@
 
       Usage
         status = _fits_movnam_hdu (fptr, hdutype, extname, extvers)
-
-
              Fits_File_Type fptr;
              Int_Type hdutype, extvers;
              String_Type extname;
@@ -2483,8 +2420,6 @@
         This function is a wrapper around the cfitsio library function
         fits_movnam_hdu. See its documentation for additional
         information.
-
-
 
   3.2.9.  _fits_get_num_hdus
 
@@ -2501,8 +2436,6 @@
         fits_get_num_hdus. See its documentation for additional
         information.
 
-
-
   3.2.10.  _fits_get_hdu_num
 
 
@@ -2516,8 +2449,6 @@
         This function is a wrapper around the cfitsio library function
         fits_get_hdu_num. See its documentation for additional
         information.
-
-
 
   3.2.11.  _fits_get_hdu_type
 
@@ -2544,7 +2475,6 @@
              _FITS_BINARY_TBL
 
 
-
   3.2.12.  _fits_copy_file
 
 
@@ -2566,8 +2496,6 @@
         fits_copy_file. See its documentation for additional
         information.
 
-
-
   3.2.13.  _fits_copy_hdu
 
 
@@ -2576,6 +2504,8 @@
 
       Usage
         status = _fits_copy_hdu (infptr, outfptr, morekeys)
+
+
              Fits_File_Type infptr, outfptr;
              Int_Type morekeys;
 
@@ -2584,8 +2514,6 @@
       Description
         This function is a wrapper around the cfitsio library function
         fits_copy_hdu. See its documentation for additional information.
-
-
 
   3.2.14.  _fits_copy_header
 
@@ -2601,8 +2529,6 @@
         This function is a wrapper around the cfitsio library function
         fits_copy_header. See its documentation for additional
         information.
-
-
 
   3.2.15.  _fits_delete_hdu
 
@@ -2622,8 +2548,6 @@
         The corresponding cfitsio function also returns the HDU type of
         the new HDU. If that information is necessary, make a separate
         call to _fits_get_hdu_type.
-
-
 
   3.2.16.  _fits_create_img
 
@@ -2654,8 +2578,6 @@
         length(dims), the value of NAXIS1 will be given by dims[0], and
         so forth.
 
-
-
   3.2.17.  _fits_write_img
 
 
@@ -2674,8 +2596,6 @@
         This function differs from its cfitsio counterpart in that the
         whole image represented by the array img will be written out.
 
-
-
   3.2.18.  _fits_read_img
 
 
@@ -2684,7 +2604,6 @@
 
       Usage
         status = _fits_read_img (Fits_File_Type fptr, Ref_Type img)
-
       Description
         This function is a wrapper around the cfitsio library function
         fits_read_img. See its documentation for additional information.
@@ -2696,8 +2615,6 @@
         dimensionality of the returned image is given by
         [...,NAXIS2,NAXIS1] such that NAXIS1 corresponds to the fastest
         varying dimension, NAXIS2 the next fastest varying, etc.
-
-
 
   3.2.19.  _fits_create_binary_tbl
 
@@ -2723,8 +2640,6 @@
         The input arrays ttype, tform, and tunit must be the same
         length, which determines the number of columns in the table. The
         tunit and extname parameters may be set to NULL.
-
-
 
   3.2.20.  _fits_update_key
 
@@ -2761,8 +2676,6 @@
         To update the value of a boolean (logical) keyword, use the
         _fits_update_logical function.
 
-
-
   3.2.21.  _fits_update_logical
 
 
@@ -2771,6 +2684,8 @@
 
       Usage
         status = _fits_update_logical (fptr, keyname, value, comment)
+
+
             Fits_File_Type fptr;
             String_Type keyname, comment;
             Int_Type value;
@@ -2790,8 +2705,6 @@
       See Also
         ``_fits_update_key''
 
-
-
   3.2.22.  _fits_write_comment
 
 
@@ -2806,8 +2719,6 @@
         This function is a wrapper around the cfitsio library function
         fits_write_comment. See its documentation for additional
         information.
-
-
 
   3.2.23.  _fits_write_history
 
@@ -2824,8 +2735,6 @@
         fits_write_history. See its documentation for additional
         information.
 
-
-
   3.2.24.  _fits_write_date
 
 
@@ -2835,13 +2744,10 @@
       Usage
         status = _fits_write_date (Fits_File_Type fptr)
 
-
       Description
         This function is a wrapper around the cfitsio library function
         fits_write_date. See its documentation for additional
         information.
-
-
 
   3.2.25.  _fits_write_record
 
@@ -2857,8 +2763,6 @@
         This function is a wrapper around the cfitsio library function
         fits_write_record. See its documentation for additional
         information.
-
-
 
   3.2.26.  _fits_modify_name
 
@@ -2880,8 +2784,6 @@
         fits_modify_name. See its documentation for additional
         information.
 
-
-
   3.2.27.  _fits_get_num_keys
 
 
@@ -2897,8 +2799,6 @@
         function. It obtains the number of existing keywords in the
         current HDU (excluding the END keyword) and assigns that value
         to variable associated with the numkeys parameter.
-
-
 
   3.2.28.  _fits_read_key_integer
 
@@ -2927,8 +2827,6 @@
         ``_fits_read_key'', ``_fits_read_key_string'',
         ``_fits_read_key_double''
 
-
-
   3.2.29.  _fits_read_key_string
 
 
@@ -2956,8 +2854,6 @@
         ``_fits_read_key'', ``_fits_read_key_integer'',
         ``_fits_read_key_double''
 
-
-
   3.2.30.  _fits_read_key_double
 
 
@@ -2966,8 +2862,6 @@
 
       Usage
         status = _fits_read_key_double (fptr, keyname, value, comment)
-
-
              Fits_File_Type fptr;
              String_Type keyname;
              Ref_Type value, comment;
@@ -2984,8 +2878,6 @@
       See Also
         ``_fits_read_key'', ``_fits_read_key_integer'',
         ``_fits_read_key_string''
-
-
 
   3.2.31.  _fits_read_key
 
@@ -3016,8 +2908,6 @@
         ``_fits_read_key_integer'', ``_fits_read_key_string'',
         ``_fits_read_key_double''
 
-
-
   3.2.32.  _fits_read_record
 
 
@@ -3028,9 +2918,9 @@
         status = _fits_read_record (fptr, keynum, card)
 
 
-        Fits_File_Type fptr;
-        Int_Type keynum;
-        Ref_Type card;
+             Fits_File_Type fptr;
+             Int_Type keynum;
+             Ref_Type card;
 
 
 
@@ -3038,8 +2928,6 @@
         This function is a wrapper around the cfitsio library function
         fits_read_record. See its documentation for additional
         information.
-
-
 
   3.2.33.  _fits_delete_key
 
@@ -3055,8 +2943,6 @@
         This function is a wrapper around the cfitsio library function
         fits_delete_key. See its documentation for additional
         information.
-
-
 
   3.2.34.  _fits_get_colnum
 
@@ -3079,15 +2965,12 @@
         fits_get_colnum. See its documentation for additional
         information.
 
-
       Notes
         The corresponding cfitsio function permits a wildcard match to
         the colname parameter. The current wrapping of this function
         does not support such matching.
 
         The colname parameter is treating in a case-insensitive manner.
-
-
 
   3.2.35.  _fits_insert_rows
 
@@ -3109,8 +2992,6 @@
         fits_insert_rows. See its documentation for additional
         information.
 
-
-
   3.2.36.  _fits_delete_rows
 
 
@@ -3130,8 +3011,6 @@
         This function is a wrapper around the cfitsio library function
         fits_delete_rows. See its documentation for additional
         information.
-
-
 
   3.2.37.  _fits_insert_cols
 
@@ -3158,8 +3037,6 @@
         The number of columns to be inserted is given by the length of
         the ttype and tform arrays, which must be of the same length.
 
-
-
   3.2.38.  _fits_delete_col
 
 
@@ -3173,8 +3050,6 @@
         This function is a wrapper around the cfitsio library function
         fits_delete_col. See its documentation for additional
         information.
-
-
 
   3.2.39.  _fits_get_num_cols
 
@@ -3191,8 +3066,6 @@
         fits_get_num_cols. See its documentation for additional
         information.
 
-
-
   3.2.40.  _fits_get_rowsize
 
 
@@ -3207,8 +3080,6 @@
         fits_get_rowsize. See its documentation for additional
         information.
 
-
-
   3.2.41.  _fits_get_num_rows
 
 
@@ -3218,12 +3089,11 @@
       Usage
         status = _fits_get_num_cols (Fits_File_Type fptr, Ref_Type
         nrows)
+
       Description
         This function is a wrapper around the cfitsio library function
         fits_get_num_rows. See its documentation for additional
         information.
-
-
 
   3.2.42.  _fits_write_col
 
@@ -3251,8 +3121,6 @@
       Notes
         The number of elements written out to the column by this
         function will be equal to the number of elements in the array.
-
-
 
   3.2.43.  _fits_read_col
 
@@ -3291,8 +3159,6 @@
       See Also
         ``_fits_read_cols'', ``_fits_write_col''
 
-
-
   3.2.44.  _fits_get_keytype
 
 
@@ -3321,8 +3187,6 @@
         returns the type as a S-lang DataType_Type object, e.g.,
         Int_Type, Complex_Type, etc.
 
-
-
   3.2.45.  _fits_get_keyclass
 
 
@@ -3336,8 +3200,6 @@
         This function is a wrapper around the cfitsio library function
         fits_get_keyclass. See its documentation for additional
         information.
-
-
 
   3.2.46.  _fits_read_cols
 
@@ -3370,8 +3232,6 @@
         This function takes advantage of the cfitsio buffering mechanism
         to optimize the reads.
 
-
-
   3.2.47.  _fits_write_chksum
 
 
@@ -3385,9 +3245,6 @@
         This function is a wrapper around the cfitsio library function
         fits_write_chksum. See its documentation for additional
         information.
-
-
-
   3.2.48.  _fits_update_chksum
 
 
@@ -3402,8 +3259,6 @@
         fits_update_chksum. See its documentation for additional
         information.
 
-
-
   3.2.49.  _fits_verify_chksum
 
 
@@ -3412,6 +3267,8 @@
 
       Usage
         status = _fits_verify_chksum (fptr, dataok, hduok)
+
+
              Fits_File_Type fptr;
              Ref_Type dataok, hduok;
 
@@ -3421,8 +3278,6 @@
         This function is a wrapper around the cfitsio library function
         fits_verify_chksum. See its documentation for additional
         information.
-
-
 
   3.2.50.  _fits_get_chksum
 
@@ -3444,8 +3299,6 @@
         fits_get_chksum. See its documentation for additional
         information.
 
-
-
   3.2.51.  _fits_get_version
 
 
@@ -3454,6 +3307,7 @@
 
       Usage
         Float_Type _fits_get_version ()
+
 
       Description
         This function is a wrapper around the cfitsio library function

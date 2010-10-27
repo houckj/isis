@@ -11,3 +11,8 @@ Changes since 0.4.6
 6. src/fits.sl: Added fits_delete_key/col wrappers.
 7. src/fits.sl: fits_info: Changed format specifier %s to %S for the fits
    descriptor.
+8. src/fits.sl: Added support for a casesens qualifier to enable
+   case-sensitive column names. (Manfred Hanke, Christian Schmid).
+9. src/Makefile.in: generate cfitsio.h to include fitsio.h to ensure
+   that the specified fitsio.h file is picked up.  Unfortunately,
+   fitsio.h is often scattered all over the filesystem.

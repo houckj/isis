@@ -446,27 +446,50 @@ private define get_fits_btable_info (fp)
    return (numrows, names);
 }
 
-private define get_column_number (fp, col)
+private define get_casesens_qualifier ()
+{
+   % We allow the forms:
+   %   func (...; casesen);
+   %   func (...; casesen=0);
+   %   func (...; casesen=1);
+   ifnot (qualifier_exists ("casesen"))
+     return 0;
+
+   variable q = qualifier ("casesen");
+   return (q == NULL) ? 1 : q;
+}
+
+private define _fits_get_colnum_maybe_casesen (ft, name, ref, casesen)
+{
+   if (casesen)
+     return _fits_get_colnum_casesen (ft, name, ref);
+
+   return _fits_get_colnum (ft, name, ref);
+}
+
+private define get_column_number (fp, col, casesen)
 {
    if (typeof (col) == String_Type)
      {
 	variable col_str = col;
-	fits_check_error (_fits_get_colnum (fp, col_str, &col), col_str);
+	fits_check_error (_fits_get_colnum_maybe_casesen (fp, col_str, &col, casesen),
+			  col_str);
 	return col;
      }
    return int (col);
 }
 
-private define get_column_numbers (fp, col_list)
+private define get_column_numbers (fp, col_list, casesen);
+private define get_column_numbers (fp, col_list, casesen)
 {
    variable column_nums = Int_Type[0];
    foreach (col_list)
      {
 	variable col = ();
-	if (typeof (col) == Array_Type)
-	  col = array_map (Int_Type, &get_column_number, fp, col);
+	if ((typeof (col) == Array_Type) || (typeof (col) == List_Type))
+	  col = get_column_numbers (fp, col, casesen);
 	else
-	  col = get_column_number (fp, col);
+	  col = get_column_number (fp, col, casesen);
 
 	column_nums = [column_nums, col];
      }
@@ -486,6 +509,8 @@ private define get_column_numbers (fp, col_list)
 %  This function returns the column number of the column with the specified name.
 %  The file-descriptor \exmp{fd} must specify the name of a file, or an open
 %  fits file pointer.
+%\qualifiers
+%\qualifier{casesen}{use case-sensitive column names}
 %\seealso{fits_binary_table_column_exists}
 %!%-
 define fits_get_colnum ()
@@ -498,8 +523,8 @@ define fits_get_colnum ()
    variable needs_close;
    f = get_open_binary_table (f, &needs_close);
 
-   variable colnum;
-   fits_check_error (_fits_get_colnum (f, column_names, &colnum), column_names);
+   variable colnum, casesen = get_casesens_qualifier (;;__qualifiers);
+   fits_check_error (_fits_get_colnum_maybe_casesen (f, column_names, &colnum, casesen));
 
    do_close_file (f, needs_close);
    return colnum;
@@ -521,6 +546,8 @@ define fits_get_colnum ()
 %
 %  If the specified column exists, \1 will be returned; otherwise the function
 %  will return \0.
+%\qualifiers
+%\qualifier{casesen}{use case-sensitive column names}
 %\seealso{fits_key_exists, fits_open_file}
 %!%-
 define fits_binary_table_column_exists ()
@@ -537,8 +564,11 @@ define fits_binary_table_column_exists ()
    (,names) = get_fits_btable_info (f);
    do_close_file (f, needs_close);
 
-   col = strup (col);
-   names = array_map (String_Type, &strup, names);
+   ifnot (get_casesens_qualifier (;;__qualifiers))
+     {
+	col = strup (col);
+	names = array_map (String_Type, &strup, names);
+     }
    return length (where (col == names));
 }
 
@@ -551,7 +581,7 @@ define fits_delete_col ()
    variable needs_close;
    f = get_open_binary_table (f, &needs_close);
 
-   col = get_column_number (f, col);
+   col = get_column_number (f, col, get_casesens_qualifier(;;__qualifiers));
    fits_check_error (_fits_delete_col (f, col));
    do_close_file (f, needs_close);
 }
@@ -641,8 +671,8 @@ private define reshape_string_array (fp, col, data)
 
 % FITS column and keyword names can begin with a number or have dashes.
 % Bad Design.
-private define normalize_names (names);
-private define normalize_names (names)
+private define normalize_names (names, casesen);
+private define normalize_names (names, casesen)
 {
    variable new_names = String_Type[0];
    _for (0, length (names)-1, 1)
@@ -652,16 +682,15 @@ private define normalize_names (names)
 	variable t = typeof (name);
 	if ((t == Array_Type) || (t == List_Type))
 	  {
-	     new_names = [new_names, normalize_names(name)];
+	     new_names = [new_names, normalize_names(name, casesen)];
 	     continue;
 	  }
 
-	name = strlow (name);
-	name = strtrans (name, "^a-z0-9", "_");
-	variable ch = name[0];
-	ifnot ((ch == '_')
-	       || ((ch >= 'a') && (ch <= 'z')))
-	  name = "_" + name;
+	ifnot (casesen)
+	  name = strlow (name);
+	name = strtrans (name, "^a-zA-Z0-9", "_");
+	if ('0' <= name[0] <= '9')
+ 	  name = "_" + name;
 
 	new_names = [new_names, name];
      }
@@ -679,7 +708,7 @@ private define open_read_cols (fp, columns)
      {
 	fp = fp,
 	needs_close = needs_close,
-	columns = get_column_numbers (fp, columns),
+	columns = get_column_numbers (fp, columns, get_casesens_qualifier(;;__qualifiers)),
 	num_rows = numrows, num_cols = numcols,
 	tdims = String_Type[numcols],
 	tdim_cols = Int_Type[numcols],
@@ -789,6 +818,8 @@ private define pop_column_list (nargs)
 %  should represent an already opened FITS file.  The column parameters
 %  may either be strings denoting the column names, or integers
 %  representing the column numbers.
+%\qualifiers
+%\qualifier{casesen}{use case-sensitive column names}
 %\seealso{fits_read_cell, fits_read_row, fits_read_table}
 %!%-
 define fits_read_col ()
@@ -798,7 +829,7 @@ define fits_read_col ()
 
    variable cols = pop_column_list (_NARGS-1);
    variable fp = ();
-   variable fpinfo = open_read_cols (fp, cols);
+   variable fpinfo = open_read_cols (fp, cols;; __qualifiers);
 
    variable first_row, last_row, num;
    first_row = qualifier ("row", 1);
@@ -826,6 +857,9 @@ define fits_read_col ()
 %  values in a structure.  See the documentation on that function for more
 %  information.
 %
+%  Field names are converted to lowercase unless the \exmp{casesen} qualifier is set.
+%\qualifiers
+%\qualifier{casesen}{use case-sensitive column names}
 %\seealso{fits_read_col, fits_read_key_struct, fits_read_row, fits_read_header}
 %!%-
 define fits_read_col_struct ()
@@ -835,9 +869,9 @@ define fits_read_col_struct ()
 
    variable cols = pop_column_list (_NARGS - 1);
    variable file = ();
-   variable fields = normalize_names (cols);
+   variable fields = normalize_names (cols, get_casesens_qualifier (;;__qualifiers));
    variable s = @Struct_Type (fields);
-   set_struct_fields (s, fits_read_col (file, cols));
+   set_struct_fields (s, fits_read_col (file, cols;; __qualifiers));
    return s;
 }
 
@@ -866,7 +900,7 @@ define fits_read_cell ()
      usage ("x = fits_read_cell (file, c, r)");
 
    (fp, c, r) = ();
-   variable fpinfo = open_read_cols (fp, c);
+   variable fpinfo = open_read_cols (fp, c;; __qualifiers);
 
    variable a = read_cols (fpinfo, r, r);
    variable dims, nd; (dims,nd,) = array_info (a);
@@ -891,7 +925,7 @@ define fits_read_cells ()
    columns = pop_column_list (_NARGS-3);
    fp = ();
 
-   variable fpinfo = open_read_cols (fp, columns);
+   variable fpinfo = open_read_cols (fp, columns;; __qualifiers);
    read_cols (fpinfo, r0, r1);    %  on stack
    close_read_cols (fpinfo);
 }
@@ -979,20 +1013,24 @@ define fits_read_header ()
 %    Fits_File_Type or String_Type file;
 %#v-
 %\description
-%  \var{fits_read_table} reads the data in a table of the FITS file
-%  specified by \var{file} and returns it as a structure.  If the optional
-%  column name parameters are specified, then only those columns will be read.
-%  Otherwise, the entire table will be returned.
+%  \sfun{fits_read_table} reads the data in a table of the FITS file
+%  specified by \exmp{file} and returns it as a structure.  Field
+%  names are converted to lowercase unless the \exmp{casesen} qualifier
+%  is set.  If the optional column name parameters are specified,
+%  then only those columns will be read.  Otherwise, the entire table
+%  will be returned.
 %
-%  If \var{file} is a string, then the file will be opened via the virtual file
-%  specification implied by \var{file}. Otherwise, \var{file} should
+%  If \exmp{file} is a string, then the file will be opened via the virtual file
+%  specification implied by \exmp{file}. Otherwise, \exmp{file} should
 %  represent an already opened FITS file.
+%\qualifiers
+%\qualifier{casesen}{do not convert field names to lowercase}
 %\seealso{fits_read_col, fits_read_cell, fits_read_row, fits_read_header}
 %!%-
 define fits_read_table ()
 {
    if (_NARGS == 0)
-     usage ("S = fits_read_table (FILE [,columns,...])");
+     usage ("S = fits_read_table (FILE [,columns,...] [;casesen])");
 
    variable f, names = NULL;
    if (_NARGS > 1)
@@ -1005,7 +1043,7 @@ define fits_read_table ()
    if (names == NULL)
      (, names) = get_fits_btable_info (f);
 
-   variable s = fits_read_col_struct (f, names);
+   variable s = fits_read_col_struct (f, names;; __qualifiers);
    do_close_file (f, needs_close);
    return s;
 }
@@ -1102,9 +1140,14 @@ define fits_read_key ()
 %    String_Type key1, ...;
 %#v-
 %\description
-%  This function works exactly like \var{fits_read_key} excepts returns the
+%  This function works exactly like \sfun{fits_read_key} except it returns the
 %  values in a structure.  See the documentation on that function for more
 %  information.
+%
+%  Field names are converted to lowercase unless the \exmp{casesen}
+%  qualifier is set.
+%\qualifiers
+%\qualifier{casesen}{do not convert field names to lowercase}
 %\seealso{fits_read_key, fits_read_col, fits_read_cell, fits_read_row, fits_read_header}
 %!%-
 define fits_read_key_struct ()
@@ -1114,7 +1157,7 @@ define fits_read_key_struct ()
 
    variable keys = __pop_args (_NARGS - 1);
    variable file = ();
-   variable fields = normalize_names ([__push_args(keys)]);
+   variable fields = normalize_names ([__push_args(keys)], get_casesens_qualifier(;;__qualifiers));
    variable s = @Struct_Type (fields);
    set_struct_fields (s, fits_read_key (file, __push_args (keys)));
    return s;
@@ -2123,7 +2166,7 @@ fits_iterate (fp, {col1, col2, ...}, &func, {arg1, arg2,...})\n\
    if (delta_rows <= 0)
      throw InvalidParmError, "drows must be >= 1";
 
-   variable fpinfo = open_read_cols (fp, col_list);
+   variable fpinfo = open_read_cols (fp, col_list;; __qualifiers);
    variable num_rows = fpinfo.num_rows;
    variable num_cols = fpinfo.num_cols;
    variable i;
