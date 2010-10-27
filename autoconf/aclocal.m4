@@ -557,6 +557,7 @@ dnl#  jd_with_$1_library=yes/no,
 dnl#  jd_$1_inc_file
 dnl#  jd_$1_include_dir
 dnl#  jd_$1_library_dir
+dnl# If $3 is present, then also look in $3/include+$3/lib
 AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
 [
   AC_REQUIRE([JD_EXPAND_PREFIX])dnl
@@ -572,53 +573,27 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
     then
        jd_$1_inc_file=$1.h
     fi
+
     if test X"$jd_$1_include_dir" = X
     then
-       lib_include_dirs="\
-            $jd_prefix_incdir \
-            $jh_depdir/include \
-            $jh_depdir/pgplot \
-            /usr/local/$1/include \
-            /usr/local/include/$1 \
-  	  /usr/local/include \
-  	  /usr/include/$1 \
-  	  /usr/$1/include \
-  	  /usr/include \
-  	  /opt/include/$1 \
-  	  /opt/$1/include \
-  	  /opt/include"
+      inc_and_lib_dirs="\
+         $jd_prefix_incdir,$jd_prefix_libdir \
+	 /usr/local/$1/include,/usr/local/$1/lib \
+	 /usr/local/include/$1,/usr/local/lib \
+	 /usr/local/include,/usr/local/lib \
+	 /usr/include/$1,/usr/lib \
+	 /usr/$1/include,/usr/$1/lib \
+	 /usr/include,/usr/lib \
+	 /opt/include/$1,/opt/lib \
+	 /opt/$1/include,/opt/$1/lib \
+	 /opt/include,/opt/lib"
 
-       for X in $lib_include_dirs
-       do
-          if test -r "$X/$jd_$1_inc_file"
-	  then
-  	  jd_$1_include_dir="$X"
-            break
-          fi
-       done
-       if test X"$jd_$1_include_dir" = X
-       then
-         jd_with_$1_library="no"
-       fi
-    fi
+      if test X$3 != X
+      then
+        inc_and_lib_dirs="$3/include,$3/lib $inc_and_lib_dirs"
+      fi
 
-    if test X"$jd_$1_library_dir" = X
-    then
-       lib_library_dirs="\
-            $jd_prefix_libdir \
-            $jh_depdir/lib \
-            $jh_depdir/pgplot \
-            /usr/local/lib \
-            /usr/local/lib/$1 \
-            /usr/local/$1/lib \
-  	  /usr/lib \
-  	  /usr/lib/$1 \
-  	  /usr/$1/lib \
-  	  /opt/lib \
-  	  /opt/lib/$1 \
-  	  /opt/$1/lib"
-
-       case "$host_os" in
+      case "$host_os" in
          *darwin* )
 	   exts="dylib so a"
 	   ;;
@@ -627,39 +602,48 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
 	   ;;
 	 * )
 	   exts="so a"
-       esac
+      esac
 
-       found=0
-       for X in $lib_library_dirs
-       do
-         for E in $exts
-	 do
-           if test -r "$X/lib$1.$E"
-	   then
-  	     jd_$1_library_dir="$X"
-	     found=1
-	     break
-           fi
-         done
-	 if test $found -eq 1
-	 then
-	   break
-	 fi
-       done
-       if test X"$jd_$1_library_dir" = X
-       then
-         jd_with_$1_library="no"
-       fi
+      xincfile="$jd_$1_inc_file"
+      xlibfile="lib$1"
+      jd_with_$1_library="no"
+
+      for include_and_lib in $inc_and_lib_dirs
+      do
+        # Yuk.  Is there a better way to set these variables??
+        xincdir=`echo $include_and_lib | tr ',' ' ' | awk '{print [$]1}'`
+	xlibdir=`echo $include_and_lib | tr ',' ' ' | awk '{print [$]2}'`
+	found=0
+	if test -r $xincdir/$xincfile
+	then
+	  for E in $exts
+	  do
+	    if test -r "$xlibdir/$xlibfile.$E"
+	    then
+	      jd_$1_include_dir="$xincdir"
+	      jd_$1_library_dir="$xlibdir"
+	      jd_with_$1_library="yes"
+	      found=1
+	      break
+	    fi
+	  done
+	fi
+	if test $found -eq 1
+	then
+	  break
+	fi
+      done
     fi
   fi
 
-  if test X"$jd_$1_include_dir" != X -a "$jd_$1_library_dir" != X
+  if test X"$jd_$1_include_dir" != X -a X"$jd_$1_library_dir" != X
   then
     AC_MSG_RESULT(yes: $jd_$1_library_dir and $jd_$1_include_dir)
     jd_with_$1_library="yes"
     dnl#  Avoid using /usr/lib and /usr/include because of problems with
     dnl#  gcc on some solaris systems.
     JD_ARG1[]_LIB=-L$jd_$1_library_dir
+    JD_ARG1[]_LIB_DIR=$jd_$1_library_dir
     if test "X$jd_$1_library_dir" = "X/usr/lib"
     then
       JD_ARG1[]_LIB=""
@@ -668,6 +652,7 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
     fi
 
     JD_ARG1[]_INC=-I$jd_$1_include_dir
+    JD_ARG1[]_INC_DIR=$jd_$1_include_dir
     if test "X$jd_$1_include_dir" = "X/usr/include"
     then
       JD_ARG1[]_INC=""
@@ -677,15 +662,19 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
     jd_with_$1_library="no"
     JD_ARG1[]_INC=""
     JD_ARG1[]_LIB=""
+    JD_ARG1[]_INC_DIR=""
+    JD_ARG1[]_LIB_DIR=""
   fi
   AC_SUBST(JD_ARG1[]_LIB)
   AC_SUBST(JD_ARG1[]_INC)
+  AC_SUBST(JD_ARG1[]_LIB_DIR)
+  AC_SUBST(JD_ARG1[]_INC_DIR)
 ])
 dnl#}}}
 
 AC_DEFUN(JD_WITH_LIBRARY, dnl#{{{
 [
-  JD_CHECK_FOR_LIBRARY($1, $2)
+  JD_CHECK_FOR_LIBRARY($1, $2, $3)
   if test "$jd_with_$1_library" = "no"
   then
     AC_MSG_ERROR(unable to find the $1 library and header file $jd_$1_inc_file)
@@ -1248,7 +1237,11 @@ else
    AC_SUBST(XSPEC_MODULE_LIBS)
 
    CFITSIO_INC="-I$HEADAS/include"
+   CFITSIO_INC_DIR="${HEADAS_DIR}/include"
+
    AC_SUBST(CFITSIO_INC)
+   AC_SUBST(CFITSIO_INC_DIR)
+
    JH_CHECK_CFITSIO_LIBNAME("$HEADAS/lib")
    if test "$cfitsio_libfile_exists" == 0 ; then
       AC_MSG_ERROR(Corrupted HEASOFT installation? cannot find cfitsio library in ${HEADAS_DIR}/lib)
@@ -1287,7 +1280,11 @@ then
    AC_SUBST(MODULE_LIST)
 
    CFITSIO_INC="-I${HEADAS_DIR}/include"
+   CFITSIO_INC_DIR="${HEADAS_DIR}/include"
+
    AC_SUBST(CFITSIO_INC)
+   AC_SUBST(CFITSIO_INC_DIR)
+
    JH_CHECK_CFITSIO_LIBNAME($HEADAS_DIR/lib)
    if test "$cfitsio_libfile_exists" == 0 ; then
       AC_MSG_ERROR(Corrupted HEASOFT installation? cannot find cfitsio library in ${HEADAS_DIR}/lib)

@@ -711,6 +711,7 @@ LD_FLAGS_FOR_XSPEC
 HEADAS_DIR
 HEADAS_LIBDIR
 CFITSIO_INC
+CFITSIO_INC_DIR
 CFITSIO_LIB
 CFITSIO_LIBDIR
 CFITSIO_LIBNAME
@@ -721,10 +722,17 @@ XSPEC_MODULE_LIBS
 LINK_XSPEC_STATIC
 CCFITS_LIB
 CCFITS_INC
+CCFITS_LIB_DIR
+CCFITS_INC_DIR
 XSPEC_MODELSONLY
 with_xspec_version
+PGPLOT_LIB_DIR
+PGPLOT_INC_DIR
+CFITSIO_LIB_DIR
 SLANG_LIB
 SLANG_INC
+SLANG_LIB_DIR
+SLANG_INC_DIR
 SLANG_LIBDIR
 SITE_LOCAL_SETUP
 ATOMDB_DIR
@@ -11445,6 +11453,10 @@ echo "$as_me: error: Nonexistent HEADAS directory='$HEADAS_DIR'" >&2;}
 
 
    CFITSIO_INC="-I${HEADAS_DIR}/include"
+   CFITSIO_INC_DIR="${HEADAS_DIR}/include"
+
+
+
 
 
   jh_cfitsio_library_dir=$HEADAS_DIR/lib
@@ -11617,6 +11629,10 @@ echo "$as_me: error: Nonexistent HEADAS directory='$HEADAS_DIR'" >&2;}
 
 
    CFITSIO_INC="-I$HEADAS/include"
+   CFITSIO_INC_DIR="${HEADAS_DIR}/include"
+
+
+
 
 
   jh_cfitsio_library_dir="$HEADAS/lib"
@@ -11871,53 +11887,27 @@ echo $ECHO_N "checking for the CCfits library and header files CCfits/CCfits.h..
     then
        jd_CCfits_inc_file=CCfits.h
     fi
+
     if test X"$jd_CCfits_include_dir" = X
     then
-       lib_include_dirs="\
-            $jd_prefix_incdir \
-            $jh_depdir/include \
-            $jh_depdir/pgplot \
-            /usr/local/CCfits/include \
-            /usr/local/include/CCfits \
-  	  /usr/local/include \
-  	  /usr/include/CCfits \
-  	  /usr/CCfits/include \
-  	  /usr/include \
-  	  /opt/include/CCfits \
-  	  /opt/CCfits/include \
-  	  /opt/include"
+      inc_and_lib_dirs="\
+         $jd_prefix_incdir,$jd_prefix_libdir \
+	 /usr/local/CCfits/include,/usr/local/CCfits/lib \
+	 /usr/local/include/CCfits,/usr/local/lib \
+	 /usr/local/include,/usr/local/lib \
+	 /usr/include/CCfits,/usr/lib \
+	 /usr/CCfits/include,/usr/CCfits/lib \
+	 /usr/include,/usr/lib \
+	 /opt/include/CCfits,/opt/lib \
+	 /opt/CCfits/include,/opt/CCfits/lib \
+	 /opt/include,/opt/lib"
 
-       for X in $lib_include_dirs
-       do
-          if test -r "$X/$jd_CCfits_inc_file"
-	  then
-  	  jd_CCfits_include_dir="$X"
-            break
-          fi
-       done
-       if test X"$jd_CCfits_include_dir" = X
-       then
-         jd_with_CCfits_library="no"
-       fi
-    fi
+      if test X != X
+      then
+        inc_and_lib_dirs="/include,/lib $inc_and_lib_dirs"
+      fi
 
-    if test X"$jd_CCfits_library_dir" = X
-    then
-       lib_library_dirs="\
-            $jd_prefix_libdir \
-            $jh_depdir/lib \
-            $jh_depdir/pgplot \
-            /usr/local/lib \
-            /usr/local/lib/CCfits \
-            /usr/local/CCfits/lib \
-  	  /usr/lib \
-  	  /usr/lib/CCfits \
-  	  /usr/CCfits/lib \
-  	  /opt/lib \
-  	  /opt/lib/CCfits \
-  	  /opt/CCfits/lib"
-
-       case "$host_os" in
+      case "$host_os" in
          *darwin* )
 	   exts="dylib so a"
 	   ;;
@@ -11926,38 +11916,47 @@ echo $ECHO_N "checking for the CCfits library and header files CCfits/CCfits.h..
 	   ;;
 	 * )
 	   exts="so a"
-       esac
+      esac
 
-       found=0
-       for X in $lib_library_dirs
-       do
-         for E in $exts
-	 do
-           if test -r "$X/libCCfits.$E"
-	   then
-  	     jd_CCfits_library_dir="$X"
-	     found=1
-	     break
-           fi
-         done
-	 if test $found -eq 1
-	 then
-	   break
-	 fi
-       done
-       if test X"$jd_CCfits_library_dir" = X
-       then
-         jd_with_CCfits_library="no"
-       fi
+      xincfile="$jd_CCfits_inc_file"
+      xlibfile="libCCfits"
+      jd_with_CCfits_library="no"
+
+      for include_and_lib in $inc_and_lib_dirs
+      do
+        # Yuk.  Is there a better way to set these variables??
+        xincdir=`echo $include_and_lib | tr ',' ' ' | awk '{print $1}'`
+	xlibdir=`echo $include_and_lib | tr ',' ' ' | awk '{print $2}'`
+	found=0
+	if test -r $xincdir/$xincfile
+	then
+	  for E in $exts
+	  do
+	    if test -r "$xlibdir/$xlibfile.$E"
+	    then
+	      jd_CCfits_include_dir="$xincdir"
+	      jd_CCfits_library_dir="$xlibdir"
+	      jd_with_CCfits_library="yes"
+	      found=1
+	      break
+	    fi
+	  done
+	fi
+	if test $found -eq 1
+	then
+	  break
+	fi
+      done
     fi
   fi
 
-  if test X"$jd_CCfits_include_dir" != X -a "$jd_CCfits_library_dir" != X
+  if test X"$jd_CCfits_include_dir" != X -a X"$jd_CCfits_library_dir" != X
   then
     { echo "$as_me:$LINENO: result: yes: $jd_CCfits_library_dir and $jd_CCfits_include_dir" >&5
 echo "${ECHO_T}yes: $jd_CCfits_library_dir and $jd_CCfits_include_dir" >&6; }
     jd_with_CCfits_library="yes"
             CCFITS_LIB=-L$jd_CCfits_library_dir
+    CCFITS_LIB_DIR=$jd_CCfits_library_dir
     if test "X$jd_CCfits_library_dir" = "X/usr/lib"
     then
       CCFITS_LIB=""
@@ -12009,6 +12008,7 @@ fi
     fi
 
     CCFITS_INC=-I$jd_CCfits_include_dir
+    CCFITS_INC_DIR=$jd_CCfits_include_dir
     if test "X$jd_CCfits_include_dir" = "X/usr/include"
     then
       CCFITS_INC=""
@@ -12019,7 +12019,11 @@ echo "${ECHO_T}no" >&6; }
     jd_with_CCfits_library="no"
     CCFITS_INC=""
     CCFITS_LIB=""
+    CCFITS_INC_DIR=""
+    CCFITS_LIB_DIR=""
   fi
+
+
 
 
 
@@ -12211,53 +12215,27 @@ echo $ECHO_N "checking for the pgplot library and header files cpgplot.h... $ECH
     then
        jd_pgplot_inc_file=pgplot.h
     fi
+
     if test X"$jd_pgplot_include_dir" = X
     then
-       lib_include_dirs="\
-            $jd_prefix_incdir \
-            $jh_depdir/include \
-            $jh_depdir/pgplot \
-            /usr/local/pgplot/include \
-            /usr/local/include/pgplot \
-  	  /usr/local/include \
-  	  /usr/include/pgplot \
-  	  /usr/pgplot/include \
-  	  /usr/include \
-  	  /opt/include/pgplot \
-  	  /opt/pgplot/include \
-  	  /opt/include"
+      inc_and_lib_dirs="\
+         $jd_prefix_incdir,$jd_prefix_libdir \
+	 /usr/local/pgplot/include,/usr/local/pgplot/lib \
+	 /usr/local/include/pgplot,/usr/local/lib \
+	 /usr/local/include,/usr/local/lib \
+	 /usr/include/pgplot,/usr/lib \
+	 /usr/pgplot/include,/usr/pgplot/lib \
+	 /usr/include,/usr/lib \
+	 /opt/include/pgplot,/opt/lib \
+	 /opt/pgplot/include,/opt/pgplot/lib \
+	 /opt/include,/opt/lib"
 
-       for X in $lib_include_dirs
-       do
-          if test -r "$X/$jd_pgplot_inc_file"
-	  then
-  	  jd_pgplot_include_dir="$X"
-            break
-          fi
-       done
-       if test X"$jd_pgplot_include_dir" = X
-       then
-         jd_with_pgplot_library="no"
-       fi
-    fi
+      if test X != X
+      then
+        inc_and_lib_dirs="/include,/lib $inc_and_lib_dirs"
+      fi
 
-    if test X"$jd_pgplot_library_dir" = X
-    then
-       lib_library_dirs="\
-            $jd_prefix_libdir \
-            $jh_depdir/lib \
-            $jh_depdir/pgplot \
-            /usr/local/lib \
-            /usr/local/lib/pgplot \
-            /usr/local/pgplot/lib \
-  	  /usr/lib \
-  	  /usr/lib/pgplot \
-  	  /usr/pgplot/lib \
-  	  /opt/lib \
-  	  /opt/lib/pgplot \
-  	  /opt/pgplot/lib"
-
-       case "$host_os" in
+      case "$host_os" in
          *darwin* )
 	   exts="dylib so a"
 	   ;;
@@ -12266,38 +12244,47 @@ echo $ECHO_N "checking for the pgplot library and header files cpgplot.h... $ECH
 	   ;;
 	 * )
 	   exts="so a"
-       esac
+      esac
 
-       found=0
-       for X in $lib_library_dirs
-       do
-         for E in $exts
-	 do
-           if test -r "$X/libpgplot.$E"
-	   then
-  	     jd_pgplot_library_dir="$X"
-	     found=1
-	     break
-           fi
-         done
-	 if test $found -eq 1
-	 then
-	   break
-	 fi
-       done
-       if test X"$jd_pgplot_library_dir" = X
-       then
-         jd_with_pgplot_library="no"
-       fi
+      xincfile="$jd_pgplot_inc_file"
+      xlibfile="libpgplot"
+      jd_with_pgplot_library="no"
+
+      for include_and_lib in $inc_and_lib_dirs
+      do
+        # Yuk.  Is there a better way to set these variables??
+        xincdir=`echo $include_and_lib | tr ',' ' ' | awk '{print $1}'`
+	xlibdir=`echo $include_and_lib | tr ',' ' ' | awk '{print $2}'`
+	found=0
+	if test -r $xincdir/$xincfile
+	then
+	  for E in $exts
+	  do
+	    if test -r "$xlibdir/$xlibfile.$E"
+	    then
+	      jd_pgplot_include_dir="$xincdir"
+	      jd_pgplot_library_dir="$xlibdir"
+	      jd_with_pgplot_library="yes"
+	      found=1
+	      break
+	    fi
+	  done
+	fi
+	if test $found -eq 1
+	then
+	  break
+	fi
+      done
     fi
   fi
 
-  if test X"$jd_pgplot_include_dir" != X -a "$jd_pgplot_library_dir" != X
+  if test X"$jd_pgplot_include_dir" != X -a X"$jd_pgplot_library_dir" != X
   then
     { echo "$as_me:$LINENO: result: yes: $jd_pgplot_library_dir and $jd_pgplot_include_dir" >&5
 echo "${ECHO_T}yes: $jd_pgplot_library_dir and $jd_pgplot_include_dir" >&6; }
     jd_with_pgplot_library="yes"
             PGPLOT_LIB=-L$jd_pgplot_library_dir
+    PGPLOT_LIB_DIR=$jd_pgplot_library_dir
     if test "X$jd_pgplot_library_dir" = "X/usr/lib"
     then
       PGPLOT_LIB=""
@@ -12349,6 +12336,7 @@ fi
     fi
 
     PGPLOT_INC=-I$jd_pgplot_include_dir
+    PGPLOT_INC_DIR=$jd_pgplot_include_dir
     if test "X$jd_pgplot_include_dir" = "X/usr/include"
     then
       PGPLOT_INC=""
@@ -12359,7 +12347,11 @@ echo "${ECHO_T}no" >&6; }
     jd_with_pgplot_library="no"
     PGPLOT_INC=""
     PGPLOT_LIB=""
+    PGPLOT_INC_DIR=""
+    PGPLOT_LIB_DIR=""
   fi
+
+
 
 
 
@@ -12520,53 +12512,27 @@ echo $ECHO_N "checking for the cfitsio library and header files fitsio.h... $ECH
     then
        jd_cfitsio_inc_file=cfitsio.h
     fi
+
     if test X"$jd_cfitsio_include_dir" = X
     then
-       lib_include_dirs="\
-            $jd_prefix_incdir \
-            $jh_depdir/include \
-            $jh_depdir/pgplot \
-            /usr/local/cfitsio/include \
-            /usr/local/include/cfitsio \
-  	  /usr/local/include \
-  	  /usr/include/cfitsio \
-  	  /usr/cfitsio/include \
-  	  /usr/include \
-  	  /opt/include/cfitsio \
-  	  /opt/cfitsio/include \
-  	  /opt/include"
+      inc_and_lib_dirs="\
+         $jd_prefix_incdir,$jd_prefix_libdir \
+	 /usr/local/cfitsio/include,/usr/local/cfitsio/lib \
+	 /usr/local/include/cfitsio,/usr/local/lib \
+	 /usr/local/include,/usr/local/lib \
+	 /usr/include/cfitsio,/usr/lib \
+	 /usr/cfitsio/include,/usr/cfitsio/lib \
+	 /usr/include,/usr/lib \
+	 /opt/include/cfitsio,/opt/lib \
+	 /opt/cfitsio/include,/opt/cfitsio/lib \
+	 /opt/include,/opt/lib"
 
-       for X in $lib_include_dirs
-       do
-          if test -r "$X/$jd_cfitsio_inc_file"
-	  then
-  	  jd_cfitsio_include_dir="$X"
-            break
-          fi
-       done
-       if test X"$jd_cfitsio_include_dir" = X
-       then
-         jd_with_cfitsio_library="no"
-       fi
-    fi
+      if test X != X
+      then
+        inc_and_lib_dirs="/include,/lib $inc_and_lib_dirs"
+      fi
 
-    if test X"$jd_cfitsio_library_dir" = X
-    then
-       lib_library_dirs="\
-            $jd_prefix_libdir \
-            $jh_depdir/lib \
-            $jh_depdir/pgplot \
-            /usr/local/lib \
-            /usr/local/lib/cfitsio \
-            /usr/local/cfitsio/lib \
-  	  /usr/lib \
-  	  /usr/lib/cfitsio \
-  	  /usr/cfitsio/lib \
-  	  /opt/lib \
-  	  /opt/lib/cfitsio \
-  	  /opt/cfitsio/lib"
-
-       case "$host_os" in
+      case "$host_os" in
          *darwin* )
 	   exts="dylib so a"
 	   ;;
@@ -12575,38 +12541,47 @@ echo $ECHO_N "checking for the cfitsio library and header files fitsio.h... $ECH
 	   ;;
 	 * )
 	   exts="so a"
-       esac
+      esac
 
-       found=0
-       for X in $lib_library_dirs
-       do
-         for E in $exts
-	 do
-           if test -r "$X/libcfitsio.$E"
-	   then
-  	     jd_cfitsio_library_dir="$X"
-	     found=1
-	     break
-           fi
-         done
-	 if test $found -eq 1
-	 then
-	   break
-	 fi
-       done
-       if test X"$jd_cfitsio_library_dir" = X
-       then
-         jd_with_cfitsio_library="no"
-       fi
+      xincfile="$jd_cfitsio_inc_file"
+      xlibfile="libcfitsio"
+      jd_with_cfitsio_library="no"
+
+      for include_and_lib in $inc_and_lib_dirs
+      do
+        # Yuk.  Is there a better way to set these variables??
+        xincdir=`echo $include_and_lib | tr ',' ' ' | awk '{print $1}'`
+	xlibdir=`echo $include_and_lib | tr ',' ' ' | awk '{print $2}'`
+	found=0
+	if test -r $xincdir/$xincfile
+	then
+	  for E in $exts
+	  do
+	    if test -r "$xlibdir/$xlibfile.$E"
+	    then
+	      jd_cfitsio_include_dir="$xincdir"
+	      jd_cfitsio_library_dir="$xlibdir"
+	      jd_with_cfitsio_library="yes"
+	      found=1
+	      break
+	    fi
+	  done
+	fi
+	if test $found -eq 1
+	then
+	  break
+	fi
+      done
     fi
   fi
 
-  if test X"$jd_cfitsio_include_dir" != X -a "$jd_cfitsio_library_dir" != X
+  if test X"$jd_cfitsio_include_dir" != X -a X"$jd_cfitsio_library_dir" != X
   then
     { echo "$as_me:$LINENO: result: yes: $jd_cfitsio_library_dir and $jd_cfitsio_include_dir" >&5
 echo "${ECHO_T}yes: $jd_cfitsio_library_dir and $jd_cfitsio_include_dir" >&6; }
     jd_with_cfitsio_library="yes"
             CFITSIO_LIB=-L$jd_cfitsio_library_dir
+    CFITSIO_LIB_DIR=$jd_cfitsio_library_dir
     if test "X$jd_cfitsio_library_dir" = "X/usr/lib"
     then
       CFITSIO_LIB=""
@@ -12658,6 +12633,7 @@ fi
     fi
 
     CFITSIO_INC=-I$jd_cfitsio_include_dir
+    CFITSIO_INC_DIR=$jd_cfitsio_include_dir
     if test "X$jd_cfitsio_include_dir" = "X/usr/include"
     then
       CFITSIO_INC=""
@@ -12668,7 +12644,11 @@ echo "${ECHO_T}no" >&6; }
     jd_with_cfitsio_library="no"
     CFITSIO_INC=""
     CFITSIO_LIB=""
+    CFITSIO_INC_DIR=""
+    CFITSIO_LIB_DIR=""
   fi
+
+
 
 
 
@@ -12808,53 +12788,27 @@ echo $ECHO_N "checking for the slang library and header files ... $ECHO_C" >&6; 
     then
        jd_slang_inc_file=slang.h
     fi
+
     if test X"$jd_slang_include_dir" = X
     then
-       lib_include_dirs="\
-            $jd_prefix_incdir \
-            $jh_depdir/include \
-            $jh_depdir/pgplot \
-            /usr/local/slang/include \
-            /usr/local/include/slang \
-  	  /usr/local/include \
-  	  /usr/include/slang \
-  	  /usr/slang/include \
-  	  /usr/include \
-  	  /opt/include/slang \
-  	  /opt/slang/include \
-  	  /opt/include"
+      inc_and_lib_dirs="\
+         $jd_prefix_incdir,$jd_prefix_libdir \
+	 /usr/local/slang/include,/usr/local/slang/lib \
+	 /usr/local/include/slang,/usr/local/lib \
+	 /usr/local/include,/usr/local/lib \
+	 /usr/include/slang,/usr/lib \
+	 /usr/slang/include,/usr/slang/lib \
+	 /usr/include,/usr/lib \
+	 /opt/include/slang,/opt/lib \
+	 /opt/slang/include,/opt/slang/lib \
+	 /opt/include,/opt/lib"
 
-       for X in $lib_include_dirs
-       do
-          if test -r "$X/$jd_slang_inc_file"
-	  then
-  	  jd_slang_include_dir="$X"
-            break
-          fi
-       done
-       if test X"$jd_slang_include_dir" = X
-       then
-         jd_with_slang_library="no"
-       fi
-    fi
+      if test X != X
+      then
+        inc_and_lib_dirs="/include,/lib $inc_and_lib_dirs"
+      fi
 
-    if test X"$jd_slang_library_dir" = X
-    then
-       lib_library_dirs="\
-            $jd_prefix_libdir \
-            $jh_depdir/lib \
-            $jh_depdir/pgplot \
-            /usr/local/lib \
-            /usr/local/lib/slang \
-            /usr/local/slang/lib \
-  	  /usr/lib \
-  	  /usr/lib/slang \
-  	  /usr/slang/lib \
-  	  /opt/lib \
-  	  /opt/lib/slang \
-  	  /opt/slang/lib"
-
-       case "$host_os" in
+      case "$host_os" in
          *darwin* )
 	   exts="dylib so a"
 	   ;;
@@ -12863,38 +12817,47 @@ echo $ECHO_N "checking for the slang library and header files ... $ECHO_C" >&6; 
 	   ;;
 	 * )
 	   exts="so a"
-       esac
+      esac
 
-       found=0
-       for X in $lib_library_dirs
-       do
-         for E in $exts
-	 do
-           if test -r "$X/libslang.$E"
-	   then
-  	     jd_slang_library_dir="$X"
-	     found=1
-	     break
-           fi
-         done
-	 if test $found -eq 1
-	 then
-	   break
-	 fi
-       done
-       if test X"$jd_slang_library_dir" = X
-       then
-         jd_with_slang_library="no"
-       fi
+      xincfile="$jd_slang_inc_file"
+      xlibfile="libslang"
+      jd_with_slang_library="no"
+
+      for include_and_lib in $inc_and_lib_dirs
+      do
+        # Yuk.  Is there a better way to set these variables??
+        xincdir=`echo $include_and_lib | tr ',' ' ' | awk '{print $1}'`
+	xlibdir=`echo $include_and_lib | tr ',' ' ' | awk '{print $2}'`
+	found=0
+	if test -r $xincdir/$xincfile
+	then
+	  for E in $exts
+	  do
+	    if test -r "$xlibdir/$xlibfile.$E"
+	    then
+	      jd_slang_include_dir="$xincdir"
+	      jd_slang_library_dir="$xlibdir"
+	      jd_with_slang_library="yes"
+	      found=1
+	      break
+	    fi
+	  done
+	fi
+	if test $found -eq 1
+	then
+	  break
+	fi
+      done
     fi
   fi
 
-  if test X"$jd_slang_include_dir" != X -a "$jd_slang_library_dir" != X
+  if test X"$jd_slang_include_dir" != X -a X"$jd_slang_library_dir" != X
   then
     { echo "$as_me:$LINENO: result: yes: $jd_slang_library_dir and $jd_slang_include_dir" >&5
 echo "${ECHO_T}yes: $jd_slang_library_dir and $jd_slang_include_dir" >&6; }
     jd_with_slang_library="yes"
             SLANG_LIB=-L$jd_slang_library_dir
+    SLANG_LIB_DIR=$jd_slang_library_dir
     if test "X$jd_slang_library_dir" = "X/usr/lib"
     then
       SLANG_LIB=""
@@ -12946,6 +12909,7 @@ fi
     fi
 
     SLANG_INC=-I$jd_slang_include_dir
+    SLANG_INC_DIR=$jd_slang_include_dir
     if test "X$jd_slang_include_dir" = "X/usr/include"
     then
       SLANG_INC=""
@@ -12956,7 +12920,11 @@ echo "${ECHO_T}no" >&6; }
     jd_with_slang_library="no"
     SLANG_INC=""
     SLANG_LIB=""
+    SLANG_INC_DIR=""
+    SLANG_LIB_DIR=""
   fi
+
+
 
 
 
@@ -14642,6 +14610,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+CFITSIO_INC_DIR!$CFITSIO_INC_DIR$ac_delim
 CFITSIO_LIB!$CFITSIO_LIB$ac_delim
 CFITSIO_LIBDIR!$CFITSIO_LIBDIR$ac_delim
 CFITSIO_LIBNAME!$CFITSIO_LIBNAME$ac_delim
@@ -14652,10 +14621,17 @@ XSPEC_MODULE_LIBS!$XSPEC_MODULE_LIBS$ac_delim
 LINK_XSPEC_STATIC!$LINK_XSPEC_STATIC$ac_delim
 CCFITS_LIB!$CCFITS_LIB$ac_delim
 CCFITS_INC!$CCFITS_INC$ac_delim
+CCFITS_LIB_DIR!$CCFITS_LIB_DIR$ac_delim
+CCFITS_INC_DIR!$CCFITS_INC_DIR$ac_delim
 XSPEC_MODELSONLY!$XSPEC_MODELSONLY$ac_delim
 with_xspec_version!$with_xspec_version$ac_delim
+PGPLOT_LIB_DIR!$PGPLOT_LIB_DIR$ac_delim
+PGPLOT_INC_DIR!$PGPLOT_INC_DIR$ac_delim
+CFITSIO_LIB_DIR!$CFITSIO_LIB_DIR$ac_delim
 SLANG_LIB!$SLANG_LIB$ac_delim
 SLANG_INC!$SLANG_INC$ac_delim
+SLANG_LIB_DIR!$SLANG_LIB_DIR$ac_delim
+SLANG_INC_DIR!$SLANG_INC_DIR$ac_delim
 SLANG_LIBDIR!$SLANG_LIBDIR$ac_delim
 SITE_LOCAL_SETUP!$SITE_LOCAL_SETUP$ac_delim
 ATOMDB_DIR!$ATOMDB_DIR$ac_delim
@@ -14684,7 +14660,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 40; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 48; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
