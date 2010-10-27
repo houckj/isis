@@ -76,7 +76,7 @@ cfitsio.h: Makefile
 	@if [ "X$(CFITSIO_INC_DIR)" != "X" ]; then \
 	  echo "#include <$(CFITSIO_INC_DIR)/fitsio.h>" > cfitsio.h; \
 	else \
-	  echo "#include <fitsio.h>"; \
+	  echo "#include <fitsio.h>" > cfitsio.h; \
 	fi
 #---------------------------------------------------------------------------
 # Regression tests
