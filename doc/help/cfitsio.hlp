@@ -1151,6 +1151,9 @@ fits_get_colnum
   The file-descriptor `fd' must specify the name of a file, or an open
   fits file pointer.
 
+ QUALIFIERS
+  ; casesen: use case-sensitive column names
+
  SEE ALSO
   fits_binary_table_column_exists
 
@@ -1176,6 +1179,9 @@ fits_binary_table_column_exists
 
   If the specified column exists, 1 will be returned; otherwise the function
   will return 0.
+
+ QUALIFIERS
+  ; casesen: use case-sensitive column names
 
  SEE ALSO
   fits_key_exists, fits_open_file
@@ -1203,6 +1209,9 @@ fits_read_col
   may either be strings denoting the column names, or integers
   representing the column numbers.
 
+ QUALIFIERS
+  ; casesen: use case-sensitive column names
+
  SEE ALSO
   fits_read_cell, fits_read_row, fits_read_table
 
@@ -1224,6 +1233,11 @@ fits_read_col_struct
   This function works exactly like `fits_read_col' except it returns the
   values in a structure.  See the documentation on that function for more
   information.
+
+  Field names are converted to lowercase unless the `casesen' qualifier is set.
+
+ QUALIFIERS
+  ; casesen: use case-sensitive column names
 
  SEE ALSO
   fits_read_col, fits_read_key_struct, fits_read_row, fits_read_header
@@ -1314,13 +1328,18 @@ fits_read_table
 
  DESCRIPTION
   `fits_read_table' reads the data in a table of the FITS file
-  specified by `file' and returns it as a structure.  If the optional
-  column name parameters are specified, then only those columns will be read.
-  Otherwise, the entire table will be returned.
+  specified by `file' and returns it as a structure.  Field
+  names are converted to lowercase unless the `casesen' qualifier
+  is set.  If the optional column name parameters are specified,
+  then only those columns will be read.  Otherwise, the entire table
+  will be returned.
 
   If `file' is a string, then the file will be opened via the virtual file
   specification implied by `file'. Otherwise, `file' should
   represent an already opened FITS file.
+
+ QUALIFIERS
+  ; casesen: do not convert field names to lowercase
 
  SEE ALSO
   fits_read_col, fits_read_cell, fits_read_row, fits_read_header
@@ -1365,9 +1384,15 @@ fits_read_key_struct
 
 
  DESCRIPTION
-  This function works exactly like `fits_read_key' excepts returns the
+  This function works exactly like `fits_read_key' except it returns the
   values in a structure.  See the documentation on that function for more
   information.
+
+  Field names are converted to lowercase unless the `casesen'
+  qualifier is set.
+
+ QUALIFIERS
+  ; casesen: do not convert field names to lowercase
 
  SEE ALSO
   fits_read_key, fits_read_col, fits_read_cell, fits_read_row, fits_read_header

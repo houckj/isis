@@ -4,8 +4,7 @@
 # package.  See http://www.jedsoft.org/ for more information.
 #
 TMEXPAND = tmexpand
-SL2TM = sl2tm
-MACRODIR = /aluche/d1/web/tm-dist/macros
+SL2TM = tm-strip
 
 MODULE = cfitsio
 HLPFUNS_TM = rtl/cfitsiofuns.tm fitsfuns.tm fitswcsfuns.tm
@@ -46,7 +45,7 @@ fitswcsfuns.tm: ../../src/fitswcs.sl
 text-files: $(TXT_FILES)
 #----- SGML Files -----------------------------------------------------------
 $(MODULE).sgml : $(MODULE).tm $(MODULE_DEPS)
-	$(TMEXPAND) -I$(MACRODIR) $(MODULE).tm $(MODULE).sgml
+	$(TMEXPAND) $(MODULE).tm $(MODULE).sgml
 #----- HTML Files -----------------------------------------------------------
 $(MODULE).html : $(MODULE).sgml
 	$(SGML2HTML) $(MODULE).sgml
@@ -72,7 +71,7 @@ $(MODULE).txt: $(MODULE).sgml
 #----------------------------------------------------------------------------
 help-files: $(HLP_FILE)
 $(HLP_FILE): $(HLP_TM_FILE) $(HLPFUNS_TM)
-	$(TMEXPAND) -I$(MACRODIR) $(HLP_TM_FILE) $(HLP_FILE)
+	$(TMEXPAND) $(HLP_TM_FILE) $(HLP_FILE)
 texclean:
 	-rm -f *.dvi *.log *.aux *.toc *.out
 clean: texclean
