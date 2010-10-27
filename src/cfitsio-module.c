@@ -34,7 +34,7 @@
 
 #include <errno.h>
 
-#include <fitsio.h>
+#include "cfitsio.h"
 
 #ifdef __cplusplus
 extern "C"
