@@ -37,6 +37,7 @@ Changes since 1.6.1 (released Jul 2010)
 17.  Fix array indexing bug in ionpop modifier introduced in #16
 18.  Added xspec_noneq() function.
 19.  Don't generate NaN when ion fraction rescaling involves 0/0.
+20.  Updated cfitsio module to version 0.4.7
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
