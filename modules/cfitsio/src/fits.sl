@@ -21,8 +21,9 @@
 %else
 import ("cfitsio");
 
-variable _fits_sl_version = 406;
-variable _fits_sl_version_string = "0.4.6-0";
+% Track the modules's version since it now follows the changes.txt file.
+variable _fits_sl_version_string = _cfitsio_module_version_string;
+variable _fits_sl_version = _cfitsio_module_version;
 
 private variable Verbose = 1;
 % Forward declarations
@@ -44,12 +45,11 @@ private define reverse (a)
    variable i = length (a);
    if (i <= 1)
      return a;
-   
+
    i--;
    __tmp(a)[[i:0:-1]];
 #endif
 }
-
 
 %!%+
 %\function{fits_read_errmsgs}
@@ -78,7 +78,6 @@ define fits_get_errmsgs ()
    return Last_Error_Messages;
 }
 
-
 %!%+
 %\function{fits_set_verbose_errors}
 %\synopsis{Set the verbosity level of the cfitsio error messages}
@@ -95,14 +94,14 @@ define fits_set_verbose_errors ()
    variable v = 1;
    if (_NARGS)
      v = ();
-   
+
    Verbose = v;
 }
 
-private define do_fits_error ()
+define fits_check_error ()
 {
    variable status, file = "";
-   
+
    if (_NARGS == 2)
      file = ();
    status = ();
@@ -112,7 +111,7 @@ private define do_fits_error ()
 	Last_Error_Messages = String_Type[0];
 	return;
      }
-   
+
    if (strlen(file))
      file = strcat (": ", file);
    variable errmsg = strcat (_fits_get_errstatus (status), file);
@@ -134,13 +133,13 @@ private define do_fits_error ()
 %\description
 %  The \var{fits_open_file} function can be used to open and existing fits
 %  file for reading or updating, or to create a new fits file, depending upon
-%  the value of the \var{mode} parameter.  Specifically, if \var{mode} is 
+%  the value of the \var{mode} parameter.  Specifically, if \var{mode} is
 %  \exmp{"r"}, the file will be opened for reading.  If \var{mode} is \exmp{"w"},
-%  the file will be opened for updating (both reading and writing).  Otherwise, 
+%  the file will be opened for updating (both reading and writing).  Otherwise,
 %  \var{mode} must be \var{"c"}, which indicates that a new file is to be created.
 %  In the latter case, if a file already exists with the specified name, it will
 %  get deleted and a new one created in its place.
-% 
+%
 %  If the function fails, it will signal an error; otherwise an open file
 %  pointer will be returned.
 %\seealso{fits_close_file, fits_create_binary_table}
@@ -157,10 +156,9 @@ define fits_open_file ()
 
    variable status = _fits_open_file (&fp, file, mode);
    if (status)
-     do_fits_error (status, file);
+     fits_check_error (status, file);
    return fp;
 }
-
 
 %!%+
 %\function{fits_close_file}
@@ -176,7 +174,7 @@ define fits_open_file ()
 %!%-
 define fits_close_file (fp)
 {
-   do_fits_error (_fits_close_file (fp));
+   fits_check_error (_fits_close_file (fp));
 }
 
 private define do_close_file (fp, needs_close)
@@ -191,12 +189,60 @@ private define get_open_fp (fp, needs_close)
    if (typeof (fp) != Fits_File_Type)
      {
 	variable file = fp;
-	do_fits_error (_fits_open_file (&fp, fp, "r"), file);
+	fits_check_error (_fits_open_file (&fp, fp, "r"), file);
 	@needs_close = 1;
      }
    return fp;
 }
 
+define fits_get_num_hdus ()
+{
+   if (_NARGS != 1)
+     usage ("num = fits_get_num_hdus (file)");
+   variable fp = ();
+   variable needs_close, num;
+   fp = get_open_fp (fp, &needs_close);
+   variable status = _fits_get_num_hdus (fp, &num);
+   do_close_file (fp, needs_close);
+   if (status == 0)
+     return num;
+
+   fits_check_error (status);
+}
+
+define fits_movrel_hdu ()
+{
+   if (_NARGS != 2)
+     usage ("num_actual = fits_movrel_hdu (fp, num_to_move)");
+   variable fp, num_to_move, num_hdus, this_num;
+   (fp, num_to_move) = ();
+   this_num = _fits_get_hdu_num (fp);
+   if (num_to_move > 0)
+     {
+	num_hdus = fits_get_num_hdus (fp);
+	if (this_num + num_to_move > num_hdus)
+	  num_to_move = num_hdus - this_num;
+     }
+   else if (num_to_move < 0)
+     {
+	if (this_num + num_to_move <= 0)
+	  num_to_move = -this_num;
+     }
+   if (num_to_move == 0)
+     return 0;
+
+   fits_check_error (_fits_movrel_hdu (fp, num_to_move));
+   return num_to_move;
+}
+
+define fits_movabs_hdu ()
+{
+   if (_NARGS != 2)
+     usage ("fits_movabs_hdu (fp, n)");
+   variable fp,n;
+   (fp, n) = ();
+   fits_check_error (_fits_movabs_hdu (fp, n));
+}
 
 private define find_interesting_hdu (f, hdu_type, check_naxis)
 {
@@ -205,7 +251,7 @@ private define find_interesting_hdu (f, hdu_type, check_naxis)
      {
 	variable status;
 
-	do_fits_error (_fits_get_hdu_type (f, &type));
+	fits_check_error (_fits_get_hdu_type (f, &type));
 	if (type == _FITS_ASCII_TBL)
 	  type = _FITS_BINARY_TBL;
 
@@ -213,9 +259,9 @@ private define find_interesting_hdu (f, hdu_type, check_naxis)
 	  {
 	     if (check_naxis == 0)
 	       return 0;
-	     
+
 	     variable naxis;
-	     do_fits_error (_fits_read_key (f, "NAXIS", &naxis, NULL));
+	     fits_check_error (_fits_read_key (f, "NAXIS", &naxis, NULL));
 	     if (naxis != 0)
 	       return 0;
 	  }
@@ -225,7 +271,6 @@ private define find_interesting_hdu (f, hdu_type, check_naxis)
    while (not status);
    return -1;
 }
-
 
 private define get_open_hdu_of_type (f, hdu_type, needs_close, check_naxis)
 {
@@ -249,11 +294,11 @@ private define get_open_hdu_of_type (f, hdu_type, needs_close, check_naxis)
 	% default
 	type_str = "an interesting hdu";
      }
-     
+
    @needs_close = 0;
    if (typeof (f) == Fits_File_Type)
      {
-	do_fits_error (_fits_get_hdu_type (f, &type));
+	fits_check_error (_fits_get_hdu_type (f, &type));
 	if ((hdu_type == _FITS_BINARY_TBL)
 	    and (type == _FITS_ASCII_TBL))
 	  hdu_type = type;
@@ -269,14 +314,13 @@ private define get_open_hdu_of_type (f, hdu_type, needs_close, check_naxis)
      = string_match (f, "\[.+\]$"R, 1) || string_match (f, "+\d+$"R, 1);
 
    f = get_open_fp (f, needs_close);
-   
+
    if (name_contains_extno
        || (0 == find_interesting_hdu (f, hdu_type, check_naxis)))
      return f;
 
    verror ("Unable to locate %s", type_str);
 }
-
 
 %!%+
 %\function{fits_move_to_interesting_hdu}
@@ -287,14 +331,14 @@ private define get_open_hdu_of_type (f, hdu_type, needs_close, check_naxis)
 %  Int_Type hdu_type;
 %#v-
 %\description
-%  The function move the fits file pointer \var{fp} forward to an HDU that looks 
-%  interesting.  By definition, an interesting HDU is one in which NAXIS is 
+%  The function move the fits file pointer \var{fp} forward to an HDU that looks
+%  interesting.  By definition, an interesting HDU is one in which NAXIS is
 %  non-zero.  The first parameter \var{fp} must be a pointer to an already open
-%  fits file.  The second parameter, if present, may be used to specifiy the 
-%  type of HDU, e.g., either an image (\exmp{hdu_type=_FITS_IMAGE_HDU}) or a 
+%  fits file.  The second parameter, if present, may be used to specifiy the
+%  type of HDU, e.g., either an image (\exmp{hdu_type=_FITS_IMAGE_HDU}) or a
 %  binary table (\exmp{hdu_type=_FITS_BINARY_TBL}).
-% 
-%  If the function fails to find an interesting HDU of the appropriate type, 
+%
+%  If the function fails to find an interesting HDU of the appropriate type,
 %  an exception will be generated.
 %\seealso{fits_open_file}
 %!%-
@@ -345,7 +389,6 @@ private define get_open_interesting_hdu (fp, needs_close)
    %return get_open_binary_table (fp, needs_close);
 }
 
-
 %!%+
 %\function{fits_key_exists}
 %\synopsis{Check for the existence of a keyword}
@@ -355,10 +398,10 @@ private define get_open_interesting_hdu (fp, needs_close)
 %   String_Type key;
 %#v-
 %\description
-%  The \var{fits_key_exists} function checks for the existence of a specified 
+%  The \var{fits_key_exists} function checks for the existence of a specified
 %  keyword in the file specified by the descriptor \var{fd}, which must specify
 %  the name of a file or an open file pointer.
-% 
+%
 %  If the specified key exists, the function return \1, otherwise it returns \0.
 %\seealso{fits_read_key, fits_read_header}
 %!%-
@@ -374,33 +417,60 @@ define fits_key_exists ()
    fp = get_open_interesting_hdu (fp, &needs_close);
    variable value;
    variable status = _fits_read_key (fp, key, &value, NULL);
-   if (needs_close) fits_close_file (fp);
+   do_close_file (fp, needs_close);
    if (status == 0)
      return 1;
 
    if (status == _FITS_KEY_NO_EXIST)
      return 0;
 
-   do_fits_error (status);
+   fits_check_error (status);
 }
 
 private define get_fits_btable_info (fp)
 {
    variable numrows, numcols, names, name, col;
 
-   do_fits_error (_fits_get_num_rows (fp, &numrows));
-   do_fits_error (_fits_get_num_cols (fp, &numcols));
+   fits_check_error (_fits_get_num_rows (fp, &numrows));
+   fits_check_error (_fits_get_num_cols (fp, &numcols));
 
    names = String_Type [numcols];
    _for (1, numcols, 1)
      {
 	col = ();
 
-	do_fits_error (_fits_read_key_string (fp, "TTYPE"+string(col), &name, NULL));
+	fits_check_error (_fits_read_key_string (fp, "TTYPE"+string(col), &name, NULL));
 	names [col-1] = name;
      }
 
    return (numrows, names);
+}
+
+private define get_column_number (fp, col)
+{
+   if (typeof (col) == String_Type)
+     {
+	variable col_str = col;
+	fits_check_error (_fits_get_colnum (fp, col_str, &col), col_str);
+	return col;
+     }
+   return int (col);
+}
+
+private define get_column_numbers (fp, col_list)
+{
+   variable column_nums = Int_Type[0];
+   foreach (col_list)
+     {
+	variable col = ();
+	if (typeof (col) == Array_Type)
+	  col = array_map (Int_Type, &get_column_number, fp, col);
+	else
+	  col = get_column_number (fp, col);
+
+	column_nums = [column_nums, col];
+     }
+   return column_nums;
 }
 
 
@@ -429,12 +499,11 @@ define fits_get_colnum ()
    f = get_open_binary_table (f, &needs_close);
 
    variable colnum;
-   do_fits_error (_fits_get_colnum (f, column_names, &colnum), column_names);
+   fits_check_error (_fits_get_colnum (f, column_names, &colnum), column_names);
 
    do_close_file (f, needs_close);
    return colnum;
 }
-
 
 %!%+
 %\function{fits_binary_table_column_exists}
@@ -446,10 +515,10 @@ define fits_get_colnum ()
 %#v-
 %\description
 %  This function may be used to determine whether or not a named column
-%  exists in a binary table.  The table is specified via the \var{fd} 
+%  exists in a binary table.  The table is specified via the \var{fd}
 %  parameter which must either be the name of a file containing the binary
 %  table, or an file pointer.
-% 
+%
 %  If the specified column exists, \1 will be returned; otherwise the function
 %  will return \0.
 %\seealso{fits_key_exists, fits_open_file}
@@ -473,13 +542,27 @@ define fits_binary_table_column_exists ()
    return length (where (col == names));
 }
 
+define fits_delete_col ()
+{
+   if (_NARGS != 2)
+     usage ("fits_delete_col (file, col)");
+
+   variable f, col;  (f, col) = ();
+   variable needs_close;
+   f = get_open_binary_table (f, &needs_close);
+
+   col = get_column_number (f, col);
+   fits_check_error (_fits_delete_col (f, col));
+   do_close_file (f, needs_close);
+}
+
 private define get_tdim_string (fp, col)
 {
    variable tdim = sprintf ("TDIM%d", col);
    !if (fits_key_exists (fp, tdim))
      return NULL;
 
-   do_fits_error (_fits_read_key (fp, tdim, &tdim, NULL), tdim);
+   fits_check_error (_fits_read_key (fp, tdim, &tdim, NULL), tdim);
    return tdim;
 }
 
@@ -507,7 +590,6 @@ private define convert_tdim_string (tdim, num_rows)
    return new_tdim;
 }
 
-
 private define check_vector_tdim (fp, first_row, tdim_col, data)
 {
    if (tdim_col == 0)
@@ -516,7 +598,7 @@ private define check_vector_tdim (fp, first_row, tdim_col, data)
    variable len = length (data);
    variable tdim;
 
-   do_fits_error (_fits_read_col (fp, tdim_col, first_row, len, &tdim));
+   fits_check_error (_fits_read_col (fp, tdim_col, first_row, len, &tdim));
    if (_typeof (tdim) != String_Type)
      return;
 
@@ -530,7 +612,7 @@ private define check_vector_tdim (fp, first_row, tdim_col, data)
 private define reshape_string_array (fp, col, data)
 {
    variable tform, repeat, width;
-   do_fits_error (_fits_read_key_string (fp, "TFORM" + string(col), &tform, NULL));
+   fits_check_error (_fits_read_key_string (fp, "TFORM" + string(col), &tform, NULL));
    % Look for rAw
    if (2 != sscanf (tform, "%dA%d", &repeat, &width))
      return data;
@@ -557,8 +639,7 @@ private define reshape_string_array (fp, col, data)
    return new_data;
 }
 
-
-% FITS column and keyword names can begin with a number or have dashes. 
+% FITS column and keyword names can begin with a number or have dashes.
 % Bad Design.
 private define normalize_names (names);
 private define normalize_names (names)
@@ -581,46 +662,19 @@ private define normalize_names (names)
 	ifnot ((ch == '_')
 	       || ((ch >= 'a') && (ch <= 'z')))
 	  name = "_" + name;
-	
+
 	new_names = [new_names, name];
      }
    return new_names;
-}
-
-private define get_column_number (fp, col)
-{
-   if (typeof (col) == String_Type)
-     {
-	variable col_str = col;
-	do_fits_error (_fits_get_colnum (fp, col_str, &col), col_str);
-	return col;
-     }
-   return int (col);
-}
-
-private define get_column_numbers (fp, col_list)
-{
-   variable column_nums = Int_Type[0];
-   foreach (col_list)
-     {
-	variable col = ();
-	if (typeof (col) == Array_Type)
-	  col = array_map (Int_Type, &get_column_number, fp, col);
-	else
-	  col = get_column_number (fp, col);
-	
-	column_nums = [column_nums, col];
-     }
-   return column_nums;
 }
 
 private define open_read_cols (fp, columns)
 {
    variable needs_close, numrows, numcols;
    fp = get_open_binary_table (fp, &needs_close);
-   do_fits_error (_fits_get_num_rows (fp, &numrows));
+   fits_check_error (_fits_get_num_rows (fp, &numrows));
    numcols = length(columns);
-   
+
    variable s = struct
      {
 	fp = fp,
@@ -630,7 +684,7 @@ private define open_read_cols (fp, columns)
 	tdims = String_Type[numcols],
 	tdim_cols = Int_Type[numcols],
      };
-   
+
    _for (0, numcols-1, 1)
      {
 	variable i = ();
@@ -641,12 +695,12 @@ private define open_read_cols (fp, columns)
 	variable tdim_col = sprintf ("TDIM%d", col);
 	if (fits_binary_table_column_exists (fp, tdim_col))
 	  {
-	     do_fits_error (_fits_get_colnum (fp, tdim_col, &tdim_col));
+	     fits_check_error (_fits_get_colnum (fp, tdim_col, &tdim_col));
 	     if (tdim_col != col)
 	       s.tdim_cols[i] = tdim_col;
 	  }
      }
-   
+
    return s;
 }
 
@@ -654,8 +708,6 @@ private define close_read_cols (s)
 {
    do_close_file (s.fp, s.needs_close);
 }
-
-   
 
 % This function assumes that fp is an open pointer, and that columns is
 % an array of column numbers.  The data are left on the stack.
@@ -677,9 +729,9 @@ private define read_cols (fpinfo, first_row, last_row)
    if ((first_row <= 0) or (last_row < 0)
        or (want_num_rows > numrows) or (want_num_rows < 0))
      throw FitsError, "Invalid first or last row parameters";
-   
-   variable data_arrays;   
-   do_fits_error (_fits_read_cols (fp, columns, first_row, want_num_rows, &data_arrays));
+
+   variable data_arrays;
+   fits_check_error (_fits_read_cols (fp, columns, first_row, want_num_rows, &data_arrays));
    _for (0, fpinfo.num_cols-1, 1)
      {
 	variable i = ();
@@ -773,14 +825,14 @@ define fits_read_col ()
 %  This function works exactly like \var{fits_read_col} except it returns the
 %  values in a structure.  See the documentation on that function for more
 %  information.
-% 
+%
 %\seealso{fits_read_col, fits_read_key_struct, fits_read_row, fits_read_header}
 %!%-
 define fits_read_col_struct ()
 {
    !if (_NARGS)
      usage ("struct = fits_read_col_struct(file, COL1, ...)");
-   
+
    variable cols = pop_column_list (_NARGS - 1);
    variable file = ();
    variable fields = normalize_names (cols);
@@ -822,7 +874,7 @@ define fits_read_cell ()
      a = a[0];
    else
      reshape (a, dims[[1:]]);
-   
+
    close_read_cols (fpinfo);
    return a;
 }
@@ -848,11 +900,11 @@ define fits_get_num_rows ()
 {
    if (_NARGS != 1)
      usage ("nrows = fits_get_num_rows (file)");
-   
+
    variable fp = ();
    variable needs_close, num_rows;
    fp = get_open_binary_table (fp, &needs_close);
-   do_fits_error (_fits_get_num_rows (fp, &num_rows));
+   fits_check_error (_fits_get_num_rows (fp, &num_rows));
    do_close_file (fp, needs_close);
    return num_rows;
 }
@@ -861,11 +913,11 @@ define fits_get_num_cols ()
 {
    if (_NARGS != 1)
      usage ("ncols = fits_get_num_cols (file)");
-   
+
    variable fp = ();
    variable needs_close, num_cols;
    fp = get_open_binary_table (fp, &needs_close);
-   do_fits_error (_fits_get_num_cols (fp, &num_cols));
+   fits_check_error (_fits_get_num_cols (fp, &num_cols));
    do_close_file (fp, needs_close);
    return num_cols;
 }
@@ -891,7 +943,6 @@ define fits_read_row ()
    verror ("Not yet implemented");
 }
 
-			     
 %!%+
 %\function{fits_read_header}
 %\synopsis{Read a FITS header}
@@ -920,7 +971,6 @@ define fits_read_header ()
    do_close_file (fp, needs_close);
 }
 
-
 %!%+
 %\function{fits_read_table}
 %\synopsis{Read a FITS table}
@@ -933,7 +983,7 @@ define fits_read_header ()
 %  specified by \var{file} and returns it as a structure.  If the optional
 %  column name parameters are specified, then only those columns will be read.
 %  Otherwise, the entire table will be returned.
-% 
+%
 %  If \var{file} is a string, then the file will be opened via the virtual file
 %  specification implied by \var{file}. Otherwise, \var{file} should
 %  represent an already opened FITS file.
@@ -971,20 +1021,20 @@ define fits_info ()
    variable numrows, numcols, names;
    variable needs_close;
 
-   %do_fits_error (_fits_open_file (&fp, file, "r"));
+   %fits_check_error (_fits_open_file (&fp, file, "r"));
    fp = get_open_interesting_hdu (file, &needs_close);
 
    (numrows, names) = get_fits_btable_info (fp);
    numcols = length (names);
 
-   () = fprintf (stdout, "%s contains %d rows and %d columns:\n", file, numrows, numcols);
+   () = fprintf (stdout, "%S contains %d rows and %d columns:\n", file, numrows, numcols);
    _for (1, numcols, 1)
      {
 	variable i = ();
 	variable tform, name;
 
 	name = names[i-1];
-	do_fits_error (_fits_read_key_string (fp, "TFORM" + string(i), &tform, NULL));
+	fits_check_error (_fits_read_key_string (fp, "TFORM" + string(i), &tform, NULL));
 	variable tdim = get_tdim_string (fp, i);
 	if (tdim == NULL) tdim = "";
 	else tdim = "TDIM=" + tdim;
@@ -994,7 +1044,6 @@ define fits_info ()
 
    %return (numrows, numcols, names);
 }
-
 
 %!%+
 %\function{fits_read_key}
@@ -1022,7 +1071,7 @@ define fits_read_key ()
 
    keys = __pop_args (_NARGS - 1);
    fp = ();
-   
+
    variable needs_close;
    fp = get_open_interesting_hdu (fp, &needs_close);
 
@@ -1037,13 +1086,12 @@ define fits_read_key ()
 	     _fits_clear_errmsg ();
 	  }
 	else if (status)
-	  do_fits_error (status, key);
+	  fits_check_error (status, key);
 
 	value;
      }
    do_close_file (fp, needs_close);
 }
-
 
 %!%+
 %\function{fits_read_key_struct}
@@ -1063,7 +1111,7 @@ define fits_read_key_struct ()
 {
    !if (_NARGS)
      usage ("struct = fits_read_key_struct(file, X_KEY, ...)");
-   
+
    variable keys = __pop_args (_NARGS - 1);
    variable file = ();
    variable fields = normalize_names ([__push_args(keys)]);
@@ -1072,17 +1120,15 @@ define fits_read_key_struct ()
    return s;
 }
 
-		      
-   
 private define get_open_write_fp (fp, mode, needs_close)
 {
    @needs_close = 0;
    if (typeof (fp) != Fits_File_Type)
      {
 	@needs_close = 1;
-	do_fits_error (_fits_open_file (&fp, fp, mode));
+	fits_check_error (_fits_open_file (&fp, fp, mode));
      }
-   
+
    return fp;
 }
 
@@ -1117,7 +1163,7 @@ define fits_create_binary_table ()
    variable needs_close;
    fp = get_open_write_fp (fp, "c", &needs_close);
 
-   do_fits_error (_fits_create_binary_tbl (fp, nrows, ttype, tform, tunit, extnam));
+   fits_check_error (_fits_create_binary_tbl (fp, nrows, ttype, tform, tunit, extnam));
    do_close_file (fp, needs_close);
 }
 
@@ -1136,8 +1182,8 @@ define fits_create_binary_table ()
 %  The \var{fits_write_binary_table} function creates a new binary table in
 %  the specified file.  The parameter \var{file} specifies either a filename or
 %  an open file pointer.  The \var{extname} parameter specifies the extension
-%  name of the binary table.  The data written to table are specified in the 
-%  \var{sdata} structure, where the name of the structure field specifies the 
+%  name of the binary table.  The data written to table are specified in the
+%  \var{sdata} structure, where the name of the structure field specifies the
 %  column name.  If \var{skeys} is non-NULL, then it is a structure indicating
 %  additional keywords to be written to the header of the binary table.  If the
 %  optional parameter \var{hist} is present and non-NULL, then it is a structure
@@ -1201,14 +1247,14 @@ private define add_keys_and_history_func (fp, keys, history)
 	  {
 	     variable keyword = ();
 	     val = get_struct_field (keys, keyword);
-	     do_fits_error (_fits_update_key (fp, keyword, val, NULL), keyword);
+	     fits_check_error (_fits_update_key (fp, keyword, val, NULL), keyword);
 	  }
      }
 
    if (typeof (history) == String_Type)
      {
 	history;
-	history = struct {history}; 
+	history = struct {history};
 	history.history = ();
      }
 
@@ -1227,12 +1273,12 @@ private define add_keys_and_history_func (fp, keys, history)
 	     val = ();
 	     if (keyword == "history")
 	       {
-		  do_fits_error (_fits_write_history (fp, val));
+		  fits_check_error (_fits_write_history (fp, val));
 		  continue;
 	       }
 	     if (keyword == "comment")
 	       {
-		  do_fits_error (_fits_write_comment (fp, val));
+		  fits_check_error (_fits_write_comment (fp, val));
 		  continue;
 	       }
 	     vmessage ("*** WARNING: history/comment record name '%s' is not supported",
@@ -1274,7 +1320,7 @@ private define unshape_columns_after_write (s, ncols, ttype, reshapes_to)
 
 	reshape (get_struct_field (s, ttype[i]), reshapes_to[i]);
      }
-}	
+}
 
 define fits_write_binary_table ()
 {
@@ -1295,7 +1341,7 @@ define fits_write_binary_table ()
 	_stk_reverse (_NARGS - 3);
 	keyfunc = ();
 	_stk_reverse (_NARGS - 4);
-	
+
 	if (typeof (keyfunc) != Ref_Type)
 	  {
 	     % keyfunc must be the keys struct
@@ -1341,7 +1387,7 @@ define fits_write_binary_table ()
 
 	variable t = _typeof (val);
 	variable ndims;
-	
+
 	switch (t)
 	  {
 	   case Int32_Type: t = "J";
@@ -1412,7 +1458,7 @@ define fits_write_binary_table ()
      {
 	i = ();
 	if (NULL != tdim[i])
-	  do_fits_error (_fits_update_key (fp, sprintf("TDIM%d", i+1), tdim[i], NULL));
+	  fits_check_error (_fits_update_key (fp, sprintf("TDIM%d", i+1), tdim[i], NULL));
      }
 
    if (keyfunc != NULL)
@@ -1423,10 +1469,10 @@ define fits_write_binary_table ()
      {
 	i = ();
 	val = get_struct_field (s, ttype[i]);
-	do_fits_error (_fits_write_col (fp, i+1, 1, 1, val));
+	fits_check_error (_fits_write_col (fp, i+1, 1, 1, val));
      }
 #else
-   
+
    variable reshapes_to = shape_columns_before_write (s, ncols, ttype);
 
 # ifeval (_slang_version >= 20000)
@@ -1445,17 +1491,17 @@ define fits_write_binary_table ()
 	     variable r1 = r + nrows;
 	     if (r1 > nrows)
 	       r1 = nrows;
-	
+
 	     variable k = [r:r1-1];
-	     
+
 	     _for (0, ncols-1, 1)
 	       {
 		  i = ();
 		  val = get_struct_field (s, ttype[i]);
 		  if (reshapes_to[i] == NULL)
-		    do_fits_error (_fits_write_col (fp, i+1, r+1, 1, val[k]));
+		    fits_check_error (_fits_write_col (fp, i+1, r+1, 1, val[k]));
 		  else
-		    do_fits_error (_fits_write_col (fp, i+1, r+1, 1, val[k,*]));
+		    fits_check_error (_fits_write_col (fp, i+1, r+1, 1, val[k,*]));
 	       }
 	     r = r1;
 	  }
@@ -1466,10 +1512,9 @@ define fits_write_binary_table ()
 	unshape_columns_after_write (s, ncols, ttype, reshapes_to);
      }
 #endif
-   
+
    do_close_file (fp, needs_close);
 }
-
 
 private define do_write_xxx (func, nargs)
 {
@@ -1480,9 +1525,9 @@ private define do_write_xxx (func, nargs)
    fp = get_open_write_fp (fp, "w", &needs_close);
 
    if (nargs > 1)
-     do_fits_error ((@func)(fp, __push_args(args)));
+     fits_check_error ((@func)(fp, __push_args(args)));
    else
-     do_fits_error ((@func)(fp));
+     fits_check_error ((@func)(fp));
 
    do_close_file (fp, needs_close);
 }
@@ -1496,13 +1541,12 @@ private define do_read_xxx (func, nargs)
    fp = get_open_fp (fp, &needs_close);
 
    if (nargs > 1)
-     do_fits_error ((@func)(fp, __push_args(args)));
+     fits_check_error ((@func)(fp, __push_args(args)));
    else
-     do_fits_error ((@func)(fp));
+     fits_check_error ((@func)(fp));
 
    do_close_file (fp, needs_close);
 }
-
 
 %!%+
 %\function{fits_update_key}
@@ -1516,7 +1560,7 @@ private define do_read_xxx (func, nargs)
 %#v-
 %\description
 %  The \var{fits_update_key} function updates the value and comment fields
-%  of an existing keyword with the specified name.  If the keyword does not 
+%  of an existing keyword with the specified name.  If the keyword does not
 %  exist, a new keyword will be appended to the end of the header.
 %\seealso{fits_update_logical, fits_read_key}
 %!%-
@@ -1525,7 +1569,7 @@ define fits_update_key ()
    variable nargs = _NARGS;
    if (nargs < 3)
      usage ("fits_update_key (fp, key, value, comment)");
-   
+
    if (nargs == 3)
      {
 	NULL;			       %  add comment
@@ -1533,6 +1577,14 @@ define fits_update_key ()
      }
 
    do_write_xxx (&_fits_update_key, nargs);
+}
+
+define fits_delete_key ()
+{
+   if (_NARGS != 2)
+     usage ("fits_delete_key (fp, key)");
+
+   do_write_xxx (&_fits_delete_key, _NARGS);
 }
 
 %!%+
@@ -1548,7 +1600,7 @@ define fits_update_key ()
 %\description
 %  The \var{fits_update_logical} function updates the value and comment fields
 %  of an existing keyword of the specified name with the specified boolean value.
-%  If the keyword does not exist, a new keyword will be appended to the end of 
+%  If the keyword does not exist, a new keyword will be appended to the end of
 %  the header.
 %\seealso{fits_update_key}
 %!%-
@@ -1556,7 +1608,7 @@ define fits_update_logical ()
 {
    if (_NARGS != 4)
      usage ("fits_update_logical (fp, key, value, comment)");
-   
+
    do_write_xxx (&_fits_update_logical, _NARGS);
 }
 
@@ -1613,7 +1665,7 @@ define fits_write_history ()
 %#v-
 %\description
 %  The \sfun{fits_write_date} function calls \ifun{_fits_write_date} to write
-%  the DATE to the header of the specified file descriptor, which  must either 
+%  the DATE to the header of the specified file descriptor, which  must either
 %  be the name of a fits file or an open fits file pointer.
 %\seealso{fits_update_key}
 %!%-
@@ -1632,9 +1684,9 @@ define fits_write_date ()
 %   Fits_File_Type or String_Type fd;
 %#v-
 %\description
-%  The \sfun{fits_write_chksum} function calls \ifun{_fits_write_comment} to 
-%  compute and write the DATASUM and CHECKSUM keywords to the 
-%  header of the specified file descriptor, which  must either 
+%  The \sfun{fits_write_chksum} function calls \ifun{_fits_write_comment} to
+%  compute and write the DATASUM and CHECKSUM keywords to the
+%  header of the specified file descriptor, which  must either
 %  be the name of a fits file or an open fits file pointer.
 %\seealso{fits_update_key, fits_verify_chksum}
 %!%-
@@ -1654,7 +1706,7 @@ define fits_write_chksum ()
 %   Ref_Type dataok, hduok;
 %#v-
 %\description
-%  The \sfun{fits_verify_chksum} function calls \ifun{_fits_verify_chksum} to 
+%  The \sfun{fits_verify_chksum} function calls \ifun{_fits_verify_chksum} to
 %  verify the header and data checksums of the current HDU.  A non-zero return value
 %  signifies that the checksums are ok, otherwise the function returns 0 to indicate
 %  that the checksums are invalid.  The individual checksums of the HDU or data
@@ -1677,9 +1729,9 @@ define fits_verify_chksum ()
      hduok = &hduok_buf;
 
    &dataok, &hduok;		       %  push
-   
+
    do_read_xxx (&_fits_verify_chksum, 3);
-   
+
    return min([@dataok, @hduok]);
 }
 
@@ -1696,12 +1748,12 @@ define fits_read_records ()
 {
    if (_NARGS != 1)
      usage ("String_Type[] fits_read_records (fp)");
-   
+
    variable fp = ();
    fp = get_open_interesting_hdu (fp, NULL);
 
    variable nkeys;
-   do_fits_error (_fits_get_num_keys (fp, &nkeys));
+   fits_check_error (_fits_get_num_keys (fp, &nkeys));
 
    variable recs = String_Type [nkeys];
    _for (0, nkeys-1, 1)
@@ -1709,7 +1761,7 @@ define fits_read_records ()
 	variable i = ();
 	variable rec;
 
-	do_fits_error (_fits_read_record (fp, i+1, &rec));
+	fits_check_error (_fits_read_record (fp, i+1, &rec));
 	recs[i] = rec;
      }
    return recs;
@@ -1732,10 +1784,10 @@ define fits_write_records ()
 {
    if (_NARGS != 2)
      usage ("fits_write_records (fp, records[])");
-   
+
    variable fp, records;
    (fp, records) = ();
-   
+
    variable needs_close;
    fp = get_open_write_fp (fp, "w", &needs_close);
 
@@ -1745,18 +1797,17 @@ define fits_write_records ()
    foreach (records)
      {
 	variable rec = ();
-	do_fits_error (_fits_write_record (fp, rec));
+	fits_check_error (_fits_write_record (fp, rec));
      }
    do_close_file (fp, needs_close);
 }
-
 
 %!%+
 %\function{fits_get_keyclass}
 %\synopsis{Obtain the key classes for a set of cards}
 %\usage{Int_Type[] = fits_get_keyclass (Array_Type cards)}
 %\description
-%  This function uses the \ifun{_fits_get_keyclass} function to obtain the 
+%  This function uses the \ifun{_fits_get_keyclass} function to obtain the
 %  key-classes associated with one or more cards.  The function returns an
 %  integer-valued array of the same length as the \exmp{cards} array.
 %\example
@@ -1773,11 +1824,11 @@ define fits_get_keyclass ()
 {
    if (_NARGS != 1)
      usage ("Int_Type[] = fits_get_keyclass (records)");
-   
+
    variable records = ();
    if (String_Type == typeof (records))
      return _fits_get_keyclass (records);
-   
+
    return array_map (Int_Type, &_fits_get_keyclass, records);
 }
 
@@ -1809,10 +1860,9 @@ define fits_get_bitpix (image)
    variable i = where (types == b);
    if (length (i) == 0)
      verror ("fits_get_bitpix: %S is not supported", b);
-   
+
    return bitpix[i[0]];
 }
-
 
 %!%+
 %\function{fits_read_img}
@@ -1822,9 +1872,9 @@ define fits_get_bitpix (image)
 %   Fits_File_Type or String_Type fd;
 %#v-
 %\description
-%  This function reads an image from the specified file descriptor.  
+%  This function reads an image from the specified file descriptor.
 %  The file descriptor must be either the name of an existing file, or an
-%  open file pointer.  It returns the image upon sucess, or signals an error 
+%  open file pointer.  It returns the image upon sucess, or signals an error
 %  upon failure.
 %\seealso{fits_read_table, fits_read_col, fits_open_file, fits_write_img}
 %!%-
@@ -1833,13 +1883,13 @@ define fits_read_img ()
    !if (_NARGS)
      usage ("I=fits_read_img (file);");
    variable fp = ();
-   
+
    variable needs_close;
    fp = get_open_image_hdu (fp, &needs_close);
 
    variable a;
 
-   do_fits_error (_fits_read_img (fp, &a));
+   fits_check_error (_fits_read_img (fp, &a));
    do_close_file (fp, needs_close);
 
    return a;
@@ -1858,12 +1908,12 @@ define fits_read_img ()
 %\description
 %  This function make use of the \ifun{_fits_create_img} function to create an
 %  image extension or primary array of the specified type and size.  If the
-%  \exmp{extname} parameter is non-NULL, then an EXTNAME keyword will be 
+%  \exmp{extname} parameter is non-NULL, then an EXTNAME keyword will be
 %  written out with the value of the extname parameter.
 %  The \exmp{dims} parameter must be a 1-d integer array that corresponds
 %  to the dimensions of the array to be written.
-%  
-%  If \exmp{fd} is specified as a string, then a new file of that name will be 
+%
+%  If \exmp{fd} is specified as a string, then a new file of that name will be
 %  created.  If a file by that name already exists, it will be deleted and
 %  a new one created.  If this behavior is undesired, then explicitly open the
 %  file and pass this routine the resulting file pointer.
@@ -1881,9 +1931,9 @@ define fits_create_image_hdu ()
    variable needs_close;
    fp = get_open_write_fp (fp, "c", &needs_close);
 
-   do_fits_error (_fits_create_img (fp, fits_get_bitpix (type), dims));
+   fits_check_error (_fits_create_img (fp, fits_get_bitpix (type), dims));
    if (extname != NULL)
-     do_fits_error (_fits_update_key (fp, "EXTNAME", extname, NULL));
+     fits_check_error (_fits_update_key (fp, "EXTNAME", extname, NULL));
 
    do_close_file (fp, needs_close);
 }
@@ -1903,12 +1953,12 @@ define fits_create_image_hdu ()
 %  The \var{fits_write_image_hdu} function creates a new image extension in
 %  the specified file.  The parameter \var{file} specifies either a filename or
 %  an open file pointer.  The \var{extname} parameter specifies the extension
-%  name of the image, or NULL for the primary image.  The image data written 
+%  name of the image, or NULL for the primary image.  The image data written
 %  to the file are specified by the \var{image} parameter.
-%  If the optional parameter \var{skeys} is non-NULL, then it is a 
-%  structure indicating additional keywords to be written to the HDU. 
-%  If the optional parameter \var{hist} is present and non-NULL, 
-%  then it is a structure whose fields indicate either comment or history 
+%  If the optional parameter \var{skeys} is non-NULL, then it is a
+%  structure indicating additional keywords to be written to the HDU.
+%  If the optional parameter \var{hist} is present and non-NULL,
+%  then it is a structure whose fields indicate either comment or history
 %  information to be written to the header.
 %\example
 %  The following code
@@ -1973,21 +2023,21 @@ define fits_write_image_hdu ()
 
    variable dims; (dims,,) = array_info (image);
    fits_create_image_hdu (fp, extname, _typeof (image), dims);
-   
+
    if (keys != NULL)
      {
 	foreach (get_struct_field_names (keys))
 	  {
 	     variable keyword = ();
 	     variable val = get_struct_field (keys, keyword);
-	     do_fits_error (_fits_update_key (fp, keyword, val, NULL), keyword);
+	     fits_check_error (_fits_update_key (fp, keyword, val, NULL), keyword);
 	  }
      }
 
    if (typeof (history) == String_Type)
      {
 	history;
-	history = struct {history}; 
+	history = struct {history};
 	history.history = ();
      }
 
@@ -2005,12 +2055,12 @@ define fits_write_image_hdu ()
 		  val = ();
 		  if (keyword == "history")
 		    {
-		       do_fits_error (_fits_write_history (fp, val));
+		       fits_check_error (_fits_write_history (fp, val));
 		       continue;
 		    }
 		  if (keyword == "comment")
 		    {
-		       do_fits_error (_fits_write_comment (fp, val));
+		       fits_check_error (_fits_write_comment (fp, val));
 		       continue;
 		    }
 		  vmessage ("*** WARNING: history/comment record name '%s' is not supported",
@@ -2019,17 +2069,16 @@ define fits_write_image_hdu ()
 	  }
      }
 
-   do_fits_error (_fits_write_img (fp, image));
+   fits_check_error (_fits_write_img (fp, image));
    do_close_file (fp, needs_close);
 }
-
 
 %!%+
 %\function{fits_write_img}
 %\synopsis{Write the image data to an Image HDU}
 %\usage{fits_write_img (Fits_File_Type fptr, Any_Type data)}
 %\description
-%  This function writes the image data out to current HDU, assumed to be 
+%  This function writes the image data out to current HDU, assumed to be
 %  an Image HDU.
 %\seealso{fits_write_image_hdu, fits_create_image_hdu}
 %!%-
@@ -2046,9 +2095,8 @@ define fits_write_img ()
      {
 	usage ("%s (fptr, img)", _function_name);
      }
-   do_fits_error (_fits_write_img (fp, data));
+   fits_check_error (_fits_write_img (fp, data));
 }
-
 
 define fits_iterate ()
 {
@@ -2079,7 +2127,7 @@ fits_iterate (fp, {col1, col2, ...}, &func, {arg1, arg2,...})\n\
    variable num_rows = fpinfo.num_rows;
    variable num_cols = fpinfo.num_cols;
    variable i;
-   
+
    delta_rows--;
    variable r0 = 1;
    while (r0 <= num_rows)
@@ -2090,11 +2138,10 @@ fits_iterate (fp, {col1, col2, ...}, &func, {arg1, arg2,...})\n\
 
 	if (1 != (@func)(__push_list(func_list), read_cols (fpinfo, r0, r1)))
 	  break;
-	
+
 	r0 = r1 + 1;
      }
 }
-
 
 % Obsolete functions
 

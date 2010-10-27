@@ -57,6 +57,8 @@ DEST_HLP_FILES_INSTALL_DIR = $(DESTDIR)$(HLP_FILES_INSTALL_DIR)
 LIBS = $(MODULE_LIBS) $(SLANG_LIB) $(RPATH) $(DL_LIB) -lm
 INCS = $(CFITSIO_INC) $(SLANG_INC)
 
+UPDATE_VERSION_SCRIPT = $(HOME)/bin/update_changes_version
+
 all: $(MODULES)
 
 #---------------------------------------------------------------------------
@@ -64,6 +66,10 @@ all: $(MODULES)
 #---------------------------------------------------------------------------
 cfitsio-module.so: cfitsio-module.c version.h
 	$(CC_SHARED) $(INCS) cfitsio-module.c -o cfitsio-module.so $(LIBS)
+version.h: ../changes.txt
+	if [ -x $(UPDATE_VERSION_SCRIPT) ]; then \
+	  $(UPDATE_VERSION_SCRIPT) ../changes.txt ./version.h; \
+	fi
 #---------------------------------------------------------------------------
 # Regression tests
 #---------------------------------------------------------------------------

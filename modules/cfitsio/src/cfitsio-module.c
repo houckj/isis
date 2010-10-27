@@ -4,7 +4,7 @@
 
   This software was developed by the MIT Center for Space Research
   under contract SV1-61010 from the Smithsonian Institution.
-  
+
   Permission to use, copy, modify, distribute, and sell this software
   and its documentation for any purpose is hereby granted without fee,
   provided that the above copyright notice appear in all copies and
@@ -15,7 +15,7 @@
   prior permission.  The Massachusetts Institute of Technology makes
   no representations about the suitability of this software for any
   purpose.  It is provided "as is" without express or implied warranty.
-  
+
   THE MASSACHUSETTS INSTITUTE OF TECHNOLOGY DISCLAIMS ALL WARRANTIES
   WITH REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF
   MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL THE MASSACHUSETTS
@@ -37,7 +37,7 @@
 #include <fitsio.h>
 
 #ifdef __cplusplus
-extern "C" 
+extern "C"
 {
 #endif
 SLANG_MODULE(cfitsio);
@@ -110,7 +110,7 @@ static int map_fitsio_type_to_slang (int *typep, long *repeat, SLtype *stype)
 	*stype = SLANG_INT_TYPE;
 	break;
 
-#ifdef TUINT	
+#ifdef TUINT
       case TUINT:
 	*stype = SLANG_UINT_TYPE;
 	break;
@@ -134,7 +134,7 @@ static int map_fitsio_type_to_slang (int *typep, long *repeat, SLtype *stype)
       case TDOUBLE:
 	*stype = SLANG_DOUBLE_TYPE;
 	break;
-	
+
       case TFLOAT:
 	*stype = SLANG_FLOAT_TYPE;
 	break;
@@ -179,7 +179,7 @@ static int map_fitsio_type_to_slang (int *typep, long *repeat, SLtype *stype)
 		      type);
 	return -1;
      }
-   
+
    return 0;
 }
 
@@ -200,11 +200,11 @@ static int open_file (SLang_Ref_Type *ref, char *filename, char *mode)
       case 'r':
 	(void) fits_open_file (&fptr, filename, READONLY, &status);
 	break;
-	
+
       case 'w':
 	(void) fits_open_file (&fptr, filename, READWRITE, &status);
 	break;
-	
+
       case 'c':
 	if ((-1 == remove (filename))
 	    && (errno != ENOENT))
@@ -233,16 +233,16 @@ static int open_file (SLang_Ref_Type *ref, char *filename, char *mode)
 	return -1;
      }
    memset ((char *) ft, 0, sizeof (FitsFile_Type));
-   
+
    ft->fptr = fptr;
-   
+
    if (NULL == (mmt = SLang_create_mmt (Fits_Type_Id, (VOID_STAR) ft)))
      {
 	fits_close_file (fptr, &status);
 	SLfree ((char *) fptr);
 	return -1;
      }
-   
+
    if (-1 == SLang_assign_to_ref (ref, Fits_Type_Id, &mmt))
      {
 	SLang_free_mmt (mmt);	       /* This will close the file */
@@ -312,7 +312,7 @@ static int get_num_hdus (FitsFile_Type *ft, SLang_Ref_Type *ref)
 	if (-1 == SLang_assign_to_ref (ref, SLANG_INT_TYPE, &num))
 	  return -1;
      }
-   
+
    return status;
 }
 
@@ -324,10 +324,9 @@ static int get_hdu_num (FitsFile_Type *ft)
    return fits_get_hdu_num (ft->fptr, &num);
 }
 
-
 static int get_hdu_type (FitsFile_Type *ft, SLang_Ref_Type *ref)
 {
-   int hdutype;   
+   int hdutype;
    int status = 0;
 
    if (ft->fptr == NULL)
@@ -340,7 +339,7 @@ static int get_hdu_type (FitsFile_Type *ft, SLang_Ref_Type *ref)
    return status;
 }
 
-static int copy_file (FitsFile_Type *ft, FitsFile_Type *gt, 
+static int copy_file (FitsFile_Type *ft, FitsFile_Type *gt,
 		      int *prev, int *cur, int *next)
 {
    int status = 0;
@@ -362,7 +361,7 @@ static int copy_hdu (FitsFile_Type *ft, FitsFile_Type *gt, int *morekeys)
 
    if ((ft->fptr == NULL) || (gt->fptr == NULL))
      return -1;
-   
+
    return fits_copy_hdu (ft->fptr, gt->fptr, *morekeys, &status);
 }
 
@@ -372,10 +371,9 @@ static int copy_header (FitsFile_Type *ft, FitsFile_Type *gt)
 
    if ((ft->fptr == NULL) || (gt->fptr == NULL))
      return -1;
-   
+
    return fits_copy_header (ft->fptr, gt->fptr, &status);
 }
-
 
 static int delete_hdu (FitsFile_Type *ft)
 {
@@ -383,24 +381,23 @@ static int delete_hdu (FitsFile_Type *ft)
 
    if (ft->fptr == NULL)
      return -1;
-   
+
    return fits_delete_hdu (ft->fptr, NULL, &status);
 }
 
-   
 static int pop_string_or_null (char **s)
-{   
+{
    if (SLANG_NULL_TYPE == SLang_peek_at_stack ())
      {
 	*s = NULL;
 	return SLang_pop_null ();
      }
-   
+
    return SLang_pop_slstring (s);
 }
 
 static int pop_array_or_null (SLang_Array_Type **a)
-{	     
+{
    if (SLANG_NULL_TYPE == SLang_peek_at_stack ())
      {
 	*a = NULL;
@@ -409,14 +406,13 @@ static int pop_array_or_null (SLang_Array_Type **a)
    return SLang_pop_array (a, 1);
 }
 
-
 static FitsFile_Type *pop_fits_type (SLang_MMT_Type **mmt)
 {
    FitsFile_Type *ft;
 
    if (NULL == (*mmt = SLang_pop_mmt (Fits_Type_Id)))
      return NULL;
-   
+
    if (NULL == (ft = (FitsFile_Type *) SLang_object_from_mmt (*mmt)))
      {
 	SLang_free_mmt (*mmt);
@@ -425,13 +421,13 @@ static FitsFile_Type *pop_fits_type (SLang_MMT_Type **mmt)
    return ft;
 }
 
-static int create_img (FitsFile_Type *ft, int *bitpix, 
+static int create_img (FitsFile_Type *ft, int *bitpix,
 		       SLang_Array_Type *at_naxes)
 {
    long *axes;
    unsigned int i, imax;
    int status = 0;
-   
+
    if (ft->fptr == NULL)
      return -1;
 
@@ -446,7 +442,7 @@ static int create_img (FitsFile_Type *ft, int *bitpix,
    axes = (long *) SLmalloc ((imax+1) * sizeof (long));
    if (axes == NULL)
      return -1;
-   
+
    /* Transpose to FORTRAN order */
    for (i = 0; i < imax; i++)
      axes[i] = ((int *) at_naxes->data)[imax-(i+1)];
@@ -469,7 +465,7 @@ static int write_img (FitsFile_Type *ft, SLang_Array_Type *at)
       case SLANG_STRING_TYPE:
 	type = TSTRING;
 	break;
-	
+
       case SLANG_DOUBLE_TYPE:
 	type = TDOUBLE;
 	break;
@@ -481,7 +477,7 @@ static int write_img (FitsFile_Type *ft, SLang_Array_Type *at)
       case SLANG_INT16_TYPE:
 	type = CFITSIO_INT16_TYPE;
 	break;
-	
+
       case SLANG_UINT16_TYPE:
 	type = CFITSIO_UINT16_TYPE;
 	break;
@@ -489,7 +485,7 @@ static int write_img (FitsFile_Type *ft, SLang_Array_Type *at)
       case SLANG_INT32_TYPE:
 	type = CFITSIO_INT32_TYPE;
 	break;
-	
+
       case SLANG_UINT32_TYPE:
 	type = CFITSIO_UINT32_TYPE;
 	break;
@@ -511,7 +507,7 @@ static int write_img (FitsFile_Type *ft, SLang_Array_Type *at)
 		      SLclass_get_datatype_name (at->data_type));
 	return -1;
      }
-   
+
    return fits_write_img (ft->fptr, type, 1, at->num_elements,
 			  at->data, &status);
 }
@@ -543,17 +539,17 @@ static int read_img (FitsFile_Type *ft, SLang_Ref_Type *ref)
 	stype = SLANG_UCHAR_TYPE;
 	type = TBYTE;
 	break;
-	
+
       case SHORT_IMG:		       /* 16 bit image */
 	stype = SLANG_INT16_TYPE;
 	type = CFITSIO_INT16_TYPE;
 	break;
-	
+
       case USHORT_IMG:		       /* 16 bit image */
 	stype = SLANG_UINT16_TYPE;
 	type = CFITSIO_UINT16_TYPE;
 	break;
-	
+
       case LONG_IMG:		       /* 32 bit image */
 	stype = SLANG_INT32_TYPE;
 	type = CFITSIO_INT32_TYPE;
@@ -606,13 +602,13 @@ static int read_img (FitsFile_Type *ft, SLang_Ref_Type *ref)
 
    status = fits_read_img (ft->fptr, type, 1, at->num_elements, NULL,
 			   at->data, &anynul, &status);
-   
+
    if (status)
      {
 	SLang_free_array (at);
 	return status;
      }
-   
+
    if (-1 == SLang_assign_to_ref (ref, SLANG_ARRAY_TYPE, (VOID_STAR)&at))
      status = -1;
 
@@ -628,7 +624,7 @@ static int create_binary_tbl (void)
    char *extname;
    int tfields, nrows;
    int status;
-      
+
    status = -1;
    at_ttype = at_tform = at_tunit = NULL;
    mmt = NULL;
@@ -639,28 +635,27 @@ static int create_binary_tbl (void)
 
    if (-1 == pop_array_or_null (&at_tunit))
      goto free_and_return;
-   
+
    if (-1 == SLang_pop_array (&at_tform, 1))
      goto free_and_return;
-   
+
    if (-1 == SLang_pop_array (&at_ttype, 1))
      goto free_and_return;
-   
+
    if (-1 == SLang_pop_integer (&nrows))
      goto free_and_return;
-   
+
    if (NULL == (ft = pop_fits_type (&mmt)))
      goto free_and_return;
-   
+
    if (ft->fptr == NULL)
      goto free_and_return;
 
-
    tfields = (int) at_ttype->num_elements;
-   
+
    if (at_ttype->data_type != SLANG_STRING_TYPE)
      {
-	SLang_verror (SL_TYPE_MISMATCH, 
+	SLang_verror (SL_TYPE_MISMATCH,
 		      "fits_create_binary_tbl: ttype must be String_Type[%d]",
 		      tfields);
 	goto free_and_return;
@@ -679,7 +674,7 @@ static int create_binary_tbl (void)
        && ((tfields != (int) at_tunit->num_elements)
 	   || (at_tunit->data_type != SLANG_STRING_TYPE)))
      {
-	SLang_verror (SL_TYPE_MISMATCH, 
+	SLang_verror (SL_TYPE_MISMATCH,
 		      "fits_create_binary_tbl: tunit must be String_Type[%d]",
 		      tfields);
 	goto free_and_return;
@@ -691,7 +686,7 @@ static int create_binary_tbl (void)
 		    (char **) at_tform->data,
 		    ((at_tunit == NULL) ? NULL : (char **) at_tunit->data),
 		    extname, &status);
-   
+
    /* drop */
 
    free_and_return:
@@ -700,7 +695,7 @@ static int create_binary_tbl (void)
    SLang_free_array (at_tunit);
    SLang_free_mmt (mmt);
    SLang_free_slstring (extname);
-   
+
    return status;
 }
 
@@ -719,7 +714,7 @@ static int update_key (void)
 
    if (-1 == pop_string_or_null (&comment))
      return -1;
-   
+
    key = s = NULL;
    mmt = NULL;
    status = -1;
@@ -733,7 +728,7 @@ static int update_key (void)
 	  goto free_and_return;
 	v = (VOID_STAR) s;
 	break;
-	
+
       case SLANG_INT_TYPE:
 	type = TINT;
 	if (-1 == SLang_pop_integer (&i))
@@ -746,7 +741,7 @@ static int update_key (void)
 	  goto free_and_return;
 	v = NULL;
 	break;
-	
+
       case -1:			       /* stack underflow */
 	goto free_and_return;
 
@@ -769,7 +764,7 @@ static int update_key (void)
 
    if (NULL == (ft = pop_fits_type (&mmt)))
      goto free_and_return;
-   
+
    if (ft->fptr == NULL)
      goto free_and_return;
 
@@ -790,7 +785,7 @@ static int update_key (void)
    SLang_free_slstring (key);
    SLang_free_slstring (comment);
    SLang_free_slstring (s);
-   
+
    return status;
 }
 
@@ -805,7 +800,7 @@ static int update_logical (void)
 
    if (-1 == pop_string_or_null (&comment))
      return -1;
-   
+
    key = NULL;
    mmt = NULL;
    status = -1;
@@ -816,14 +811,14 @@ static int update_logical (void)
        && (ft->fptr != NULL))
      {
 	status = 0;
-	fits_update_key (ft->fptr, TLOGICAL, key, 
+	fits_update_key (ft->fptr, TLOGICAL, key,
 			 (VOID_STAR) &i, comment, &status);
      }
 
    SLang_free_mmt (mmt);
    SLang_free_slstring (key);
    SLang_free_slstring (comment);
-   
+
    return status;
 }
 
@@ -854,7 +849,7 @@ static int write_date (FitsFile_Type *ft)
 static int write_record (FitsFile_Type *ft, char *card)
 {
    int status = 0;
-   
+
    if (ft->fptr == NULL)
      return -1;
 
@@ -865,14 +860,12 @@ static int write_record (FitsFile_Type *ft, char *card)
 static int insert_record (FitsFile_Type *ft, int *keynum, char *card)
 {
    int status = 0;
-   
+
    if (ft->fptr == NULL)
      return -1;
 
    return fits_insert_record (ft->fptr, *keynum, card, &status);
 }
-
-
 
 static int modify_name (FitsFile_Type *ft, char *oldname, char *newname)
 {
@@ -889,13 +882,13 @@ static int do_get_keytype (fitsfile *f, char *name, int *stype)
    int s;
    char card [FLEN_CARD + 1];
    char value [FLEN_CARD + 1];
-   
+
    if (f == NULL)
      return -1;
 
    if (0 != fits_read_card (f, name, card, &status))
      return status;
-   
+
    if (0 != fits_parse_value (card, value, NULL, &status))
      return status;
 
@@ -907,19 +900,19 @@ static int do_get_keytype (fitsfile *f, char *name, int *stype)
       case 'C':
 	s = SLANG_STRING_TYPE;
 	break;
-	
+
       case 'L':
 	s = SLANG_INT_TYPE;
 	break;
-	     
+
       case 'F':
 	s = SLANG_DOUBLE_TYPE;
 	break;
-	     
+
       case 'X':
 	s = SLANG_COMPLEX_TYPE;
 	break;
-	     
+
       case 'I':
       default:
 	s = SLANG_INT_TYPE;
@@ -930,8 +923,6 @@ static int do_get_keytype (fitsfile *f, char *name, int *stype)
    return 0;
 }
 
-	
-
 static int read_key (int type)
 {
    SLang_MMT_Type *mmt;
@@ -941,6 +932,7 @@ static int read_key (int type)
    char comment_buf [FLEN_COMMENT];
    SLang_Ref_Type *comment_ref, *v_ref;
    int ival;
+   long lval;
    double dval;
    char *sval = NULL;
    int ftype;
@@ -950,7 +942,7 @@ static int read_key (int type)
    name = NULL;
    mmt = NULL;
    status = -1;
-   
+
    if (SLANG_NULL_TYPE == SLang_peek_at_stack ())
      {
 	if (-1 == SLang_pop_null ())
@@ -958,16 +950,16 @@ static int read_key (int type)
      }
    else if (-1 == SLang_pop_ref (&comment_ref))
      return -1;
-   
+
    if (-1 == SLang_pop_ref (&v_ref))
      goto free_and_return;
-   
+
    if (-1 == SLang_pop_slstring (&name))
      goto free_and_return;
 
    if (NULL == (ft = pop_fits_type (&mmt)))
      goto free_and_return;
-   
+
    if (ft->fptr == NULL)
      goto free_and_return;
 
@@ -975,7 +967,8 @@ static int read_key (int type)
      {
 	if (0 != (status = do_get_keytype (ft->fptr, name, &type)))
 	  goto free_and_return;
-	
+	/* if (type == SLANG_INT_TYPE) type = SLANG_LONG_TYPE; */
+
 	status = -1;
      }
 
@@ -986,7 +979,13 @@ static int read_key (int type)
 	ftype = TINT;
 	ival = 0;
 	break;
-	
+
+      case SLANG_LONG_TYPE:
+	v = (VOID_STAR) &lval;
+	ftype = TLONG;
+	ival = 0;
+	break;
+
       case SLANG_DOUBLE_TYPE:
 	ftype = TDOUBLE;
 	v = (VOID_STAR) &dval;
@@ -997,9 +996,9 @@ static int read_key (int type)
 	ftype = TSTRING;
 	v = (VOID_STAR) &sval;
 	break;
-	
+
       default:
-	SLang_verror (SL_INVALID_PARM, 
+	SLang_verror (SL_INVALID_PARM,
 		      "fits_read_key: type %s not supported",
 		      SLclass_get_datatype_name (type));
 	goto free_and_return;
@@ -1016,7 +1015,7 @@ static int read_key (int type)
 	if (comment_ref != NULL)
 	  {
 	     char *cptr = comment_buf;
-	     if (-1 == SLang_assign_to_ref (comment_ref, 
+	     if (-1 == SLang_assign_to_ref (comment_ref,
 					    SLANG_STRING_TYPE, (VOID_STAR) &cptr))
 	       {
 		  status = -1;
@@ -1073,10 +1072,10 @@ static int read_record (FitsFile_Type *ft, int *keynum, SLang_Ref_Type *ref)
 	if (-1 == SLang_assign_to_ref (ref, SLANG_STRING_TYPE, &c))
 	  return -1;
      }
-   
+
    return status;
 }
-   
+
 static int delete_key (FitsFile_Type *ft, char *key)
 {
    int status = 0;
@@ -1084,7 +1083,6 @@ static int delete_key (FitsFile_Type *ft, char *key)
      return -1;
    return fits_delete_key (ft->fptr, key, &status);
 }
-
 
 static int get_colnum (FitsFile_Type *ft, char *name, SLang_Ref_Type *ref)
 {
@@ -1127,12 +1125,12 @@ static int delete_rows (FitsFile_Type *ft, int *first, int *num)
 	SLang_verror (SL_INVALID_PARM, "fits_delete_rows: first and num must be positive");
 	return -1;
      }
-   
+
    return fits_delete_rows (ft->fptr, *first, *num, &status);
 }
 
-static int insert_cols (FitsFile_Type *ft, int *colnum, 
-			SLang_Array_Type *at_ttype, 
+static int insert_cols (FitsFile_Type *ft, int *colnum,
+			SLang_Array_Type *at_ttype,
 			SLang_Array_Type *at_tform)
 {
    int ncols;
@@ -1151,13 +1149,13 @@ static int insert_cols (FitsFile_Type *ft, int *colnum,
 		      "fits_insert_cols: ttype and tform must be string arrays of same size");
 	return -1;
      }
-   
+
    if (*colnum <= 0)
      {
 	SLang_verror (SL_INVALID_PARM, "fits_insert_cols: colnum must be positive");
 	return -1;
      }
-   
+
    tform = (char **)at_tform->data;
    ttype = (char **)at_ttype->data;
 
@@ -1165,7 +1163,7 @@ static int insert_cols (FitsFile_Type *ft, int *colnum,
      {
 	if ((tform[i] == NULL) || (ttype[i] == NULL))
 	  {
-	     SLang_verror (SL_INVALID_PARM, 
+	     SLang_verror (SL_INVALID_PARM,
 			   "fits_insert_cols: ttype and tform elements muts be non NULL");
 	     return -1;
 	  }
@@ -1231,7 +1229,7 @@ static int get_num_cols (FitsFile_Type *ft, SLang_Ref_Type *ref)
 static void byte_swap32 (unsigned char *ss, unsigned int n)
 {
    unsigned char *p, *pmax, ch;
-   
+
    p = (unsigned char *) ss;
    pmax = p + 4 * n;
    while (p < pmax)
@@ -1239,7 +1237,7 @@ static void byte_swap32 (unsigned char *ss, unsigned int n)
 	ch = *p;
 	*p = *(p + 3);
 	*(p + 3) = ch;
-	
+
 	ch = *(p + 1);
 	*(p + 1) = *(p + 2);
 	*(p + 2) = ch;
@@ -1250,7 +1248,7 @@ static void byte_swap32 (unsigned char *ss, unsigned int n)
 static void byte_swap16 (unsigned char *p, unsigned int nread)
 {
    unsigned char *pmax, ch;
-   
+
    pmax = p + 2 * nread;
    while (p < pmax)
      {
@@ -1261,9 +1259,8 @@ static void byte_swap16 (unsigned char *p, unsigned int nread)
      }
 }
 
-   
 /* MAJOR HACK!!!! */
-static int hack_write_bit_col (fitsfile *f, unsigned int col, 
+static int hack_write_bit_col (fitsfile *f, unsigned int col,
 			       unsigned int row, unsigned int firstelem,
 			       unsigned int sizeof_type, unsigned int num_elements,
 			       unsigned char *bytes)
@@ -1280,21 +1277,20 @@ static int hack_write_bit_col (fitsfile *f, unsigned int col,
    colptr += (col - 1);     /* offset to correct column structure */
    trepeat = colptr->trepeat;
    tcode = colptr->tdatatype;
-   
+
    colptr->tdatatype = TBYTE;
    colptr->trepeat = sizeof_type;
 
-   
    (void) fits_write_col (f, TBYTE, col, row, firstelem,
 			  num_elements*sizeof_type, bytes, &status);
-   
+
    colptr->tdatatype = tcode;
    colptr->trepeat = trepeat;
 
    return status;
 }
 
-static int write_tbit_col (fitsfile *f, unsigned int col, unsigned int row, 
+static int write_tbit_col (fitsfile *f, unsigned int col, unsigned int row,
 			   unsigned int firstelem, unsigned int repeat,
 			   unsigned int width, SLang_Array_Type *at)
 {
@@ -1331,11 +1327,11 @@ static int write_tbit_col (fitsfile *f, unsigned int col, unsigned int row,
       case 2:
 	bs = byte_swap16;
 	break;
-	
+
       case 4:
 	bs = byte_swap32;
 	break;
-	
+
       default:
 	SLang_verror (SL_NOT_IMPLEMENTED, "writing to a %dX column is not supported", repeat);
 	return -1;
@@ -1344,10 +1340,10 @@ static int write_tbit_col (fitsfile *f, unsigned int col, unsigned int row,
    buf = (unsigned char *) SLmalloc (num_elements * sizeof_type);
    if (buf == NULL)
      return -1;
-   
+
    memcpy (buf, data, num_elements * sizeof_type);
    (*bs) (buf, num_elements);
-   
+
    status = hack_write_bit_col (f, col, row, firstelem,
 				sizeof_type, num_elements, buf);
 
@@ -1376,7 +1372,7 @@ static int my_fits_get_coltype (fitsfile *fptr, int col, int *type,
 	*statusp = status;
 	return status;
      }
-   
+
    sprintf (tscaln, "TSCAL%d", col);
    sprintf (tzeron, "TZERO%d", col);
 
@@ -1385,7 +1381,7 @@ static int my_fits_get_coltype (fitsfile *fptr, int col, int *type,
 	fits_clear_errmsg ();
 	tscal = 1.0;
      }
-   
+
    if (0 != fits_read_key (fptr, TDOUBLE, tzeron, &tzero, NULL, &status))
      {
 	fits_clear_errmsg ();
@@ -1398,12 +1394,12 @@ static int my_fits_get_coltype (fitsfile *fptr, int col, int *type,
 	min_val = -32768.0;
 	max_val = 32767.0;
 	break;
-	
+
       case TLONG:
 	min_val = -2147483648.0;
 	max_val = 2147483647.0;
 	break;
-	
+
       default:
 	return 0;
      }
@@ -1413,7 +1409,7 @@ static int my_fits_get_coltype (fitsfile *fptr, int col, int *type,
 
    if (min_val > max_val)
      {
-	double tmp = max_val; 
+	double tmp = max_val;
 	max_val = min_val;
 	min_val = tmp;
      }
@@ -1423,25 +1419,25 @@ static int my_fits_get_coltype (fitsfile *fptr, int col, int *type,
 	*type = TSHORT;
 	return 0;
      }
-   
+
    if ((min_val >= 0) && (max_val <= 65535.0))
      {
 	*type = TUSHORT;
 	return 0;
      }
-   
+
    if ((min_val >= -2147483648.0) && (max_val <= 2147483647.0))
      {
 	*type = TLONG;
 	return 0;
      }
-   
+
    if ((min_val >= 0.0) && (max_val <= 4294967295.0))
      {
 	*type = TULONG;
 	return 0;
      }
-   
+
    *type = TDOUBLE;
    return 0;
 }
@@ -1458,7 +1454,7 @@ static int write_col (FitsFile_Type *ft, int *colnum,
 
    if (ft->fptr == NULL)
      return -1;
-   
+
    col = *colnum;
 
    if (0 != GET_COL_TYPE (ft->fptr, col, &type, &repeat, &width, &status))
@@ -1491,11 +1487,11 @@ static int write_col (FitsFile_Type *ft, int *colnum,
       case SLANG_DOUBLE_TYPE:
 	type = TDOUBLE;
 	break;
-	
+
       case SLANG_FLOAT_TYPE:
 	type = TFLOAT;
 	break;
-	
+
       case SLANG_STRING_TYPE:
 	type = TSTRING;
 	break;
@@ -1506,7 +1502,7 @@ static int write_col (FitsFile_Type *ft, int *colnum,
 	break;
 
       default:
-	SLang_verror (SL_NOT_IMPLEMENTED, 
+	SLang_verror (SL_NOT_IMPLEMENTED,
 		      "fits_write_col: %s not suppported",
 		      SLclass_get_datatype_name (at->data_type));
 	return -1;
@@ -1527,7 +1523,7 @@ static int read_string_cell (fitsfile *f, unsigned int row, unsigned int col,
    unsigned int width;
 
    *sp = NULL;
-   
+
    if (f == NULL)
      return -1;
 
@@ -1547,7 +1543,7 @@ static int read_string_cell (fitsfile *f, unsigned int row, unsigned int col,
 	     return status;
 	  }
 	/* If there is more than one substring, append them together.  Only the
-	 * last substring will have trailing whitespace removed.  This is 
+	 * last substring will have trailing whitespace removed.  This is
 	 * probably ok because fits does not like trailing whitespace.
 	 */
 	if (i + 1 < num_substrs)
@@ -1561,7 +1557,7 @@ static int read_string_cell (fitsfile *f, unsigned int row, unsigned int col,
    SLfree (s);
    if (sls == NULL)
      return -1;
-   
+
    *sp = sls;
    return 0;
 }
@@ -1577,10 +1573,10 @@ static int read_string_column (fitsfile *f, int is_var, long repeat, unsigned in
    SLang_Array_Type *at;
 
    *atp = NULL;
-   
+
    if (f == NULL)
      return -1;
-   
+
    num_elements = (int) numrows;
    at = SLang_create_array (SLANG_STRING_TYPE, 0, NULL, &num_elements, 1);
    if (at == NULL)
@@ -1592,7 +1588,7 @@ static int read_string_column (fitsfile *f, int is_var, long repeat, unsigned in
      {
 	long offset;
 	long row;
-	
+
 	row = firstrow + i;
 	if (is_var)
 	  {
@@ -1602,7 +1598,7 @@ static int read_string_column (fitsfile *f, int is_var, long repeat, unsigned in
 		  return status;
 	       }
 	  }
-	
+
 	status = read_string_cell (f, row, col, repeat, num_substrs, ats+i);
 	if (status != 0)
 	  {
@@ -1610,12 +1606,10 @@ static int read_string_column (fitsfile *f, int is_var, long repeat, unsigned in
 	     return status;
 	  }
      }
-   
+
    *atp = at;
    return 0;
 }
-
-
 
 static int read_bit_column (fitsfile *f, unsigned int col, unsigned int row,
 			    unsigned int firstelem, unsigned int num_elements,
@@ -1624,20 +1618,20 @@ static int read_bit_column (fitsfile *f, unsigned int col, unsigned int row,
 {
    int status, anynul;
    unsigned short s;
-   
+
    if (f == NULL)
      return -1;
 
    status = 0;
-   if (0 != fits_read_col (f, TBYTE, col, row, 
+   if (0 != fits_read_col (f, TBYTE, col, row,
 			   firstelem, num_elements*bytes_per_elem,
 			   NULL, data, &anynul, &status))
      return status;
-   
+
    s = 0x1234;
    if (*(unsigned char *) &s == 0x12)
      return status;
-   
+
    /* Otherwise, byteswap */
    switch (bytes_per_elem)
      {
@@ -1663,7 +1657,7 @@ static int read_bit_column (fitsfile *f, unsigned int col, unsigned int row,
 	     data16[i] = (data16[i] >> shift);
 	  }
 	break;
-	
+
       case 4:
 	byte_swap32 (data, num_elements);
 	shift = 8*bytes_per_elem - bits_per_elem;
@@ -1673,19 +1667,16 @@ static int read_bit_column (fitsfile *f, unsigned int col, unsigned int row,
 	     data32[i] = (data32[i] >> shift);
 	  }
 	break;
-	
+
       default:
-	SLang_verror (SL_NOT_IMPLEMENTED, "%u byte integers are unsupported", 
+	SLang_verror (SL_NOT_IMPLEMENTED, "%u byte integers are unsupported",
 		      bytes_per_elem);
 	return -1;
      }
-   
-	
+
    return 0;
 }
 
-			   
-			    
 static int read_column_values (fitsfile *f, int type, SLtype datatype,
 			       unsigned int row, unsigned int col, unsigned int num_rows,
 			       int repeat, int repeat_orig, SLang_Array_Type **atp)
@@ -1698,7 +1689,7 @@ static int read_column_values (fitsfile *f, int type, SLtype datatype,
    int num_dims;
 
    *atp = NULL;
-   
+
    if (f == NULL)
      return -1;
 
@@ -1724,7 +1715,7 @@ static int read_column_values (fitsfile *f, int type, SLtype datatype,
 	if (type == TBIT)
 	  status = read_bit_column (f, col, row, 1, num_elements, (unsigned char *)at->data, at->sizeof_type, repeat_orig);
 	else
-	  (void) fits_read_col (f, type, col, row, 1, num_elements, NULL, 
+	  (void) fits_read_col (f, type, col, row, 1, num_elements, NULL,
 				at->data, &anynul, &status);
      }
 
@@ -1733,13 +1724,13 @@ static int read_column_values (fitsfile *f, int type, SLtype datatype,
 	SLang_free_array (at);
 	return status;
      }
-   
+
    *atp = at;
    return 0;
 }
 
 static int read_var_column (fitsfile *f, int ftype, SLtype datatype,
-			    int col, unsigned int firstrow, unsigned int num_rows, 
+			    int col, unsigned int firstrow, unsigned int num_rows,
 			    SLang_Array_Type **atp)
 {
    int num_elements;
@@ -1750,7 +1741,7 @@ static int read_var_column (fitsfile *f, int ftype, SLtype datatype,
    *atp = NULL;
    if (f == NULL)
      return -1;
-   
+
    num_elements = (int) num_rows;
 
    at = SLang_create_array (SLANG_ARRAY_TYPE, 0, NULL, &num_elements, 1);
@@ -1779,7 +1770,7 @@ static int read_var_column (fitsfile *f, int ftype, SLtype datatype,
 	     return status;
 	  }
      }
-   
+
    *atp = at;
    return 0;
 }
@@ -1797,7 +1788,7 @@ static int read_col (FitsFile_Type *ft, int *colnum, int *firstrowp,
    int firstrow;
    long repeat, save_repeat;
    int col;
-   
+
    if (ft->fptr == NULL)
      return -1;
 
@@ -1813,7 +1804,7 @@ static int read_col (FitsFile_Type *ft, int *colnum, int *firstrowp,
 	SLang_verror (SL_INVALID_PARM, "Number of rows must positive");
 	return -1;
      }
-   
+
    col = *colnum;
 
    if ((col <= 0) || (col > num_columns))
@@ -1839,15 +1830,14 @@ static int read_col (FitsFile_Type *ft, int *colnum, int *firstrowp,
    save_repeat = repeat;
    if (-1 == map_fitsio_type_to_slang (&type, &repeat, &datatype))
      return -1;
-   
-   
+
    if (datatype == SLANG_STRING_TYPE)
      {
 	unsigned int num_substrs;
-	/* This assumes an ASCII_TBL, which will always have a 
+	/* This assumes an ASCII_TBL, which will always have a
 	 * repeat of 1, and the number of bytes is given by the
 	 * width field.  In contrast, a BINARY_TBL will have
-	 * repeat = number of bytes, and width represents the 
+	 * repeat = number of bytes, and width represents the
 	 * number of bytes in a substring.
 	 */
 	if ((repeat == 1) && (width != 1))
@@ -1924,14 +1914,14 @@ static int read_string_column_data (fitsfile *f, int is_var, long repeat, unsign
      {
 	long offset;
 	long row;
-	
+
 	row = firstrow + i;
 	if (is_var)
 	  {
 	     if (0 != fits_read_descript (f, col, row, &repeat, &offset, &status))
 	       return status;
 	  }
-	
+
 	status = read_string_cell (f, row, col, repeat, num_substrs, strs + i);
 	if (status != 0)
 	  return status;
@@ -1939,7 +1929,6 @@ static int read_string_column_data (fitsfile *f, int is_var, long repeat, unsign
    return 0;
 }
 
-   
 /* Usage: read_cols (ft, [columns...], firstrow, nrows, &ref) */
 static int read_cols (void)
 {
@@ -1993,7 +1982,7 @@ static int read_cols (void)
 	goto free_and_return_status;
      }
 
-   if ((firstrow <= 0) 
+   if ((firstrow <= 0)
        || ((firstrow > num_rows_in_table) && (num_rows > 0)))
      {
 	SLang_verror (SL_INVALID_PARM, "Row number out of range");
@@ -2011,7 +2000,7 @@ static int read_cols (void)
 	status = -1;
 	goto free_and_return_status;
      }
-   
+
    data_arrays_at = SLang_create_array (SLANG_ARRAY_TYPE, 0, NULL, &num_cols, 1);
    if (data_arrays_at == NULL)
      {
@@ -2049,7 +2038,7 @@ static int read_cols (void)
 	ci[i].type = type;
 	ci[i].datatype = datatype;
 	ci[i].data_offset = 0;
-	
+
 	if (datatype == SLANG_STRING_TYPE)
 	  {
 	     at = SLang_create_array (SLANG_STRING_TYPE, 0, NULL, &num_rows, 1);
@@ -2064,7 +2053,7 @@ static int read_cols (void)
 	       }
 	     at = SLang_create_array (SLANG_ARRAY_TYPE, 0, NULL, &num_rows, 1);
 	  }
-	else 
+	else
 	  {
 	     int dims[2];
 	     int num_dims = 1;
@@ -2076,9 +2065,9 @@ static int read_cols (void)
 	       }
 	     at = SLang_create_array (datatype, 0, NULL, dims, num_dims);
 	  }
-	
+
 	if (at == NULL)
-	  {		  
+	  {
 	     status = -1;
 	     goto free_and_return_status;
 	  }
@@ -2095,7 +2084,7 @@ static int read_cols (void)
      {
 	if (num_rows < delta_rows)
 	  delta_rows = num_rows;
-	
+
 	for (i = 0; i < num_cols; i++)
 	  {
 	     SLtype datatype = ci[i].datatype;
@@ -2108,10 +2097,10 @@ static int read_cols (void)
 	     if (datatype == SLANG_STRING_TYPE)
 	       {
 		  unsigned int num_substrs;
-		  /* This assumes an ASCII_TBL, which will always have a 
+		  /* This assumes an ASCII_TBL, which will always have a
 		   * repeat of 1, and the number of bytes is given by the
 		   * width field.  In contrast, a BINARY_TBL will have
-		   * repeat = number of bytes, and width represents the 
+		   * repeat = number of bytes, and width represents the
 		   * number of bytes in a substring.
 		   */
 		  if ((repeat == 1) && (ci[i].width != 1))
@@ -2148,7 +2137,7 @@ static int read_cols (void)
 		  else
 		    (void) fits_read_col (f, type, col, firstrow, 1, num_elements, NULL,
 					  data, NULL, &status);
-		  
+
 		  data_offset += num_elements * at->sizeof_type;
 	       }
 	     ci[i].data_offset = data_offset;
@@ -2159,13 +2148,13 @@ static int read_cols (void)
 	firstrow += delta_rows;
 	num_rows -= delta_rows;
      }
-   
+
    if (status)
      return status;
 
    if (-1 == SLang_assign_to_ref (ref, SLANG_ARRAY_TYPE, (VOID_STAR)&data_arrays_at))
      status = -1;
-   
+
    /* drop */
 
    free_and_return_status:
@@ -2215,12 +2204,11 @@ static int get_num_keys (FitsFile_Type *f, SLang_Ref_Type *ref)
    return status;
 }
 
-
 static int get_keytype (FitsFile_Type *f, char *name, SLang_Ref_Type *v)
 {
    int status = 0;
    int type;
-   
+
    if (f->fptr == NULL)
      return -1;
    if (0 == (status = do_get_keytype (f->fptr, name, &type)))
@@ -2240,16 +2228,16 @@ static int _read_key_n (FitsFile_Type *f, SLang_Ref_Type *v, SLang_Ref_Type *c)
      {
       case 'C':			       /* string */
 	break;
-	
+
       case 'L':			       /* logical */
 	break;
-	
+
       case 'I':			       /* integer */
 	break;
-	
+
       case 'F':			       /* floating point */
 	break;
-   
+
       case 'X':			       /* complex */
 	break;
      }
@@ -2274,7 +2262,7 @@ static int do_fits_fun_f(int (*fun)(fitsfile *, int *), FitsFile_Type *f)
 
    if (f->fptr == NULL)
      return -1;
-   
+
    (void) (*fun) (f->fptr, &status);
    return status;
 }
@@ -2292,7 +2280,7 @@ static int verify_chksum (FitsFile_Type *f, SLang_Ref_Type *dataok, SLang_Ref_Ty
 {
    int status = 0;
    int dok=0, hok=0;
-   
+
    if (f->fptr == NULL)
      return -1;
 
@@ -2328,7 +2316,7 @@ static int set_bscale (FitsFile_Type *f, double *scale, double *zero)
 
    if (f->fptr == NULL)
      return -1;
-   
+
    return fits_set_bscale (f->fptr, *scale, *zero, &status);
 }
 
@@ -2338,13 +2326,13 @@ static int set_tscale (FitsFile_Type *f, int *colp, double *scale, double *zero)
 
    if (f->fptr == NULL)
      return -1;
-   
+
    return fits_set_tscale (f->fptr, *colp, *scale, *zero, &status);
 }
 
 /* DUMMY_FITS_FILE_TYPE is a temporary hack that will be modified to the true
  * id once the interpreter provides it when the class is registered.  See below
- * for details.  The reason for this is simple: for a module, the type-id 
+ * for details.  The reason for this is simple: for a module, the type-id
  * must be assigned dynamically.
  */
 #define DUMMY_FITS_FILE_TYPE	255
@@ -2356,8 +2344,7 @@ static int set_tscale (FitsFile_Type *f, int *colp, double *scale, double *zero)
 #define T SLANG_DATATYPE_TYPE
 #define D SLANG_DOUBLE_TYPE
 
-
-static SLang_Intrin_Fun_Type Fits_Intrinsics [] = 
+static SLang_Intrin_Fun_Type Fits_Intrinsics [] =
 {
    MAKE_INTRINSIC_0("_fits_clear_errmsg", clear_errmsg, SLANG_VOID_TYPE),
    MAKE_INTRINSIC_0("_fits_read_errmsg", read_errmsg, SLANG_VOID_TYPE),
@@ -2377,7 +2364,7 @@ static SLang_Intrin_Fun_Type Fits_Intrinsics [] =
    MAKE_INTRINSIC_3("_fits_copy_hdu", copy_hdu, I, F, F, I),
    MAKE_INTRINSIC_2("_fits_copy_header", copy_header, I, F, F),
    MAKE_INTRINSIC_1("_fits_delete_hdu", delete_hdu, I, F),
-   
+
    MAKE_INTRINSIC_3("_fits_create_img", create_img, I, F, I, A),
    MAKE_INTRINSIC_2("_fits_write_img", write_img, I, F, A),
    MAKE_INTRINSIC_2("_fits_read_img", read_img, I, F, R),
@@ -2391,7 +2378,7 @@ static SLang_Intrin_Fun_Type Fits_Intrinsics [] =
    MAKE_INTRINSIC_1("_fits_write_date", write_date, I, F),
    MAKE_INTRINSIC_2("_fits_write_record", &write_record, I, F, S),
    MAKE_INTRINSIC_3("_fits_insert_record", &insert_record, I, F, I, S),
-   
+
    MAKE_INTRINSIC_3("_fits_modify_name", modify_name, I, F, S, S),
    MAKE_INTRINSIC_2("_fits_get_num_keys", get_num_keys, I, F, R),
    MAKE_INTRINSIC_0("_fits_read_key_integer", read_key_integer, I),
@@ -2402,13 +2389,13 @@ static SLang_Intrin_Fun_Type Fits_Intrinsics [] =
 
    MAKE_INTRINSIC_2("_fits_delete_key", delete_key, I, F, S),
    MAKE_INTRINSIC_3("_fits_get_colnum", get_colnum, I, F, S, R),
-   
+
    MAKE_INTRINSIC_3("_fits_insert_rows", insert_rows, I, F, I, I),
    MAKE_INTRINSIC_3("_fits_delete_rows", delete_rows, I, F, I, I),
-   
+
    MAKE_INTRINSIC_4("_fits_insert_cols", insert_cols, I, F, I, A, A),
    MAKE_INTRINSIC_2("_fits_delete_col", delete_col, I, F, I),
-   
+
    MAKE_INTRINSIC_2("_fits_get_num_cols", get_num_cols, I, F, R),
    MAKE_INTRINSIC_2("_fits_get_rowsize", get_rowsize, I, F, R),
    MAKE_INTRINSIC_2("_fits_get_num_rows", get_num_rows, I, F, R),
@@ -2416,7 +2403,7 @@ static SLang_Intrin_Fun_Type Fits_Intrinsics [] =
    MAKE_INTRINSIC_5("_fits_read_col", read_col, I, F, I, I, I, R),
    MAKE_INTRINSIC_3("_fits_get_keytype", get_keytype, I, F, S, R),
    MAKE_INTRINSIC_1("_fits_get_keyclass", get_keyclass, I, S),
-   
+
    MAKE_INTRINSIC_0("_fits_read_cols", read_cols, I),
    MAKE_INTRINSIC_3("_fits_set_bscale", set_bscale, I, F, D, D),
    MAKE_INTRINSIC_4("_fits_set_tscale", set_tscale, I, F, I, D, D),
@@ -2426,7 +2413,7 @@ static SLang_Intrin_Fun_Type Fits_Intrinsics [] =
    MAKE_INTRINSIC_1("_fits_update_chksum", update_chksum, I, F),
    MAKE_INTRINSIC_3("_fits_verify_chksum", verify_chksum, I, F, R, R),
    MAKE_INTRINSIC_3("_fits_get_chksum", get_chksum, I, F, R, R),
-   
+
    MAKE_INTRINSIC_0("_fits_get_version", get_version, SLANG_VOID_TYPE),
    SLANG_END_INTRIN_FUN_TABLE
 };
@@ -2517,7 +2504,7 @@ static SLang_IConstant_Type IConst_Table [] =
    MAKE_ICONSTANT("_FITS_BAD_PIX_NUM",	BAD_PIX_NUM),
    MAKE_ICONSTANT("_FITS_ZERO_SCALE",	ZERO_SCALE),
    MAKE_ICONSTANT("_FITS_NEG_AXIS",	NEG_AXIS),
-   
+
    /* get_keyclass return value */
    MAKE_ICONSTANT("_FITS_TYP_STRUC_KEY",TYP_STRUC_KEY),
    MAKE_ICONSTANT("_FITS_TYP_CMPRS_KEY",TYP_CMPRS_KEY),
@@ -2535,12 +2522,12 @@ static SLang_IConstant_Type IConst_Table [] =
    MAKE_ICONSTANT("_FITS_TYP_CONT_KEY",	TYP_CONT_KEY),
    MAKE_ICONSTANT("_FITS_TYP_USER_KEY",	TYP_USER_KEY),
 
-   
    MAKE_ICONSTANT("_cfitsio_module_version", MODULE_VERSION_NUMBER),
-   
+
    SLANG_END_ICONST_TABLE
 };
 
+static char *Module_Version_String = MODULE_VERSION_STRING;
 static SLang_Intrin_Var_Type Intrin_Vars[] =
 {
    MAKE_VARIABLE("_cfitsio_module_version_string", &Module_Version_String, SLANG_STRING_TYPE, 1),
@@ -2550,13 +2537,13 @@ static SLang_Intrin_Var_Type Intrin_Vars[] =
 static void patchup_intrinsic_table (void)
 {
    SLang_Intrin_Fun_Type *f;
-   
+
    f = Fits_Intrinsics;
    while (f->name != NULL)
      {
 	unsigned int i, nargs;
 	SLtype *args;
-	
+
 	nargs = f->num_args;
 	args = f->arg_types;
 	for (i = 0; i < nargs; i++)
@@ -2564,7 +2551,7 @@ static void patchup_intrinsic_table (void)
 	     if (args[i] == DUMMY_FITS_FILE_TYPE)
 	       args[i] = Fits_Type_Id;
 	  }
-	
+
 	/* For completeness */
 	if (f->return_type == DUMMY_FITS_FILE_TYPE)
 	  f->return_type = Fits_Type_Id;
@@ -2573,12 +2560,11 @@ static void patchup_intrinsic_table (void)
      }
 }
 
-
 static void free_fits_file_type (SLtype type, VOID_STAR f)
 {
    FitsFile_Type *ft;
    int status = 0;
-   
+
    (void) type;
 
    ft = (FitsFile_Type *) f;
@@ -2598,10 +2584,10 @@ static int check_version (void)
    compiled_version = CFITSIO_VERSION;
    (void) fits_get_version (&linked_version);
 #endif
-   
+
    if (fabs (linked_version - compiled_version) <= tol)
      return 0;
-   
+
    fprintf (stderr, "\n\
 ***WARNING: The version of CFITSIO that this module is linked against (%g)\n\
    is not the same as the version it was compiled against (%g).\n\
@@ -2609,20 +2595,20 @@ static int check_version (void)
    you may experience problems with this module.  You are stongly urged to\n\
    recompile the module.\n\n\
 ", linked_version, compiled_version);
-   
+
    return -1;
 }
 
 int init_cfitsio_module_ns (char *ns_name)
 {
    SLang_NameSpace_Type *ns;
-   
+
    ns = SLns_create_namespace (ns_name);
    if (ns == NULL)
      return -1;
 
    if (Fits_Type_Id == 0)
-     {	
+     {
 	SLang_Class_Type *cl;
 
 	(void) check_version ();
@@ -2630,28 +2616,28 @@ int init_cfitsio_module_ns (char *ns_name)
 	cl = SLclass_allocate_class ("Fits_File_Type");
 	if (cl == NULL) return -1;
 	(void) SLclass_set_destroy_function (cl, free_fits_file_type);
-   
+
 	/* By registering as SLANG_VOID_TYPE, slang will dynamically allocate a
 	 * type.
 	 */
 	if (-1 == SLclass_register_class (cl, SLANG_VOID_TYPE,
-					  sizeof (FitsFile_Type), 
+					  sizeof (FitsFile_Type),
 					  SLANG_CLASS_TYPE_MMT))
 	  return -1;
-	
+
 	Fits_Type_Id = SLclass_get_class_id (cl);
 	patchup_intrinsic_table ();
      }
 
    if (-1 == SLns_add_intrin_fun_table (ns, Fits_Intrinsics, "__CFITSIO__"))
      return -1;
-   
+
    if (-1 == SLns_add_iconstant_table (ns, IConst_Table, NULL))
      return -1;
-   
+
    if (-1 == SLns_add_intrin_var_table (ns, Intrin_Vars, NULL))
      return -1;
-   
+
    return 0;
 }
 
