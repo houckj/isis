@@ -19,6 +19,8 @@ modules/xspec/src/xspec_libs
 modules/xspec/src/config-xspec-libs
 modules/xspec/src/config-xspec-version
 
+modules/cfitsio/src/cfitsio.h
+
 elfobjs
 objs
 
