@@ -10662,15 +10662,16 @@ gainshift
  DESCRIPTION
     This kernel applies a linear transformation of the form
 
-       E' = E/slope - intercept
+       E'(c) = E(c)/slope - intercept
 
-    to the energy grid of the model counts spectrum. The parameters
-    of the linear transformation are fittable. Aside from the
-    energy grid transformation, this kernel performs the same
-    forward-fold computation as the standard fit kernel. The energy
-    grid of any associated background spectrum is not modified; the
-    background associated which each detector channel remains
-    fixed. Flux-correction is not supported.
+    to the energy grid of the model counts spectrum, E(c), i.e. the
+    energy of channel c from the original EBOUNDS array.  The
+    parameters of the linear transformation are fittable. Aside
+    from the energy grid transformation, this kernel performs the
+    same forward-fold computation as the standard fit kernel. The
+    energy grid of any associated background spectrum is not
+    modified; the background associated which each detector channel
+    remains fixed. Flux-correction is not supported.
 
 
  SEE ALSO
