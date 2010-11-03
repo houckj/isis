@@ -10933,7 +10933,7 @@ parameter rather than the parameter value itself).
 
 By default, the computations are done in parallel; use the
 \verb|serial| qualifier to force the computations to be
-performed on a single CPU.  See \verb|multicore| for more
+performed on a single CPU. See \verb|multicore| for more
 details on controlling parallel processes.
 
 The parameter indices and an associated uniform grid of values
@@ -10965,6 +10965,12 @@ chi-square values and other information.  It has the form:
 
 \begin{verbatim}
 Qualifiers:
+   num_xsub     Number of sub-arrays into which the 2D array
+   num_ysub     should be partitioned for parallel computations.
+                By default, num_xsub=1, num_ysub=num_slaves.
+                The optimal partitioning scheme depends on the
+                problem at hand and the number of available CPUs.
+
    response     Specify responses to be used, if any.
                 (default = Assigned_ARFRMF)
                 Ideal_ARF | Ideal_RMF | Ideal_ARFRMF
@@ -14319,6 +14325,7 @@ follows:
                     slave process can create (default = 0).
   nice              Default nice level or execution priority, in the
                     range 0-19, for slave processes (default = 0).
+  serial            Force computations to be performed on a single cpu.
 \end{verbatim}
 These control values apply to all multi-core parallel functions.
 

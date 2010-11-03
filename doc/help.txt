@@ -9599,7 +9599,7 @@ conf_map_counts
 
     By default, the computations are done in parallel; use the
     serial qualifier to force the computations to be performed on a
-    single CPU.  See multicore for more details on controlling
+    single CPU. See multicore for more details on controlling
     parallel processes.
 
     The parameter indices and an associated uniform grid of values
@@ -9629,6 +9629,12 @@ conf_map_counts
       s = struct {chisqr, px, py, best, px_best, py_best};
 
     Qualifiers:
+       num_xsub     Number of sub-arrays into which the 2D array
+       num_ysub     should be partitioned for parallel computations.
+                    By default, num_xsub=1, num_ysub=num_slaves.
+                    The optimal partitioning scheme depends on the
+                    problem at hand and the number of available CPUs.
+
        response     Specify responses to be used, if any.
                     (default = Assigned_ARFRMF)
                     Ideal_ARF | Ideal_RMF | Ideal_ARFRMF
@@ -13485,6 +13491,7 @@ multicore
                         slave process can create (default = 0).
       nice              Default nice level or execution priority, in the
                         range 0-19, for slave processes (default = 0).
+      serial            Force computations to be performed on a single cpu.
 
     These control values apply to all multi-core parallel
     functions.
