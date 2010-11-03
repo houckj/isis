@@ -153,10 +153,10 @@ xspec_O_DEP = $(SRCDIR)/xspec-compat.inc
 #---------------------------------------------------------------------------
 # Rules
 #---------------------------------------------------------------------------
-all:  $(ELFDIR) xspec-version $(CONFIG_H) $(ELFDIR_ELF_LIB)
-static: $(OBJDIR) xspec-version $(CONFIG_H) $(OBJDIR_NORMAL_LIB)
+all:  $(ELFDIR_ELF_LIB)
+static:  $(OBJDIR_NORMAL_LIB)
 
-$(OBJDIR_NORMAL_LIB): $(OBJDIR) $(CONFIG_H) $(OBJS)
+$(OBJDIR_NORMAL_LIB): xspec-version $(OBJDIR) $(CONFIG_H) $(OBJS)
 	-$(RM) $(OBJDIR_NORMAL_LIB)
 	cd $(OBJDIR); $(AR_CR) $(NORMAL_LIB) $(OFILES)
 	$(RANLIB) $(OBJDIR_NORMAL_LIB)
@@ -166,7 +166,7 @@ $(OBJDIR_NORMAL_LIB): $(OBJDIR) $(CONFIG_H) $(OBJS)
 $(OBJDIR) :
 	-$(MKDIR) $(OBJDIR)
 
-$(ELFDIR_ELF_LIB): $(ELFDIR) $(CONFIG_H) $(ELFOBJS)
+$(ELFDIR_ELF_LIB): xspec-version $(ELFDIR) $(CONFIG_H) $(ELFOBJS)
 	-$(RM) $(ELFDIR_ELF_LIB)
 	cd $(ELFDIR); $(CC_SHARED) -o $(ELFLIB) $(OFILES) $(LIBS) $(ELF_DEP_LIBS)
 	@echo ""
