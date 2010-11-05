@@ -756,7 +756,7 @@ static void prand_vec (void) /*{{{*/
 static void prand_array (double *rate, SLindex_Type *num) /*{{{*/
 {
    SLang_Array_Type *at = NULL;
-   int *ai;
+   double *ai;
    SLindex_Type i, n;
 
    n = *num;
@@ -765,19 +765,21 @@ static void prand_array (double *rate, SLindex_Type *num) /*{{{*/
      return;
    else if (n == 1)
      {
-        SLang_push_integer ((int) prand (*rate));
+        SLang_push_double (prand (*rate));
         return;
      }
 
-   if (NULL == (at = SLang_create_array (SLANG_INT_TYPE, 0, NULL, &n, 1)))
+   if (NULL == (at = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &n, 1)))
      {
         isis_vmesg (INTR, I_FAILED, __FILE__, __LINE__, "creating array of random values");
         return;
      }
 
-   ai = (int *) at->data;
+   ai = (double *) at->data;
    for (i = 0; i < n; i++)
-     ai[i] = prand (*rate);
+     {
+        ai[i] = prand (*rate);
+     }
 
    SLang_push_array (at, 1);
 }

@@ -49,7 +49,7 @@ double grand (void)
 }
 
 /* start _ptrs Poisson random generator, approximation for high rates
- * 
+ *
  * From W. H\"ormann "The Transformed Rejection Method
  * for Generating Poisson Random Variables"
  * http://statistik.wu-wien.ac.at/papers/92-04-13.wh.ps.gz
@@ -58,11 +58,11 @@ double grand (void)
 
 static double log_kfact (unsigned int k)
 {
-   static double fact[] = {1,1,    2,     6,     24,     120, 
+   static double fact[] = {1,1,    2,     6,     24,     120,
                            720, 5040, 40320, 362880, 3628800};
    if (k <= 10)
      return log(fact[k]);
-   
+
    return LOG_SQRT_2PI + (k + 0.5)*log(k) - k + (1.0/12 - 1.0/360/(k*k))/k;
 }
 
@@ -70,34 +70,34 @@ static unsigned int _ptrs (double rate)
 {
    double a, b, vr, u, v, us, lnmu, ra;
    int k;
-   
+
    b = 0.931 + 2.53 * sqrt(rate);
    a = -0.059 + 0.02483 * b;
    vr = 0.9277 - 3.6224 / (b - 2);
    ra = 1.1239 + 1.1328 / (b - 3.4);
    lnmu = log(rate);
-   
+
    for (;;)
      {
         double lhs, rhs;
-        
+
         u = urand();
         v = urand();
-        
+
         u -= 0.5;
         us = 0.5 - fabs(u);
-        
+
         k = (int) floor ((2 * a / us + b) * u + rate + 0.43);
-        
+
         if (us >= 0.07 && v <= vr)
           return k;
-        
+
         if (k < 0)
           continue;
-        
+
         if (us < 0.013 && v > us)
           continue;
-                
+
         lhs = log(v * ra / (a/(us*us) + b));
         rhs = -rate + k * lnmu - log_kfact ((unsigned int) k);
 
@@ -108,16 +108,23 @@ static unsigned int _ptrs (double rate)
 
 /* end _ptrs */
 
-unsigned int prand (double rate)
+double prand (double rate)
 {
    double r, lgr, p, lg_nfact, cum;
    unsigned int n;
 
    if (rate <= 0.0)
-     return 0;
-
-   if (rate > 15.0)
-     return _ptrs (rate);
+     {
+        return 0.0;
+     }
+   else if (rate > 1.e3)
+     {
+        return rate + grand() * sqrt(rate);
+     }
+   else if (rate > 15.0)
+     {
+        return (double) _ptrs (rate);
+     }
 
    r = urand ();
 
@@ -141,6 +148,6 @@ unsigned int prand (double rate)
         lg_nfact += log (n * 1.0);
      }
 
-   return n - 1;
+   return (double) (n - 1);
 }
 

@@ -58,7 +58,7 @@ extern void JDMfft_free (void);
 extern void random_seed (unsigned long seed);
 extern double urand (void);
 extern double grand (void);
-unsigned int prand (double rate);
+extern double prand (double rate);
 
 #if 0
 {
