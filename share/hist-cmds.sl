@@ -2713,7 +2713,7 @@ define fakeit () %{{{
           {
              m = get_model_counts (id);
              if (noise_fun != NULL)
-               m.value = array_map (Integer_Type, noise_fun, m.value);
+               m.value = array_map (Double_Type, noise_fun, m.value);
              stat_err = sqrt(abs(m.value));
              put_data_counts (id, m.bin_lo, m.bin_hi, m.value, stat_err);
           }

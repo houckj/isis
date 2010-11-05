@@ -49,7 +49,7 @@ notice (1); notice (2);
 variable s;
 ()=fit_counts(&s);
 
-if (abs (1 - s.statistic/2691.301) > 1.e-3 or s.num_bins !=1024)
+if (abs (1 - s.statistic/2568.166) > 1.e-3 or s.num_bins !=1024)
   failed ("ds_combine:  stat = %15.7e, num_bins = %d",
 	  s.statistic, s.num_bins);
 
