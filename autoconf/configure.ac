@@ -1,4 +1,5 @@
-AC_INIT(src/isis.c)
+AC_INIT
+AC_CONFIG_SRCDIR([src/isis.c])
 AC_PREFIX_DEFAULT(/usr/local)
 JH_CONFIG_DIR_SANS_AMD
 JD_INIT
@@ -196,7 +197,7 @@ JH_GET_FC_MODULES(src/fc_modules.lis,src)
 JH_GET_SHAREFILES(share/modules.lis)
 JH_GET_ETCFILES(etc/modules.lis)
 
-AC_OUTPUT(\
+AC_CONFIG_FILES([\
  Makefile:autoconf/Makefile.in \
  src/Makefile \
  etc/local.sl:etc/local.sl.in \
@@ -212,7 +213,8 @@ AC_OUTPUT(\
  modules/xspec/src/xspec_libs:modules/xspec/src/xspec_libs.in \
  modules/maplib/Makefile:modules/maplib/autoconf/Makefile.in \
  modules/maplib/src/Makefile:modules/maplib/src/Makefile.in \
-)
+])
+AC_OUTPUT
 
 dnl JD_CREATE_EXEC_RULE(isis)
 JD_CREATE_FLINK_EXEC_RULE(isis)
