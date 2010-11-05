@@ -142,12 +142,13 @@ EXTRA_FILES = _names_xspec11.dat _names_xspec12.dat config-xspec-version \
 SHELL = /bin/sh
 
 xspec-module_C_FLAGS = -DHEADAS='"$(HEA)"' \
-   -D`cat $(config_dir)/modules/xspec/src/config-xspec-version` \
+   -D`cat $(SRCDIR)/config-xspec-version` \
    -DFC_MANGLE_SUFFIX='"$(FC_MANGLE_SUFFIX)"' \
    -DFC_MANGLE_UPCASE=$(FC_MANGLE_UPCASE)
 
 xspec-module_O_DEP = $(SRCDIR)/_model_externs_xspec11.inc $(SRCDIR)/_model_table_xspec11.inc \
-                     $(SRCDIR)/_model_externs_xspec12.inc $(SRCDIR)/_model_table_xspec12.inc
+                     $(SRCDIR)/_model_externs_xspec12.inc $(SRCDIR)/_model_table_xspec12.inc \
+                     $(SRCDIR)/config-xspec-version
 xspec_O_DEP = $(SRCDIR)/xspec-compat.inc
 
 #---------------------------------------------------------------------------
@@ -156,7 +157,7 @@ xspec_O_DEP = $(SRCDIR)/xspec-compat.inc
 all:  $(ELFDIR_ELF_LIB)
 static:  $(OBJDIR_NORMAL_LIB)
 
-$(OBJDIR_NORMAL_LIB): xspec-version $(OBJDIR) $(CONFIG_H) $(OBJS)
+$(OBJDIR_NORMAL_LIB): $(SRCDIR)/config-xspec-version $(OBJDIR) $(CONFIG_H) $(OBJS)
 	-$(RM) $(OBJDIR_NORMAL_LIB)
 	cd $(OBJDIR); $(AR_CR) $(NORMAL_LIB) $(OFILES)
 	$(RANLIB) $(OBJDIR_NORMAL_LIB)
@@ -166,7 +167,7 @@ $(OBJDIR_NORMAL_LIB): xspec-version $(OBJDIR) $(CONFIG_H) $(OBJS)
 $(OBJDIR) :
 	-$(MKDIR) $(OBJDIR)
 
-$(ELFDIR_ELF_LIB): xspec-version $(ELFDIR) $(CONFIG_H) $(ELFOBJS)
+$(ELFDIR_ELF_LIB): $(SRCDIR)/config-xspec-version $(ELFDIR) $(CONFIG_H) $(ELFOBJS)
 	-$(RM) $(ELFDIR_ELF_LIB)
 	cd $(ELFDIR); $(CC_SHARED) -o $(ELFLIB) $(OFILES) $(LIBS) $(ELF_DEP_LIBS)
 	@echo ""
@@ -175,7 +176,7 @@ $(ELFDIR_ELF_LIB): xspec-version $(ELFDIR) $(CONFIG_H) $(ELFOBJS)
 $(ELFDIR) :
 	-$(MKDIR) $(ELFDIR)
 
-xspec-version:
+$(SRCDIR)/config-xspec-version:
 	HEADAS=$(HEA); export HEADAS; /bin/sh xspec_libs
 
 new-xspec11-code:
