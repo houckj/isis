@@ -608,12 +608,22 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
       xlibfile="lib$1"
       jd_with_$1_library="no"
 
+      AC_CHECK_SIZEOF(long)
+
       for include_and_lib in $inc_and_lib_dirs
       do
         # Yuk.  Is there a better way to set these variables??
         xincdir=`echo $include_and_lib | tr ',' ' ' | awk '{print [$]1}'`
 	xlibdir=`echo $include_and_lib | tr ',' ' ' | awk '{print [$]2}'`
 	found=0
+
+        # If lib32 and/or lib64 exists, we should probably try to use them
+        if test "$ac_cv_sizeof_long" -eq 4 && test -d "$xlibdir"32 ; then
+           xlibdir="$xlibdir"32
+        elif test "$ac_cv_sizeof_long" -eq 8 && test -d "$xlibdir"64 ; then
+           xlibdir="$xlibdir"64
+        fi
+
 	if test -r $xincdir/$xincfile
 	then
 	  for E in $exts
