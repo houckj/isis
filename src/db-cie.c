@@ -3306,7 +3306,7 @@ static int interpolate_cont_emis (EM_t *em, EM_cont_select_t *s,  /*{{{*/
 
         iz = iz0;
 
-        abund_factor = f_abund[iz] * s->rel_abun[iz];
+        abund_factor = f_abund[iz] * ((iz == 0) ? 1 : s->rel_abun[iz]);
         if (abund_factor <= 0)
           continue;
 
@@ -3356,6 +3356,10 @@ static int interpolate_cont_emis (EM_t *em, EM_cont_select_t *s,  /*{{{*/
 
    if (found_something)
      return 0;
+
+   isis_vmesg (FAIL, I_NOT_FOUND, __FILE__, __LINE__,
+               "Z=%d q=%d continuum for T=%g K, n=%g cm^-3",
+               s->Z, s->q, par[EM_TEMP], par[EM_DENS]);
 
    return -1;
 }
