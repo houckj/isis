@@ -345,8 +345,8 @@ static int set_param_minmax (Param_Info_t *p, double p_min, double p_max) /*{{{*
 
    if ((p->min == 0.0) && (p->max == 0.0))
      {
-        p->min = -DBL_MAX;
-        p->max =  DBL_MAX;
+        p->min = (p->hard_min > -DBL_MAX) ? p->hard_min : -DBL_MAX;
+        p->max = (p->hard_max <  DBL_MAX) ? p->hard_max :  DBL_MAX;
      }
 
    return 0;
