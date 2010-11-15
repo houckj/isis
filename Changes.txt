@@ -38,6 +38,10 @@ Changes since 1.6.1 (released Jul 2010)
 18.  Added xspec_noneq() function.
 19.  Don't generate NaN when ion fraction rescaling involves 0/0.
 20.  Updated cfitsio module to version 0.4.7
+21.  Change #13 moved the slang print function into the _isis
+     namespace.  It should be in the isis namespace.
+22.  Setting parameter min=max=0 means "unlimited range" but
+     that setting should respect the hard limits.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
