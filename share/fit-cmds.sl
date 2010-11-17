@@ -2238,23 +2238,20 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
      }
    Fit_Verbose = -1;
 
-   variable fit_ref, eval_ref, fail_ref, save_ref, mask_ref;
+   variable
+     fit_ref = info.fit_ref,
+     eval_ref = info.eval_ref,
+     fail_ref = info.fail_ref,
+     save_ref = info.save_ref,
+     mask_ref = info.mask_ref;
 
-   fit_ref = info.fit_ref;
-   eval_ref = info.eval_ref;
-   fail_ref = info.fail_ref;
-   save_ref = info.save_ref;
-   mask_ref = info.mask_ref;
+   variable pars = [1:get_num_pars ()];
+   variable num_free = num_free_params();
+   variable best_pars = get_params ();
+   variable initial_pars = best_pars;
 
-   variable k, num_free, pars;
-   variable p, best_pars, try_pars;
-
-   pars = [1:get_num_pars ()];
-   best_pars = get_params ();
-   num_free = num_free_params();
-
-   variable i1, num_p1 = length(p1);
-   variable i2, num_p2 = length(p2);
+   variable i1=0, num_p1 = length(p1);
+   variable i2=0, num_p2 = length(p2);
 
    variable chisqr = Float_Type [num_p2, num_p1];
    chisqr[*,*] = -1.0;
@@ -2266,58 +2263,136 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
    if (print_status)
      () = fprintf (stderr, "Mapping %s:\n", Fit_Statistic);
 
-   _for (0, num_p1 - 1, 1)
+   variable flood = qualifier_exists ("flood");
+   variable try_global = qualifier_exists("try_global");
+
+   if (flood && mask_ref)
      {
-	i1 = ();
+	() = fprintf (stderr, "flooding cannot be applied when regions are masked out.\n");
+	flood = 0;
+     }
 
-	_for (0, num_p2 - 1, 1)
-	  {
-	     i2 = ();
+   if (flood)
+     {
+	variable status_map = Char_Type[num_p2, num_p1];
+	variable local_best_pars = Array_Type[num_p2, num_p1];
+	i1 = int ( (get_par(ip1)-p1[0])*1./(p1[1]-p1[0]) );
+	i2 = int ( (get_par(ip2)-p2[0])*1./(p2[1]-p2[0]) );
 
-	     foreach (pars)
-	       {
-		  k = ();
-		  p = best_pars[k-1];
-		  set_par (k, p.value, p.freeze, p.min, p.max);
-	       }
+        % If this is a slave process working on a subset of the
+        % full grid, that (i1,i2) coordinate may not fall on
+        % our assigned subgrid.  Do the best we can:
 
-	     variable pa = p1[i1]*[1.0, 1.0];
-	     variable pb = p2[i2]*[1.0, 1.0];
+        if (i1 < 0) i1 = 0;
+        else if (i1 >= num_p1) i1 = num_p1-1;
+        if (i2 < 0) i2 = 0;
+        else if (i2 >= num_p2) i2 = num_p2-1;
+     }
 
-	     set_par (ip1, p1[i1], 1, min(pa), max(pa));
-	     set_par (ip2, p2[i2], 1, min(pb), max(pb));
+   variable num_grid_points = num_p1 * num_p2;
+   variable grid_points_completed = 0;
 
-             variable masked_out =
-               ((mask_ref != NULL)
-                && (0 == (@mask_ref) (p1[i1], p2[i2] ;; __qualifiers)));
+   forever
+     {
+        variable masked_out =
+          ((mask_ref != NULL)
+           && (0 == (@mask_ref) (p1[i1], p2[i2] ;; __qualifiers)));
 
-	     ifnot (masked_out)
-	       {
-		  if (num_free <= 2)
-		    () = (@eval_ref) (&fit_info ;; __qualifiers);
-		  else
-		    {
-		       try_pars = get_params();
-                       if (-1 == (@fit_ref) (&fit_info ;; __qualifiers))
-                         {
-                            if (fail_ref != NULL)
-                              (@fail_ref) (ip1, ip2, @best_pars, try_pars, fit_info ;; __qualifiers);
-                         }
-		    }
-                  chisqr[i2, i1] = fit_info.statistic;
-	       }
-             else fit_info = NULL;
+        if (masked_out)
+          fit_info = NULL;
+        else
+          {
+             set_params (initial_pars);
+             set_par (ip1, p1[i1], 1);
+             set_par (ip2, p2[i2], 1);
 
-	     if (save_ref != NULL)
-	       (@save_ref) (fit_info ;; __qualifiers);
-
-             if (print_status)
+             if (num_free <= 2)
+               () = (@eval_ref) (&fit_info ;; __qualifiers);
+             else
                {
-                  () = fprintf (stderr, "Completed %d/%d\r",
-                                1 + i2 + i1 * num_p2,
-                                num_p1*num_p2);
+                  variable try_pars = get_params();
+                  if (-1 == (@fit_ref) (&fit_info ;; __qualifiers)
+                      && fail_ref != NULL)
+                    (@fail_ref) (ip1, ip2, @best_pars, try_pars, fit_info ;; __qualifiers);
+
+                  if (flood && try_global)
+                    {
+                       variable prev_pars = get_params();
+                       variable prev_fit_info = @fit_info;
+
+                       set_params (best_pars);
+                       set_par (ip1, p1[i1], 1);
+                       set_par (ip2, p2[i2], 1);
+
+                       try_pars = get_params();
+                       if (-1 == (@fit_ref) (&fit_info ;; __qualifiers)
+                           && fail_ref != NULL)
+                         (@fail_ref) (ip1, ip2, @best_pars, try_pars, fit_info ;; __qualifiers);
+
+                       if (prev_fit_info.statistic < fit_info.statistic)
+                         {
+                            set_params (prev_pars);
+                            fit_info = prev_fit_info;
+                         }
+                    }
                }
-	  }
+             chisqr[i2, i1] = fit_info.statistic;
+          }
+
+        if (save_ref != NULL)
+          (@save_ref) (fit_info ;; __qualifiers);
+
+        grid_points_completed++;
+        if (print_status)
+          () = fprintf (stderr, "Completed %d/%d\r", grid_points_completed, num_grid_points);
+
+        if (grid_points_completed == num_grid_points)
+          break;
+
+        % find grid point of next computation
+        ifnot (flood)
+          {
+             i1++;
+             if (i1 == num_p1)
+               (i1, i2) = (0, i2+1);
+          }
+        else
+          {
+             status_map[i2, i1] = 1;
+             local_best_pars[i2, i1] = get_params();
+             forever
+               {
+                  variable ind = where (status_map == 1);
+                  variable chisqr_computed = chisqr[ind];
+                  ind = ind[wherefirst (chisqr_computed == min (chisqr_computed))];
+                  variable
+                    grow_i1 = ind mod num_p1,  % coordinates of best chi^2 value
+                    grow_i2 = ind  /  num_p1;  % computed so far that can still grow
+
+                  variable
+                    i1s = [max([grow_i1-1, 0]) : min([grow_i1+1, num_p1-1])],
+                    i2s = [max([grow_i2-1, 0]) : min([grow_i2+1, num_p2-1])];
+
+                  variable j = wherefirst (status_map[i2s,i1s] == 0);
+
+                  if (j != NULL)
+                    {
+                       variable num_i1s = length(i1s);
+                       i1 = i1s[j mod num_i1s];
+                       i2 = i2s[j  /  num_i1s];
+                       % an internal consistency check:
+                       if (status_map[i2,i1] != 0) throw InternalError;
+                       break;
+                    }
+                  else
+                    {
+                       % grid point cannot grow any more
+                       status_map[grow_i2, grow_i1] = 2;
+                       local_best_pars[grow_i2, grow_i1] = NULL;  % free memory
+                    }
+               }
+             initial_pars = local_best_pars[grow_i2, grow_i1];
+          }
      }
 
    if (print_status)
@@ -2404,12 +2479,15 @@ private define slave_process (s, task, ip1, pxs, ip2, pys, info) %{{{
         variable e;
         try (e)
           {
-             variable map = map_chisqr (ip1, pxs[xsub], ip2, pys[ysub], info);
+             variable map = map_chisqr (ip1, pxs[xsub], ip2, pys[ysub], info;; __qualifiers);
           }
         catch AnyError:
           {
              pid_vmessage ("Caught exception calling map_chisqr!!!");
+             variable _t = e.traceback;
+             e.traceback = NULL;
              print(e);
+             vmessage(_t);
              _exit(1);
           }
 
@@ -2511,7 +2589,7 @@ private define generate_contours (px, py, info) %{{{
      }
 #endif
 
-   return map_chisqr (ix, pxs, iy, pys, info);
+   return map_chisqr (ix, pxs, iy, pys, info;; __qualifiers);
 
 }
 
