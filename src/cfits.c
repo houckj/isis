@@ -61,6 +61,7 @@ static void cfits_report_error (int status)
         fits_report_error (stderr, status);
         fflush (stderr);
      }
+   else fits_clear_errmsg ();
 }
 
 /*}}}*/
