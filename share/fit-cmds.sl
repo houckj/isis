@@ -2243,7 +2243,8 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
      eval_ref = info.eval_ref,
      fail_ref = info.fail_ref,
      save_ref = info.save_ref,
-     mask_ref = info.mask_ref;
+     mask_ref = info.mask_ref,
+     best_stat = info.best_stat;
 
    variable pars = [1:get_num_pars ()];
    variable num_free = num_free_params();
@@ -2254,7 +2255,7 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
    variable i2=0, num_p2 = length(p2);
 
    variable chisqr = Float_Type [num_p2, num_p1];
-   chisqr[*,*] = -1.0;
+   chisqr[*,*] = _NaN;
    variable fit_info;
 
    variable print_status;
@@ -2276,13 +2277,16 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
      {
 	variable status_map = Char_Type[num_p2, num_p1];
 	variable local_best_pars = Array_Type[num_p2, num_p1];
-	i1 = int ( (get_par(ip1)-p1[0])*1./(p1[1]-p1[0]) );
-	i2 = int ( (get_par(ip2)-p2[0])*1./(p2[1]-p2[0]) );
+	variable delta_chisqr = qualifier ("flood");
+        if (delta_chisqr == NULL) delta_chisqr = _Inf;
+
+	% grid point closest to global best fit
+	i1 = int ( (get_par(ip1)-p1[0])*1./(p1[1]-p1[0]) + 0.5 );
+	i2 = int ( (get_par(ip2)-p2[0])*1./(p2[1]-p2[0]) + 0.5 );
 
         % If this is a slave process working on a subset of the
         % full grid, that (i1,i2) coordinate may not fall on
         % our assigned subgrid.  Do the best we can:
-
         if (i1 < 0) i1 = 0;
         else if (i1 >= num_p1) i1 = num_p1-1;
         if (i2 < 0) i2 = 0;
@@ -2389,6 +2393,9 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
                        % grid point cannot grow any more
                        status_map[grow_i2, grow_i1] = 2;
                        local_best_pars[grow_i2, grow_i1] = NULL;  % free memory
+
+                       if (chisqr[grow_i2, grow_i1] > best_stat + delta_chisqr)
+                         break 2;  % We're done.
                     }
                }
              initial_pars = local_best_pars[grow_i2, grow_i1];
@@ -2626,6 +2633,8 @@ private define _conf_map (px, py, info) %{{{
    s.px = @px;
    s.py = @py;
 
+   info.best_stat = s.best;
+
    s.chisqr = generate_contours (px, py, info ;; __qualifiers);
    s.chisqr -= s.best;
 
@@ -2682,11 +2691,13 @@ define conf_map_counts () %{{{
 
    variable info = struct
      {
-	fit_ref, eval_ref, fail_ref, save_ref, mask_ref
+	fit_ref = &fit_counts,
+	eval_ref = &eval_counts,
+	fail_ref,
+	save_ref,
+	mask_ref,
+	best_stat
      };
-
-   info.fit_ref = &fit_counts;
-   info.eval_ref = &eval_counts;
    merge_user_info_struct (info, user_info);
 
    return _conf_map (px, py, info ;; __qualifiers);
@@ -2707,11 +2718,13 @@ define conf_map_flux () %{{{
 
    variable info = struct
      {
-	fit_ref, eval_ref, fail_ref, save_ref, mask_ref
+	fit_ref = &fit_flux,
+	eval_ref = &eval_flux,
+	fail_ref,
+	save_ref,
+	mask_ref,
+	best_stat
      };
-
-   info.fit_ref = &fit_flux;
-   info.eval_ref = &eval_flux;
    merge_user_info_struct (info, user_info);
 
    return _conf_map (px, py, info ;; __qualifiers);
