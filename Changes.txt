@@ -42,6 +42,13 @@ Changes since 1.6.1 (released Jul 2010)
      namespace.  It should be in the isis namespace.
 22.  Setting parameter min=max=0 means "unlimited range" but
      that setting should respect the hard limits.
+23.  conf_map_counts provides new a 'flood' algorithm (contributed
+     by Manfred Hanke and Moritz Böck).  The 'flood' algorithm
+     traverses the 2D parameter region by expanding away from the
+     best fit point, taking initial free parameter values from
+     a nearby fit.  In contrast, the default algorithm performs a
+     raster scan of the 2D region, taking initial free parameter
+     values from the best fit point.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
