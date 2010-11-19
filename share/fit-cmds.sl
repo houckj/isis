@@ -2256,7 +2256,6 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
 
    variable chisqr = Float_Type [num_p2, num_p1];
    chisqr[*,*] = _NaN;
-   variable fit_info;
 
    variable print_status;
    print_status = (save_fit_verbose >= 0) or (Isis_Verbose >= _isis->_WARN);
@@ -2281,8 +2280,8 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
         if (delta_chisqr == NULL) delta_chisqr = _Inf;
 
 	% grid point closest to global best fit
-	i1 = int ( (get_par(ip1)-p1[0])*1./(p1[1]-p1[0]) + 0.5 );
-	i2 = int ( (get_par(ip2)-p2[0])*1./(p2[1]-p2[0]) + 0.5 );
+	i1 = (num_p1 == 1) ? 0 : int ( (get_par(ip1)-p1[0])*1./(p1[1]-p1[0]) + 0.5 );
+	i2 = (num_p2 == 1) ? 0 : int ( (get_par(ip2)-p2[0])*1./(p2[1]-p2[0]) + 0.5 );
 
         % If this is a slave process working on a subset of the
         % full grid, that (i1,i2) coordinate may not fall on
@@ -2298,13 +2297,13 @@ private define map_chisqr (ip1, p1, ip2, p2, info) %{{{
 
    forever
      {
+        variable fit_info = NULL;
+
         variable masked_out =
           ((mask_ref != NULL)
            && (0 == (@mask_ref) (p1[i1], p2[i2] ;; __qualifiers)));
 
-        if (masked_out)
-          fit_info = NULL;
-        else
+        ifnot (masked_out)
           {
              set_params (initial_pars);
              set_par (ip1, p1[i1], 1);
@@ -2589,6 +2588,8 @@ private define generate_contours (px, py, info) %{{{
 #ifexists fork_slave
    variable serial = qualifier_exists ("serial");
    variable num_slaves = qualifier ("num_slaves", _num_cpus());
+   if (num_slaves > px.num * py.num)
+     num_slaves = px.num * py.num;
    if ((serial == 0) && (num_slaves > 1))
      {
         return parallel_map_chisqr (num_slaves, px, py,
