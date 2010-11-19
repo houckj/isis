@@ -15,7 +15,6 @@ FCFLAGS = @FCFLAGS@ @ELF_FC_FCFLAGS@ -fno-automatic
 @SET_MAKE@
 SHELL = /bin/sh
 RM = /bin/rm -f
-RMDIR = /bin/rmdir
 
 CFLAGS     = @CFLAGS@
 ELF_CC     = @ELF_CC@
@@ -63,4 +62,4 @@ veryclean:
 distclean:
 	$(MAKE) veryclean
 	-$(RM) Makefile
-	-$(RMDIR) src/$(OBJDIR)
+	-$(RM) -r src/$(OBJDIR)
