@@ -974,3 +974,12 @@ define store_combined_models ()
    variable a = __pop_args(_NARGS);
    (@store_models)(__push_args(a));
 }
+
+% indirect eval to support passing qualifiers
+define do_eval_with_qualifiers ()
+{
+   variable fun, qualifiers;
+   (fun, qualifiers) = ();
+   % assume any remaining args are on the stack
+   return (@fun)( ;; qualifiers);
+}

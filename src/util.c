@@ -2139,6 +2139,18 @@ isis_fptr_type isis_load_function (const char *path, const char *name, const cha
 
 /* push_args/pop_args */
 
+int pop_qualifiers_arg (SLang_Struct_Type **sp) /*{{{*/
+{
+   if (SLang_peek_at_stack() == SLANG_NULL_TYPE)
+     {
+        *sp = NULL;
+        return SLang_pop_null ();
+     }
+   return SLang_pop_struct (sp);
+}
+
+/*}}}*/
+
 void isis_free_args (Isis_Arg_Type *at) /*{{{*/
 {
    while (at != NULL)

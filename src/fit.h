@@ -86,9 +86,9 @@ struct _Fit_Fun_t
         SLang_Name_Type *sl;        /* ptr to S-Lang function */
      }
    fun;
-   int (*bin_eval_method)(Fit_Fun_t *, Isis_Hist_t *, double *);
+   int (*bin_eval_method)(Fit_Fun_t *, Isis_Hist_t *, double *, SLang_Struct_Type *);
 
-   int (*diff_eval_method)(Fit_Fun_t *, Isis_User_Grid_t *, double *);
+   int (*diff_eval_method)(Fit_Fun_t *, Isis_User_Grid_t *, double *, SLang_Struct_Type *);
 
    Isis_User_Source_t s;       /* optional function ptrs    */
    Fit_Fun_Name_t *name;       /* = { fcn_name, par_name0, par_name1, ... } */

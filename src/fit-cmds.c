@@ -1229,10 +1229,12 @@ static int push_parameter_value_struct (Fit_Fun_t *ff, unsigned int fun_id) /*{{
 }
 /*}}}*/
 
-static int init_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra_args) /*{{{*/
+static int init_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra_args, SLang_Struct_Type *qualifiers) /*{{{*/
 {
    if (NULL == ff)
      return -1;
+
+   (void) qualifiers;
 
    if (-1 == Fit_register_fun (Param, ff, fun_id, &Num_Params))
      return -1;
@@ -1256,10 +1258,12 @@ static int init_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra
 
 /*}}}*/
 
-static int name_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra_args) /*{{{*/
+static int name_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra_args, SLang_Struct_Type *qualifiers) /*{{{*/
 {
    char buf[2*MAX_NAME_SIZE];
    int ret;
+
+   (void) qualifiers;
 
    if (ff == NULL)
      return -1;
@@ -1277,7 +1281,7 @@ static int name_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra
 }
 /*}}}*/
 
-static int diff_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra_args) /*{{{*/
+static int diff_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra_args, SLang_Struct_Type *qualifiers) /*{{{*/
 {
    double *par = NULL;
 
@@ -1295,7 +1299,7 @@ static int diff_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra
         return -1;
      }
 
-   if (-1 == (*ff->diff_eval_method)(ff, &Differential_Grid, par))
+   if (-1 == (*ff->diff_eval_method)(ff, &Differential_Grid, par, qualifiers))
      {
         ISIS_FREE (par);
         SLang_push_double (1.0);
@@ -1308,7 +1312,7 @@ static int diff_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra
 }
 /*}}}*/
 
-static int bin_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra_args) /*{{{*/
+static int bin_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra_args, SLang_Struct_Type *qualifiers) /*{{{*/
 {
    double *par = NULL;
    Isis_Hist_t *g;
@@ -1345,7 +1349,7 @@ static int bin_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra_
      }
    else par = NULL;
 
-   ret = (*ff->bin_eval_method)(ff, g, par);
+   ret = (*ff->bin_eval_method)(ff, g, par, qualifiers);
    if (ret) SLang_push_double (1.0);
    ISIS_FREE (par);
    return ret;
@@ -1354,7 +1358,7 @@ static int bin_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra_
 
 typedef struct
 {
-   int (*task)(Fit_Fun_t *, unsigned int, unsigned int);
+   int (*task)(Fit_Fun_t *, unsigned int, unsigned int, SLang_Struct_Type *);
    enum Mode_type mode;
    char *err_msg;
 }
@@ -1397,8 +1401,16 @@ static Mode_Task_Type Mode_Table[] =
 /* I'm told that this code is hard to understand. Is it? */
 static void mode_switch (unsigned int *fun_id, unsigned int *fun_type, unsigned int *num_extra_args) /*{{{*/
 {
+   SLang_Struct_Type *qualifiers = NULL;
    Fit_Fun_t *ff = Fit_get_fit_fun (*fun_type);
    Mode_Task_Type *t = Mode_Table;
+
+   if (-1 == pop_qualifiers_arg (&qualifiers))
+     {
+        isis_vmesg (INTR, I_INTERNAL, __FILE__, __LINE__,
+                    "mode_switch failed retrieving qualifiers");
+        return;
+     }
 
    if (Isis_Evaluating_Derived_Param)
      {
@@ -1410,7 +1422,7 @@ static void mode_switch (unsigned int *fun_id, unsigned int *fun_type, unsigned 
      t++;
 
    Isis_Active_Function_Id = *fun_id;
-   if ((t->task == NULL) || (-1 == (*t->task)(ff, *fun_id, *num_extra_args)))
+   if ((t->task == NULL) || (-1 == (*t->task)(ff, *fun_id, *num_extra_args, qualifiers)))
      {
         int severity = Looking_For_Confidence_Limits ? FAIL : INTR;
         isis_vmesg (severity, I_ERROR, __FILE__, __LINE__, "%s", t->err_msg);
@@ -4359,6 +4371,7 @@ static void push_mmt_fitfun_type_intrin (char *fname) /*{{{*/
 
 static void eval_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
 {
+   SLang_Struct_Type *qualifiers = NULL;
    SLang_Array_Type *sl_par=NULL;
    Isis_Hist_t g;
    Fit_Fun_t *ff;
@@ -4369,6 +4382,13 @@ static void eval_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
      {
         isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__,
                     "cannot evaluate function (stale reference)");
+        return;
+     }
+
+   if (-1 == pop_qualifiers_arg (&qualifiers))
+     {
+        isis_vmesg (INTR, I_INTERNAL, __FILE__, __LINE__,
+                    "failed retrieving qualifiers");
         return;
      }
 
@@ -4397,7 +4417,7 @@ static void eval_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
         return;
      }
 
-   if (-1 == (*ff->bin_eval_method)(ff, &g, (double *)sl_par->data))
+   if (-1 == (*ff->bin_eval_method)(ff, &g, (double *)sl_par->data, qualifiers))
      isis_throw_exception (Isis_Error);
 
    SLang_free_array (sl_par);
@@ -4408,6 +4428,7 @@ static void eval_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
 
 static void eval_diff_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
 {
+   SLang_Struct_Type *qualifiers = NULL;
    SLang_Array_Type *sl_par=NULL, *sl_x=NULL;
    Isis_User_Grid_t g;
    Fit_Fun_t *ff;
@@ -4418,6 +4439,13 @@ static void eval_diff_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
      {
         isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__,
                     "cannot evaluate function (stale reference)");
+        return;
+     }
+
+   if (-1 == pop_qualifiers_arg (&qualifiers))
+     {
+        isis_vmesg (INTR, I_INTERNAL, __FILE__, __LINE__,
+                    "failed retrieving qualifiers");
         return;
      }
 
@@ -4448,7 +4476,7 @@ static void eval_diff_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
         return;
      }
 
-   if (-1 == (*ff->diff_eval_method)(ff, &g, (double *)sl_par->data))
+   if (-1 == (*ff->diff_eval_method)(ff, &g, (double *)sl_par->data, qualifiers))
      isis_throw_exception (Isis_Error);
 
    SLang_free_array (sl_par);

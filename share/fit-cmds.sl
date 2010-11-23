@@ -1234,11 +1234,11 @@ define get_cfun2 () %{{{
 
    if (args == NULL)
      {
-        return _isis->eval_diff_fitfun_using_handle_intrin (pars, x, handle);
+        return _isis->eval_diff_fitfun_using_handle_intrin (pars, x, __qualifiers, handle);
      }
    else
      {
-        return _isis->eval_diff_fitfun_using_handle_intrin (__push_args(args), pars, x, handle);
+        return _isis->eval_diff_fitfun_using_handle_intrin (__push_args(args), pars, x, __qualifiers, handle);
      }
 }
 
@@ -1295,11 +1295,11 @@ define eval_fun2 () %{{{
 
    if (args == NULL)
      {
-        return _isis->eval_fitfun_using_handle_intrin (pars, lo, hi, handle);
+        return _isis->eval_fitfun_using_handle_intrin (pars, lo, hi, __qualifiers, handle);
      }
    else
      {
-        return _isis->eval_fitfun_using_handle_intrin (__push_args(args), pars, lo, hi, handle);
+        return _isis->eval_fitfun_using_handle_intrin (__push_args(args), pars, lo, hi, __qualifiers, handle);
      }
 }
 

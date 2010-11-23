@@ -152,6 +152,8 @@ extern int apply_rebin_weights (double *x, double *wt, unsigned int moment,
                                 int *rebin_flags, unsigned int num_rebin_data,
                                 double *x_rebin);
 
+extern int pop_qualifiers_arg (SLang_Struct_Type **sp);
+
 typedef struct Isis_Arg_Type Isis_Arg_Type;
 struct Isis_Arg_Type
 {

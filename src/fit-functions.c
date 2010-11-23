@@ -453,10 +453,12 @@ static int set_slangfun_param_default (Fit_Fun_t *ff, Param_Info_t *p) /*{{{*/
 
 /*}}}*/
 
-static int c_bin_eval (Fit_Fun_t *ff, Isis_Hist_t *g, double *par) /*{{{*/
+static int c_bin_eval (Fit_Fun_t *ff, Isis_Hist_t *g, double *par, SLang_Struct_Type *qualifiers) /*{{{*/
 {
    SLang_Array_Type *at = NULL;
    int status;
+
+   (void) qualifiers;
 
    at = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &g->n_notice, 1);
    if (NULL == at)
@@ -480,10 +482,12 @@ static int c_bin_eval (Fit_Fun_t *ff, Isis_Hist_t *g, double *par) /*{{{*/
 
 /*}}}*/
 
-static int c_diff_eval (Fit_Fun_t *ff, Isis_User_Grid_t *ug, double *par) /*{{{*/
+static int c_diff_eval (Fit_Fun_t *ff, Isis_User_Grid_t *ug, double *par, SLang_Struct_Type *qualifiers) /*{{{*/
 {
    SLang_Array_Type *at = NULL;
    SLindex_Type size = ug->npts;
+
+   (void) qualifiers;
 
    if (ff->s.unbinned == NULL)
      return -1;
@@ -501,7 +505,7 @@ static int c_diff_eval (Fit_Fun_t *ff, Isis_User_Grid_t *ug, double *par) /*{{{*
 
 /*}}}*/
 
-static int sl_bin_eval (Fit_Fun_t *ff, Isis_Hist_t *g, double *par) /*{{{*/
+static int sl_bin_eval (Fit_Fun_t *ff, Isis_Hist_t *g, double *par, SLang_Struct_Type *qualifiers) /*{{{*/
 {
    SLang_Array_Type *sl_par=NULL, *sl_arg=NULL;
 
@@ -534,17 +538,32 @@ static int sl_bin_eval (Fit_Fun_t *ff, Isis_Hist_t *g, double *par) /*{{{*/
         SLang_free_array (sl_arg);
         return -1;
      }
-   SLang_end_arg_list ();
 
-   if (1 == SLexecute_function (ff->fun.sl))
-     return 0;
+   if (qualifiers == NULL)
+     {
+        SLang_end_arg_list ();
+
+        if (1 == SLexecute_function (ff->fun.sl))
+          return 0;
+     }
+   else
+     {
+        if ((-1 == SLang_push_function (ff->fun.sl))
+            || (-1 == SLang_push_struct (qualifiers)))
+          return -1;
+
+        SLang_end_arg_list ();
+
+        if (1 == SLang_execute_function ("_isis->do_eval_with_qualifiers"))
+          return 0;
+     }
 
    return -1;
 }
 
 /*}}}*/
 
-static int sl_diff_eval (Fit_Fun_t *ff, Isis_User_Grid_t *ug, double *par) /*{{{*/
+static int sl_diff_eval (Fit_Fun_t *ff, Isis_User_Grid_t *ug, double *par, SLang_Struct_Type *qualifiers) /*{{{*/
 {
    SLang_Array_Type *sl_x=NULL, *sl_par=NULL;
 
@@ -573,6 +592,8 @@ static int sl_diff_eval (Fit_Fun_t *ff, Isis_User_Grid_t *ug, double *par) /*{{{
      }
    SLang_end_arg_list ();
 
+   /* FIXME - support qualifiers? */
+   (void) qualifiers;
    if (1 == SLexecute_function (ff->slangfun_diff_eval))
      return 0;
 
@@ -1207,7 +1228,7 @@ static Fit_Fun_t *add_function_of_type (UDF_Info_Type *u) /*{{{*/
       if (num_args == 0) \
         id = 1;\
       else {_stk_roll(-num_args); id = (); num_args--;}\
-      return _isis->_mode_switch (id, %d, num_args); \
+      return _isis->_mode_switch (__qualifiers, id, %d, num_args); \
    }"
 
 static int wrap_mode_switch (Fit_Fun_t *ff) /*{{{*/
