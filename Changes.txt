@@ -49,6 +49,7 @@ Changes since 1.6.1 (released Jul 2010)
      a nearby fit.  In contrast, the default algorithm performs a
      raster scan of the 2D region, taking initial free parameter
      values from the best fit point.
+24.  Support passing qualifiers to fit-functions implemented in slang
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
