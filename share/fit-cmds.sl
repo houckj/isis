@@ -1421,7 +1421,7 @@ define cache_fun ()%{{{
             ${generate_grid_msg};
             vmessage ("*** Warning: %s", grid_msg);
          }
-         return eval_fun2 (s.handle, lo, hi, pars)`$;
+         return eval_fun2 (s.handle, lo, hi, pars ;; __qualifiers)`$;
      }
    else
      {
@@ -1442,7 +1442,7 @@ define cache_fun ()%{{{
      }
    if (s.pars==NULL || any(pars!=s.pars))
      {
-        s.value = eval_fun2 (s.handle, s.bin_lo, s.bin_hi, pars);
+        s.value = eval_fun2 (s.handle, s.bin_lo, s.bin_hi, pars ;; __qualifiers);
         s.pars = pars;
      }`$;
 
@@ -1538,7 +1538,7 @@ define alias_fun ()%{{{
         info.max = qualifier ("max", info.max);
      }
 
-   variable m = "define ${alias_name}_fit(lo,hi,par){return eval_fun2(\"$name\",lo,hi,par);}"$;
+   variable m = "define ${alias_name}_fit(lo,hi,par){return eval_fun2(\"$name\",lo,hi,par ;; __qualifiers);}"$;
    eval(m);
 
    variable asf = "add_slang_function(\"$alias_name\""$;
