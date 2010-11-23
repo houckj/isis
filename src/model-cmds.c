@@ -255,6 +255,12 @@ static int pop_line_modifier_info (Model_Info_Type *info) /*{{{*/
         return -1;
      }
 
+   if (-1 == pop_qualifiers_arg (&info->line_emis_modifier_qualifiers))
+     {
+        SLang_free_array (a);
+        return -1;
+     }
+
    if (-1 == SLang_pop_integer (&num_extra_args))
      {
         SLang_free_array (a);
@@ -289,6 +295,12 @@ static int pop_ionpop_modifier_info (Model_Info_Type *info) /*{{{*/
      return -1;
 
    if (NULL == (f = SLang_pop_function()))
+     {
+        SLang_free_array (a);
+        return -1;
+     }
+
+   if (-1 == pop_qualifiers_arg (&info->ionpop_qualifiers))
      {
         SLang_free_array (a);
         return -1;
@@ -405,11 +417,13 @@ static int init_model_info (Model_Info_Type *info) /*{{{*/
 
 static void free_model_info (Model_Info_Type *info) /*{{{*/
 {
+   SLang_free_struct (info->line_emis_modifier_qualifiers);
    isis_free_args (info->line_emis_modifier_args);
    SLang_free_array (info->line_emis_modifier_params);
    SLang_free_function (info->line_emis_modifier);
    SLang_free_array (info->profile_params);
    SLang_free_cstruct ((VOID_STAR)info, Model_Info_Layout);
+   SLang_free_struct (info->ionpop_qualifiers);
    isis_free_args (info->ionpop_args);
    SLang_free_array (info->ionpop_params);
    SLang_free_function (info->ionpop_modifier);

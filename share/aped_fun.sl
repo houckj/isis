@@ -520,10 +520,10 @@ define aped_ionpop_modifier_args () %{{{
    variable ref = _Isis_Ionpop_Modifier_Table[name];
 
    if (num_extra_args <= 0)
-     return 0, ref, p, "aped_ionpop_modifier";
+     return 0, __qualifiers, ref, p, "aped_ionpop_modifier";
 
    variable extra_args = __pop_args (num_extra_args);
-   return __push_args (extra_args), num_extra_args, ref, p, "aped_ionpop_modifier";
+   return __push_args (extra_args), num_extra_args, __qualifiers, ref, p, "aped_ionpop_modifier";
 }
 
 %}}}
@@ -542,10 +542,10 @@ define aped_line_modifier_args () %{{{
    variable ref = _Isis_Aped_Line_Modifier_Table[name];
 
    if (num_extra_args <= 0)
-     return 0, ref, p, "aped_line_modifier";
+     return 0, __qualifiers, ref, p, "aped_line_modifier";
 
    variable extra_args = __pop_args (num_extra_args);
-   return __push_args (extra_args), num_extra_args, ref, p, "aped_line_modifier";
+   return __push_args (extra_args), num_extra_args, __qualifiers, ref, p, "aped_line_modifier";
 }
 
 %}}}
@@ -710,7 +710,7 @@ define create_aped_line_modifier () %{{{
    variable s;
    % returns id_string, param_array, arg, ...
    s = "define ${modifier_name}_fit(l,h,p){"$
-     + "     return aped_line_modifier_args (\"${modifier_name}\", p, ${num_extra_args});"$
+     + "     return aped_line_modifier_args (\"${modifier_name}\", p, ${num_extra_args} ;; __qualifiers);"$
      + "}";
    eval(s);
 

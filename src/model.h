@@ -73,6 +73,7 @@ typedef struct
    SLang_Name_Type *line_emis_modifier;
    SLang_Array_Type *line_emis_modifier_params;
    Isis_Arg_Type *line_emis_modifier_args;
+   SLang_Struct_Type *line_emis_modifier_qualifiers;
 
    /* user-defined line profile */
    Isis_Line_Profile_Type *profile;
@@ -83,6 +84,7 @@ typedef struct
    SLang_Name_Type *ionpop_modifier;
    SLang_Array_Type *ionpop_params;
    Isis_Arg_Type *ionpop_args;
+   SLang_Struct_Type *ionpop_qualifiers;
 }
 Model_Info_Type;
 

@@ -580,10 +580,25 @@ static int apply_line_modifier (Model_t *m, Model_Info_Type *info, DB_line_t *li
    SLang_push_double (*emis);
    if (info->line_emis_modifier_args != NULL)
      isis_push_args (info->line_emis_modifier_args);
-   SLang_end_arg_list ();
 
-   if (-1 == SLexecute_function (info->line_emis_modifier))
-     return -1;
+   if (info->line_emis_modifier_qualifiers == NULL)
+     {
+        SLang_end_arg_list ();
+
+        if (-1 == SLexecute_function (info->line_emis_modifier))
+          return -1;
+     }
+   else
+     {
+        if ((-1 == SLang_push_function (info->line_emis_modifier))
+            || (-1 == SLang_push_struct (info->line_emis_modifier_qualifiers)))
+          return -1;
+
+        SLang_end_arg_list ();
+
+        if (-1 == SLang_execute_function ("_isis->do_eval_with_qualifiers"))
+          return -1;
+     }
 
    if (-1 == SLang_pop_double (emis))
      return -1;
@@ -614,10 +629,25 @@ static int call_ionpop_modifier (Model_t *m, Model_Info_Type *info, float *ionpo
    SLang_push_array (m->last_ionpop, 0);
    if (info->ionpop_args != NULL)
      isis_push_args (info->ionpop_args);
-   SLang_end_arg_list ();
 
-   if (-1 == SLexecute_function (info->ionpop_modifier))
-     return -1;
+   if (info->ionpop_qualifiers == NULL)
+     {
+        SLang_end_arg_list ();
+
+        if (-1 == SLexecute_function (info->ionpop_modifier))
+          return -1;
+     }
+   else
+     {
+        if ((-1 == SLang_push_function (info->ionpop_modifier))
+            || (-1 == SLang_push_struct (info->ionpop_qualifiers)))
+          return -1;
+
+        SLang_end_arg_list ();
+
+        if (-1 == SLang_execute_function ("_isis->do_eval_with_qualifiers"))
+          return -1;
+     }
 
    if (-1 == SLang_pop_array_of_type (&sl_ionpop, SLANG_FLOAT_TYPE))
      return -1;

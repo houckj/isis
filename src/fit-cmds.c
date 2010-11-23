@@ -1414,6 +1414,7 @@ static void mode_switch (unsigned int *fun_id, unsigned int *fun_type, unsigned 
 
    if (Isis_Evaluating_Derived_Param)
      {
+        SLang_free_struct (qualifiers);
         push_parameter_value_struct (ff, *fun_id);
         return;
      }
@@ -1428,6 +1429,8 @@ static void mode_switch (unsigned int *fun_id, unsigned int *fun_type, unsigned 
         isis_vmesg (severity, I_ERROR, __FILE__, __LINE__, "%s", t->err_msg);
      }
    Isis_Active_Function_Id = 0;
+
+   SLang_free_struct (qualifiers);
 }
 
 /*}}}*/
@@ -4396,6 +4399,7 @@ static void eval_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
    if (-1 == Isis_Hist_pop_valid_grid (&g))
      {
         Isis_Hist_free (&g);
+        SLang_free_struct (qualifiers);
         isis_throw_exception (Isis_Error);
         return;
      }
@@ -4403,6 +4407,7 @@ static void eval_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
    if (-1 == SLang_pop_array_of_type (&sl_par, SLANG_DOUBLE_TYPE))
      {
         Isis_Hist_free (&g);
+        SLang_free_struct (qualifiers);
         isis_throw_exception (Isis_Error);
         return;
      }
@@ -4414,6 +4419,7 @@ static void eval_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
                     ff->name[0], ff->nparams, sl_par->num_elements);
         SLang_free_array (sl_par);
         Isis_Hist_free (&g);
+        SLang_free_struct (qualifiers);
         return;
      }
 
@@ -4422,6 +4428,7 @@ static void eval_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
 
    SLang_free_array (sl_par);
    Isis_Hist_free (&g);
+   SLang_free_struct (qualifiers);
 }
 
 /*}}}*/
@@ -4452,6 +4459,7 @@ static void eval_diff_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
    if ((-1 == SLang_pop_array_of_type (&sl_x, SLANG_DOUBLE_TYPE)
        || (sl_x == NULL)))
      {
+        SLang_free_struct (qualifiers);
         isis_throw_exception (Isis_Error);
         return;
      }
@@ -4462,6 +4470,7 @@ static void eval_diff_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
        || (sl_par == NULL)))
      {
         SLang_free_array (sl_x);
+        SLang_free_struct (qualifiers);
         isis_throw_exception (Isis_Error);
         return;
      }
@@ -4473,6 +4482,7 @@ static void eval_diff_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
                     ff->name[0], ff->nparams, sl_par->num_elements);
         SLang_free_array (sl_par);
         SLang_free_array (sl_x);
+        SLang_free_struct (qualifiers);
         return;
      }
 
@@ -4481,6 +4491,7 @@ static void eval_diff_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
 
    SLang_free_array (sl_par);
    SLang_free_array (sl_x);
+   SLang_free_struct (qualifiers);
 }
 
 /*}}}*/
