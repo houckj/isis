@@ -2869,22 +2869,24 @@ define array_fit () %{{{
 	verror ("*** array_fit:  weights must be positive");
      }
 
+   variable num_pars = length(pars);
+
    if (par_min == NULL)
      {
-	par_min = @pars;
+	par_min = Double_Type[num_pars];
 	par_min[*] = -_isis->DBL_MAX;
      }
-   else if (length(par_min) != length(pars))
+   else if (length(par_min) != num_pars)
      {
 	verror ("*** array_fit:  length(par_min) != length(pars)");
      }
 
    if (par_max == NULL)
      {
-	par_max = @pars;
+	par_max = Double_Type[num_pars];
 	par_max[*] = _isis->DBL_MAX;
      }
-   else if (length(par_max) != length(pars))
+   else if (length(par_max) != num_pars)
      {
 	verror ("*** array_fit:  length(par_max) != length(pars)");
      }
