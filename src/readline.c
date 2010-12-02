@@ -1551,6 +1551,8 @@ static SLang_Intrin_Fun_Type Readline_Intrinsics[] =
    MAKE_INTRINSIC_0("set_prompt", set_prompt_intrin, V),
    MAKE_INTRINSIC_0("get_prompt", get_prompt_intrin, V),
    MAKE_INTRINSIC_1("atexit", at_exit, VOID_TYPE, SLANG_REF_TYPE),
+   MAKE_INTRINSIC_0("__rline_init_tty", init_tty, VOID_TYPE),
+   MAKE_INTRINSIC_0("__rline_reset_tty", reset_tty, VOID_TYPE),
    /* readline intrinsic is used mainly by the slang debugger */
    MAKE_INTRINSIC_S("slsh_readline_init", init_readline_intrinsic, VOID_TYPE),
    MAKE_INTRINSIC_S("slsh_readline_new", new_slrline_intrinsic, VOID_TYPE),
