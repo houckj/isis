@@ -50,6 +50,9 @@ Changes since 1.6.1 (released Jul 2010)
      raster scan of the 2D region, taking initial free parameter
      values from the best fit point.
 24.  Support passing qualifiers to fit-functions implemented in slang
+25.  array_fit should not assume input parameters are Double_Type
+26.  New intrinsics __rline_init_tty, __rline_reset_tty will be
+     used by readline in an upcoming slang release.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
