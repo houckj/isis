@@ -378,7 +378,17 @@ define alias () %{{{
      return;
    (from, to) = ();
 
-   eval(sprintf("define %s() { variable args = __pop_args (_NARGS); %s(__push_args(args) ;; __qualifiers);}", to, from),
+   variable forbidden_chars = "[)(\]\[]+"R;
+   if (string_matches (from, forbidden_chars) != NULL)
+     {
+        throw UsageError, "*** unsupported syntax:  '$from'"$;
+     }
+   if (string_matches (to, forbidden_chars) != NULL)
+     {
+        throw UsageError, "*** unsupported syntax:  '$to'"$;
+     }
+
+   eval(sprintf("define %s() { variable args = __pop_args (_NARGS); %s(__push_args(args));}", to, from),
 	Isis_Namespace);
 }
 
