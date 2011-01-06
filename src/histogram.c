@@ -2218,26 +2218,41 @@ static int read_fits_backscal_column (cfitsfile *fp, int k, Hist_t *h) /*{{{*/
 
 /*}}}*/
 
-static int read_fits_areascal_column (cfitsfile *fp, int k, Hist_t *h) /*{{{*/
+static int apply_areascale (cfitsfile *fp, int k, Hist_t *h, double areascal_keyword_value, int have_areascal_keyword) /*{{{*/
 {
    double *a = NULL;
-   int num, i;
+   int i;
 
-   /* XMM RGS uses this.  Why? */
+   /* XMM RGS uses AREASCAL.  Why? */
 
-   if (-1 == cfits_get_repeat_count (&num, "AREASCAL", fp))
-     return -1;
+   if (have_areascal_keyword == 0)
+     {
+        int num;
 
-   if ((num != 1) && (num != h->nbins))
-     return -1;
+        if (-1 == cfits_get_repeat_count (&num, "AREASCAL", fp))
+          return -1;
+
+        if ((num != 1) && (num != h->nbins))
+          return -1;
+     }
 
    if (NULL == (a = (double *) ISIS_MALLOC (h->nbins * sizeof(double))))
      return -1;
 
-   if (-1 == cfits_read_optional_double_col (a, h->nbins, k, "AREASCAL", fp))
+   if (have_areascal_keyword)
      {
-        ISIS_FREE(a);
-        return -1;
+        for (i = 0; i < h->nbins; i++)
+          {
+             a[i] = areascal_keyword_value;
+          }
+     }
+   else
+     {
+        if (-1 == cfits_read_optional_double_col (a, h->nbins, k, "AREASCAL", fp))
+          {
+             ISIS_FREE(a);
+             return -1;
+          }
      }
 
    for (i = 0; i < h->nbins; i++)
@@ -2358,8 +2373,8 @@ static Hist_t *_read_typeI_pha (char *pha_filename) /*{{{*/
    Keyword_t *keytable = Hist_Keyword_Table;
    Hist_t *h = NULL;
    cfitsfile *fp = NULL;
-   double sys_err_keyword;
-   int nbins, val_stat, val_flux, have_sys_err_keyword;
+   double sys_err_keyword, areascal_keyword;
+   int nbins, val_stat, val_flux, have_sys_err_keyword, have_areascal_keyword;
    int i, ret = -1;
 
    if (pha_filename == NULL)
@@ -2383,6 +2398,8 @@ static Hist_t *_read_typeI_pha (char *pha_filename) /*{{{*/
 
    have_sys_err_keyword =
      (0 == cfits_read_double_keyword (&sys_err_keyword, "SYS_ERR", fp));
+   have_areascal_keyword =
+     (0 == cfits_read_double_keyword (&areascal_keyword, "AREASCAL", fp));
 
    if (NULL == (h = Hist_new_hist (nbins)))
      goto finish;
@@ -2469,9 +2486,9 @@ static Hist_t *_read_typeI_pha (char *pha_filename) /*{{{*/
         goto finish;
      }
 
-   if (cfits_col_exist ("AREASCAL", fp))
+   if (have_areascal_keyword || cfits_col_exist ("AREASCAL", fp))
      {
-        if (-1 == read_fits_areascal_column (fp, 1, h))
+        if (-1 == apply_areascale (fp, 1, h, areascal_keyword, have_areascal_keyword))
           goto finish;
      }
 
@@ -2692,9 +2709,9 @@ static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *n
    int k, num, nbins, reset = 0;
    int have_backscal_col, have_bg_area_col, have_bg_counts_col;
    int have_areascal_col, have_rate, have_bin_lohi, have_exposure_col;
-   int have_sys_err_col, have_sys_err_keyword;
+   int have_sys_err_col, have_sys_err_keyword, have_areascal_keyword;
    int input_units;
-   double sys_err_keyword;
+   double sys_err_keyword, areascal_keyword;
    char *s;
    int ret = -1;
 
@@ -2718,6 +2735,8 @@ static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *n
 
    have_sys_err_keyword =
      (0 == cfits_read_double_keyword (&sys_err_keyword, "SYS_ERR", cfp));
+   have_areascal_keyword =
+     (0 == cfits_read_double_keyword (&areascal_keyword, "AREASCAL", cfp));
 
    if (just_one)
      *num_spectra = 1;
@@ -2863,9 +2882,9 @@ static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *n
                goto finish;
           }
 
-        if (have_areascal_col)
+        if (have_areascal_col || have_areascal_keyword)
           {
-             if (-1 == read_fits_areascal_column (cfp, k, h))
+             if (-1 == apply_areascale (cfp, k, h, areascal_keyword, have_areascal_keyword))
                goto finish;
           }
 
