@@ -313,6 +313,8 @@ define prand () %{{{
 
 %}}}
 
+require ("setfuns");
+
 #ifnexists unique
 define unique () %{{{
 {
