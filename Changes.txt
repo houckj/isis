@@ -53,6 +53,8 @@ Changes since 1.6.1 (released Jul 2010)
 25.  array_fit should not assume input parameters are Double_Type
 26.  New intrinsics __rline_init_tty, __rline_reset_tty will be
      used by readline in an upcoming slang release.
+27.  Support AREASCAL keyword (AREASCAL column was already supported)
+28.  Get more versatile 'unique' function from slsh:setfuns.sl
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
