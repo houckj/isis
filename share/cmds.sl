@@ -388,7 +388,7 @@ define alias () %{{{
         throw UsageError, "*** unsupported syntax:  '$to'"$;
      }
 
-   eval(sprintf("define %s() { variable args = __pop_args (_NARGS); %s(__push_args(args));}", to, from),
+   eval(sprintf("define %s() { variable args = __pop_args (_NARGS); %s(__push_args(args) ;; __qualifiers);}", to, from),
 	Isis_Namespace);
 }
 
