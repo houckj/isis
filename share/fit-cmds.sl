@@ -1457,6 +1457,10 @@ define cache_fun ()%{{{
         m+="return rebin(lo,hi, s.bin_lo,s.bin_hi, s.value);}";
      }
 
+   variable
+     unit_strlen = array_map (Integer_Type, &strlen, info.unit),
+     iu = where (unit_strlen > 0);
+    info.name[iu] += " ["+info.unit[iu]+"]";
    __cache_defaults[caching_name] = info;
 
    variable i, md =
