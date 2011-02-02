@@ -1524,6 +1524,12 @@ define alias_fun ()%{{{
 
    variable i, num_pars = length(info.name);
 
+   _for i (0, num_pars-1, 1)
+     {
+        if (strlen(info.unit[i]) > 0)
+          info.name[i] += " [" + info.unit[i] + "]";
+     }
+
    variable params = qualifier ("params", NULL);
    if (params != NULL)
      {
