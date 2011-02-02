@@ -1824,10 +1824,9 @@ static int pop_model_result (Isis_Hist_t *x) /*{{{*/
 
 /*}}}*/
 
-static int eval_model_using_global_grid (Hist_t *h, Isis_Hist_t *g) /*{{{*/
+static SLang_Name_Type *prep_model_eval_for_dataset (Hist_t *h) /*{{{*/
 {
-   User_Function_Type *f;
-   SLang_Name_Type *fun_ptr;
+   SLang_Name_Type *fun_ptr = NULL;
 
    if (NULL != (fun_ptr = Hist_assigned_model (h)))
      {
@@ -1839,14 +1838,26 @@ static int eval_model_using_global_grid (Hist_t *h, Isis_Hist_t *g) /*{{{*/
      }
    else
      {
-        f = get_user_function ();
+        User_Function_Type *f = get_user_function ();
         if ((f == NULL) || (f->fun_ptr == NULL))
           {
              isis_vmesg (INTR, I_INFO, __FILE__, __LINE__, "fit function not defined");
-             return -1;
+             return NULL;
           }
         fun_ptr = f->fun_ptr;
      }
+
+   return fun_ptr;
+}
+
+/*}}}*/
+
+static int eval_model_using_global_grid (Hist_t *h, Isis_Hist_t *g) /*{{{*/
+{
+   SLang_Name_Type *fun_ptr;
+
+   if (NULL == (fun_ptr = prep_model_eval_for_dataset (h)))
+     return -1;
 
    SLexecute_function (fun_ptr);
 
@@ -4501,9 +4512,9 @@ static void eval_diff_fitfun_using_handle_intrin (Fit_Fun_MMT_Type *mmt) /*{{{*/
  * ARF grid */
 int isis_eval_model_on_alt_grid (Isis_Hist_t *x) /*{{{*/
 {
-   User_Function_Type *f;
    Isis_Hist_t save_g;
    Isis_Hist_t *g;
+   SLang_Name_Type *fun_ptr;
    int ret = -1;
 
    if (SLang_get_error ())
@@ -4516,8 +4527,7 @@ int isis_eval_model_on_alt_grid (Isis_Hist_t *x) /*{{{*/
         return -1;
      }
 
-   f = get_user_function ();
-   if ((NULL == f) || (NULL == f->fun_ptr))
+   if (NULL == (fun_ptr = prep_model_eval_for_dataset (find_hist (Isis_Active_Dataset))))
      return -1;
 
    /* Save the current global evaluation grid,
@@ -4533,7 +4543,7 @@ int isis_eval_model_on_alt_grid (Isis_Hist_t *x) /*{{{*/
    *g = *x;
 
    Mode = BIN_EVAL_MODE;
-   if (-1 == SLexecute_function (f->fun_ptr))
+   if (-1 == SLexecute_function (fun_ptr))
      isis_throw_exception (Isis_Error);
    /* BIN_EVAL_MODE is where we want to stay */
 
