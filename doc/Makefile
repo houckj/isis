@@ -72,7 +72,7 @@ pdf:
 	pdflatex $(DOC)
 
 tpdf:	$(DOC).pdf
-	thumbpdf $(DOC)
+	-thumbpdf $(DOC)
 	pdflatex $(DOC)
 
 $(DOC).pdf:
