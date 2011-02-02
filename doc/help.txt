@@ -12862,7 +12862,7 @@ __set_hard_limits
 
  USAGE
     __set_hard_limits (fun_name, par_name, hard_min, hard_max)
-__set_hard_limits (index, hard_min, hard_max)
+    __set_hard_limits (index, hard_min, hard_max)
 
  DESCRIPTION
     Because hard limits of a parameter are intended to provide a
@@ -12916,7 +12916,7 @@ set_par
     set the value of a fit parameter
 
  USAGE
-    set_par (idx, value [,freeze, [ min, max]])
+    set_par (idx, value [, freeze, [ min, max]])
 
  DESCRIPTION
           idx    parameter index or string identifier

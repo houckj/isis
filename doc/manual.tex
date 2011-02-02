@@ -14,6 +14,7 @@
 \usepackage{makeidx}
 \usepackage{verbatim}
 \usepackage{tocbibind}
+\usepackage{ifpdf}
 %\usepackage{html}
 
 \sloppy
@@ -13737,7 +13738,7 @@ Example:
 {\_\_set\_hard\_limits}
 {Adjust the hard limits constraining a fit parameter's value}
 {\_\_set\_hard\_limits (fun\_name, par\_name, hard\_min, hard\_max)\\
-\_\_set\_hard\_limits (index, hard\_min, hard\_max)}%
+    \_\_set\_hard\_limits (index, hard\_min, hard\_max)}%
 {set\_par}
 
 Because hard limits of a parameter are intended to provide a way for the
@@ -13782,7 +13783,7 @@ the new \verb|min|, \verb|value|, \verb|max|.  For example:
 \begin{isisfunction}
 {set\_par} %name
 {set the value of a fit parameter} %purpose
-{set\_par (idx, value [,freeze, [ min, max]])} %usage
+{set\_par (idx, value [, freeze, [ min, max]])} %usage
 {edit\_par, load\_par, get\_par, set\_par\_fun, \_\_set\_hard\_limits, tie, set\_params}
 \begin{verbatim}
       idx    parameter index or string identifier
