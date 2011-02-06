@@ -56,6 +56,7 @@ Changes since 1.6.1 (released Jul 2010)
 27.  Support AREASCAL keyword (AREASCAL column was already supported)
 28.  Get more versatile 'unique' function from slsh:setfuns.sl
 29.  pileup kernel wasn't properly evaluating dataset-specific models
+30.  regroup_file: improve OGIP standard compliance.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
