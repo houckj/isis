@@ -248,20 +248,34 @@ define regroup_file() %{{{
         throw OpenError;
      }
 
-   variable colnum, colname = "grouping";
-   if (fits_binary_table_column_exists (file, colname))
+   variable colnum, colname = "GROUPING", keyname = "GROUPING";
+   variable have_grouping_col = fits_binary_table_column_exists (file, colname);
+   if (have_grouping_col)
      {
         do_fits_error(_fits_get_colnum(fp, colname, &colnum));
      }
+
+   if (any (grp != 0))
+     {
+        do_fits_error (_fits_update_key (fp, keyname, 1, ""));
+        ifnot (have_grouping_col)
+          {
+             variable num_cols;
+             do_fits_error(_fits_get_num_cols (fp, &num_cols));
+             colnum = num_cols+1;
+             do_fits_error(_fits_insert_cols (fp, colnum, colname, "1J"));
+          }
+        do_fits_error(_fits_write_col(fp, colnum, 1, 1, typecast (grp, Short_Type)));
+     }
    else
      {
-        variable num_cols;
-        do_fits_error(_fits_get_num_cols (fp, &num_cols));
-        colnum = num_cols+1;
-        do_fits_error(_fits_insert_cols (fp, colnum, colname, "1I"));
+        do_fits_error (_fits_update_key (fp, keyname, 0, ""));
+        if (have_grouping_col)
+          {
+             do_fits_error (_fits_delete_col (fp, colnum));
+          }
      }
 
-   do_fits_error(_fits_write_col(fp, colnum, 1, 1, grp));
    fits_close_file(fp);
 }
 
@@ -281,7 +295,7 @@ define use_file_group() %{{{
         file = get_data_info(id).file;
      }
 
-   variable colname = "grouping";
+   variable colname = "GROUPING";
    if (fits_binary_table_column_exists (file, colname))
      {
         variable grp = fits_read_col (file, colname);
