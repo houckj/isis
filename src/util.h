@@ -158,7 +158,7 @@ typedef struct Isis_Arg_Type Isis_Arg_Type;
 struct Isis_Arg_Type
 {
    Isis_Arg_Type *next;
-   void *arg;
+   SLang_Any_Type *arg;
    int type;
 };
 

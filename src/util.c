@@ -2156,7 +2156,7 @@ void isis_free_args (Isis_Arg_Type *at) /*{{{*/
    while (at != NULL)
      {
         Isis_Arg_Type *n = at->next;
-        SLang_free_value (at->type, (VOID_STAR)&at->arg);
+        SLang_free_anytype (at->arg);
         ISIS_FREE(at);
         at = n;
      }
@@ -2194,7 +2194,7 @@ Isis_Arg_Type *isis_pop_args (int n) /*{{{*/
              isis_free_args (at);
              return NULL;
           }
-        SLang_pop_value (t->type, &t->arg);
+        SLang_pop_anytype (&t->arg);
         t->next = at;
         at = t;
      }
@@ -2209,7 +2209,7 @@ int isis_push_args (Isis_Arg_Type *at) /*{{{*/
    while (at != NULL)
      {
         Isis_Arg_Type *n = at->next;
-        SLang_push_value (at->type, (VOID_STAR)&at->arg);
+        SLang_push_anytype (at->arg);
         at = n;
      }
 
