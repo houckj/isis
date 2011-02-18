@@ -687,11 +687,13 @@ static SLang_MMT_Type *create_mmt_model_type (Model_t *x) /*{{{*/
 
 static void cl_add_component (void) /*{{{*/
 {
-   SLang_MMT_Type *mmt;
+   SLang_MMT_Type * mmt= NULL;
    Model_Type *mt;
    Model_t *x, *m;
+   SLtype type;
 
-   if (Model_Type_Id == SLang_peek_at_stack())
+   type = SLang_peek_at_stack();
+   if (type == Model_Type_Id)
      {
         if ((NULL == (mmt = SLang_pop_mmt (Model_Type_Id)))
             || (NULL == (mt = (Model_Type *) SLang_object_from_mmt (mmt))))
@@ -699,11 +701,16 @@ static void cl_add_component (void) /*{{{*/
 
         m = mt->model;
      }
-   else
+   else if (type == SLANG_NULL_TYPE)
      {
         SLdo_pop ();
         mmt = NULL;
         m = NULL;
+     }
+   else
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "expected Model_Type or Null_Type");
+        goto return_error;
      }
 
    if (NULL == (x = _add_component (m)))
