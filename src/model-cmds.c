@@ -690,7 +690,7 @@ static void cl_add_component (void) /*{{{*/
    SLang_MMT_Type * mmt= NULL;
    Model_Type *mt;
    Model_t *x, *m;
-   SLtype type;
+   int type;
 
    type = SLang_peek_at_stack();
    if (type == Model_Type_Id)
