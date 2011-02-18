@@ -205,7 +205,10 @@ static int _load_uncon_fun (SLang_Ref_Type *ref, char *file, char *fun_name) /*{
      return -1;
 
    if (NULL == (ut = malloc(sizeof(*ut))))
-     return -1;
+     {
+        SLang_set_error (SL_Malloc_Error);
+        return -1;
+     }
 
    ut->fun = (Fptr_Type *)fptr;
 
@@ -217,7 +220,6 @@ static int _load_uncon_fun (SLang_Ref_Type *ref, char *file, char *fun_name) /*{
 
    if (-1 == SLang_assign_to_ref (ref, Uncon_Type_Id, &mmt))
      {
-        free (ut);
         SLang_free_mmt (mmt);
         return -1;
      }
