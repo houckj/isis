@@ -389,12 +389,15 @@ static int handle_return_from_slangfun_default_hook (Fit_Fun_t *ff, Param_Info_t
 
    if (num == 5)
      {
+        /* relstep not supported via this interface */
         if (SLANG_NULL_TYPE == SLang_peek_at_stack ())
           SLdo_pop();
-        else
+        else if (-1 == SLang_pop_double (&p->step))
           {
-             /* relstep not supported via this interface */
-             SLang_pop_double (&p->step);
+             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                         "Error setting param defaults for %s, failed retrieving param step value",
+                         ff->name[0]);
+             return -1;
           }
      }
 
@@ -402,7 +405,13 @@ static int handle_return_from_slangfun_default_hook (Fit_Fun_t *ff, Param_Info_t
      SLdo_pop();
    else
      {
-        SLang_pop_double (&p->max);
+        if (-1 == SLang_pop_double (&p->max))
+          {
+             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                         "Error setting param defaults for %s, failed retrieving param max value",
+                         ff->name[0]);
+             return -1;
+          }
         got_max = 1;
      }
 
@@ -410,12 +419,31 @@ static int handle_return_from_slangfun_default_hook (Fit_Fun_t *ff, Param_Info_t
      SLdo_pop();
    else
      {
-        SLang_pop_double (&p->min);
+        if (-1 == SLang_pop_double (&p->min))
+          {
+             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                         "Error setting param defaults for %s, failed retrieving param min value",
+                         ff->name[0]);
+             return -1;
+          }
         got_min = 1;
      }
 
-   SLang_pop_uinteger (&p->freeze);
-   SLang_pop_double (&p->value);
+   if (-1 == SLang_pop_uinteger (&p->freeze))
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                    "Error setting param defaults for %s, failed retrieving param freeze setting",
+                    ff->name[0]);
+        return -1;
+     }
+
+   if (-1 == SLang_pop_double (&p->value))
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                    "Error setting param defaults for %s, failed retrieving param value",
+                    ff->name[0]);
+        return -1;
+     }
 
    if (got_min || got_max)
      p->set_minmax = 1;
