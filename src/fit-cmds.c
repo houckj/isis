@@ -2045,7 +2045,7 @@ int pop_instrumental_background (SLang_Array_Type **bgd, Hist_t *h) /*{{{*/
      }
    else
      {
-        if (*bgd == NULL) SLdo_pop ();
+        SLdo_pop ();
         verbose_warn_hook (NULL, "Failed evaluating instrument background function\n");
         if (!Looking_For_Confidence_Limits)
           isis_throw_exception (Isis_Error);
