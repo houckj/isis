@@ -312,6 +312,8 @@ static void usage (char *pgm) /*{{{*/
    fprintf (stdout, "     --help         Display this message\n");
    fprintf (stdout, "     --sldb [FILE]  Invoke S-Lang debugger\n");
    fprintf (stdout, "     --sldb-isis    Invoke S-Lang debugger on isis internals\n");
+   fprintf (stdout, "     --stkchk [options] script args...\n");
+   fprintf (stdout, "                    Invoke S-Lang stack checker\n");
    fprintf (stdout, "     --prof [options] script args...\n");
    fprintf (stdout, "                    Invoke S-Lang profiler\n");
    fprintf (stdout, "     --batch        Exit after loading FILE\n");
@@ -439,6 +441,7 @@ static int initialize (int argc, char **argv) /*{{{*/
    int force_interactive = 0;
    int ran_main = 0;
    int use_profiler = 0;
+   int use_stkchk = 0;
    int want_traceback = 0;
 
    pgm = argv[0];
@@ -608,6 +611,13 @@ static int initialize (int argc, char **argv) /*{{{*/
              break;
           }
 
+        if (0 == strcmp (arg, "--stkchk"))
+          {
+             use_stkchk = 1;
+             /* Leave --stkchk arg on the stack */
+             break;
+          }
+
         if (0 == strcmp (arg, "--sldb"))
           {
              Isis_Debug_Mode = 1;
@@ -774,6 +784,11 @@ static int initialize (int argc, char **argv) /*{{{*/
    if (use_profiler)
      {
         if (-1 == SLang_load_file ("isisprof"))
+          exit_isis (1);
+     }
+   else if (use_stkchk)
+     {
+        if (-1 == SLang_load_file ("isisstkchk"))
           exit_isis (1);
      }
    else if (Isis_Debug_Mode == 0)

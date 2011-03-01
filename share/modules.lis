@@ -11,6 +11,7 @@ hist-cmds.sl
 init.sl
 isisdb.sl
 isisprof.sl
+isisstkchk.sl
 mathmisc.sl
 model-cmds.sl
 physconst.sl
