@@ -577,7 +577,7 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
     if test X"$jd_$1_include_dir" = X
     then
       inc_and_lib_dirs="\
-         $jd_prefix_incdir,$jd_prefix_libdir \
+         $prefix_input/include,$prefix_input/lib \
 	 /usr/local/$1/include,/usr/local/$1/lib \
 	 /usr/local/include/$1,/usr/local/lib \
 	 /usr/local/include,/usr/local/lib \

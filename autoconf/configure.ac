@@ -106,7 +106,7 @@ fi
 
 if test "x$SLANG_LIB" = "xno"
 then
-  JD_WITH_LIBRARY(slang)
+  JD_WITH_LIBRARY(slang, slang.h)
   SLANG_LIBDIR="$jd_slang_library_dir"
   AC_SUBST(SLANG_LIBDIR)
 fi
