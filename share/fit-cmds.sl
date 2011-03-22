@@ -2552,7 +2552,7 @@ private define parallel_map_chisqr (num_slaves, px, py, %{{{
 {
    variable num_xsub, num_ysub;
    num_xsub = qualifier ("num_xsub", 1);
-   num_ysub = qualifier ("num_ysub", num_slaves);
+   num_ysub = qualifier ("num_ysub", min ([num_slaves, py.num]));
 
    Parallel_Map_Info = struct
      {
@@ -2597,7 +2597,7 @@ private define generate_contours (px, py, info) %{{{
 
 #ifexists fork_slave
    variable serial = qualifier_exists ("serial");
-   variable num_slaves = qualifier ("num_slaves", _num_cpus());
+   variable num_slaves = qualifier ("num_slaves", min ([_num_cpus(), py.num]));
    if (num_slaves > px.num * py.num)
      num_slaves = px.num * py.num;
    if ((serial == 0) && (num_slaves > 1))
@@ -3107,7 +3107,7 @@ private define iterate_func_ref (num, func_ref) %{{{
      }
 
    variable serial = qualifier_exists ("serial");
-   variable num_slaves = qualifier ("num_slaves", _num_cpus());
+   variable num_slaves = qualifier ("num_slaves", min ([_num_cpus(), num]));
    variable parallel = (serial == 0) && (num_slaves > 1);
 
    ifnot (parallel)
