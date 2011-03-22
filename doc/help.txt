@@ -2207,6 +2207,8 @@ get_combined2
 
        __Field__     __Meaning__
        combo_id     combination id number
+       bin_lo       histogram bin lower edge [Angstrom]
+       bin_hi       histogram bin upper edge [Angstrom]
        model        summed model spectrum
        data         summed data spectrum
        err          uncertainty on summed data values

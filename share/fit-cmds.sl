@@ -3358,10 +3358,11 @@ private define combination_struct (combo_id, indices, data, weights)
    variable s = struct
      {
         combo_id = combo_id,
-        indices = indices,
+        bin_lo, bin_hi,
         data = data,
         err = sqrt(1./weights),
-        model
+        model,
+        indices = indices,
      };
    return s;
 }
@@ -3421,26 +3422,82 @@ private define store_combined_models (combo_ids, models) %{{{
 _isis->set_combined_store_data_ref (&store_combined_data);
 _isis->set_combined_store_models_ref (&store_combined_models);
 
+private define unpack_combined1 (s) %{{{
+{
+   variable id = combination_members (s.combo_id)[0];
+
+   variable d = get_data_counts (id);
+   variable num_bins = length(d.value);
+
+   variable info = get_data_info (id);
+   variable notice_list = info.notice_list;
+
+   s.bin_lo = d.bin_lo;
+   s.bin_hi = d.bin_hi;
+
+   variable tmp;
+
+   tmp = @s.data;
+   s.data = Double_Type[num_bins];
+   s.data[notice_list] = tmp;
+
+   tmp = @s.err;
+   s.err = Double_Type[num_bins];
+   d.err[notice_list] = tmp;
+
+   tmp = @s.model;
+   s.model = Double_Type[num_bins];
+   s.model[notice_list] = tmp;
+
+   return s;
+}
+
+%}}}
+
+private define unpack_combined (s) %{{{
+{
+   ifnot (_typeof(s) == Struct_Type)
+     throw UsageError;
+   if (typeof(s) == Array_Type && length(s) == 1)
+     {
+        return unpack_combined1 (s[0]);
+     }
+   return array_map (Struct_Type, &unpack_combined1, s);
+}
+
+%}}}
+
 private define get_combo_result (gid) %{{{
 {
    ifnot (__is_initialized (&Combined_Datasets))
      return NULL;
 
+   variable g, a = Struct_Type[0];
+
    if (gid == NULL)
      {
-        return Combined_Datasets;
+        foreach g (Combined_Datasets)
+          {
+             a = [a, unpack_combined1 (g)];
+          }
      }
-
-   variable g, a = Struct_Type[0];
-   foreach g (gid)
+   else
      {
-        variable x = find_combo(g);
-        if (x == NULL)
-          continue;
-        a = [a, x];
+        foreach g (gid)
+          {
+             variable x = find_combo(g);
+             if (x == NULL)
+               continue;
+             a = [a, unpack_combined1(x)];
+          }
      }
 
-   return length(a) ? a : NULL;
+   if (length(a) == 0)
+     return NULL;
+   else if (length(a) == 1)
+     return a[0];
+   else
+     return a;
 }
 
 %}}}
