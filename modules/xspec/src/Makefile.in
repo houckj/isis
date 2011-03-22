@@ -7,7 +7,7 @@
 
 #-----------------------------------------------------------------------
 #   This file is part of ISIS, the Interactive Spectral Interpretation System
-#   Copyright (C) 1998-2010  Massachusetts Institute of Technology
+#   Copyright (C) 1998-2011  Massachusetts Institute of Technology
 #-----------------------------------------------------------------------
 
 CC       = @CC@
