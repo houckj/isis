@@ -870,7 +870,7 @@ Hist_t *Hist_find_hist_index (Hist_t *head, int hist_index) /*{{{*/
    Hist_t *h = _Hist_find_hist_index (head, hist_index);
 
    if (h == NULL)
-     isis_vmesg (FAIL, I_INFO, __FILE__, __LINE__, "data set %d not found", hist_index);
+     isis_vmesg (INTR, I_WARNING, __FILE__, __LINE__, "data set %d not found", hist_index);
 
    return h;
 }
@@ -4912,14 +4912,22 @@ static int all_member_grids_are_identical (Hist_t *head, unsigned int *members, 
      return 0;
 
    if (NULL == (first = Hist_find_hist_index (head, members[0])))
-     return 0;
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "dataset %d does not exist",
+                   members[0]);
+        return 0;
+     }
 
    for (k = 1; k < num_members; k++)
      {
         Hist_t *h;
 
         if (NULL == (h = Hist_find_hist_index (head, members[k])))
-          return 0;
+          {
+             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "dataset %d does not exist",
+                         members[k]);
+             return 0;
+          }
 
         if (0 == Hist_grids_are_identical (first, h))
           {
@@ -4957,7 +4965,11 @@ int Hist_set_combination (Hist_t *head, unsigned int *members, /*{{{*/
    for (k = 0; k < num_members; k++)
      {
         if (NULL == (h = Hist_find_hist_index (head, members[k])))
-          return -1;
+          {
+             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "Dataset %d not found -- dataset combination not defined",
+                        members[k]);
+             return -1;
+          }
         h->combo_id = gid;
         h->combo_weight = weights[k];
      }

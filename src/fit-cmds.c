@@ -4767,7 +4767,10 @@ static int mark_dataset_combination (void) /*{{{*/
      }
 
    if (NULL == (head = get_histogram_list_head ()))
-     goto return_error;
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "No datasets have been loaded");
+        goto return_error;
+     }
 
    weights = (double *)sl_weights->data;
    members = (unsigned int *)sl_members->data;
