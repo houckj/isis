@@ -58,6 +58,7 @@ Changes since 1.6.1 (released Jul 2010)
 29.  pileup kernel wasn't properly evaluating dataset-specific models
 30.  regroup_file: improve OGIP standard compliance.
 31.  New --stkchk command-line option invokes S-Lang stack checker
+32.  Parallel conf map calculation could start too many slaves.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
