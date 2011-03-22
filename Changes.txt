@@ -59,6 +59,8 @@ Changes since 1.6.1 (released Jul 2010)
 30.  regroup_file: improve OGIP standard compliance.
 31.  New --stkchk command-line option invokes S-Lang stack checker
 32.  Parallel conf map calculation could start too many slaves.
+33.  The structure returned by get_combined2 now contains a
+     spectral grid and the data values are unpacked.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
