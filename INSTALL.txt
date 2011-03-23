@@ -338,10 +338,9 @@ Many of these configure options are described in the next
 section.
 
 [[Xd]]
+[glossary]
 d. Configure options
 ~~~~~~~~~~~~~~~~~~~~
-
-[glossary]
 --with-prefix=DIR::
     Use this option to install isis files in 'DIR/isis/$version'.
 
@@ -579,6 +578,8 @@ the intended architecture.  For example, to specify 32-bit
 binaries for i386, you may need to use
 .............................................
      CFLAGS="-m32 -arch i386"
+     FCFLAGS="-m32 -arch i386"
+     CXXFLAGS="-m32 -arch i386"
      LDFLAGS="-m32"
 .............................................
 
@@ -600,9 +601,19 @@ provide paths to all the shared libraries needed at run-time.
 
 - Missing libraries
 +
-You might need to edit +EXTRA_LIB+ in 'src/Makefile' to add
+If your X11 libraries and include files are installed in a
+non-standard location, you may need to provide the location:
 
+.................................................................
+   --x-libraries=/usr/X11/lib  --x-includes=/usr/X11/include
+.................................................................
+
+To find the png library, you might need to edit +EXTRA_LIB+ in
+'src/Makefile' to add
+
+.................................................................
    -framework Foundation -framework AppKit -lpng
+.................................................................
 
 After you're finished editing 'src/Makefile', build and install
 isis as usual.
