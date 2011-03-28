@@ -61,6 +61,7 @@ Changes since 1.6.1 (released Jul 2010)
 32.  Parallel conf map calculation could start too many slaves.
 33.  The structure returned by get_combined2 now contains a
      spectral grid and the data values are unpacked.
+34.  plot_conf now supports user-specified contour colors.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
