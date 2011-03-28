@@ -12279,9 +12279,12 @@ plot_conf
     The first optional argument is a structure which specifies the
     line style and has the form
 
-       line = struct {width, type};
+       line = struct {width, type, color};
 
-    See the linestyle for a list of supported values of line.type.
+    where each struct field may be either a scalar or an array of
+    length equal to the number of plot contours; the contours are
+    in order from lowest to highest confidence. See the linestyle
+    for a list of supported values of line.type.
 
     To overlay contours on an existing confidence contour plot, use
     oplot_conf.

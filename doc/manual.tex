@@ -13221,9 +13221,12 @@ sub-regions of confidence maps.
 The first optional argument is a structure which specifies the
 line style and has the form
 \begin{verbatim}
-   line = struct {width, type};
+   line = struct {width, type, color};
 \end{verbatim}
-See the \verb|linestyle| for a list of supported values of
+where each struct field may be either a scalar or an array of
+length equal to the number of plot contours; the contours are
+in order from lowest to highest confidence. See the
+\verb|linestyle| for a list of supported values of
 \verb|line.type|.
 
 To overlay contours on an existing confidence contour plot,

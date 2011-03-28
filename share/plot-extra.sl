@@ -607,8 +607,7 @@ private define plot_conf_contours (s, line, c) %{{{
 {
    variable pli = isis_plot_library_interface ();
 
-   variable i, color, nc, tr;
-
+   variable i, nc, tr;
    tr = get_transform (s);
    nc = length(c);
 
@@ -618,12 +617,12 @@ private define plot_conf_contours (s, line, c) %{{{
 
    % default color sequence:
    % Red=2, Green=3, Blue=4 (PGPLOT specific!)
-   color = 2;
+   variable color = [2, 3, 4];
+   if (line != NULL && struct_field_exists (line, "color"))
+     color = line.color;
 
-   _for (0, nc-1, 1)
+   _for i (0, nc-1, 1)
      {
-	i = ();
-
 	if (line != NULL)
 	  {
              if (typeof(line.width) == Array_Type)
@@ -637,10 +636,12 @@ private define plot_conf_contours (s, line, c) %{{{
                () = (@pli.set_line_style)(line.type);
 	  }
 
-	() = (@pli.set_color)(color);
-        () = (@pli.plot_contour)(s.chisqr, tr, c[i], -1);
+        if (typeof(color) == Array_Type)
+          () = (@pli.set_color)(color[i]);
+        else
+          () = (@pli.set_color)(color);
 
-	color++;
+        () = (@pli.plot_contour)(s.chisqr, tr, c[i], -1);
      }
 
    plot_best_point (s);
