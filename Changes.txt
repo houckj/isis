@@ -62,6 +62,9 @@ Changes since 1.6.1 (released Jul 2010)
 33.  The structure returned by get_combined2 now contains a
      spectral grid and the data values are unpacked.
 34.  plot_conf now supports user-specified contour colors.
+35.  Pileup kernel will now generate an error if used with
+     an rsp matrix; the response must be factored into separate
+     arf and rmf components.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
