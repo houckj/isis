@@ -110,6 +110,13 @@ define test_basic_ops (freeze_par, tie_par, test_name) %{{{
 
 %}}}
 
+private variable Arf_Id = NULL;
+define make_unit_arf (lo, hi)
+{
+   variable unit_arf = ones(length(lo));
+   Arf_Id = define_arf (lo, hi, unit_arf, 0.01*unit_arf);
+}
+
 define add_fake_dataset () %{{{
 {
    variable x = grand(100000);
@@ -123,6 +130,11 @@ define add_fake_dataset () %{{{
    nx += 10;
    variable id = define_counts (lo, hi, nx, sqrt(nx));
    if (id < 0) failed ("init_fake_data");
+
+   % Assigning an arf to avoid an error from the
+   % pileup kernel about needing a factored response.
+   if (Arf_Id == NULL) make_unit_arf (lo, hi);
+   assign_arf (Arf_Id, id);
 
    set_frame_time (id, 3.2);
    variable info = get_data_info (id);

@@ -689,6 +689,12 @@ static Isis_Kernel_t *allocate_kernel (Isis_Obs_t *o, char *options)
 	return NULL;
      }
 
+   if (o->rsp.arf->is_identity)
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "pileup:  ARF inconsistent with pileup kernel (response must be factored into separate ARF and RMF)");
+        return NULL;
+     }
+
    k = isis_init_kernel (NULL, sizeof(*k), o);
    if (NULL == k) return NULL;
 
