@@ -13774,13 +13774,13 @@ To change the hard limits for the default configuration of a function:
 
 If the specified hard limits do not contain the current parameter value and
 its soft limits, then consistent values for the parameter and its soft limits
-must also be provided using the \verb|parms| qualifier. The \verb|parms|
+must also be provided using the \verb|parm| qualifier. The \verb|parm|
 qualifier is a numerical array of length 3.  If present, the array will be
 sorted in increasing order and then the three elements will be used as
 the new \verb|min|, \verb|value|, \verb|max|.  For example:
 
 \begin{verbatim}
-  __set_hard_limits ("mekal(1)", "redshift", -10, 0; parms=[-3, -2, -1]);
+  __set_hard_limits ("mekal(1)", "redshift", -10, 0; parm=[-3, -2, -1]);
 \end{verbatim}
 
 \end{isisfunction}
