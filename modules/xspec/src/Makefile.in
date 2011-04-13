@@ -128,13 +128,9 @@ OBJDIR_NORMAL_LIB = $(OBJDIR)/$(NORMAL_LIB)
 ELFLIB = $(THIS_LIB).so#
 ELFDIR_ELF_LIB = $(ELFDIR)/$(ELFLIB)#
 
-XSPEC_TABLE_OFILES = erebin.o inibin.o tblint.o xsatbl.o xsetbl.o xsmtbl.o udmget.o
-XSPEC_TABLE_OBJS = $(OBJDIR)/erebin.o $(OBJDIR)/inibin.o $(OBJDIR)/tblint.o $(OBJDIR)/xsatbl.o $(OBJDIR)/xsetbl.o $(OBJDIR)/xsmtbl.o $(OBJDIR)/udmget.o
-XSPEC_TABLE_ELFOBJS = $(ELFDIR)/erebin.o $(ELFDIR)/inibin.o $(ELFDIR)/tblint.o $(ELFDIR)/xsatbl.o $(ELFDIR)/xsetbl.o $(ELFDIR)/xsmtbl.o $(ELFDIR)/udmget.o
-
-OFILES = xspec-module.o $(XSPEC_TABLE_OFILES)
-OBJS = $(OBJDIR)/xspec-module.o  $(XSPEC_TABLE_OBJS)
-ELFOBJS = $(ELFDIR)/xspec-module.o $(XSPEC_TABLE_ELFOBJS)
+OFILES = xspec-module.o
+OBJS = $(OBJDIR)/xspec-module.o
+ELFOBJS = $(ELFDIR)/xspec-module.o
 
 EXTRA_FILES = _names_xspec11.dat _names_xspec12.dat config-xspec-version \
          xspec.sl parse_model_dat.sl
@@ -235,45 +231,3 @@ $(OBJDIR)/xspec-module.o : $(SRCDIR)/xspec-module.c $(DOT_O_DEPS) $(xspec-module
 
 $(ELFDIR)/xspec-module.o : $(SRCDIR)/xspec-module.c $(DOT_O_DEPS) $(xspec-module_O_DEP)
 	cd $(ELFDIR); $(ELFCOMPILE_CMD) $(xspec-module_C_FLAGS) $(xspec-module_ELFC_FLAGS) $(SRCDIR)/xspec-module.c
-
-$(OBJDIR)/udmget.o:	$(SRCDIR)/udmget.c
-	cd $(OBJDIR); $(COMPILE_CMD) $(SRCDIR)/udmget.c
-
-$(ELFDIR)/udmget.o:	$(SRCDIR)/udmget.c
-	cd $(ELFDIR); $(ELFCOMPILE_CMD) $(SRCDIR)/udmget.c
-
-$(OBJDIR)/erebin.o:	$(SRCDIR)/erebin.f
-	cd $(OBJDIR); $(FC_COMPILE_CMD) -I.. $(SRCDIR)/erebin.f
-
-$(OBJDIR)/inibin.o:	$(SRCDIR)/inibin.f
-	cd $(OBJDIR); $(FC_COMPILE_CMD) -I.. $(SRCDIR)/inibin.f
-
-$(OBJDIR)/tblint.o:	$(SRCDIR)/tblint.f
-	cd $(OBJDIR); $(FC_COMPILE_CMD) -I.. $(SRCDIR)/tblint.f
-
-$(OBJDIR)/xsatbl.o:	$(SRCDIR)/xsatbl.f
-	cd $(OBJDIR); $(FC_COMPILE_CMD) -I.. $(SRCDIR)/xsatbl.f
-
-$(OBJDIR)/xsetbl.o:	$(SRCDIR)/xsetbl.f
-	cd $(OBJDIR); $(FC_COMPILE_CMD) -I.. $(SRCDIR)/xsetbl.f
-
-$(OBJDIR)/xsmtbl.o:	$(SRCDIR)/xsmtbl.f
-	cd $(OBJDIR); $(FC_COMPILE_CMD) -I.. $(SRCDIR)/xsmtbl.f
-
-$(ELFDIR)/erebin.o:	$(SRCDIR)/erebin.f
-	cd $(ELFDIR); $(FC_ELFCOMPILE_CMD) -I.. $(SRCDIR)/erebin.f
-
-$(ELFDIR)/inibin.o:	$(SRCDIR)/inibin.f
-	cd $(ELFDIR); $(FC_ELFCOMPILE_CMD) -I.. $(SRCDIR)/inibin.f
-
-$(ELFDIR)/tblint.o:	$(SRCDIR)/tblint.f
-	cd $(ELFDIR); $(FC_ELFCOMPILE_CMD) -I.. $(SRCDIR)/tblint.f
-
-$(ELFDIR)/xsatbl.o:	$(SRCDIR)/xsatbl.f
-	cd $(ELFDIR); $(FC_ELFCOMPILE_CMD) -I.. $(SRCDIR)/xsatbl.f
-
-$(ELFDIR)/xsetbl.o:	$(SRCDIR)/xsetbl.f
-	cd $(ELFDIR); $(FC_ELFCOMPILE_CMD) -I.. $(SRCDIR)/xsetbl.f
-
-$(ELFDIR)/xsmtbl.o:	$(SRCDIR)/xsmtbl.f
-	cd $(ELFDIR); $(FC_ELFCOMPILE_CMD) -I.. $(SRCDIR)/xsmtbl.f

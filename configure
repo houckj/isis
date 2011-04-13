@@ -752,7 +752,6 @@ with_xspec_modelsonly
 with_CCfits
 with_CCfitslib
 with_CCfitsinc
-enable_xspec_tables
 with_xspec_version
 with_pgplot
 with_pgplotlib
@@ -1401,7 +1400,6 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-largefile     omit support for large files
-  --disable-xspec_tables  Compile without XSPEC table models
   --disable-extras        Don't install extras
   --enable-warnings       turn on GCC compiler warnings
   --enable-purify         compile with Purify
@@ -8618,15 +8616,6 @@ esac
     RPATH="$RPATH:$HEADAS_LIBDIR"
   fi
 fi
-
-fi
-
-
-  # Check whether --enable-xspec_tables was given.
-if test "${enable_xspec_tables+set}" = set; then :
-  enableval=$enable_xspec_tables;
-else
-  $as_echo "#define HAVE_XSPEC_TABLE_MODELS 1" >>confdefs.h
 
 fi
 

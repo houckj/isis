@@ -14929,7 +14929,7 @@ description of these functions.
 {add\_atable\_model}
 {Define an additive table-model}
 {add\_atable\_model ("filename", "modelname")}
-{add\_etable\_model, add\_mtable\_model}
+{add\_mtable\_model}
 This function loads an XSPEC-format additive table model
 and defines a fit-function based on that table, using
 parameter names defined in the \verb|NAME| column of the file.
@@ -14943,26 +14943,10 @@ Example:
 \end{isisfunction}
 
 \begin{isisfunction}
-{add\_etable\_model}
-{Define an exponential table-model}
-{add\_etable\_model ("filename", "modelname")}
-{add\_atable\_model, add\_mtable\_model}
-This function loads an XSPEC-format exponential table model
-and defines a fit-function based on that table, using
-parameter names defined in the \verb|NAME| column of the file.  Multiple
-instances of each table-model may be fitted simultaneously.
-\begin{verbatim}
-Example:
-   add_etable_model ("atable.fits", "my_exp");
-   fit_fun ("my_exp(1)*mekal(1)");
-\end{verbatim}
-\end{isisfunction}
-
-\begin{isisfunction}
 {add\_mtable\_model}
 {Define an multiplicative table-model}
 {add\_mtable\_model ("filename", "modelname")}
-{add\_atable\_model, add\_etable\_model}
+{add\_atable\_model}
 This function loads an XSPEC-format multiplicative table model
 and defines a fit-function based on that table, using
 parameter names defined in the \verb|NAME| column of the file.  Multiple

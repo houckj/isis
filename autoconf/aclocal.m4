@@ -1361,11 +1361,6 @@ AC_DEFUN(JH_HANDLE_PACKAGE_OPTIONS, dnl#{{{
   JH_WITH_XSPEC_STATIC
   JH_WITH_XSPEC_MODELSONLY
 
-  AC_ARG_ENABLE(xspec_tables,
-    [  --disable-xspec_tables  Compile without XSPEC table models],
-    [ ],
-    [AC_DEFINE(HAVE_XSPEC_TABLE_MODELS)])
-
   AC_ARG_WITH(xspec-version,
     [  --with-xspec-version[=nn]       XSPEC version 11 or 12?],
     [jh_with_xspec_version=$withval], [jh_with_xspec_version=no])

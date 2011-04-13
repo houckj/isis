@@ -695,8 +695,6 @@ private define make_lcase_aliases () %{{{
 make_lcase_aliases ();
 %}}}
 
-#ifdef __HAVE_XSPEC_TABLE_MODELS__
-
 private define table_param_default (file, name, is_norm) %{{{
 {
    variable fcn_fmt =
@@ -846,18 +844,6 @@ define add_mtable_model () %{{{
 }
 
 %}}}
-
-define add_etable_model () %{{{
-{
-   variable msg = "add_etable_model (file, name);";
-   variable fmt = "define %s_fit(l,h,p){_set_table_model_filename(\"%s\");return _etbl(l,h,p);}";
-
-   _add_table_model (_NARGS, msg, fmt, &redshift_hook, 0);
-}
-
-%}}}
-
-#endif
 
 define xspec_abund () %{{{
 {

@@ -1169,7 +1169,6 @@ extern void NONEQ_FC(float *tempr, int *ntp, float *tau, int *n, float *weight,
 
 XSPEC11_TABLE_FUN(xs_atbl,xsatbl,XSATBL)
 XSPEC11_TABLE_FUN(xs_mtbl,xsmtbl,XSMTBL)
-XSPEC11_TABLE_FUN(xs_etbl,xsetbl,XSETBL)
 
 #if 0
 {
@@ -1385,7 +1384,6 @@ static int xs_init (void)
 }
 
 /* XSPEC table models */
-#ifdef HAVE_XSPEC_TABLE_MODELS /*{{{*/
 
 static void set_table_model_filename (char *filename) /*{{{*/
 {
@@ -1493,22 +1491,13 @@ static int mtbl (void) /*{{{*/
 
 /*}}}*/
 
-static int etbl (void) /*{{{*/
-{
-   return evaluate_table_model (xs_etbl);
-}
-/*}}}*/
-
 static SLang_Intrin_Fun_Type Table_Model_Intrinsics [] =
 {
    MAKE_INTRINSIC_S("_set_table_model_filename", set_table_model_filename, SLANG_VOID_TYPE),
    MAKE_INTRINSIC("_atbl", atbl, SLANG_VOID_TYPE, 0),
    MAKE_INTRINSIC("_mtbl", mtbl, SLANG_VOID_TYPE, 0),
-   MAKE_INTRINSIC("_etbl", etbl, SLANG_VOID_TYPE, 0),
    SLANG_END_INTRIN_FUN_TABLE
 };
-
-#endif  /* HAVE_XSPEC_TABLE_MODELS */
 
 #ifndef HEADAS
   #define HEADAS "xxx"
@@ -1676,13 +1665,11 @@ int init_xspec_module_ns (char *ns_name) /*{{{*/
    if (NULL == (Headas_Setenv = copy_and_set_env ("HEADAS", HEADAS)))
      goto return_error;
 
-#ifdef HAVE_XSPEC_TABLE_MODELS
    if (-1 == SLns_add_intrin_fun_table (NULL, Table_Model_Intrinsics, "__HAVE_XSPEC_TABLE_MODELS__"))
      {
         fprintf (stderr, "Failed initializing XSPEC table-model intrinsics\n");
         goto return_error;
      }
-#endif
 
    Xspec_Model_Names_File = XSPEC_MODEL_NAMES_FILE;
    Xspec_Version = XSPEC_VERSION;
