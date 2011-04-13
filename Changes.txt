@@ -65,6 +65,8 @@ Changes since 1.6.1 (released Jul 2010)
 35.  Pileup kernel will now generate an error if used with
      an rsp matrix; the response must be factored into separate
      arf and rmf components.
+36.  Remove xspec11 legacy table model code;  the xspec12 library
+     has provided the identical interface since March 2010.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
