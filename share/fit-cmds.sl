@@ -340,9 +340,16 @@ private define par_match (pat) %{{{
 
 define get_num_pars();
 define get_par_info();
+define _get_index();
 
 define _get_index (pat) %{{{
 {
+   if (typeof (pat) == Array_Type && _typeof (pat) == String_Type)
+     {
+       % array of strings?
+       return array_map (Integer_Type, &_get_index, pat);
+     }
+
    if (typeof (pat) != String_Type)
      {
         % integer?
