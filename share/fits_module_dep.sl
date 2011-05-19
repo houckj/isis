@@ -106,8 +106,8 @@ define save_conf () %{{{
    do_fits_error (_fits_write_comment (fp, fun_comment));
 
    variable dx, dy;
-   dx = (m.px.max-m.px.min)/double(m.px.num);
-   dy = (m.py.max-m.py.min)/double(m.py.num);
+   dx = (m.px.num > 1) ? (m.px.max-m.px.min)/double(m.px.num-1.0) : 0.0;
+   dy = (m.py.num > 1) ? (m.py.max-m.py.min)/double(m.py.num-1.0) : 0.0;
 
    do_fits_error (_fits_update_key (fp, "CTYPE1P", xname, ""));
    do_fits_error (_fits_update_key (fp, "CRVAL1P", m.px.min, ""));

@@ -641,7 +641,14 @@ private define plot_conf_contours (s, line, c) %{{{
         else
           () = (@pli.set_color)(color);
 
-        () = (@pli.plot_contour)(s.chisqr, tr, c[i], -1);
+        variable cpy = @s.chisqr;
+        variable nan_indices = where(isnan(cpy));
+        if (length(nan_indices) > 0)
+          {
+             cpy[nan_indices] = FLOAT_MAX;
+          }
+
+        () = (@pli.plot_contour)(cpy, tr, c[i], -1);
      }
 
    plot_best_point (s);

@@ -71,7 +71,10 @@ variable data_confmap = load_conf ("data/confmap.fits");
 
 define diff_arrays (a,b)
 {
-   return sum(sqr(a-b));
+   if (any(isnan(a) != isnan(b)))
+     failed ("confidence map mismatch:  masked regions differ");
+   variable i = wherenot (isnan(a));
+   return sum(sqr(a[i]-b[i]));
 }
 
 variable epsilon = 1.e-8;

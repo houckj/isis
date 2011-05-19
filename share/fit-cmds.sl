@@ -2145,7 +2145,7 @@ define conf_grid () %{{{
 
 private define generate_grid (pmin, pmax, num) %{{{
 {
-   return pmin + ((pmax - pmin)/double(num)) * [0.0:num:1.0];
+   return [pmin:pmax:#num];
 }
 
 %}}}
