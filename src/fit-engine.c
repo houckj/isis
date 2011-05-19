@@ -579,6 +579,9 @@ int init_fit_engine (void) /*{{{*/
    if (-1 == isis_fit_add_engine ("lmdif", "chisqr", Isis_lmdif_feng))
      return -1;
 
+   if (-1 == isis_fit_add_statistic ("ml", Isis_ml_stat))
+     return -1;
+
    if (-1 == isis_fit_add_statistic ("cash", Isis_cash_stat))
      return -1;
 

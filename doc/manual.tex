@@ -5909,9 +5909,10 @@ ___Value____Definition_________
 
 The default is \verb|Isis_Residual_Plot_Type=STAT|. When the
 fit-statistic is \verb|chisqr|, the plotted residual is
-$\Delta\chi$.  When the fit-statistic is \verb|cash|, the
-plotted residual for each bin is the (positive) Cash statistic
-for that bin, multiplied by the sign of \verb|(data-model)|.
+$\Delta\chi$.
+% When the fit-statistic is \verb|cash|, the
+% plotted residual for each bin is the (positive) Cash statistic
+% for that bin, multiplied by the sign of \verb|(data-model)|.
 
 \end{isisfunction}
 
@@ -13635,7 +13636,8 @@ set_fit_range_hook (&enforce_ranges);
 {set\_fit\_statistic ("name")} %usage
 {load\_fit\_statistic, set\_fit\_constraint, set\_fit\_method}
 
-\isisx includes two built-in fit statistics, {\tt chisqr} and {\tt cash}.
+\isisx includes three built-in fit statistics, {\tt chisqr}, {\tt cash}
+and {\tt ml}.
 User-defined fit-statistics are also supported and may be
 implemented in {\tt C} or \slang.  Control parameters associated
 with the fit statistics (such as the chi-square weighting) may be
@@ -13668,6 +13670,10 @@ The Cash statistic is defined to be
          + C_i \ln \left({C_i\over M_i}\right).
 \end{equation}
 See Cash (ApJ 228, 939) and the XSPEC manual for details.
+The max-likelihood (ML) statistic is defined to be
+\begin{equation}
+ S_{\rm ml} \equiv \sum_i \left(M_i + \ln \Gamma (M_i+1) - C_i \ln M_i\right)
+\end{equation}
 \end{isisfunction}
 
 \begin{isisfunction}

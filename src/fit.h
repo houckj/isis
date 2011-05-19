@@ -330,6 +330,7 @@ extern Isis_Fit_Engine_Type *Isis_subplex_feng (char *name, char *sname);
 extern Isis_Fit_Engine_Type *Isis_simann_feng (char *name, char *sname);
 extern Isis_Fit_Statistic_Type *Isis_chisqr_stat (void);
 extern Isis_Fit_Statistic_Type *Isis_cash_stat (void);
+extern Isis_Fit_Statistic_Type *Isis_ml_stat (void);
 
 #if 0
 {

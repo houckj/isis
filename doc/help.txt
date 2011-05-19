@@ -4090,9 +4090,7 @@ rplot_counts
 
     The default is Isis_Residual_Plot_Type=STAT. When the
     fit-statistic is chisqr, the plotted residual is Deltachi.
-    When the fit-statistic is cash, the plotted residual for each
-    bin is the (positive) Cash statistic for that bin, multiplied
-    by the sign of (data-model).
+
 
 
  SEE ALSO
@@ -12746,8 +12744,8 @@ set_fit_statistic
     set_fit_statistic ("name")
 
  DESCRIPTION
-    ISIS includes two built-in fit statistics, chisqr and cash.
-    User-defined fit-statistics are also supported and may be
+    ISIS includes three built-in fit statistics, chisqr, cash and
+    ml. User-defined fit-statistics are also supported and may be
     implemented in C or S-Lang.  Control parameters associated with
     the fit statistics (such as the chi-square weighting) may be
     adjusted by supplying qualifers in the method name string.  For
@@ -12778,7 +12776,11 @@ set_fit_statistic
      S_{\rm cash} \equiv 2\sum_i (M_i - C_i)
              + C_i \ln \left({C_i\over M_i}\right).
 
-    See Cash (ApJ 228, 939) and the XSPEC manual for details.
+    See Cash (ApJ 228, 939) and the XSPEC manual for details. The
+    max-likelihood (ML) statistic is defined to be
+
+     S_{\rm ml} \equiv \sum_i \left(M_i + \ln \Gamma (M_i+1) - C_i \ln M_i\right)
+
 
  SEE ALSO
     load_fit_statistic, set_fit_constraint, set_fit_method
