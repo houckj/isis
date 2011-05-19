@@ -68,6 +68,7 @@ Changes since 1.6.1 (released Jul 2010)
 36.  Remove xspec11 legacy table model code;  the xspec12 library
      has provided the identical interface since March 2010.
 37.  Choose more sensible confmap parameter grids.
+38.  Add Poisson maximum likelihood statistic "ml"
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
