@@ -9489,6 +9489,8 @@ conf_grid
        py = conf_grid (3, 0.01, 0.04, 64);
        s = conf_map_counts (px, py);
 
+    The parameter grid points then correspond to the array of
+    values [min:max:#num].
 
 
  SEE ALSO
