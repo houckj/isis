@@ -69,6 +69,7 @@ Changes since 1.6.1 (released Jul 2010)
      has provided the identical interface since March 2010.
 37.  Choose more sensible confmap parameter grids.
 38.  Add Poisson maximum likelihood statistic "ml"
+39.  Fix memory leak associated with xspec local models
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
