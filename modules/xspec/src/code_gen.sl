@@ -222,7 +222,7 @@ private define emit_name_string (fp, m) %{{{
 
    () = fprintf (fp.names, "%s\n", m.model_name);
 
-   () = fprintf (fp.struct_fields, "{\"%s\", (fptr_type *) %s, \"_xspec_%s_hook\", NULL},\n",
+   () = fprintf (fp.struct_fields, "{\"%s\", (fptr_type *) %s, \"_xspec_%s_hook\", NULL, 0},\n",
                  m.model_name, symbol_name, interface_name);
 
    () = fprintf (fp.externs, "extern Fcn_%s_Type %s;\n",

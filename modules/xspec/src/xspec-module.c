@@ -353,6 +353,7 @@ typedef struct
    fptr_type *symbol;
    char *hook_name;
    char *init_string;
+   int malloced;
 }
 Xspec_Type;
 static int Xspec_Type_Id = -1;
@@ -854,8 +855,11 @@ static void load_xspec_fun (char *file, char *fun_name) /*{{{*/
        || (NULL == (xt = (Xspec_Type *) ISIS_MALLOC (sizeof(Xspec_Type)))))
      goto push_null;
 
+   memset ((char *)xt, 0, sizeof (*xt));
+
    xt->symbol = (fptr_type *)fptr;
    xt->init_string = NULL;
+   xt->malloced = 1;
 
    if ((NULL == (mmt = SLang_create_mmt (Xspec_Type_Id, (void *) xt)))
        || (-1 == SLang_push_mmt (mmt)))
@@ -991,6 +995,8 @@ static void free_xspec_fun_type (SLtype type, void *f) /*{{{*/
    if (xt == NULL)
      return;
    ISIS_FREE(xt->init_string);
+   if (xt->malloced)
+     ISIS_FREE(xt);
 }
 
 /*}}}*/
