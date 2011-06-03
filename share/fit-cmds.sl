@@ -591,6 +591,20 @@ __set_hard_limits (index, hard_min, hard_max);\n\
      throw IsisError;
 }
 
+define __set_fitfun_post_hook () %{{{
+{
+   variable msg = "__set_fitfun_post_hook (String_Type instance_name, Ref_Type hook)";
+
+   if (_isis->chk_num_args (_NARGS, 2, msg))
+     return;
+
+   variable name, hook;
+   (name, hook) = ();
+   _isis->set_fitfun_post_hook (hook, name);
+}
+
+%}}}
+
 define get_fun_info () %{{{
 {
    variable msg = "Struct_Type = get_fun_info (\"fun_name\")";

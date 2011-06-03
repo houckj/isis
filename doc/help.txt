@@ -12864,6 +12864,33 @@ set_kernel
     load_kernel, print_kernel, get_kernel, list_kernels
 
 ------------------------------------------------------------------------
+__set_fitfun_post_hook
+
+ SYNOPSIS
+    Set a hook to be called after evaluating a model component
+
+ USAGE
+    __set_fitfun_post_hook (String_Type fitfun_name, Ref_Type hook)
+
+ DESCRIPTION
+    Example:
+       __set_fitfun_post_hook ("warmabs", &post_hook);
+
+    The hook function must be of the form:
+
+      define post_hook (fitfun_name, id)
+      {
+      }
+
+    where fun_name is the name of the fit-function just evaluated
+    and id is the instance of that fit-function.  For example, if
+    the hook is called after warmabs(2) is evaluated, then fun_name
+    will have the value "warmabs" and id will have the value 2.
+
+ SEE ALSO
+    
+
+------------------------------------------------------------------------
 __set_hard_limits
 
  SYNOPSIS

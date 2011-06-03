@@ -1356,6 +1356,25 @@ static int bin_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra_
 }
 /*}}}*/
 
+static int call_fitfun_post_hook (Fit_Fun_t *ff, int fun_id) /*{{{*/
+{
+   if (ff->post_hook == NULL)
+     return 0;
+
+   SLang_start_arg_list ();
+   if (-1 == SLang_push_string (ff->name[0])
+       || -1 == SLang_push_integer (fun_id))
+     {
+        isis_throw_exception (Isis_Error);
+        return -1;
+     }
+   SLang_end_arg_list ();
+
+   return SLexecute_function (ff->post_hook);
+}
+
+/*}}}*/
+
 typedef struct
 {
    int (*task)(Fit_Fun_t *, unsigned int, unsigned int, SLang_Struct_Type *);
@@ -1428,6 +1447,7 @@ static void mode_switch (unsigned int *fun_id, unsigned int *fun_type, unsigned 
         int severity = Looking_For_Confidence_Limits ? FAIL : INTR;
         isis_vmesg (severity, I_ERROR, __FILE__, __LINE__, "%s", t->err_msg);
      }
+   (void) call_fitfun_post_hook (ff, *fun_id);
    Isis_Active_Function_Id = 0;
 
    SLang_free_struct (qualifiers);
@@ -4980,6 +5000,7 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
    MAKE_INTRINSIC_1("eval_diff_fitfun_using_handle_intrin", eval_diff_fitfun_using_handle_intrin, V, MT),
    MAKE_INTRINSIC_1("get_fitfun_handle_intrin", push_mmt_fitfun_type_intrin, V, S),
    MAKE_INTRINSIC_1("get_fitfun_info", Fit_get_fun_info, V, S),
+   MAKE_INTRINSIC_1("set_fitfun_post_hook", Fit_set_fun_post_hook, V, S),
    MAKE_INTRINSIC_4("set_hard_limits", Fit_set_hard_limits, I, S, S, I, I),
    MAKE_INTRINSIC("open_fit_object_mmt_intrin", open_fit_object_mmt_intrin, V, 0),
    MAKE_INTRINSIC_2("fobj_eval_statistic", fobj_eval_statistic, V, MTO, I),

@@ -13749,6 +13749,28 @@ Example:
 \end{isisfunction}
 
 \begin{isisfunction}
+{\_\_set\_fitfun\_post\_hook}
+{Set a hook to be called after evaluating a model component}
+{\_\_set\_fitfun\_post\_hook (String\_Type fitfun\_name, Ref\_Type hook)}%
+{}
+\begin{verbatim}
+Example:
+   __set_fitfun_post_hook ("warmabs", &post_hook);
+\end{verbatim}
+The hook function must be of the form:
+\begin{verbatim}
+  define post_hook (fitfun_name, id)
+  {
+  }
+\end{verbatim}
+where \verb|fun_name| is the name of the fit-function just evaluated
+and \verb|id| is the instance of that fit-function.  For example,
+if the hook is called after \verb|warmabs(2)| is evaluated, then
+\verb|fun_name| will have the value \verb|"warmabs"| and \verb|id|
+will have the value \verb|2|.
+\end{isisfunction}
+
+\begin{isisfunction}
 {\_\_set\_hard\_limits}
 {Adjust the hard limits constraining a fit parameter's value}
 {\_\_set\_hard\_limits (fun\_name, par\_name, hard\_min, hard\_max)\\
