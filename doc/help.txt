@@ -13843,7 +13843,30 @@ add_atable_model
 
 
  SEE ALSO
-    add_mtable_model
+    add_etable_model, add_mtable_model
+
+------------------------------------------------------------------------
+add_etable_model
+
+ SYNOPSIS
+    Define an exponential table-model
+
+ USAGE
+    add_etable_model ("filename", "modelname")
+
+ DESCRIPTION
+    This function loads an XSPEC-format exponential table model and
+    defines a fit-function based on that table, using parameter
+    names defined in the NAME column of the file. Multiple
+    instances of each table-model may be fitted simultaneously.
+
+    Example:
+       add_etable_model ("etable.fits", "my_exp");
+       fit_fun ("my_exp(2) * mekal(1)");
+
+
+ SEE ALSO
+    add_atable_model, add_mtable_model
 
 ------------------------------------------------------------------------
 add_mtable_model
@@ -13861,12 +13884,12 @@ add_mtable_model
     instances of each table-model may be fitted simultaneously.
 
     Example:
-       add_mtable_model ("atable.fits", "my_mul");
+       add_mtable_model ("mtable.fits", "my_mul");
        fit_fun ("my_mul(1)*mekal(1)");
 
 
  SEE ALSO
-    add_atable_model
+    add_atable_model, add_etable_model
 
 ------------------------------------------------------------------------
 build_xspec_local_models

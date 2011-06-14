@@ -845,6 +845,16 @@ define add_mtable_model () %{{{
 
 %}}}
 
+define add_etable_model () %{{{
+{
+   variable msg = "add_etable_model (file, name);";
+   variable fmt = "define %s_fit(l,h,p){_set_table_model_filename(\"%s\");return exp(-_mtbl(l,h,p));}";
+
+   _add_table_model (_NARGS, msg, fmt, &redshift_hook, 0);
+}
+
+%}}}
+
 define xspec_abund () %{{{
 {
    if (_NARGS == 1)
