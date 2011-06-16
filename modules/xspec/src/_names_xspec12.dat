@@ -9,6 +9,7 @@ bkn2pow
 bmc
 bremss
 bvapec
+bvvapec
 c6mekl
 c6pmekl
 c6pvmkl
@@ -20,7 +21,9 @@ compbb
 compLS
 compPS
 compST
+compth
 compTT
+cplinear
 cutoffpl
 disk
 diskir
@@ -30,6 +33,8 @@ diskm
 disko
 diskpbb
 diskpn
+eqpair
+eqtherm
 equil
 expdec
 ezdiskbb
@@ -80,6 +85,7 @@ vnpshock
 vpshock
 vraymond
 vsedov
+vvapec
 zbbody
 zbremss
 zgauss
@@ -119,6 +125,7 @@ xion
 zdust
 zedge
 zhighect
+zigm
 zpcfabs
 zphabs
 zxipcf
@@ -141,3 +148,5 @@ partcov
 rdblur
 reflect
 simpl
+zashift
+zmshift
