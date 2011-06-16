@@ -71,6 +71,7 @@ Changes since 1.6.1 (released Jul 2010)
 38.  Add Poisson maximum likelihood statistic "ml"
 39.  Fix memory leak associated with xspec local models
 40.  Restore etable model support to xspec module (add_etable_model)
+41.  Update xspec module to match heasoft-6.11/xspec-12.7
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
