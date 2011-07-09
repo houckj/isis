@@ -3162,6 +3162,18 @@ static void set_fit_statistic_name (char *name) /*{{{*/
 
 /*}}}*/
 
+static void set_fit_statistic_delta_distrib_intrin (char *name, int *value) /*{{{*/
+{
+   Isis_Fit_Statistic_Type *s;
+
+   if (NULL == (s = isis_find_fit_statistic (name)))
+     return;
+
+   s->delta_is_chisqr_distributed = *value;
+}
+
+/*}}}*/
+
 Isis_Fit_Statistic_Type *current_fit_statistic (void) /*{{{*/
 {
    Isis_Fit_Statistic_Type *s;
@@ -4990,6 +5002,7 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
    MAKE_INTRINSIC_I("_print_kernel", _print_kernel, V),
    MAKE_INTRINSIC("_list_kernels", _list_kernels, V, 0),
    MAKE_INTRINSIC_1("_add_slang_statistic", _add_slang_statistic, V, S),
+   MAKE_INTRINSIC_2("set_fit_statistic_delta_distrib_intrin", set_fit_statistic_delta_distrib_intrin, V, S,I),
    MAKE_INTRINSIC_2("_add_slang_optimizer", add_slang_fit_engine_intrin, V, S, S),
    MAKE_INTRINSIC("list_statistics_and_engines", list_statistics_and_engines, V, 0),
    MAKE_INTRINSIC("_define_hist_combination", mark_dataset_combination, I, 0),

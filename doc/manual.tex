@@ -10442,13 +10442,20 @@ and \verb|create_aped_line_modifier|.
 \begin{isisfunction}
 {add\_slang\_statistic} %name
 {Add a user-defined S-Lang fit-statistic} %purpose
-{add\_slang\_statistic (name, \&stat, \&report)} %usage
+{add\_slang\_statistic (name, \&stat, \&report [; <qualifiers>])} %usage
 {set\_fit\_statistic, load\_fit\_statistic}
 \index{User-defined!fit-statistic (S-Lang)}
 
 The first argument is the name of the fit-statistic. The next
 two arguments are addresses of \slang\ functions to compute the
 fit-statistic and to print the statistic value, respectively.
+
+\begin{verbatim}
+Qualifiers:
+  delta_is_chisqr    If present, indicates that the delta-statistic
+                     is chi-square distributed (e.g. so that the
+                     statistic may be used by `conf')
+\end{verbatim}
 
 The function which computes the fit-statistic named \verb|"stat"|
 should be named \verb|stat_function| and should have the

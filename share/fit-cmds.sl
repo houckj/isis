@@ -1930,7 +1930,10 @@ define load_fit_statistic ()
 
 define add_slang_statistic ()
 {
-   variable msg = "add_slang_statistic (name, &fun, &report)";
+   variable msg =
+`add_slang_statistic (name, &fun, &report [; <qualifiers>])
+   qualifiers:  delta_is_chisqr
+`;
    variable name, fun, report;
 
    if (_isis->chk_num_args (_NARGS, 3, msg))
@@ -1939,6 +1942,9 @@ define add_slang_statistic ()
    (name, fun, report) = ();
 
    _isis->_add_slang_statistic (fun, report, name);
+
+   if (qualifier_exists ("delta_is_chisqr"))
+     _isis->set_fit_statistic_delta_distrib_intrin (name, 1);
 }
 
 define list_fit_methods ()

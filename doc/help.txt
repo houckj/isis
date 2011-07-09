@@ -9046,12 +9046,17 @@ add_slang_statistic
     Add a user-defined S-Lang fit-statistic
 
  USAGE
-    add_slang_statistic (name, &stat, &report)
+    add_slang_statistic (name, &stat, &report [; <qualifiers>])
 
  DESCRIPTION
     The first argument is the name of the fit-statistic. The next
     two arguments are addresses of S-Lang functions to compute the
     fit-statistic and to print the statistic value, respectively.
+
+    Qualifiers:
+      delta_is_chisqr    If present, indicates that the delta-statistic
+                         is chi-square distributed (e.g. so that the
+                         statistic may be used by `conf')
 
     The function which computes the fit-statistic named "stat"
     should be named stat_function and should have the interface
