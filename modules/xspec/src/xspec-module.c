@@ -901,7 +901,7 @@ static Xspec_Type Static_Fun_Table[] =
 #elif defined(HAVE_XSPEC_12)
 #  include "_model_table_xspec12.inc"
 #endif
-     {NULL, NULL, NULL, NULL}
+     {NULL, NULL, NULL, NULL, 0}
 };
 
 #if 0
