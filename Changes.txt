@@ -73,6 +73,7 @@ Changes since 1.6.1 (released Jul 2010)
 40.  Restore etable model support to xspec module (add_etable_model)
 41.  Update xspec module to match heasoft-6.11/xspec-12.7
 42.  Update atomdb regression test for atomdb-v2.0.1 release
+43.  add_slang_statistic now provides delta_is_chisqr qualifier
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
