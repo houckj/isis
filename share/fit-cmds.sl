@@ -930,35 +930,42 @@ private define back_fun_string (i) %{{{
 
 private define list_par_string (free_only) %{{{
 {
-   variable pars = get_params();
-   if (pars == NULL)
-     return NULL;
-
-   if (free_only)
-     {
-        variable free_pars = array_map (Int_Type, &is_free, pars);
-        pars = pars[where(free_pars)];
-     }
-   variable len;
-   len = massage_param_structs (pars);
-
    variable s = get_fit_fun();
    s = (s == NULL) ? String_Type[0] : [strtrim(s)];
 
-   variable bs, datasets = all_data();
+   variable datasets = all_data();
    if (datasets != NULL)
      {
-        bs = array_map (String_Type, &back_fun_string, datasets);
+        variable bs = array_map (String_Type, &back_fun_string, datasets);
         bs = bs[where(bs != "")];
         s = [s, bs];
      }
 
-   variable colheads;
-   colheads = sprintf (Fmt_Colheads, len, "  param");
-   variable ps;
-   ps = array_map (String_Type, &param_string, pars, len);
+   variable ps = String_Type[0];
 
-   return strjoin ([s, colheads, ps], "\n");
+   variable pars = get_params();
+   if (pars != NULL)
+     {
+        if (free_only)
+          {
+             variable free_pars = array_map (Int_Type, &is_free, pars);
+             pars = pars[where(free_pars)];
+          }
+        variable len = massage_param_structs (pars);
+
+        variable colheads;
+        colheads = sprintf (Fmt_Colheads, len, "  param");
+        ps = array_map (String_Type, &param_string, pars, len);
+
+        s = strjoin ([s, colheads, ps], "\n");
+     }
+
+   if (length(s) == 0)
+     return NULL;
+   else if (length(s) == 1 && typeof(s) == Array_Type)
+     s = s[0];
+
+   return s;
 }
 
 %}}}
