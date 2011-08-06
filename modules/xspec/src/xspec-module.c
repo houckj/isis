@@ -1422,7 +1422,7 @@ static int evaluate_table_model (Xspec_Fun_t *fun) /*{{{*/
    float *param = NULL;
    int *notice_list = NULL;
    int *notice = NULL;
-   int i, npar, nbins, ret = -1;
+   int i, nbins, ret = -1;
 
    sl_lo = sl_hi = sl_val = sl_par = NULL;
 
@@ -1438,7 +1438,6 @@ static int evaluate_table_model (Xspec_Fun_t *fun) /*{{{*/
        || (sl_par == NULL) || (sl_hi == NULL) || (sl_lo == NULL))
      goto finish;
 
-   npar = sl_par->num_elements;
    nbins = sl_lo->num_elements;
    if (nbins != (int) sl_hi->num_elements)
      goto finish;
