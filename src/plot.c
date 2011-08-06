@@ -808,7 +808,6 @@ int Plot_copy_formats (Plot_t *src, Plot_t *dst) /*{{{*/
 int Plot_copy_window (char *new_device, int id, Plot_Node_t *head) /*{{{*/
 {
    Plot_Node_t *t, *n;
-   int npanes;
 
    for (t=head; t != NULL; t=t->next)
      {
@@ -834,8 +833,6 @@ int Plot_copy_window (char *new_device, int id, Plot_Node_t *head) /*{{{*/
         if (-1 == Plot_subdivide (n->nxpanes, n->nypanes))
           return -1;
      }
-
-   npanes = t->nxpanes * t->nypanes;
 
    if (-1 == Plot_copy_formats (t->fmt, n->fmt))
      return -1;

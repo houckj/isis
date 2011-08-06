@@ -321,12 +321,11 @@ static Keyword_t Arf_Keyword_Table[] = /*{{{*/
 
 static int validate_arf (int n, double *arf, double * arf_err) /*{{{*/
 {
-   int i, reset, num_positive;
+   int i, num_positive;
 
    if ((n <= 0) || (arf_err == NULL) || (arf == NULL))
      return -1;
 
-   reset = 0;
    num_positive = 0;
 
    for (i = 0; i < n; i++)
@@ -337,7 +336,6 @@ static int validate_arf (int n, double *arf, double * arf_err) /*{{{*/
         if (arf_err[i] <= 0.0)
           {
              arf_err[i] = 1.0;
-             reset=1;
           }
      }
 

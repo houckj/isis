@@ -1869,7 +1869,7 @@ static int scale_background (Hist_t *h, int do_rebin, /*{{{*/
      }
    else ISIS_FREE(berr);
 
-   return 0;
+   return status;
 }
 
 /*}}}*/

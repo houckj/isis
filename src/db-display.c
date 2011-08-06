@@ -95,10 +95,9 @@ void DB_list_line_group_stats (FILE * fp, DB_t *db) /*{{{*/
 static int compress_label (char *label, unsigned int size) /*{{{*/
 {
    char *p, *t;
-   int len, one_space = 0;
+   int one_space = 0;
 
    t = label;
-   len = strlen(label);
 
    for (p = label; (p != NULL) && (*p != 0); p++)
      {

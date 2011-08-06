@@ -877,7 +877,6 @@ static void plot_line_list2 (void) /*{{{*/
 {
    SLang_Array_Type *sl_lambdas = NULL;
    SLang_Array_Type *sl_labels = NULL;
-   char *(*label_massage_hook)(char *);
    Line_Label_Style_Type s;
    Plot_t *fmt = NULL;
    float *lambdas = NULL;
@@ -905,11 +904,6 @@ static void plot_line_list2 (void) /*{{{*/
 
    if (NULL == (fmt = current_format ()))
      goto finish;
-
-   if (2 == SLang_is_defined (Linelabel_Hook))
-     label_massage_hook = massage_label;
-   else
-     label_massage_hook = NULL;
 
    s.use_color = (use_color > 0) ? &use_color : NULL;
 

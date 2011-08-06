@@ -1226,7 +1226,6 @@ static void _get_rmf_info (int *rmf_index) /*{{{*/
 {
    Rmf_Info_Type info;
    Isis_Rmf_t *rmf;
-   int status;
 
    memset ((char *)&info, 0, sizeof(info));
 
@@ -1238,7 +1237,7 @@ static void _get_rmf_info (int *rmf_index) /*{{{*/
         return;
      }
 
-   status = SLang_push_cstruct ((VOID_STAR)&info, Rmf_Info_Layout);
+   (void) SLang_push_cstruct ((VOID_STAR)&info, Rmf_Info_Layout);
    Rmf_free_info (&info);
 }
 

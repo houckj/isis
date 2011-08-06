@@ -476,7 +476,6 @@ static int init_conf_limit_search (Param_t *pt, int idx, /*{{{*/
 int get_confidence_limits (Fit_Object_Type *fo, Param_t *pt, Isis_Fit_CLC_Type *ctrl,  /*{{{*/
                            int idx, double *pconf_min, double *pconf_max)
 {
-   Fit_Info_Type *info = NULL;
    Search_Info_Type sinfo;
    Param_Info_t *par_info = NULL;
    Fit_Param_t *initial_pars = NULL;
@@ -498,7 +497,6 @@ int get_confidence_limits (Fit_Object_Type *fo, Param_t *pt, Isis_Fit_CLC_Type *
 
    if (-1 == fit_object_config (fo, pt, 0))
      goto free_and_return;
-   info = fo->info;
 
    if (-1 == init_conf_limit_search (pt, idx, &par_info, &initial_pars))
      return -1;

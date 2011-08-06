@@ -113,17 +113,17 @@ static int default_set_noticed_model_bins (Isis_Rmf_t *rmf, int num_chan, int *c
                                            int num_model, int *model_notice)
 {
    int k;
-   
+
    (void) num_chan; (void) chan_notice;
-   
+
    if (rmf == NULL || model_notice == NULL)
      return -1;
-   
+
    for (k = 0; k < num_model; k++)
      {
         model_notice[k] = 1;
-     }   
-   
+     }
+
    return 0;
 }
 
@@ -133,7 +133,7 @@ static int default_rebin_rmf (Isis_Rmf_t *rmf, double *lo, double *hi, unsigned 
 {
    (void) rmf; (void) lo; (void) hi; (void) num;
 
-   isis_vmesg (FAIL, I_NOT_IMPLEMENTED, __FILE__, __LINE__, 
+   isis_vmesg (FAIL, I_NOT_IMPLEMENTED, __FILE__, __LINE__,
                "rebinning is not supported for this RMF type");
    return -1;
 }
@@ -144,7 +144,7 @@ static int default_factor_rsp (Isis_Rmf_t *rmf, double *arf) /*{{{*/
 {
    (void) rmf; (void) arf;
 
-   isis_vmesg (FAIL, I_NOT_IMPLEMENTED, __FILE__, __LINE__, 
+   isis_vmesg (FAIL, I_NOT_IMPLEMENTED, __FILE__, __LINE__,
                "factorization is not supported for this RMF type");
    return -1;
 }
@@ -176,7 +176,7 @@ static Isis_Rmf_t *new_rmf (void) /*{{{*/
    rmf->get_data_grid = NULL;
    rmf->redistribute = NULL;
    rmf->delete_client_data = NULL;
-   
+
    rmf->set_noticed_model_bins = default_set_noticed_model_bins;
    rmf->rebin_rmf = default_rebin_rmf;
    rmf->factor_rsp = default_factor_rsp;
@@ -307,18 +307,18 @@ int Rmf_get_info (Isis_Rmf_t *rmf, Rmf_Info_Type *info) /*{{{*/
 {
    if ((rmf == NULL) || (info == NULL))
      return -1;
-   
+
    info->index = rmf->index;
    info->method = rmf->method;
    info->order = rmf->order;
-   
+
    if (NULL == (info->grating = isis_make_string (rmf->grating)))
      return -1;
    if (NULL == (info->instrument = isis_make_string (rmf->instrument)))
      return -1;
    if (NULL == (info->arg_string = isis_make_string (rmf->arg_string)))
      return -1;
-   
+
    return 0;
 }
 
@@ -446,48 +446,44 @@ int Rmf_find_peaks (Isis_Rmf_t *rmf, double **h_P, int *num) /*{{{*/
    unsigned int arf_n, ebounds_n, k;
    unsigned int *indices;
    int status = -1;
-   
+
    if (rmf == NULL || h_P == NULL || num == NULL)
      return -1;
-   
+
    profile = arf_lo = arf_hi = ebounds_lo = ebounds_hi = NULL;
    indices = NULL;
    *h_P = NULL;
-   
+
    /* wavelength grids */
    if ((-1 == rmf->get_arf_grid (rmf, &arf_lo, &arf_hi, &arf_n))
        || (-1 == rmf->get_data_grid (rmf, &ebounds_lo, &ebounds_hi, &ebounds_n, NULL)))
      goto return_error;
-   
+
    *num = arf_n;
-   
+
    if ((NULL == (*h_P = (double *) ISIS_MALLOC (arf_n * sizeof(double))))
        || (NULL == (indices = (unsigned int *) ISIS_MALLOC (ebounds_n * sizeof(unsigned int))))
        || (NULL == (profile = (double *) ISIS_MALLOC (ebounds_n * sizeof(double)))))
      goto return_error;
 
-   /* For each arf wavelength, fold a delta-function source 
+   /* For each arf wavelength, fold a delta-function source
     * through the rmf, find the peak in the output, and record
     * the bin-center wavelength of that peak
     */
-   
+
    for (k = 0; k < arf_n; k++)
      {
-        double peak_value, lo, hi, mid;
+        double peak_value;
         unsigned int i, num_indices;
-        
-        lo = arf_lo[k];
-        hi = arf_hi[k];
-        mid = 0.5 * (lo + hi);
-        
+
         for (i = 0; i < ebounds_n; i++)
           profile[i] = 0.0;
-        
+
         /* set default value */
         (*h_P)[k] = (double) k;
-        
+
         if (-1 == rmf->redistribute (rmf, k, 1.0, profile, ebounds_n))
-          goto return_error;        
+          goto return_error;
 
         peak_value = 0.0;
         for (i = 0; i < ebounds_n; i++)
@@ -495,16 +491,16 @@ int Rmf_find_peaks (Isis_Rmf_t *rmf, double **h_P, int *num) /*{{{*/
              if (profile[i] > peak_value)
                peak_value = profile[i];
           }
-        
+
         if (peak_value == 0.0)
           continue;
-        
+
         num_indices = 0;
         for (i = 0; i < ebounds_n; i++)
           {
              if (profile[i] == peak_value)
                indices[num_indices++] = i;
-          }        
+          }
 
         if (num_indices != 0)
           {
@@ -525,12 +521,12 @@ int Rmf_find_peaks (Isis_Rmf_t *rmf, double **h_P, int *num) /*{{{*/
                     }
                   (*h_P)[k] = xp / s;
                }
-#endif        
-          }        
-     }   
-   
+#endif
+          }
+     }
+
    status = 0;
-   
+
    return_error:
    ISIS_FREE (indices);
    ISIS_FREE (profile);
@@ -538,10 +534,10 @@ int Rmf_find_peaks (Isis_Rmf_t *rmf, double **h_P, int *num) /*{{{*/
    ISIS_FREE (arf_hi);
    ISIS_FREE (ebounds_lo);
    ISIS_FREE (ebounds_hi);
-   
-   if ((status != 0) && (h_P != NULL)) 
+
+   if ((status != 0) && (h_P != NULL))
      ISIS_FREE (*h_P);
-   
+
    return status;
 }
 
@@ -686,7 +682,7 @@ Isis_Rmf_t *Rmf_create_delta_rmf (Isis_Rmf_Grid_Type *arf, Isis_Rmf_Grid_Type *e
 int Rmf_rebin_rmf (Isis_Rmf_t *rmf, double *lo, double *hi, unsigned int num) /*{{{*/
 {
    int swapped;
-   
+
    if ((rmf == NULL) || (lo == NULL) || (hi == NULL))
      return -1;
 
@@ -702,7 +698,7 @@ int Rmf_rebin_rmf (Isis_Rmf_t *rmf, double *lo, double *hi, unsigned int num) /*
         return -1;
      }
 
-#if 1   
+#if 1
    if (-1 == _isis_fixup_lo_hi_grids (lo, hi, num, &swapped, NULL))
      return -1;
 #else
@@ -712,7 +708,7 @@ int Rmf_rebin_rmf (Isis_Rmf_t *rmf, double *lo, double *hi, unsigned int num) /*
         isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "grids must be in ascending order");
         return -1;
      }
-#endif   
+#endif
 
    if (-1 == rmf->rebin_rmf (rmf, lo, hi, num))
      {

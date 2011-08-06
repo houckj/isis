@@ -1919,13 +1919,10 @@ static int load_line_spectrum_hdu (cfitsfile *fp, int hdu, EM_t *em, EM_line_emi
         &do_load_linefile_hdu,
         &clean_load_linefile_hdu
      };
-   EM_filemap_t *map;
 
    if (fp == NULL || em == NULL
        || em->db == NULL || em->line_data == NULL)
      return -1;
-
-   map = em->line_data->map;
 
    if (-1 == cfits_movabs_hdu (hdu, fp))
      return -1;
