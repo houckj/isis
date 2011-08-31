@@ -75,6 +75,7 @@ Changes since 1.6.1 (released Jul 2010)
 42.  Update atomdb regression test for atomdb-v2.0.1 release
 43.  add_slang_statistic now provides delta_is_chisqr qualifier
 44.  list_par prints function name even when there are no parameters
+45.  Provide xspec_config_hook
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
