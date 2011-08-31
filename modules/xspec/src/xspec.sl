@@ -1324,4 +1324,11 @@ array_map (Void_Type, &alias_unsupported,
            ["_wabs", "_mekal", "_raym", "_brems", "_vaped",
             "_shock", "_nei", "_sedov", "_bmc"]);
 
-provide ("xspec");
+% Support local customization.  For example, one may
+% wish to modify the default hard limits of some xspec functions
+% by calling __set_hard_limits -- this must be done after the
+% functions are defined but before they are used.
+if (2 == is_defined ("xspec_config_hook"))
+{
+   eval ("xspec_config_hook");
+}

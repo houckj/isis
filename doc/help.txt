@@ -13965,6 +13965,45 @@ xspec_abund
     xspec_xsect
 
 ------------------------------------------------------------------------
+xspec_config_hook
+
+ SYNOPSIS
+    Perform xspec related customizations
+
+ USAGE
+    xspec_config_hook()
+
+ DESCRIPTION
+    If a function named xspec_config_hook is defined when the XSPEC
+    module is loaded, then that function will be called just after
+    XSPEC module initialization finishes.  This feature is intended
+    to provide a simple way to perform any customizations that may
+    be needed before using XSPEC models.
+
+    For example, the default hard limits on some XSPEC model
+    parameters may be set to inconvenient values. In particular,
+    the hard limits of Doppler shift parameters often restrict them
+    to positive values even though negative values are perfectly
+    well supported by the implementation. To automatically change
+    such hard limits, one can insert a function definition of the
+    form:
+
+       define xspec_config_hook ()
+       {
+          __set_hard_limits("compth","redshift",-4.,4.);
+       }
+
+    into either a user's isisrc file or into a site-customization
+    file. When isis starts, the xspec_config_hook function will be
+    defined. Then, whenever the xspec module is loaded, the hook
+    will automatically change the hard limits to the desired
+    values.
+
+
+ SEE ALSO
+    __set_hard_limits
+
+------------------------------------------------------------------------
 xspec_elabund
 
  SYNOPSIS

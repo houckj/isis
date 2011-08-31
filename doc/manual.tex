@@ -15062,6 +15062,38 @@ See the \xspec\ documentation for details
 \end{isisfunction}
 
 \begin{isisfunction}
+{xspec\_config\_hook}
+{Perform xspec related customizations}
+{xspec\_config\_hook()}
+{\_\_set\_hard\_limits}
+
+\index{XSPEC module!customization}
+\index{xspec\_config\_hook@{\tt xspec\_config\_hook}}
+
+If a function named \verb|xspec_config_hook| is defined when the \xspec\
+module is loaded, then that function will be called just after \xspec\ module
+initialization finishes.  This feature is intended to provide a simple way to
+perform any customizations that may be needed before using \xspec\ models.
+
+For example, the default hard limits on some \xspec\ model parameters may be
+set to inconvenient values. In particular, the hard limits of Doppler shift
+parameters often restrict them to positive values even though negative values
+are perfectly well supported by the implementation. To automatically change
+such hard limits, one can insert a function definition of the form:
+\begin{verbatim}
+   define xspec_config_hook ()
+   {
+      __set_hard_limits("compth","redshift",-4.,4.);
+   }
+\end{verbatim}
+into either a user's \verb|isisrc| file or into a site-customization file.
+When isis starts, the \verb|xspec_config_hook| function will be defined. Then,
+whenever the xspec module is loaded, the hook will automatically change the
+hard limits to the desired values.
+
+\end{isisfunction}
+
+\begin{isisfunction}
 {xspec\_elabund}
 {Retrieve XSPEC element abundances}
 {abundance = xspec\_elabund (elname)}
@@ -15287,6 +15319,15 @@ format of this file should be the same as that of the {\tt
 help.txt} file included in the \isisx distribution.  If the file
 {\tt local\_help.txt} exists, the interactive help system will
 search it automatically.
+
+A local customization script may also be specified at \verb|configure| time
+using the \verb|--with-local-setup=FILE| configure option.  The
+specified \slang\ script will be loaded automatically when
+isis starts.
+
+Note that each individual user's \verb|~/.isisrc| file will be loaded last,
+making it possible to over-ride site-local definitions from either the
+\verb|etc/local.sl| or the local setup files mentioned above.
 
 \section{Environment Variables Affecting ISIS}
 \label{sec:env-var}
