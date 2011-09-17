@@ -1695,6 +1695,10 @@ int init_xspec_module_ns (char *ns_name) /*{{{*/
 
    (void) SLdefine_for_ifdef ("__XSPEC__");
 
+#ifdef WITH_XSPEC_STATIC_LINKED
+   (void) SLdefine_for_ifdef ("__XSPEC_STATIC_LINKED__");
+#endif
+
 #ifdef HAVE_XSPEC_12
    (void) SLdefine_for_ifdef ("__HAVE_XSPEC_12__");
 #endif

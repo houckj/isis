@@ -23,11 +23,12 @@
 %   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 %
 
+#ifndef __XSPEC_STATIC_LINKED__
 #ifdef __XSPEC__
 #stop
 #endif
-
 import ("xspec");
+#endif
 
 private variable Model_File;    % path to .so file
 
