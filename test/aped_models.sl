@@ -350,4 +350,77 @@ check_value ("brightest line flux from O VIII Ly alpha lookup",
              [0.2772986393051501,
               0.27665615025627893]);
 
+private define xaped_hook (id)
+{
+   return struct {contrib_flag = MODEL_CONTIN, line_list};
+}
+private define check_trace_element_contin_abundance_scaling (temp, dens, elements, abund)
+{
+   variable lo, hi, n = 8192;
+   (lo,hi) = linear_grid (1,20,n);
+
+   variable true_sum = Double_Type[n],
+     pseudo_sum = Double_Type[n];
+
+   variable i, ne = length(elements);
+   _for i (0, ne-1, 1)
+     {
+        variable Z = elements[i];
+        variable p = get_contin (lo, hi, temp, dens, Z);
+        true_sum += p.true * abund[i];
+        pseudo_sum += p.pseudo * abund[i];
+     }
+
+   variable c_sum = true_sum + pseudo_sum;
+
+   variable s = default_plasma_state ();
+   s.temperature = temp;
+   s.density = dens;
+   s.elem = elements,
+   s.elem_abund = abund,
+   create_aped_fun ("xaped", s, &xaped_hook);
+   fit_fun ("xaped");
+   variable c = 1.e-14 * eval_fun (lo, hi);
+
+   if (any (c < 0 or c_sum < 0))
+     throw ApplicationError, "negative continuum values!!??";
+
+   i = where (c != 0);
+   variable max_abs_rel_diff = max(abs(1.0 - c_sum[i] / c[i]));
+
+#iffalse
+   ylog;
+   hplot (lo,hi,c);
+   ohplot (lo, hi, c_sum);
+   plot_pause;
+#endif
+
+   return max_abs_rel_diff;
+}
+
+private variable elements, abund;
+if (result_index == 1)
+{
+   variable max_Z = 28;
+   elements = [1:max_Z];
+   abund = Double_Type[max_Z];
+   abund[1-1] = 1.0;  %  H: Z=1
+   abund[2-1] = 1.0;  % He: Z=2
+   abund[6-1] = 10;   %  C: Z=6
+   abund[8-1] = 10;   %  O: Z=8
+}
+else if (result_index == 0)
+{
+   elements = [ H, He,  C,N, O,Ne,Mg,Al,Si,S,Ar,Ca,Fe,Ni];
+   abund =    [1., 1., 10,0,10, 0, 0, 0, 0,0, 0, 0, 0, 0];
+}
+
+variable max_abs_rel_diff;
+variable temp = 1.e7, dens=1.0,
+max_abs_rel_diff = check_trace_element_contin_abundance_scaling
+                                     (temp, dens, elements, abund);
+if (max_abs_rel_diff > 1.e-6)
+throw ApplicationError,
+   "max_abs_rel_diff = $max_abs_rel_diff, expected <~5e-08"$;
+
 msg ("ok\n");

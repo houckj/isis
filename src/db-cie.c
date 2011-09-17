@@ -3227,6 +3227,7 @@ static int interpolate_cont_emis (EM_t *em, EM_cont_select_t *s,  /*{{{*/
    EM_cont_emis_t *t;
    float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PROTON_NUMBER+1];
    float f_abund[ISIS_MAX_PROTON_NUMBER+1];
+   float abund_factor, weight;
    int found_Z[ISIS_MAX_PROTON_NUMBER+1];
    int alt_ioniz, alt_abund, missing_total_continuum;
    int iz, iz0, iz1;
@@ -3286,6 +3287,8 @@ static int interpolate_cont_emis (EM_t *em, EM_cont_select_t *s,  /*{{{*/
             f_ioniz[i][j] = 1.0;
      }
 
+   /* fprintf (stderr, "interpolate_cont_emis: s->Z = %d  s->q = %d\n", s->Z, s->q); */
+
    iz0 = iz1 = s->Z;     /* by default, execute iz, iq loop bodies */
    iq0 = iq1 = s->q;     /* once only */
 
@@ -3295,48 +3298,32 @@ static int interpolate_cont_emis (EM_t *em, EM_cont_select_t *s,  /*{{{*/
         iz0 = 1; iz1 = ISIS_MAX_PROTON_NUMBER;
      }
 
-   /* calling routine zeros r->(stuff) */
-
-   for (i = 0; i < n; i++)               /* loop over interpolation points */
+   for (i = 0; i < n; i++)
      {
-        float abund_factor;
-
-        iz = iz0;
-
-        abund_factor = f_abund[iz] * ((iz == 0) ? 1 : s->rel_abun[iz]);
-        if (abund_factor <= 0)
-          continue;
-
-        do
+        for (iz = iz0; iz <= iz1; iz++)
           {
+             abund_factor = f_abund[iz] * s->rel_abun[iz];
+             if (abund_factor <= 0)
+               continue;
+
              if (s->q < 0 && alt_ioniz)
                {
                   iq0 = 0;   iq1 = iz;
                }
 
-             iq = iq0;
-             do
+             for (iq = iq0; iq <= iq1; iq++)
                {
-                  float weight;
-
-                  if (NULL != (t = find_cont_type (table[i], iz, iq)))
-                    {
-                       found_something = 1;
-                       found_Z[iz] = 1;
-
-                       weight = coef[i] * abund_factor;
-                       if (iq >= 0)
-                         weight *= f_ioniz[iz][iq];
-
-                       if (-1 == add_cont_contrib (r, t, weight))
-                         return -1;
-                    }
-
-                  iq++;
-               } while (iq < iq1);        /* end loop over ions */
-
-             iz++;
-          } while (iz <= iz1);            /* end loop over elements */
+                  if (NULL == (t = find_cont_type (table[i], iz, iq)))
+                    continue;
+                  found_something = 1;
+                  found_Z[iz] = 1;
+                  weight = coef[i] * abund_factor;
+                  if (iq >= 0)
+                    weight *= f_ioniz[iz][iq];
+                  if (-1 == add_cont_contrib (r, t, weight))
+                    return -1;
+               }
+          }
      }
 
    for (i = 1; i <= ISIS_MAX_PROTON_NUMBER; i++)
