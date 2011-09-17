@@ -398,16 +398,21 @@ private define check_trace_element_contin_abundance_scaling (temp, dens, element
    return max_abs_rel_diff;
 }
 
-private variable elements, abund;
+private variable elements, abund, max_abs_rel_diff, max_Z,
+  temp, dens = 1.0;
+
+% low T test:
+temp = 1.e7;
+
 if (result_index == 1)
 {
-   variable max_Z = 28;
+   max_Z = 28;
    elements = [1:max_Z];
    abund = Double_Type[max_Z];
-   abund[1-1] = 1.0;  %  H: Z=1
-   abund[2-1] = 1.0;  % He: Z=2
-   abund[6-1] = 10;   %  C: Z=6
-   abund[8-1] = 10;   %  O: Z=8
+   abund[ H-1] = 1.0;
+   abund[He-1] = 1.0;
+   abund[ C-1] = 10;
+   abund[ O-1] = 10;
 }
 else if (result_index == 0)
 {
@@ -415,12 +420,37 @@ else if (result_index == 0)
    abund =    [1., 1., 10,0,10, 0, 0, 0, 0,0, 0, 0, 0, 0];
 }
 
-variable max_abs_rel_diff;
-variable temp = 1.e7, dens=1.0,
 max_abs_rel_diff = check_trace_element_contin_abundance_scaling
                                      (temp, dens, elements, abund);
+%vmessage ("max_abs_rel_diff = $max_abs_rel_diff"$);
 if (max_abs_rel_diff > 1.e-6)
 throw ApplicationError,
-   "max_abs_rel_diff = $max_abs_rel_diff, expected <~5e-08"$;
+   "temp = $temp:  max_abs_rel_diff = $max_abs_rel_diff, expected <~5e-08"$;
+
+% high T test:
+temp = 7.e7;
+
+if (result_index == 1)
+{
+   max_Z = 28;
+   elements = [1:max_Z];
+   abund = Double_Type[max_Z];
+   abund[ H-1] = 1.0;
+   abund[He-1] = 1.0;
+   abund[ S-1] = 100;
+   abund[Fe-1] = 100;
+}
+else if (result_index == 0)
+{
+   elements = [ H, He, C,N,O,Ne,Mg,Al,Si, S,Ar,Ca,Fe,Ni];
+   abund =    [1., 1., 0,0,0, 0, 0, 0, 0,10, 0, 0,10, 0];
+}
+
+max_abs_rel_diff = check_trace_element_contin_abundance_scaling
+                                     (temp, dens, elements, abund);
+%vmessage ("max_abs_rel_diff = $max_abs_rel_diff"$);
+if (max_abs_rel_diff > 1.e-6)
+throw ApplicationError,
+   "temp = $temp,  max_abs_rel_diff = $max_abs_rel_diff, expected <~5e-08"$;
 
 msg ("ok\n");
