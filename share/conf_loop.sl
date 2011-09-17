@@ -470,6 +470,10 @@ public define conf_loop()
           break;
      }
 
+   % evaluate the model to make sure dependencies associated
+   % with tied parameters, etc. are fully resolved
+   () = eval_counts (&info;; __qualifiers);
+
    if (save != 0  && num_retries <= max_num_retries)
      {
         save_par_limits (ordered_indices,
