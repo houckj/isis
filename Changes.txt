@@ -76,6 +76,26 @@ Changes since 1.6.1 (released Jul 2010)
 43.  add_slang_statistic now provides delta_is_chisqr qualifier
 44.  list_par prints function name even when there are no parameters
 45.  Provide xspec_config_hook
+46.  *** Fix bug in apec spectral models introduced in 1.6.1-19
+     (Oct 2010).
+
+     This bug effectively removed the relative abundance
+     scaling factor from continuum spectral components in apec
+     spectral models defined using create_aped_fun.  In other
+     words, continuum components in such models reflected only
+     the default cosmic abundance. Any additional abundance
+     scaling factor was not being applied to the continuum.
+     This bug is most important for model spectra that include
+     significant continuum contributions from trace elements.
+     For example, low temperature spectra (T<3.e7 K) with
+     non-default abundances of C, O, and Ne were most affected
+     because they contain significant continuum emission from
+     recombination continua of C, O, and Ne. High temperature
+     spectra were much less affected because their continua are
+     strongly bremsstrahlung dominated.
+
+     Along with the bug-fix a new regression test has been added
+     to prevent any reoccurrence of this problem.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
