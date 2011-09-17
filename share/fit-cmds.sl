@@ -593,7 +593,7 @@ __set_hard_limits (index, hard_min, hard_max);\n\
 
 define __set_fitfun_post_hook () %{{{
 {
-   variable msg = "__set_fitfun_post_hook (String_Type instance_name, Ref_Type hook)";
+   variable msg = "__set_fitfun_post_hook (String_Type name, Ref_Type hook)";
 
    if (_isis->chk_num_args (_NARGS, 2, msg))
      return;
@@ -601,6 +601,20 @@ define __set_fitfun_post_hook () %{{{
    variable name, hook;
    (name, hook) = ();
    _isis->set_fitfun_post_hook (hook, name);
+}
+
+%}}}
+
+define __set_fitfun_trace_hook () %{{{
+{
+   variable msg = "__set_fitfun_trace_hook (String_Type name, Ref_Type hook)";
+
+   if (_isis->chk_num_args (_NARGS, 2, msg))
+     return;
+
+   variable name, hook;
+   (name, hook) = ();
+   _isis->set_fitfun_trace_hook (hook, name);
 }
 
 %}}}

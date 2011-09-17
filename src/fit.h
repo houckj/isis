@@ -62,6 +62,7 @@ extern int Fit_get_fun_par (Fit_Fun_t *ff, char *par_name);
 extern void Fit_get_fun_info (char *name);
 extern int Fit_is_valid_fit_fun (Fit_Fun_t *ff_test);
 extern int Fit_set_fun_post_hook (char *fun_name);
+extern int Fit_set_fun_trace_hook (char *fun_name);
 
 struct _Fit_Param_t
 {
@@ -100,6 +101,7 @@ struct _Fit_Fun_t
    Isis_Arg_Type *slangfun_param_default_args;
    SLang_Name_Type *slangfun_diff_eval;
 
+   SLang_Name_Type *trace_hook;
    SLang_Name_Type *post_hook;
 
    int (*set_param_hard_limits)(Fit_Fun_t *, unsigned int, int, double, double, double, double, double);

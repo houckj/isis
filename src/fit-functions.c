@@ -659,6 +659,7 @@ static void free_fit_fun (Fit_Fun_t *ff) /*{{{*/
 
    (*ff->destroy_fun)(ff);
 
+   SLang_free_function (ff->trace_hook);
    SLang_free_function (ff->post_hook);
    ISIS_FREE (ff->name);
    ISIS_FREE (ff->unit);
@@ -701,6 +702,7 @@ static Fit_Fun_t *new_fit_fun (unsigned int num_args) /*{{{*/
    ff->slangfun_param_default = NULL;
    ff->slangfun_param_default_args = NULL;
    ff->post_hook = NULL;
+   ff->trace_hook = NULL;
 
    ff->set_param_hard_limits = &set_cfun_param_hard_limits;
 
@@ -1722,6 +1724,39 @@ int Fit_set_fun_post_hook (char *fun_name)
 
    SLang_free_function (ff->post_hook);
    ff->post_hook = hook;
+
+   return 0;
+}
+
+int Fit_set_fun_trace_hook (char *fun_name)
+{
+   Fit_Fun_t *ff;
+   SLang_Name_Type *hook = NULL;
+
+   if (NULL == (ff = find_function (Fit_Fun, fun_name)))
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "function '%s' does not exist", fun_name);
+        return -1;
+     }
+
+   if (SLANG_REF_TYPE == SLang_peek_at_stack ())
+     {
+        hook = SLang_pop_function ();
+     }
+   else if (SLANG_NULL_TYPE == SLang_peek_at_stack ())
+     {
+        (void) SLang_pop_null ();
+        hook = NULL;
+     }
+   else
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "expected a function reference or NULL");
+        isis_throw_exception (Isis_Error);
+        return -1;
+     }
+
+   SLang_free_function (ff->trace_hook);
+   ff->trace_hook = hook;
 
    return 0;
 }

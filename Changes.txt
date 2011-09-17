@@ -96,6 +96,7 @@ Changes since 1.6.1 (released Jul 2010)
 
      Along with the bug-fix a new regression test has been added
      to prevent any reoccurrence of this problem.
+47.  Added __set_fitfun_trace_hook
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------

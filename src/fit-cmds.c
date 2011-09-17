@@ -1312,11 +1312,37 @@ static int diff_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra
 }
 /*}}}*/
 
+static int call_fitfun_trace_hook (Fit_Fun_t *ff, int fun_id, double *par) /*{{{*/
+{
+   SLang_Array_Type *sl_par = NULL;
+
+   if (ff->trace_hook == NULL)
+     return 0;
+
+   sl_par = SLang_create_array (SLANG_DOUBLE_TYPE, 1, NULL, (int *)&ff->nparams, 1);
+   if (sl_par != NULL)
+     memcpy ((char *)sl_par->data, (char *)par, ff->nparams * sizeof(double));
+
+   if ((-1 == SLang_start_arg_list ())
+       || (-1 == SLang_push_integer (fun_id))
+       || (-1 == SLang_push_array (sl_par, 1)))
+     {
+        SLang_end_arg_list ();
+        SLang_free_array (sl_par);
+        isis_throw_exception (Isis_Error);
+        return -1;
+     }
+   SLang_end_arg_list ();
+
+   return SLexecute_function (ff->trace_hook);
+}
+
+/*}}}*/
+
 static int bin_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra_args, SLang_Struct_Type *qualifiers) /*{{{*/
 {
    double *par = NULL;
    Isis_Hist_t *g;
-   int ret;
 
    (void) num_extra_args;
 
@@ -1349,10 +1375,17 @@ static int bin_eval (Fit_Fun_t *ff, unsigned int fun_id, unsigned int num_extra_
      }
    else par = NULL;
 
-   ret = (*ff->bin_eval_method)(ff, g, par, qualifiers);
-   if (ret) SLang_push_double (1.0);
+   if (((ff->trace_hook != NULL)
+        && (-1 == call_fitfun_trace_hook (ff, fun_id, par)))
+       || (-1 == (*ff->bin_eval_method)(ff, g, par, qualifiers)))
+     {
+        SLang_push_double (1.0);
+        ISIS_FREE (par);
+        return -1;
+     }
+
    ISIS_FREE (par);
-   return ret;
+   return 0;
 }
 /*}}}*/
 
@@ -5014,6 +5047,7 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
    MAKE_INTRINSIC_1("get_fitfun_handle_intrin", push_mmt_fitfun_type_intrin, V, S),
    MAKE_INTRINSIC_1("get_fitfun_info", Fit_get_fun_info, V, S),
    MAKE_INTRINSIC_1("set_fitfun_post_hook", Fit_set_fun_post_hook, V, S),
+   MAKE_INTRINSIC_1("set_fitfun_trace_hook", Fit_set_fun_trace_hook, V, S),
    MAKE_INTRINSIC_4("set_hard_limits", Fit_set_hard_limits, I, S, S, I, I),
    MAKE_INTRINSIC("open_fit_object_mmt_intrin", open_fit_object_mmt_intrin, V, 0),
    MAKE_INTRINSIC_2("fobj_eval_statistic", fobj_eval_statistic, V, MTO, I),

@@ -13759,7 +13759,7 @@ Example:
 {\_\_set\_fitfun\_post\_hook}
 {Set a hook to be called after evaluating a model component}
 {\_\_set\_fitfun\_post\_hook (String\_Type fitfun\_name, Ref\_Type hook)}%
-{}
+{\_\_set\_fitfun\_trace\_hook}
 \begin{verbatim}
 Example:
    __set_fitfun_post_hook ("warmabs", &post_hook);
@@ -13775,6 +13775,28 @@ and \verb|id| is the instance of that fit-function.  For example,
 if the hook is called after \verb|warmabs(2)| is evaluated, then
 \verb|fun_name| will have the value \verb|"warmabs"| and \verb|id|
 will have the value \verb|2|.
+\end{isisfunction}
+
+\begin{isisfunction}
+{\_\_set\_fitfun\_trace\_hook}
+{Set a hook to be called before evaluating a model component}
+{\_\_set\_fitfun\_trace\_hook (String\_Type fitfun\_name, Ref\_Type hook)}%
+{\_\_set\_fitfun\_post\_hook}
+\begin{verbatim}
+Example:
+   __set_fitfun_trace_hook ("warmabs", &trace_hook);
+\end{verbatim}
+The hook function must be of the form:
+\begin{verbatim}
+  define trace_hook (id, params)
+  {
+  }
+\end{verbatim}
+where \verb|id| is the instance of the fit-function that is about to be
+called. For example, if the hook is called before \verb|warmabs(2)| is
+evaluated, then \verb|id| will have the value \verb|2| and \verb|params| will
+contain a \verb|Double_Type| array of all the parameters being passed to the
+function.
 \end{isisfunction}
 
 \begin{isisfunction}

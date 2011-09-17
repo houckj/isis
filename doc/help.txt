@@ -12893,7 +12893,35 @@ __set_fitfun_post_hook
     will have the value "warmabs" and id will have the value 2.
 
  SEE ALSO
-    
+    __set_fitfun_trace_hook
+
+------------------------------------------------------------------------
+__set_fitfun_trace_hook
+
+ SYNOPSIS
+    Set a hook to be called before evaluating a model component
+
+ USAGE
+    __set_fitfun_trace_hook (String_Type fitfun_name, Ref_Type hook)
+
+ DESCRIPTION
+    Example:
+       __set_fitfun_trace_hook ("warmabs", &trace_hook);
+
+    The hook function must be of the form:
+
+      define trace_hook (id, params)
+      {
+      }
+
+    where id is the instance of the fit-function that is about to
+    be called. For example, if the hook is called before warmabs(2)
+    is evaluated, then id will have the value 2 and params will
+    contain a Double_Type array of all the parameters being passed
+    to the function.
+
+ SEE ALSO
+    __set_fitfun_post_hook
 
 ------------------------------------------------------------------------
 __set_hard_limits
