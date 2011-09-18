@@ -24,31 +24,44 @@ variable conv = Assoc_Type[];
 conv ["gsmooth"] = "";
 conv ["lsmooth"] = "";
 conv ["reflect"] = "";
+conv ["ireflect"] = "";
 conv ["rgsxsrc"] = "";
 conv ["kdblur"] = "";
 conv ["kdblur2"] = "";
 conv ["rdblur"] = "";
-%conv ["kerrconv"] = "";
+conv ["kerrconv"] = "";
 conv ["partcov"] = "";
 conv ["simpl"] = "";
 conv ["cflux"] = "";
+conv ["zashift"] = "";
+conv ["zmshift"] = "";
 
-% FIXME - what's up with these?
 variable skip = Assoc_Type[];
-% skip ["equil"] = "";
-% skip ["kerrd"] = "";
-skip ["plcabs"] = "";
-% skip ["smaug"] = "";
-skip ["rgsxsrc"] = "";
-skip ["ezdiskbb"] = "";
-skip ["gnei"] = "";
-skip ["kerrdisk"] = "";
-skip ["kerrconv"] = "";  % convolution model
-skip ["nsmax"] = "";
+skip ["compth"] = "segv";
+skip ["eqpair"] = "segv";
+skip ["eqtherm"] = "segv";
 
-%skip ["sedov"] = "";   % causes invalid read
-%skip ["srcut"] = "";   % causes invalid read?
-%skip ["sresc"] = "";   % causes invalid read?
+skip ["kerrconv"] = "array bounds violation";
+skip ["compPS"] = "array bounds violation";
+skip ["meka"] = "array bounds violation";
+skip ["vmeka"] = "array bounds violation";
+skip ["sedov"] = "array bounds violation";
+skip ["vsedov"] = "array bounds violation";
+skip ["pcfabs"] = "array bounds violation";
+skip ["zpcfabs"] = "array bounds violation";
+skip ["phabs"] = "array bounds violation";
+skip ["vphabs"] = "array bounds violation";
+skip ["zphabs"] = "array bounds violation";
+skip ["zvphabs"] = "array bounds violation";
+skip ["varabs"] = "array bounds violation";
+skip ["zvarabs"] = "array bounds violation";
+skip ["wndabs"] = "array bounds violation";
+skip ["zwndabs"] = "array bounds violation";
+skip ["zvfeabs"] = "array bounds violation";
+
+skip ["plcabs"] = "invalid parameter defaults";
+skip ["kerrdisk"] = "invalid parameter defaults";
+skip ["nsmax"] = "invalid parameter defaults";
 
 % Note that c6mekl and c6vmekl compute a DEM which is
 % not constrained to be positive.
@@ -63,10 +76,10 @@ foreach (names)
 
    if (assoc_key_exists (skip,n))
      {
-        vmessage ("skipping %s",n);
+        vmessage ("skipping %s  (expect: %s)",n, skip[n]);
         continue;
      }
-   else message (n);
+   else vmessage ("'%s'", n);
 
    if (assoc_key_exists (conv, n))
      fit_fun (n + "(1,mekal(1))");
