@@ -912,7 +912,7 @@ int Model_spectrum (Model_t *h, Model_Info_Type *info, /*{{{*/
    if (info->ionpop_modifier != NULL)
      {
         int n = ISIS_MAX_PROTON_NUMBER+1;
-        if (NULL == (ionpop_new = ISIS_MALLOC (n*n*sizeof(float))))
+        if (NULL == (ionpop_new = (float *) ISIS_MALLOC (n*n*sizeof(float))))
           goto finish;
         memset ((char *)ionpop_new, 0, n*n*sizeof(float));
      }

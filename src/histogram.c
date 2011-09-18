@@ -2353,7 +2353,7 @@ static char *read_file_keyword (cfitsfile *fp, const char *keyname, const char *
    return isis_make_string (buf);
 #else
    if ((0 == access (buf, F_OK))
-       || (NULL == (slash = strrchr (filename, '/')))
+       || (NULL == (slash = strrchr ((char *)filename, '/')))
        || (NULL == (dir = isis_make_string (filename))))
      {
         return isis_make_string (buf);

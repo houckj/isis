@@ -1317,15 +1317,15 @@ static void xs_noneq (void) /*{{{*/
 
    memset ((char *)fout, 0, nionp*sizeof(float));
 
-   if (   (NULL == (vr    = ISIS_MALLOC (sizeof(double) * nzmax*nzmax*ntp)))
-       || (NULL == (vl    = ISIS_MALLOC (sizeof(double) * nzmax*nzmax*ntp)))
-       || (NULL == (eig   = ISIS_MALLOC (sizeof(double) * nzmax*ntp)))
-       || (NULL == (feqb  = ISIS_MALLOC (sizeof(double) * nzpmax*ntp)))
-       || (NULL == (feqs  = ISIS_MALLOC (sizeof(double) * (nzpmax + 1))))
-       || (NULL == (fs    = ISIS_MALLOC (sizeof(double) * (nzpmax + 1))))
-       || (NULL == (fspec = ISIS_MALLOC (sizeof(double) * nzmax)))
-       || (NULL == (work  = ISIS_MALLOC (sizeof(double) * nzmax)))
-       || (NULL == (lt    = ISIS_MALLOC (sizeof(int) * ntp)))
+   if (   (NULL == (vr    = (double *) ISIS_MALLOC (sizeof(double) * nzmax*nzmax*ntp)))
+       || (NULL == (vl    = (double *) ISIS_MALLOC (sizeof(double) * nzmax*nzmax*ntp)))
+       || (NULL == (eig   = (double *) ISIS_MALLOC (sizeof(double) * nzmax*ntp)))
+       || (NULL == (feqb  = (double *) ISIS_MALLOC (sizeof(double) * nzpmax*ntp)))
+       || (NULL == (feqs  = (double *) ISIS_MALLOC (sizeof(double) * (nzpmax + 1))))
+       || (NULL == (fs    = (double *) ISIS_MALLOC (sizeof(double) * (nzpmax + 1))))
+       || (NULL == (fspec = (double *) ISIS_MALLOC (sizeof(double) * nzmax)))
+       || (NULL == (work  = (double *) ISIS_MALLOC (sizeof(double) * nzmax)))
+       || (NULL == (lt    = (int *) ISIS_MALLOC (sizeof(int) * ntp)))
       )
      {
         SLang_set_error (Isis_Error);
