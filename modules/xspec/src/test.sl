@@ -37,10 +37,7 @@ conv ["zashift"] = "";
 conv ["zmshift"] = "";
 
 variable skip = Assoc_Type[];
-skip ["compth"] = "segv";
-skip ["eqpair"] = "segv";
-skip ["eqtherm"] = "segv";
-
+#iffalse
 skip ["kerrconv"] = "array bounds violation";
 skip ["compPS"] = "array bounds violation";
 skip ["meka"] = "array bounds violation";
@@ -58,6 +55,7 @@ skip ["zvarabs"] = "array bounds violation";
 skip ["wndabs"] = "array bounds violation";
 skip ["zwndabs"] = "array bounds violation";
 skip ["zvfeabs"] = "array bounds violation";
+#endif
 
 skip ["plcabs"] = "invalid parameter defaults";
 skip ["kerrdisk"] = "invalid parameter defaults";
