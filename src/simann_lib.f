@@ -1,7 +1,7 @@
-      SUBROUTINE SIMANN(FCN,N,X,MAX,RT,EPS,NS,NT,NEPS,MAXEVL,LB,UB,C,
-     &  IPRINT,
-     1              ISEED1,ISEED2,T,VM,XOPT,FOPT,NACC,NFCNEV,NOBDS,IER,
-     2              FSTAR,XP,NACP)
+      SUBROUTINE isisSIMANN(FCN,N,X,MAX,RT,EPS,NS,NT,NEPS,MAXEVL,LB,
+     &  UB,C,IPRINT,
+     &              ISEED1,ISEED2,T,VM,XOPT,FOPT,NACC,NFCNEV,NOBDS,IER,
+     &              FSTAR,XP,NACP)
 
 C  Version: 3.2
 C  Date: 1/22/94.
@@ -266,13 +266,13 @@ C  Type all internal variables.
       LOGICAL  QUIT
 
 C  Type all functions.
-      DOUBLE PRECISION  EXPREP
-      REAL  RANMAR
+      DOUBLE PRECISION  isis_EXPREP
+      REAL  isis_ranmar
 Cjch pass FCN as a parameter and declare external.
       EXTERNAL FCN
 
 C  Initialize the random number generator RANMAR.
-      CALL RMARIN(ISEED1,ISEED2)
+      CALL isis_RMARIN(ISEED1,ISEED2)
 
 C  Set initial values.
       NACC = 0
@@ -302,7 +302,7 @@ C  If the initial value is out of bounds, notify the user and return
 C  to the calling routine.
       DO 30, I = 1, N
          IF ((X(I) .GT. UB(I)) .OR. (X(I) .LT. LB(I))) THEN
-            CALL PRT1
+            CALL isis_PRT1
             IER = 2
             RETURN
          END IF
@@ -318,7 +318,7 @@ C  to eliminate any possible confusion for the user.
       NFCNEV = NFCNEV + 1
       FOPT = F
       FSTAR(1) = F
-      IF(IPRINT .GE. 1) CALL PRT2(MAX,N,X,F)
+      IF(IPRINT .GE. 1) CALL isis_PRT2(MAX,N,X,F)
 
 C  Start the main loop. Note that it terminates if (i) the algorithm
 C  succesfully optimizes the function or (ii) there are too many
@@ -336,17 +336,17 @@ C  function evaluations (more than MAXEVL).
 C  Generate XP, the trial value of X. Note use of VM to choose XP.
                DO 110, I = 1, N
                   IF (I .EQ. H) THEN
-                     XP(I) = X(I) + (RANMAR()*2.- 1.) * VM(I)
+                     XP(I) = X(I) + (isis_ranmar()*2.- 1.) * VM(I)
                   ELSE
                      XP(I) = X(I)
                   END IF
 
 C  If XP is out of bounds, select a point in bounds for the trial.
                   IF((XP(I) .LT. LB(I)) .OR. (XP(I) .GT. UB(I))) THEN
-                    XP(I) = LB(I) + (UB(I) - LB(I))*RANMAR()
+                    XP(I) = LB(I) + (UB(I) - LB(I))*isis_ranmar()
                     LNOBDS = LNOBDS + 1
                     NOBDS = NOBDS + 1
-                    IF(IPRINT .GE. 3) CALL PRT3(MAX,N,XP,X,FP,F)
+                    IF(IPRINT .GE. 3) CALL isis_PRT3(MAX,N,XP,X,FP,F)
                   END IF
 110            CONTINUE
 
@@ -354,11 +354,11 @@ C  Evaluate the function with the trial point XP and return as FP.
                CALL FCN(N,XP,FP)
                IF(.NOT. MAX) FP = -FP
                NFCNEV = NFCNEV + 1
-               IF(IPRINT .GE. 3) CALL PRT4(MAX,N,XP,X,FP,F)
+               IF(IPRINT .GE. 3) CALL isis_PRT4(MAX,N,XP,X,FP,F)
 
 C  If too many function evaluations occur, terminate the algorithm.
                IF(NFCNEV .GE. MAXEVL) THEN
-                  IF (IPRINT .GE. 3) CALL PRT5
+                  IF (IPRINT .GE. 3) CALL isis_PRT5
                   IF (.NOT. MAX) FOPT = -FOPT
                   IER = 1
                   RETURN
@@ -392,10 +392,10 @@ C  If greater than any other point, record as new optimum.
 C  If the point is lower, use the Metropolis criteria to decide on
 C  acceptance or rejection.
                ELSE
-                  P = EXPREP((FP - F)/T)
-                  PP = RANMAR()
+                  P = isis_EXPREP((FP - F)/T)
+                  PP = isis_ranmar()
                   IF (PP .LT. P) THEN
-                     IF(IPRINT .GE. 3) CALL PRT6(MAX)
+                     IF(IPRINT .GE. 3) CALL isis_PRT6(MAX)
                      DO 140, I = 1, N
                         X(I) = XP(I)
 140                  CONTINUE
@@ -405,7 +405,7 @@ C  acceptance or rejection.
                      NDOWN = NDOWN + 1
                   ELSE
                      NREJ = NREJ + 1
-                     IF(IPRINT .GE. 3) CALL PRT7(MAX)
+                     IF(IPRINT .GE. 3) CALL isis_PRT7(MAX)
                   END IF
                END IF
 
@@ -426,7 +426,7 @@ C  Adjust VM so that approximately half of all evaluations are accepted.
 310      CONTINUE
 
          IF(IPRINT .GE. 2) THEN
-            CALL PRT8(N,VM,XOPT,X)
+            CALL isis_PRT8(N,VM,XOPT,X)
          END IF
 
          DO 320, I = 1, N
@@ -436,7 +436,7 @@ C  Adjust VM so that approximately half of all evaluations are accepted.
 400   CONTINUE
 
       IF(IPRINT .GE. 1) THEN
-         CALL PRT9(MAX,N,T,XOPT,VM,FOPT,NUP,NDOWN,NREJ,LNOBDS,NNEW)
+         CALL isis_PRT9(MAX,N,T,XOPT,VM,FOPT,NUP,NDOWN,NREJ,LNOBDS,NNEW)
       END IF
 
 C  Check termination criteria.
@@ -454,7 +454,7 @@ C  Terminate SA if appropriate.
 420      CONTINUE
          IER = 0
          IF (.NOT. MAX) FOPT = -FOPT
-         IF(IPRINT .GE. 1) CALL PRT10
+         IF(IPRINT .GE. 1) CALL isis_PRT10
          RETURN
       END IF
 
@@ -473,26 +473,26 @@ C  Loop again.
 
       END
 
-      FUNCTION  EXPREP(RDUM)
+      FUNCTION  isis_EXPREP(RDUM)
 C  This function replaces exp to avoid under- and overflows and is
 C  designed for IBM 370 type machines. It may be necessary to modify
 C  it for other machines. Note that the maximum and minimum values of
 C  EXPREP are such that they has no effect on the algorithm.
 
-      DOUBLE PRECISION  RDUM, EXPREP
+      DOUBLE PRECISION  RDUM, isis_EXPREP
 
       IF (RDUM .GT. 174.) THEN
-         EXPREP = 3.69D+75
+         isis_EXPREP = 3.69D+75
       ELSE IF (RDUM .LT. -180.) THEN
-         EXPREP = 0.0
+         isis_EXPREP = 0.0
       ELSE
-         EXPREP = EXP(RDUM)
+         isis_EXPREP = EXP(RDUM)
       END IF
 
       RETURN
       END
 
-      subroutine RMARIN(IJ,KL)
+      subroutine isis_RMARIN(IJ,KL)
 C  This subroutine and the next function generate random numbers. See
 C  the comments for SA for more information. The only changes from the
 C  orginal code is that (1) the test to make sure that RMARIN runs first
@@ -544,7 +544,7 @@ C                                                      0 <= KL <= 30081
       return
       end
 
-      function ranmar()
+      function isis_ranmar()
       real U(97), C, CD, CM
       integer I97, J97
       common /raset1/ U, C, CD, CM, I97, J97
@@ -559,11 +559,11 @@ C                                                      0 <= KL <= 30081
          if( C .lt. 0.0 ) C = C + CM
          uni = uni - C
          if( uni .lt. 0.0 ) uni = uni + 1.0
-         RANMAR = uni
+         isis_ranmar = uni
       return
       END
 
-      SUBROUTINE PRT1
+      SUBROUTINE isis_PRT1
 C  This subroutine prints intermediate output, as does PRT2 through
 C  PRT10. Note that if SA is minimizing the function, the sign of the
 C  function value and the directions (up/down) are reversed in all
@@ -579,14 +579,14 @@ C  it minimizes by maximizing the negative a function.
       RETURN
       END
 
-      SUBROUTINE PRT2(MAX,N,X,F)
+      SUBROUTINE isis_PRT2(MAX,N,X,F)
 
       DOUBLE PRECISION  X(*), F
       INTEGER  N
       LOGICAL  MAX
 
       WRITE(*,'(''  '')')
-      CALL PRTVEC(X,N,'INITIAL X')
+      CALL isis_PRTVEC(X,N,'INITIAL X')
       IF (MAX) THEN
          WRITE(*,'(''  INITIAL F: '',/, G25.18)') F
       ELSE
@@ -596,47 +596,47 @@ C  it minimizes by maximizing the negative a function.
       RETURN
       END
 
-      SUBROUTINE PRT3(MAX,N,XP,X,FP,F)
+      SUBROUTINE isis_PRT3(MAX,N,XP,X,FP,F)
 
       DOUBLE PRECISION  XP(*), X(*), FP, F
       INTEGER  N
       LOGICAL  MAX
 
       WRITE(*,'(''  '')')
-      CALL PRTVEC(X,N,'CURRENT X')
+      CALL isis_PRTVEC(X,N,'CURRENT X')
       IF (MAX) THEN
          WRITE(*,'(''  CURRENT F: '',G25.18)') F
       ELSE
          WRITE(*,'(''  CURRENT F: '',G25.18)') -F
       END IF
-      CALL PRTVEC(XP,N,'TRIAL X')
+      CALL isis_PRTVEC(XP,N,'TRIAL X')
       WRITE(*,'(''  POINT REJECTED SINCE OUT OF BOUNDS'')')
 
       RETURN
       END
 
-      SUBROUTINE PRT4(MAX,N,XP,X,FP,F)
+      SUBROUTINE isis_PRT4(MAX,N,XP,X,FP,F)
 
       DOUBLE PRECISION  XP(*), X(*), FP, F
       INTEGER  N
       LOGICAL  MAX
 
       WRITE(*,'(''  '')')
-      CALL PRTVEC(X,N,'CURRENT X')
+      CALL isis_PRTVEC(X,N,'CURRENT X')
       IF (MAX) THEN
          WRITE(*,'(''  CURRENT F: '',G25.18)') F
-         CALL PRTVEC(XP,N,'TRIAL X')
+         CALL isis_PRTVEC(XP,N,'TRIAL X')
          WRITE(*,'(''  RESULTING F: '',G25.18)') FP
       ELSE
          WRITE(*,'(''  CURRENT F: '',G25.18)') -F
-         CALL PRTVEC(XP,N,'TRIAL X')
+         CALL isis_PRTVEC(XP,N,'TRIAL X')
          WRITE(*,'(''  RESULTING F: '',G25.18)') -FP
       END IF
 
       RETURN
       END
 
-      SUBROUTINE PRT5
+      SUBROUTINE isis_PRT5
 
       WRITE(*,'(/,''  TOO MANY FUNCTION EVALUATIONS; CONSIDER ''
      1          /,''  INCREASING MAXEVL OR EPS, OR DECREASING ''
@@ -646,7 +646,7 @@ C  it minimizes by maximizing the negative a function.
       RETURN
       END
 
-      SUBROUTINE PRT6(MAX)
+      SUBROUTINE isis_PRT6(MAX)
 
       LOGICAL  MAX
 
@@ -659,7 +659,7 @@ C  it minimizes by maximizing the negative a function.
       RETURN
       END
 
-      SUBROUTINE PRT7(MAX)
+      SUBROUTINE isis_PRT7(MAX)
 
       LOGICAL  MAX
 
@@ -672,22 +672,23 @@ C  it minimizes by maximizing the negative a function.
       RETURN
       END
 
-      SUBROUTINE PRT8(N,VM,XOPT,X)
+      SUBROUTINE isis_PRT8(N,VM,XOPT,X)
 
       DOUBLE PRECISION  VM(*), XOPT(*), X(*)
       INTEGER  N
 
       WRITE(*,'(/,
      1  '' INTERMEDIATE RESULTS AFTER STEP LENGTH ADJUSTMENT'',/)')
-      CALL PRTVEC(VM,N,'NEW STEP LENGTH (VM)')
-      CALL PRTVEC(XOPT,N,'CURRENT OPTIMAL X')
-      CALL PRTVEC(X,N,'CURRENT X')
+      CALL isis_PRTVEC(VM,N,'NEW STEP LENGTH (VM)')
+      CALL isis_PRTVEC(XOPT,N,'CURRENT OPTIMAL X')
+      CALL isis_PRTVEC(X,N,'CURRENT X')
       WRITE(*,'('' '')')
 
       RETURN
       END
 
-      SUBROUTINE PRT9(MAX,N,T,XOPT,VM,FOPT,NUP,NDOWN,NREJ,LNOBDS,NNEW)
+      SUBROUTINE isis_PRT9(MAX,N,T,XOPT,VM,FOPT,NUP,NDOWN,NREJ,LNOBDS,
+     &  NNEW)
 
       DOUBLE PRECISION  XOPT(*), VM(*), T, FOPT
       INTEGER  N, NUP, NDOWN, NREJ, LNOBDS, NNEW, TOTMOV
@@ -715,21 +716,21 @@ C  it minimizes by maximizing the negative a function.
          WRITE(*,'(''  TRIALS OUT OF BOUNDS:       '',I8)')  LNOBDS
          WRITE(*,'(''  NEW MINIMA THIS TEMPERATURE:'',I8)')  NNEW
       END IF
-      CALL PRTVEC(XOPT,N,'CURRENT OPTIMAL X')
-      CALL PRTVEC(VM,N,'STEP LENGTH (VM)')
+      CALL isis_PRTVEC(XOPT,N,'CURRENT OPTIMAL X')
+      CALL isis_PRTVEC(VM,N,'STEP LENGTH (VM)')
       WRITE(*,'('' '')')
 
       RETURN
       END
 
-      SUBROUTINE PRT10
+      SUBROUTINE isis_PRT10
 
       WRITE(*,'(/,''  SA ACHIEVED TERMINATION CRITERIA. IER = 0. '',/)')
 
       RETURN
       END
 
-      SUBROUTINE PRTVEC(VECTOR,NCOLS,NAME)
+      SUBROUTINE isis_PRTVEC(VECTOR,NCOLS,NAME)
 C  This subroutine prints the double precision vector named VECTOR.
 C  Elements 1 thru NCOLS will be printed. NAME is a character variable
 C  that describes VECTOR. Note that if NAME is given in the call to

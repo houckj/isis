@@ -57,7 +57,7 @@ extern "C"
 #if 0
 }
 #endif
-#define SIMANN_FC FC_FUNC(simann,SIMANN)
+#define SIMANN_FC FC_FUNC(isissimann,ISISSIMANN)
 typedef void simann_fun_type (int npars, double *pars, double *val);
 extern void SIMANN_FC (simann_fun_type *fcn,
                        int *n, double *x, int *max, double *rt, double *eps,

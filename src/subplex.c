@@ -63,7 +63,7 @@ extern "C"
 #if 0
 }
 #endif
-#define SUBPLX_FC FC_FUNC(subplx,SUBPLX)
+#define SUBPLX_FC FC_FUNC(isissubplx,ISISSUBPLX)
 typedef double subplx_fun_type (int *num, double *pars);
 extern void SUBPLX_FC(subplx_fun_type *f, int *n, double *tol, int *maxnfe,
                       int *mode, double *scale, double *x, double *fx,

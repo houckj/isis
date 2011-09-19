@@ -1,5 +1,5 @@
-      subroutine subplx (f,n,tol,maxnfe,mode,scale,x,fx,nfe,
-     *                   work,iwork,iflag)
+      subroutine isissubplx (f,n,tol,maxnfe,mode,scale,x,fx,nfe,
+     &                   work,iwork,iflag)
 c
       integer n,maxnfe,mode,nfe,iwork(*),iflag
       double precision f,tol,scale(*),x(n),fx,work(*)
@@ -104,9 +104,10 @@ c
 c
 c subroutines and functions
 c
-      external f,sortd,evalf,partx,setstp,simplx,subopt
+      external f,isis_sortd,isis_evalf,isis_partx,isis_setstp
+      external isis_simplx,isis_subopt
 c   blas
-      external dcopy
+      external isis_dcopy
 c   fortran
       intrinsic abs,mod
 c
@@ -136,7 +137,7 @@ c
    20     continue
         end if
         if (mod(mode/2,2) .eq. 0) then
-          call subopt (n)
+          call isis_subopt (n)
         else
           if (alpha .le. 0.d0) go to 120
           if (beta .le. 0.d0 .or. beta .ge. 1.d0) go to 120
@@ -162,11 +163,11 @@ c
         ifsptr = isptr+nsmax*(nsmax+3)
         insptr = n+1
         if (scale(1) .gt. 0.d0) then
-          call dcopy (n,scale,1,work,1)
-          call dcopy (n,scale,1,work(istptr),1)
+          call isis_dcopy (n,scale,1,work,1)
+          call isis_dcopy (n,scale,1,work(istptr),1)
         else
-          call dcopy (n,scl,0,work,1)
-          call dcopy (n,scl,0,work(istptr),1)
+          call isis_dcopy (n,scl,0,work,1)
+          call isis_dcopy (n,scl,0,work(istptr),1)
         end if
         do 30 i = 1,n
           iwork(i) = i
@@ -191,7 +192,7 @@ c
         cmode = .false.
         new = .true.
         initx = .true.
-        call evalf (f,0,iwork,dum,n,x,sfx,nfe)
+        call isis_evalf (f,0,iwork,dum,n,x,sfx,nfe)
         initx = .false.
       else
 c
@@ -222,9 +223,9 @@ c
         do 50 i = 1,n
           work(i) = abs(work(i))
    50   continue
-        call sortd (n,work,iwork)
-        call partx (n,iwork,work,nsubs,iwork(insptr))
-        call dcopy (n,x,1,work,1)
+        call isis_sortd (n,work,iwork)
+        call isis_partx (n,iwork,work,nsubs,iwork(insptr))
+        call isis_dcopy (n,x,1,work,1)
         ins = insptr
         insfnl = insptr+nsubs-1
         ipptr = 1
@@ -234,7 +235,7 @@ c
    60   continue
           ns = iwork(ins)
    70     continue
-          call simplx (f,n,work(istptr),ns,iwork(ipptr),
+          call isis_simplx (f,n,work(istptr),ns,iwork(ipptr),
      *                 maxnfe,cmode,x,sfx,nfe,work(isptr),
      *                 work(ifsptr),iflag)
           cmode = .false.
@@ -258,7 +259,7 @@ c
         do 100 i = 1,n
           if (max(abs(work(i)),abs(work(istep))*psi)/
      *        max(abs(x(i)),1.d0) .gt. tol) then
-            call setstp (nsubs,n,work,work(istptr))
+            call isis_setstp (nsubs,n,work,work(istptr))
             go to 40
           end if
           istep = istep+1
@@ -281,7 +282,7 @@ c
       iflag = -2
       return
       end
-      subroutine calcc (ns,s,ih,inew,updatc,c)
+      subroutine isis_calcc (ns,s,ih,inew,updatc,c)
 c
       integer ns,ih,inew
       double precision s(ns,ns+3),c(ns)
@@ -323,7 +324,7 @@ c
 c subroutines and functions
 c
 c   blas
-      external daxpy,dcopy,dscal
+      external isis_daxpy,isis_dcopy,isis_dscal
 c
 c-----------------------------------------------------------
 c
@@ -333,15 +334,15 @@ c
           c(i) = c(i)+(s(i,inew)-s(i,ih))/ns
    10   continue
       else
-        call dcopy (ns,0.d0,0,c,1)
+        call isis_dcopy (ns,0.d0,0,c,1)
         do 20 j = 1,ns+1
-          if (j .ne. ih) call daxpy (ns,1.d0,s(1,j),1,c,1)
+          if (j .ne. ih) call isis_daxpy (ns,1.d0,s(1,j),1,c,1)
    20   continue
-        call dscal (ns,1.d0/ns,c,1)
+        call isis_dscal (ns,1.d0/ns,c,1)
       end if
       return
       end
-      double precision function dasum(n,dx,incx)
+      double precision function isis_dasum(n,dx,incx)
 c
 c     takes the sum of the absolute values.
 c     uses unrolled loops for increment equal to one.
@@ -352,7 +353,7 @@ cjch      double precision dx(1),dtemp
       double precision dx(*),dtemp
       integer i,incx,ix,m,mp1,n
 c
-      dasum = 0.0d0
+      isis_dasum = 0.0d0
       dtemp = 0.0d0
       if(n.le.0)return
       if(incx.eq.1)go to 20
@@ -365,7 +366,7 @@ c
         dtemp = dtemp + dabs(dx(ix))
         ix = ix + incx
    10 continue
-      dasum = dtemp
+      isis_dasum = dtemp
       return
 c
 c        code for increment equal to 1
@@ -384,10 +385,10 @@ c
         dtemp = dtemp + dabs(dx(i)) + dabs(dx(i + 1)) + dabs(dx(i + 2))
      *  + dabs(dx(i + 3)) + dabs(dx(i + 4)) + dabs(dx(i + 5))
    50 continue
-   60 dasum = dtemp
+   60 isis_dasum = dtemp
       return
       end
-      subroutine daxpy(n,da,dx,incx,dy,incy)
+      subroutine isis_daxpy(n,da,dx,incx,dy,incy)
 c
 c     constant times a vector plus a vector.
 c     uses unrolled loops for increments equal to one.
@@ -435,7 +436,7 @@ c
    50 continue
       return
       end
-      subroutine  dcopy(n,dx,incx,dy,incy)
+      subroutine isis_dcopy(n,dx,incx,dy,incy)
 c
 c     copies a vector, x, to a vector, y.
 c     uses unrolled loops for increments equal to one.
@@ -485,7 +486,7 @@ c
    50 continue
       return
       end
-      double precision function dist (n,x,y)
+      double precision function isis_dist (n,x,y)
 c
       integer n
       double precision x(n),y(n)
@@ -533,10 +534,10 @@ c
           scale = absxmy
         end if
    10 continue
-      dist = scale*sqrt(sum)
+      isis_dist = scale*sqrt(sum)
       return
       end
-      subroutine  dscal(n,da,dx,incx)
+      subroutine isis_dscal(n,da,dx,incx)
 c
 c     scales a vector by a constant.
 c     uses unrolled loops for increment equal to one.
@@ -581,7 +582,7 @@ c
    50 continue
       return
       end
-      subroutine evalf (f,ns,ips,xs,n,x,sfx,nfe)
+      subroutine isis_evalf (f,ns,ips,xs,n,x,sfx,nfe)
 c
       integer ns,n,nfe
       integer ips(*)
@@ -642,7 +643,7 @@ c
 c
 c subroutines and functions
 c
-      external f,fstats
+      external f,isis_fstats
 c
 c-----------------------------------------------------------
 c
@@ -666,13 +667,13 @@ c
           newbst = fx .gt. ftest
         end if
         if (initx .or. newbst) then
-          if (irepl .eq. 1) call fstats (fx,1,.true.)
+          if (irepl .eq. 1) call isis_fstats (fx,1,.true.)
           ftest = fx
           sfbest = sfx
         end if
       else
         if (irepl .eq. 1) then
-          call fstats (fx,1,.false.)
+          call isis_fstats (fx,1,.false.)
           fx = fxstat(ifxsw)
         end if
         ftest = fx+fbonus*fxstat(4)
@@ -687,7 +688,7 @@ c
       nfe = nfe+1
       return
       end
-      subroutine fstats (fx,ifxwt,reset)
+      subroutine isis_fstats (fx,ifxwt,reset)
 c
       integer ifxwt
       double precision fx
@@ -756,7 +757,7 @@ c
       end if
       return
       end
-      subroutine newpt (ns,coef,xbase,xold,new,xnew,small)
+      subroutine isis_newpt (ns,coef,xbase,xold,new,xnew,small)
 c
       integer ns
       double precision coef,xbase(ns),xold(ns),xnew(*)
@@ -843,7 +844,7 @@ c
       small = eqbase .or. eqold
       return
       end
-      subroutine order (npts,fs,il,is,ih)
+      subroutine isis_order (npts,fs,il,is,ih)
 c
       integer npts,il,is,ih
       double precision fs(npts)
@@ -907,7 +908,7 @@ c
    10 continue
       return
       end
-      subroutine partx (n,ip,absdx,nsubs,nsvals)
+      subroutine isis_partx (n,ip,absdx,nsubs,nsvals)
 c
       integer n,nsubs,nsvals(*)
       integer ip(n)
@@ -1003,7 +1004,7 @@ c
       end if
       return
       end
-      subroutine setstp (nsubs,n,deltax,step)
+      subroutine isis_setstp (nsubs,n,deltax,step)
 c
       integer nsubs,n
       double precision deltax(n),step(n)
@@ -1044,14 +1045,14 @@ c
 c local variables
 c
       integer i
-      double precision dasum,stpfac
+      double precision isis_dasum,stpfac
 c
       save
 c
 c subroutines and functions
 c
 c   blas
-      external dasum,dscal
+      external isis_dasum,isis_dscal
 c   fortran
       intrinsic max,min,sign
 c
@@ -1060,12 +1061,12 @@ c
 c     set new step
 c
       if (nsubs .gt. 1) then
-        stpfac = min(max(dasum(n,deltax,1)/dasum(n,step,1),
+        stpfac = min(max(isis_dasum(n,deltax,1)/isis_dasum(n,step,1),
      *           omega),1.d0/omega)
       else
         stpfac = psi
       end if
-      call dscal (n,stpfac,step,1)
+      call isis_dscal (n,stpfac,step,1)
 c
 c     reorient simplex
 c
@@ -1078,8 +1079,8 @@ c
    10 continue
       return
       end
-      subroutine simplx (f,n,step,ns,ips,maxnfe,cmode,x,fx,
-     *                   nfe,s,fs,iflag)
+      subroutine isis_simplx (f,n,step,ns,ips,maxnfe,cmode,x,fx,
+     &                   nfe,s,fs,iflag)
 c
       integer n,ns,maxnfe,nfe,iflag
       integer ips(ns)
@@ -1158,16 +1159,17 @@ c
 c local variables
 c
       integer i,icent,ih,il,inew,is,itemp,j,npts
-      double precision dist,dum(1),fc,fe,fr,tol
+      double precision isis_dist,dum(1),fc,fe,fr,tol
       logical small,updatc
 c
       save
 c
 c subroutines and functions
 c
-      external f,calcc,dist,evalf,newpt,order,start
+      external f,isis_calcc,isis_dist,isis_evalf,isis_newpt
+      external isis_order,isis_start
 c   blas
-      external dcopy
+      external isis_dcopy
 c   fortran
       intrinsic min
 c
@@ -1178,73 +1180,73 @@ c
       icent = ns+2
       itemp = ns+3
       updatc = .false.
-      call start (n,x,step,ns,ips,s,small)
+      call isis_start (n,x,step,ns,ips,s,small)
       if (small) then
         iflag = 1
         return
       end if
       if (irepl .gt. 0) then
         new = .false.
-        call evalf (f,ns,ips,s(1,1),n,x,fs(1),nfe)
+        call isis_evalf (f,ns,ips,s(1,1),n,x,fs(1),nfe)
       else
         fs(1) = fx
       end if
       new = .true.
       do 10 j = 2,npts
-        call evalf (f,ns,ips,s(1,j),n,x,fs(j),nfe)
+        call isis_evalf (f,ns,ips,s(1,j),n,x,fs(j),nfe)
    10 continue
       il = 1
-      call order (npts,fs,il,is,ih)
-      tol = psi*dist(ns,s(1,ih),s(1,il))
+      call isis_order (npts,fs,il,is,ih)
+      tol = psi*isis_dist(ns,s(1,ih),s(1,il))
 c
 c     main loop
 c
    20 continue
-        call calcc (ns,s,ih,inew,updatc,s(1,icent))
+        call isis_calcc (ns,s,ih,inew,updatc,s(1,icent))
         updatc = .true.
         inew = ih
 c
 c       reflect
 c
-        call newpt (ns,alpha,s(1,icent),s(1,ih),.true.,
+        call isis_newpt (ns,alpha,s(1,icent),s(1,ih),.true.,
      *              s(1,itemp),small)
         if (small) go to 40
-        call evalf (f,ns,ips,s(1,itemp),n,x,fr,nfe)
+        call isis_evalf (f,ns,ips,s(1,itemp),n,x,fr,nfe)
         if (fr .lt. fs(il)) then
 c
 c         expand
 c
-          call newpt (ns,-gamma,s(1,icent),s(1,itemp),
+          call isis_newpt (ns,-gamma,s(1,icent),s(1,itemp),
      *                .true.,s(1,ih),small)
           if (small) go to 40
-          call evalf (f,ns,ips,s(1,ih),n,x,fe,nfe)
+          call isis_evalf (f,ns,ips,s(1,ih),n,x,fe,nfe)
           if (fe .lt. fr) then
             fs(ih) = fe
           else
-            call dcopy (ns,s(1,itemp),1,s(1,ih),1)
+            call isis_dcopy (ns,s(1,itemp),1,s(1,ih),1)
             fs(ih) = fr
           end if
         else if (fr .lt. fs(is)) then
 c
 c         accept reflected point
 c
-          call dcopy (ns,s(1,itemp),1,s(1,ih),1)
+          call isis_dcopy (ns,s(1,itemp),1,s(1,ih),1)
           fs(ih) = fr
         else
 c
 c         contract
 c
           if (fr .gt. fs(ih)) then
-            call newpt (ns,-beta,s(1,icent),s(1,ih),.true.,
+            call isis_newpt (ns,-beta,s(1,icent),s(1,ih),.true.,
      *                  s(1,itemp),small)
           else
-            call newpt (ns,-beta,s(1,icent),s(1,itemp),
+            call isis_newpt (ns,-beta,s(1,icent),s(1,itemp),
      *                  .false.,dum,small)
           end if
           if (small) go to 40
-          call evalf (f,ns,ips,s(1,itemp),n,x,fc,nfe)
+          call isis_evalf (f,ns,ips,s(1,itemp),n,x,fc,nfe)
           if (fc .lt. min(fr,fs(ih))) then
-            call dcopy (ns,s(1,itemp),1,s(1,ih),1)
+            call isis_dcopy (ns,s(1,itemp),1,s(1,ih),1)
             fs(ih) = fc
           else
 c
@@ -1252,16 +1254,16 @@ c           shrink simplex
 c
             do 30 j = 1,npts
               if (j .ne. il) then
-                call newpt (ns,-delta,s(1,il),s(1,j),
+                call isis_newpt (ns,-delta,s(1,il),s(1,j),
      *                      .false.,dum,small)
                 if (small) go to 40
-                call evalf (f,ns,ips,s(1,j),n,x,fs(j),nfe)
+                call isis_evalf (f,ns,ips,s(1,j),n,x,fs(j),nfe)
               end if
    30       continue
           end if
           updatc = .false.
         end if
-        call order (npts,fs,il,is,ih)
+        call isis_order (npts,fs,il,is,ih)
 c
 c       check termination
 c
@@ -1277,7 +1279,7 @@ c
           iflag = 2
         else if (nfe .ge. maxnfe) then
           iflag = -1
-        else if (dist(ns,s(1,ih),s(1,il)) .le. tol .or.
+        else if (isis_dist(ns,s(1,ih),s(1,il)) .le. tol .or.
      *           small) then
           iflag = 0
         else
@@ -1291,7 +1293,7 @@ c
    60 continue
       return
       end
-      subroutine sortd (n,xkey,ix)
+      subroutine isis_sortd (n,xkey,ix)
 c
       integer n
       integer ix(n)
@@ -1357,7 +1359,7 @@ c
       end if
       return
       end
-      subroutine start (n,x,step,ns,ips,s,small)
+      subroutine isis_start (n,x,step,ns,ips,s,small)
 c
       integer n,ns
       integer ips(n)
@@ -1398,7 +1400,7 @@ c
 c subroutines and functions
 c
 c   blas
-      external dcopy
+      external isis_dcopy
 c   fortran
       intrinsic dble
 c
@@ -1408,7 +1410,7 @@ c
         s(i,1) = x(ips(i))
    10 continue
       do 20 j = 2,ns+1
-        call dcopy (ns,s(1,1),1,s(1,j),1)
+        call isis_dcopy (ns,s(1,1),1,s(1,j),1)
         s(j-1,j) = s(j-1,1)+step(ips(j-1))
    20 continue
 c
@@ -1426,7 +1428,7 @@ c
       small = .true.
       return
       end
-      subroutine subopt (n)
+      subroutine isis_subopt (n)
 c
       integer n
 c
