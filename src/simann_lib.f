@@ -479,7 +479,7 @@ C  designed for IBM 370 type machines. It may be necessary to modify
 C  it for other machines. Note that the maximum and minimum values of
 C  EXPREP are such that they has no effect on the algorithm.
 
-      DOUBLE PRECISION  RDUM, isis_EXPREP
+      DOUBLE PRECISION  RDUM
 
       IF (RDUM .GT. 174.) THEN
          isis_EXPREP = 3.69D+75
