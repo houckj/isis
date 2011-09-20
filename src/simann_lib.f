@@ -473,7 +473,7 @@ C  Loop again.
 
       END
 
-      FUNCTION  isis_EXPREP(RDUM)
+      double precision FUNCTION  isis_EXPREP(RDUM)
 C  This function replaces exp to avoid under- and overflows and is
 C  designed for IBM 370 type machines. It may be necessary to modify
 C  it for other machines. Note that the maximum and minimum values of
@@ -544,7 +544,7 @@ C                                                      0 <= KL <= 30081
       return
       end
 
-      function isis_ranmar()
+      real function isis_ranmar()
       real U(97), C, CD, CM
       integer I97, J97
       common /raset1/ U, C, CD, CM, I97, J97
