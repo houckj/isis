@@ -1040,9 +1040,34 @@ static void xs_get_datadir (void) /*{{{*/
 
 static int xs_set_abundance_table (char *name) /*{{{*/
 {
-   int ierr = -1;
+   int ierr = 0;
    if (name == NULL)
      return -1;
+   if (SLANG_NULL_TYPE == SLang_peek_at_stack ())
+     SLdo_pop();
+   else
+     {
+        SLang_Array_Type *sl_abund = NULL;
+        int len = 30;
+        if ((-1 == SLang_pop_array_of_type (&sl_abund, SLANG_FLOAT_TYPE))
+            || (sl_abund == NULL))
+          return -1;
+        if (sl_abund->num_elements != (unsigned int) len)
+          {
+             fprintf (stderr, "*** Error:  abundance array length=%d (should be %d)\n",
+                      sl_abund->num_elements, len);
+             SLang_free_array (sl_abund);
+             return -1;
+          }
+        FPSLFL((float *)sl_abund->data,len,&ierr);
+        SLang_free_array (sl_abund);
+        if (ierr)
+          {
+             fprintf (stderr, "*** Error:  failed initializing new abundance table\n");
+             return -1;
+          }
+        name = "file";
+     }
    /* FPSOLR modifies ierr on return */
    FPSOLR(name, &ierr);
    return ierr ? -1 : 0;

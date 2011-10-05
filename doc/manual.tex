@@ -15075,12 +15075,17 @@ linking errors that may occur.
 \begin{isisfunction}
 {xspec\_abund}
 {Specify the abundance table used by XSPEC models}
-{status = xspec\_abund (name)}
+{status = xspec\_abund (name | abund\_array)}
 {xspec\_xsect}
-If this function is called with no name parameter,
-the name of the current abundance table is returned.
+If this function is called with no name parameter, the name of the current
+abundance table is returned.
 
-See the \xspec\ documentation for details
+See the \xspec\ documentation for details on the accepted values of the
+\verb|name| parameter.
+
+An abundance table may also be specified by providing a 30 element S-Lang
+array of abundance values relative to Hydrogen.
+
 \end{isisfunction}
 
 \begin{isisfunction}

@@ -37,6 +37,7 @@ private variable shared_lib_ext = "so";
   shared_lib_ext = "dylib";
 #endif
 
+require ("readascii");
 require ("parse_model_dat");
 
 private variable _Temp_Xspec_Link_Errors, _Xspec_Link_Errors;
@@ -858,10 +859,34 @@ define add_etable_model () %{{{
 
 define xspec_abund () %{{{
 {
-   if (_NARGS == 1)
-     _xs_set_abundances ();
-   else
-     _xs_get_abundances ();
+   variable msg =
+`Usage:
+  table_name = xspec_abund();
+  status = xspec_abund (name)
+            where name is an xspec table name or
+            where name has the form "file ascii_filename"
+  status = xspec_abund (Float_Type[30])
+`;
+
+   if (_NARGS == 0)
+     return _xs_get_abundances ();
+
+   variable arg = ();
+
+   if (typeof(arg) == Array_Type)
+     return _xs_set_abundances (typecast (arg, Float_Type), "file");
+
+   if (typeof(arg) != String_Type)
+     usage (msg);
+
+   if (0 != strncmp (arg, "file", 4))
+     return _xs_set_abundances (NULL, arg);
+
+   variable abund, n, file = arg[[5:]];
+   if (readascii (file, &abund; format="%f") < 0)
+     throw IOError, "*** error reading $file"$;
+
+   return _xs_set_abundances (abund, "file");
 }
 
 %}}}

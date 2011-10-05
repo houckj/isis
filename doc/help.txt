@@ -13981,13 +13981,18 @@ xspec_abund
     Specify the abundance table used by XSPEC models
 
  USAGE
-    status = xspec_abund (name)
+    status = xspec_abund (name | abund_array)
 
  DESCRIPTION
     If this function is called with no name parameter, the name of
     the current abundance table is returned.
 
-    See the XSPEC documentation for details
+    See the XSPEC documentation for details on the accepted values
+    of the name parameter.
+
+    An abundance table may also be specified by providing a 30
+    element S-Lang array of abundance values relative to Hydrogen.
+
 
  SEE ALSO
     xspec_xsect
