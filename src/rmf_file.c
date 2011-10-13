@@ -1113,7 +1113,7 @@ static void free_hist (double *lo, double *hi, double *h) /*{{{*/
 /*}}}*/
 
 static int break_into_groups (double *rmf, unsigned int num, /*{{{*/
-                              unsigned int *n_grp, int *f_chan, int *n_chan,
+                              unsigned int *n_grp, int *f_chan, int *n_chan, int num_chan,
                               double threshold)
 {
    unsigned int i;
@@ -1136,6 +1136,12 @@ static int break_into_groups (double *rmf, unsigned int num, /*{{{*/
                && (rmf[i] > threshold))
           i++;
 
+        if (num_groups == num_chan)
+          {
+             isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "break_into_groups:  too many groups");
+             return -1;
+          }
+
         n_chan[num_groups] = (int) (i - first_chan);
         f_chan[num_groups] = first_chan;
 
@@ -1149,13 +1155,13 @@ static int break_into_groups (double *rmf, unsigned int num, /*{{{*/
 /*}}}*/
 
 static int store_rmf_histogram (double *h, unsigned int num, unsigned int offset, /*{{{*/
-                                double threshold, int *f_chan, int *n_chan,
+                                double threshold, int *f_chan, int *n_chan, int num_chan,
                                 Rmf_Vector_t *v)
 {
    unsigned int i, n_grp;
    Rmf_Element_t *elem;
 
-   if (-1 == break_into_groups (h + offset, num, &n_grp, f_chan, n_chan, threshold))
+   if (-1 == break_into_groups (h + offset, num, &n_grp, f_chan, n_chan, num_chan, threshold))
      return -1;
 
    v->num_grps = n_grp;
@@ -1327,7 +1333,7 @@ static int rebin_rmf (Isis_Rmf_t *rmf, double *wv_lo, double *wv_hi, unsigned in
         /* Re-using the file threshold here causes problems.
          * The simplest solution is to use a zero threshold. */
         if (-1 == store_rmf_histogram (new_h, new_h_num, i_new_start,
-                                       0.0, f_chan, n_chan, new_v + i))
+                                       0.0, f_chan, n_chan, new_num, new_v + i))
           goto return_error;
 
         memset ((char *)new_h+i_new_start, 0, new_h_num * sizeof (double));
@@ -1603,7 +1609,7 @@ int Rmf_load_slang (Isis_Rmf_t *rmf, void *options) /*{{{*/
              goto return_error;
           }
         if (-1 == store_rmf_histogram ((double *)at_rmf->data, num_data_bins, 0,
-                                       info->threshold, f_chan, n_chan,
+                                       info->threshold, f_chan, n_chan, num_data_bins,
                                        cd->v + i))
           {
              SLang_free_array (at_rmf);
