@@ -88,6 +88,7 @@ Changes since 1.6.1 (released Jul 2010)
 48.  To avoid fortran global namespace collisions, prefixed
      all internal isis fortran symbols with 'isis_'.
 49.  xspec_abund wasn't working with user-defined abundance tables.
+50.  Simplify xspec model symbol lookup.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
