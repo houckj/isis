@@ -122,7 +122,7 @@ static define parse_model_table ();
 private define load_shared_model_table (buf)
 {
    variable names;
-   names = parse_model_table (buf, 1, &load_xspec_symbol);
+   names = parse_model_table (buf, 1, &load_xspec_symbol, 0);
    return names;
 }
 
@@ -274,7 +274,7 @@ static define mangle_name (m, name) %{{{
 
 %}}}
 
-static define parse_model_table (t, mangle, load_symbol_ref) %{{{
+static define parse_model_table (t, mangle, load_symbol_ref, lookup_by_model_name) %{{{
 {
    variable buf = t.buf;
 
@@ -311,26 +311,22 @@ static define parse_model_table (t, mangle, load_symbol_ref) %{{{
 	  continue;
 
         choose_exec_symbol_hook (m);
-
         xspec_clear_link_errors ();
 
-        variable nm, try_names;
-        try_names = [m.model_name, m.routine_name];
+        variable lookup_name = (lookup_by_model_name ?
+                                m.model_name : m.routine_name);
         if (mangle)
           {
-             try_names = array_map (String_Type, &mangle_name, m, try_names);
+             lookup_name = mangle_name (m, lookup_name);
           }
-        foreach nm (try_names)
-          {
-             m.exec_symbol = (@load_symbol_ref) (nm);
-             if (m.exec_symbol != NULL)
-               break;
-          }
+
+        m.exec_symbol = (@load_symbol_ref) (lookup_name);
 	if (m.exec_symbol == NULL)
           {
              % save recent link errors only if load ultimately failed
              xspec_keep_link_errors();
-             vmessage ("failed loading %s/%s", m.model_name, m.routine_name);
+             vmessage ("Error loading symbol %s for model %s",
+                       lookup_name, m.model_name);
              continue;
           }
 
@@ -663,7 +659,7 @@ private define try_loading_local_models () %{{{
    Model_Dat = path_concat (dirs[0], "lmodel.dat");
    if (NULL != stat_file (Model_Dat))
      {
-        () = parse_model_table (load_buf (Model_Dat, NULL), 0, &find_xspec_fun);
+        () = parse_model_table (load_buf (Model_Dat, NULL), 0, &find_xspec_fun, 0);
      }
 }
 
@@ -674,7 +670,7 @@ private define load_xspec_models () %{{{
 {
    % load static models first
    Model_Dat = find_model_dat_file ("$HEADAS"$, Xspec_Version);
-   () = parse_model_table (load_buf (Model_Dat, NULL), 0, &find_xspec_fun);
+   () = parse_model_table (load_buf (Model_Dat, NULL), 0, &find_xspec_fun, 1);
 
    try_loading_local_models ();
 }
