@@ -1941,6 +1941,11 @@ static int read_string_column_data (fitsfile *f, int is_var, long repeat, unsign
 }
 
 /* Usage: read_cols (ft, [columns...], firstrow, nrows, &ref) */
+/* TODO: Add support for the following calling convention:
+ *    read_cols (ft, [columns...], [rows], &ref)
+ * Here rows is an integer-valued array that specifies what rows to be
+ * read.
+ */
 static int read_cols (void)
 {
    SLang_MMT_Type *mmt;

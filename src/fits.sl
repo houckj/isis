@@ -483,6 +483,7 @@ private define get_column_numbers (fp, col_list, casesen);
 private define get_column_numbers (fp, col_list, casesen)
 {
    variable column_nums = Int_Type[0];
+
    foreach (col_list)
      {
 	variable col = ();
@@ -900,7 +901,7 @@ define fits_read_cell ()
      usage ("x = fits_read_cell (file, c, r)");
 
    (fp, c, r) = ();
-   variable fpinfo = open_read_cols (fp, c;; __qualifiers);
+   variable fpinfo = open_read_cols (fp, [c] ;; __qualifiers);
 
    variable a = read_cols (fpinfo, r, r);
    variable dims, nd; (dims,nd,) = array_info (a);
@@ -959,7 +960,7 @@ define fits_get_num_cols ()
 %!%+
 %\function{fits_read_row}
 %\synopsis{Read a row from a FITS binary table}
-%\usage{Struct_Type fits_read_cell (file, r)}
+%\usage{Struct_Type fits_read_row (file, r)}
 %#v+
 %   Fits_File_Type or String_Type file;
 %   Int_Type r;

@@ -16,3 +16,4 @@ Changes since 0.4.6
 9. src/Makefile.in: generate cfitsio.h to include fitsio.h to ensure
    that the specified fitsio.h file is picked up.  Unfortunately,
    fitsio.h is often scattered all over the filesystem.
+10. src/fits.sl: Fixed a regression in fits_read_cell
