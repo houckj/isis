@@ -14438,6 +14438,14 @@ structure.
 {Struct\_Type = fork\_slave (Ref\_Type task [, args] [; qualifiers])} %usage
 {append\_slave, manage\_slaves, \_num\_cpus, send\_msg, recv\_msg, send\_objs, recv\_objs}
 
+\begin{verbatim}
+Qualifiers:
+  ctrl_c_kills_slaves   If present, then hitting ctrl-c will
+                        immediately kill all slave processes
+                        (even if the ctrl-c occurs outside of
+                        the manage_slaves call).
+\end{verbatim}
+
 This function creates a copy of the current isis process and
 executes the function referenced by \verb|task| using the
 remaining parameters, if any.  The \verb|task| function should
@@ -14490,10 +14498,31 @@ to \verb|fork_slave|.
 {manage\_slaves (List\_Type, Ref\_Type message\_handler [; qualifiers])} %usage
 {append\_slave, \_num\_cpus, fork\_slave, manage\_slaves}
 
-This function uses the provided message handler to manage
-communications between the master and slave processes until all
-the slave processes exit.  If non-\verb|NULL|, the message
-handler function should have the form:
+\begin{verbatim}
+Qualifiers:
+  while_=Ref_Type   Provide a reference to a boolean function that
+                    will return zero to indicate when manage_slaves
+                    should return, leaving all slave processes running.
+                    Note that the condition tested normally requires
+                    input from the slave processes.
+
+  timeout=time_sec  Specify a maximum time-out interval for the
+                    master process to use when waiting for input
+                    from the slave processes.
+                    By default, timeout=-1, meaning that the
+                    master should wait indefinitely until input
+                    from a slave appears. timeout=0 means
+                    don't wait for input from the slaves.
+                    timeout=t means wait at most `t'
+                    seconds for input from the slaves.
+                    For details, see the man page for `select'.
+\end{verbatim}
+
+The \verb|manage_slaves| function uses the provided message
+handler to manage communications between the master and slave
+processes until all the slave processes exit.  If
+non-\verb|NULL|, the message handler function should have the
+form:
 \begin{verbatim}
    define message_handler (slave, message)
    {
@@ -14563,10 +14592,10 @@ and the \verb|while_| function returns non-zero.  When the
 the \verb|manage_slaves| function will return, leaving the
 slave processes running.
 
-For a detailed example of how the \verb|while_| qualifier
-can be used to implement the three-section loop described
-above, look at the implementation of the \verb|plm|
-fit-method (\verb|isis/share/plm.sl|).
+For a detailed example of how the \verb|while_| qualifier can
+be used to implement the three-section loop described above,
+look at the implementation of the \verb|plm| fit-method
+(\verb|isis/share/plm.sl|).
 
 \end{isisfunction}
 

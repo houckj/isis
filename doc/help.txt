@@ -13627,6 +13627,12 @@ fork_slave
     Struct_Type = fork_slave (Ref_Type task [, args] [; qualifiers])
 
  DESCRIPTION
+    Qualifiers:
+      ctrl_c_kills_slaves   If present, then hitting ctrl-c will
+                            immediately kill all slave processes
+                            (even if the ctrl-c occurs outside of
+                            the manage_slaves call).
+
     This function creates a copy of the current isis process and
     executes the function referenced by task using the remaining
     parameters, if any.  The task function should have the form
@@ -13692,10 +13698,28 @@ manage_slaves
     manage_slaves (List_Type, Ref_Type message_handler [; qualifiers])
 
  DESCRIPTION
-    This function uses the provided message handler to manage
-    communications between the master and slave processes until all
-    the slave processes exit.  If non-NULL, the message handler
-    function should have the form:
+    Qualifiers:
+      while_=Ref_Type   Provide a reference to a boolean function that
+                        will return zero to indicate when manage_slaves
+                        should return, leaving all slave processes running.
+                        Note that the condition tested normally requires
+                        input from the slave processes.
+
+      timeout=time_sec  Specify a maximum time-out interval for the
+                        master process to use when waiting for input
+                        from the slave processes.
+                        By default, timeout=-1, meaning that the
+                        master should wait indefinitely until input
+                        from a slave appears. timeout=0 means
+                        don't wait for input from the slaves.
+                        timeout=t means wait at most `t'
+                        seconds for input from the slaves.
+                        For details, see the man page for `select'.
+
+    The manage_slaves function uses the provided message handler to
+    manage communications between the master and slave processes
+    until all the slave processes exit.  If non-NULL, the message
+    handler function should have the form:
 
        define message_handler (slave, message)
        {
