@@ -54,9 +54,9 @@ variable
    SLAVE_RESULT  =  103;
 
 private variable User_Message_Handler;
-private variable Slaves_Running;
+private variable Slaves_Running = 0;
 private variable Slaves_Were_Replaced;
-private variable Sigchld_Received;
+private variable Sigchld_Received = 0;
 private variable Verbose = 0;
 private variable Ctrl_C_Kills_Slaves;
 
