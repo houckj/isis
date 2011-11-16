@@ -58,6 +58,7 @@ private variable Slaves_Running;
 private variable Slaves_Were_Replaced;
 private variable Sigchld_Received;
 private variable Verbose = 0;
+private variable Ctrl_C_Kills_Slaves;
 
 private define slave_is_active (s)
 {
@@ -317,7 +318,9 @@ private define pending_messages (slaves)
           return socks.fp[i];
      }
 
-   variable ss = select (socks.fd, NULL, NULL, -1);
+   variable timeout = qualifier ("timeout", -1);
+
+   variable ss = select (socks.fd, NULL, NULL, timeout);
    if (ss == NULL)
      throw IOError, "pending_messages:  error on socket";
 
@@ -377,6 +380,8 @@ define fork_slave ()
 
    variable func_ref = ();
 
+   Ctrl_C_Kills_Slaves = qualifier_exists ("ctrl_c_kills_slaves");
+
    variable parent_pid = getpid();
    check_fork_permission (parent_pid);
 
@@ -403,9 +408,12 @@ define fork_slave ()
    if (pid == 0)
      {
         % child
-        if (parent_pid == Initial_Pid)
-          () = setpgid (0, 0);
-        else () = setpgid (0, parent_pid);
+        ifnot (Ctrl_C_Kills_Slaves)
+          {
+             if (parent_pid == Initial_Pid)
+               () = setpgid (0, 0);
+             else () = setpgid (0, parent_pid);
+          }
         signal (SIGINT, SIG_DFL);
         signal (SIGCHLD, SIG_DFL);
         if (Do_Sigtest) catch_sigusr1();
@@ -450,7 +458,10 @@ define fork_slave ()
 
 private define handle_pending_messages (slaves)
 {
-   variable fp_set = pending_messages (slaves);
+   variable fp_set = pending_messages (slaves ;; __qualifiers);
+   if (fp_set == NULL)
+     return;
+
    variable i, num_fp = length(fp_set);
 
    Slaves_Were_Replaced = 0;
