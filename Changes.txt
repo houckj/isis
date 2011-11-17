@@ -89,6 +89,8 @@ Changes since 1.6.1 (released Jul 2010)
      all internal isis fortran symbols with 'isis_'.
 49.  xspec_abund wasn't working with user-defined abundance tables.
 50.  Simplify xspec model symbol lookup.
+51.  fork_slaves, manage_slaves provide more control options
+     through new qualifiers.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
