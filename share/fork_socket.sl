@@ -823,33 +823,6 @@ define __fs_unpack ()
    return x;
 }
 
-private variable Types =
-{
-   Char_Type, UChar_Type,
-   Integer_Type, UInteger_Type, Long_Type, ULong_Type,
-   Float_Type, Double_Type,
-   String_Type, BString_Type,
-   Null_Type, Struct_Type, Assoc_Type, List_Type
-};
-
-private define datatype (i)
-{
-   return Types[i];
-}
-
-private define datatype_index (object)
-{
-   variable i, n = length(Types);
-
-   _for i (0, n-1, 1)
-     {
-        if (_typeof (object) == Types[i])
-          return i;
-     }
-
-   return NULL;
-}
-
 private define recv_basic (fp, type)
 {
    variable num_dims, dims;
@@ -966,7 +939,7 @@ private define recv_item (fp)
    variable type_index, type, item;
 
    type_index = read_array (fp, 1, Integer_Type)[0];
-   type = datatype(type_index);
+   type = __datatype(type_index);
 
    switch (type)
      {case Struct_Type:  item = recv_struct (fp);}
@@ -975,13 +948,27 @@ private define recv_item (fp)
      {case String_Type:  item = recv_string (fp);}
      {case Null_Type:    item = recv_null (fp);}
      {
+      case DataType_Type:
+        item = __datatype (recv_basic (fp, Int_Type));
+     }
+     {
+      case Complex_Type:
+        item = recv_struct (fp);
+        item = item.real + 1i * item.imag;
+     }
+     {
       case Array_Type:
         switch (_typeof(item))
           {case Struct_Type:  item = recv_struct (fp);}
           {case String_Type:  item = recv_string (fp);}
           {case Null_Type:    item = recv_null (fp);}
           {
-             item = recv_basic (fp);
+           case Complex_Type:
+             item = recv_struct (fp);
+             item = item.real + 1i * item.imag;
+          }
+          {
+             item = recv_basic (fp, _typeof(item));
           }
      }
      {
@@ -998,7 +985,7 @@ private define send_list();
 
 private define send_item (fp, item)
 {
-   variable type_index = datatype_index (item);
+   variable type_index = __class_id (_typeof(item));
 
    if (write_array (fp, type_index) < 0)
      return -1;
@@ -1012,11 +999,23 @@ private define send_item (fp, item)
      {case String_Type:  status = send_string (fp, item);}
      {case Null_Type:    status = send_null (fp, item);}
      {
+      case DataType_Type:
+        status = send_basic (fp, __class_id(item));
+     }
+     {
+      case Complex_Type:
+        status = send_struct (fp, struct {real=Real(item),imag=Imag(item)});
+     }
+     {
       case Array_Type:
         switch (_typeof(item))
           {case Struct_Type:   status = send_struct (fp, item);}
           {case String_Type:   status = send_string (fp, item);}
           {case Null_Type:     status = send_null (fp, item);}
+          {
+           case Complex_Type:
+             status = send_struct (fp, struct {real=Real(item),imag=Imag(item)});
+          }
           {
              status = send_basic (fp, item);
           }
