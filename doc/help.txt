@@ -9573,7 +9573,7 @@ conf_loop
     serial                        If present, perform computations on
                                   a single CPU.
 
-    See multicore for more details on controlling parallel
+    See parallel for more details on controlling parallel
     processes.
 
     For example, this:
@@ -9585,7 +9585,7 @@ conf_loop
     parameters, saving output in the specified directory.
 
  SEE ALSO
-    conf, multicore
+    conf, parallel
 
 ------------------------------------------------------------------------
 conf_map_counts
@@ -9606,7 +9606,7 @@ conf_map_counts
 
     By default, the computations are done in parallel; use the
     serial qualifier to force the computations to be performed on a
-    single CPU. See multicore for more details on controlling
+    single CPU. See parallel for more details on controlling
     parallel processes.
 
     The parameter indices and an associated uniform grid of values
@@ -9846,7 +9846,7 @@ conf_map_counts
 
  SEE ALSO
     conf_grid, plot_conf, save_conf, load_conf, conf_map_flux,
-    multicore
+    parallel
 
 ------------------------------------------------------------------------
 conf_map_flux
@@ -10560,13 +10560,13 @@ fit_search
 
     On multi-core computers, this function runs in parallel on all
     available compute cores. To force serial execution, use the
-    serial qualifier. See multicore for more details on controlling
+    serial qualifier. See parallel for more details on controlling
     parallel processes.
 
 
  SEE ALSO
     fit_counts, eval_counts, fit_flux, eval_flux, save_par,
-    fit_search_info, multicore
+    fit_search_info, parallel
 
 ------------------------------------------------------------------------
 fit_search_info
@@ -11780,7 +11780,7 @@ plm
 
       set_fit_method ("plm;num_slaves=4;max_loops=200");
 
-    See multicore for more details on controlling parallel
+    See parallel for more details on controlling parallel
     processes.
 
     To see a list of optional parameters, use
@@ -11790,7 +11790,7 @@ plm
 
 
  SEE ALSO
-    optimization, set_fit_method, multicore
+    optimization, set_fit_method, parallel
 
 ------------------------------------------------------------------------
 simann
@@ -13552,7 +13552,7 @@ yshift
     set_kernel, fit_fun
 
 ------------------------------------------------------------------------
-multicore
+parallel
 
  SYNOPSIS
     Controlling multi-core parallel processes
@@ -13585,7 +13585,45 @@ multicore
     values of the Isis_Slaves structure.
 
  SEE ALSO
-    fork_slave, manage_slaves
+    parallel_map, fork_slave, manage_slaves
+
+------------------------------------------------------------------------
+parallel_map
+
+ SYNOPSIS
+    Parallel analogue of array_map
+
+ USAGE
+    [(Return_Values, ...) =] parallel_map ([Return_Types...,] &func, args, ... [; qualifiers])
+
+ DESCRIPTION
+    The interface for parallel_map is almost identical to the
+    interface for array_map; see array_map for details.  The
+    primary difference between array_map and parallel_map is that
+    parallel_map performs the computations in parallel using a
+    number of CPUS.
+
+    EXAMPLE:
+      define slow_function (x, y)
+      {
+         % ... perform expensive computation
+         % yielding 2 results, a(x,y), q(x,y)...
+         return a, q;
+      }
+      (A, Q)= parallel_map (Double_Type, Complex_Type, &slow_function, X, Y);
+
+    EXAMPLE:
+      define compute_and_write_file (file, a, b)
+      {
+          % ...perform expensive computation
+          % and save results to `file'...
+      }
+      parallel_map (Void_Type, &compute_and_write_file,
+                    filename_array, A_array, B_array)
+
+
+ SEE ALSO
+    fork_slave, manage_slaves, parallel
 
 ------------------------------------------------------------------------
 _num_cpus
@@ -13600,7 +13638,7 @@ _num_cpus
 
 
  SEE ALSO
-    append_slave, fork_slave, manage_slaves
+    parallel_map, append_slave, fork_slave, manage_slaves
 
 ------------------------------------------------------------------------
 new_slave_list
@@ -13615,7 +13653,7 @@ new_slave_list
 
 
  SEE ALSO
-    append_slave, fork_slave, manage_slaves
+    parallel_map, append_slave, fork_slave, manage_slaves
 
 ------------------------------------------------------------------------
 fork_slave
@@ -13670,8 +13708,8 @@ fork_slave
 
 
  SEE ALSO
-    append_slave, manage_slaves, _num_cpus, send_msg, recv_msg,
-    send_objs, recv_objs
+    parallel_map, append_slave, manage_slaves, _num_cpus, send_msg,
+    recv_msg, send_objs, recv_objs
 
 ------------------------------------------------------------------------
 append_slave
@@ -13686,7 +13724,7 @@ append_slave
 
 
  SEE ALSO
-    append_slave, fork_slave, manage_slaves
+    parallel_map, fork_slave, manage_slaves
 
 ------------------------------------------------------------------------
 manage_slaves
@@ -13790,7 +13828,7 @@ manage_slaves
 
 
  SEE ALSO
-    append_slave, _num_cpus, fork_slave, manage_slaves
+    parallel_map, append_slave, _num_cpus, fork_slave, manage_slaves
 
 ------------------------------------------------------------------------
 send_msg

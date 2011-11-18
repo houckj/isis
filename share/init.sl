@@ -41,6 +41,7 @@ $1 =
    ,"isisopt"
    ,"group"
    ,"conf_loop"
+   ,"parallel_map"
    ,"model-cmds"
    ,"aped_fun"
 ];

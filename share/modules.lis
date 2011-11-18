@@ -14,6 +14,7 @@ isisprof.sl
 isisstkchk.sl
 mathmisc.sl
 model-cmds.sl
+parallel_map.sl
 physconst.sl
 plm.sl
 plot-cmds.sl

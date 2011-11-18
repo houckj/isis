@@ -10890,7 +10890,7 @@ Example:
 {conf\_loop} %name
 {Generate single-parameter confidence limits for specified parameters} %purpose
 {(min[], max[]) = conf\_loop (params[] [, level [, tolerance]][; qualifiers])} %usage
-{conf, multicore}
+{conf, parallel}
 
 This function calls \verb|conf| to determine single parameter
 confidence limits for a specified list of fit parameters; for
@@ -10919,7 +10919,7 @@ serial                        If present, perform computations on
                               a single CPU.
 \end{verbatim}
 
-See \verb|multicore| for more details on controlling parallel processes.
+See \verb|parallel| for more details on controlling parallel processes.
 
 For example, this:
 \begin{verbatim}
@@ -10934,7 +10934,7 @@ parameters, saving output in the specified directory.
 {conf\_map\_counts} %name
 {Generate a 2D chi-square map for counts data} %purpose
 {Struct\_Type = conf\_map\_counts (Struct\_Type x, Struct\_Type y [, info])} %usage
-{conf\_grid, plot\_conf, save\_conf, load\_conf, conf\_map\_flux, multicore}
+{conf\_grid, plot\_conf, save\_conf, load\_conf, conf\_map\_flux, parallel}
 \index{Confidence Limits!2D maps}
 \index{Confidence Limits!2D maps, log axes}
 
@@ -10947,7 +10947,7 @@ parameter rather than the parameter value itself).
 
 By default, the computations are done in parallel; use the
 \verb|serial| qualifier to force the computations to be
-performed on a single CPU. See \verb|multicore| for more
+performed on a single CPU. See \verb|parallel| for more
 details on controlling parallel processes.
 
 The parameter indices and an associated uniform grid of values
@@ -11737,7 +11737,7 @@ See \verb|eval_fun2| for a usage example.
 {fit\_search} %name
 {Search the fit-parameter space} %purpose
 {best = fit\_search (num, \&ref [; qualifiers])} %usage
-{fit\_counts, eval\_counts, fit\_flux, eval\_flux, save\_par, fit\_search\_info, multicore}
+{fit\_counts, eval\_counts, fit\_flux, eval\_flux, save\_par, fit\_search\_info, parallel}
 
 Use this function to automate the process of exploring the
 fit-parameter space. The first argument specifies the number of
@@ -11790,7 +11790,7 @@ trial), and without saving any parameter files to disk:
 
 On multi-core computers, this function runs in parallel on all
 available compute cores. To force serial execution, use the
-\verb|serial| qualifier. See \verb|multicore| for more details
+\verb|serial| qualifier. See \verb|parallel| for more details
 on controlling parallel processes.
 
 \end{isisfunction}
@@ -12768,7 +12768,7 @@ can be very CPU intensive.
 {plm} %name
 {Parallel Levenberg-Marquardt optimization method} %purpose
 {set\_fit\_method ("plm")} %usage
-{optimization, set\_fit\_method, multicore}
+{optimization, set\_fit\_method, parallel}
 
 This is a parallelized version of the Levenberg-Marquardt
 optimization method. The basic algorithm was derived under the
@@ -12793,7 +12793,7 @@ The number of compute slaves may be specified using the
 \begin{verbatim}
   set_fit_method ("plm;num_slaves=4;max_loops=200");
 \end{verbatim}
-See \verb|multicore| for more details on controlling parallel processes.
+See \verb|parallel| for more details on controlling parallel processes.
 
 To see a list of optional parameters, use
 \begin{verbatim}
@@ -14360,7 +14360,7 @@ dispersed spectra of marginally resolved point sources using
 \end{isisfunction}
 
 \section{Mult-Core Parallel Programming}
-\label{chap:multicore}
+\label{chap:parallel}
 \index{Parallel processing}
 
 \isisx provides a simple interface to support parallel
@@ -14386,10 +14386,10 @@ Interface details for the functions \verb|task| and
 \verb|message\_handler| are defined below.
 
 \begin{isisfunction}
-{multicore}
+{parallel}
 {Controlling multi-core parallel processes} %purpose
 {:} %usage
-{fork\_slave, manage\_slaves}
+{parallel\_map, fork\_slave, manage\_slaves}
 
 A number of aspects of multi-core parallel processing can be
 controlled by setting fields in the \verb|Isis_Slaves|
@@ -14417,10 +14417,43 @@ structure.
 \end{isisfunction}
 
 \begin{isisfunction}
+{parallel\_map}
+{Parallel analogue of {\tt array\_map}} %purpose
+{[(Return\_Values, ...) =] parallel\_map ([Return\_Types...,] \&func, args, ... [; qualifiers])} %usage
+{fork\_slave, manage\_slaves, parallel}
+
+The interface for \verb|parallel_map| is almost identical to
+the interface for \verb|array_map|; see \verb|array_map| for
+details.  The primary difference between \verb|array_map| and
+\verb|parallel_map| is that \verb|parallel_map| performs the
+computations in parallel using a number of CPUS.
+
+\begin{verbatim}
+EXAMPLE:
+  define slow_function (x, y)
+  {
+     % ... perform expensive computation
+     % yielding 2 results, a(x,y), q(x,y)...
+     return a, q;
+  }
+  (A, Q)= parallel_map (Double_Type, Complex_Type, &slow_function, X, Y);
+
+EXAMPLE:
+  define compute_and_write_file (file, a, b)
+  {
+      % ...perform expensive computation 
+      % and save results to `file'...
+  }
+  parallel_map (Void_Type, &compute_and_write_file, 
+                filename_array, A_array, B_array)
+\end{verbatim}
+\end{isisfunction}
+
+\begin{isisfunction}
 {\_num\_cpus} %name
 {Determine the number of available CPUs} %purpose
 {Integer\_Type = \_num\_cpus ()} %usage
-{append\_slave, fork\_slave, manage\_slaves}
+{parallel\_map, append\_slave, fork\_slave, manage\_slaves}
 
 \end{isisfunction}
 
@@ -14428,7 +14461,7 @@ structure.
 {new\_slave\_list} %name
 {Create an empty list to manage slave processes} %purpose
 {List\_Type = new\_slave\_list ()} %usage
-{append\_slave, fork\_slave, manage\_slaves}
+{parallel\_map, append\_slave, fork\_slave, manage\_slaves}
 
 \end{isisfunction}
 
@@ -14436,7 +14469,7 @@ structure.
 {fork\_slave} %name
 {Start a new isis processes running a specified function} %purpose
 {Struct\_Type = fork\_slave (Ref\_Type task [, args] [; qualifiers])} %usage
-{append\_slave, manage\_slaves, \_num\_cpus, send\_msg, recv\_msg, send\_objs, recv\_objs}
+{parallel\_map, append\_slave, manage\_slaves, \_num\_cpus, send\_msg, recv\_msg, send\_objs, recv\_objs}
 
 \begin{verbatim}
 Qualifiers:
@@ -14489,14 +14522,14 @@ to \verb|fork_slave|.
 {append\_slave} %name
 {Append a slave structure to the list of managed slaves} %purpose
 {append\_slave (List\_Type, Struct\_Type)} %usage
-{append\_slave, fork\_slave, manage\_slaves}
+{parallel\_map, fork\_slave, manage\_slaves}
 \end{isisfunction}
 
 \begin{isisfunction}
 {manage\_slaves} %name
 {Manage a list of running slave processes} %purpose
 {manage\_slaves (List\_Type, Ref\_Type message\_handler [; qualifiers])} %usage
-{append\_slave, \_num\_cpus, fork\_slave, manage\_slaves}
+{parallel\_map, append\_slave, \_num\_cpus, fork\_slave, manage\_slaves}
 
 \begin{verbatim}
 Qualifiers:
