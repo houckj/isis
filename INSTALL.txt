@@ -555,51 +555,7 @@ maintained.
 Mac OS X systems:
 ~~~~~~~~~~~~~~~~
 
-- Compiler issues.
-+
-Be sure that your system is up-to-date and that you have the
-latest version of Xcode installed.
-+
-A good source for matching C, C\+\+ and Fortran compilers is: +
-http://hpc.sourceforge.net/
-+
-The gfortran Fortran compiler is recommended -- isis makes
-extensive use of dynamic linking, but the g95 compiler has
-historically provided poor support for it.
-
-- Compiler options.
-+
-It may be necessary to use additional compiler options to specify
-the intended architecture.  For example, to specify 32-bit
-binaries for i386, you may need to use
-.............................................
-     CFLAGS="-m32 -arch i386"
-     FCFLAGS="-m32 -arch i386"
-     CXXFLAGS="-m32 -arch i386"
-     LDFLAGS="-m32"
-.............................................
-
-- Missing libraries
-+
-If your X11 libraries and include files are installed in a
-non-standard location, you may need to provide the location:
-
-.................................................................
-   --x-libraries=/usr/X11/lib  --x-includes=/usr/X11/include
-.................................................................
-
-- Dynamic Linking
-+
-Dynamic linking to shared libraries behaves differently on
-the Mac than on a real unix system.  To avoid problems, be
-sure to install shared libraries whenever possible.
-+
-It is a good idea to avoid having multiple copies of the same
-shared library on your system when those extra copies are in
-directories that will be examined by the compiler when it
-runs. For example, problems may arise if
-'/usr/lib/libslang.dylib' and '/usr/local/lib/libslang.dylib'
-both exist, but represent different library versions.
+- See http://space.mit.edu/cxc/isis/mac_install.html
 
 [[Xsolaris]]
 Solaris systems:
