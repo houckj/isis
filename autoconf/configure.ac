@@ -160,6 +160,17 @@ JH_WITH_READLINE
 
 JH_SYS_EXTRA_LIBS
 
+case "$host_os" in
+  # Fix rpath issue on Macs.
+  # AC_PATH_XTRA produces e.g. X_LIBS=-L/usr/X11/lib -R/usr/X11/lib -lX11
+  # but on the Mac, the -R compiler option is not supported.
+  # To fix it, we just replace "-R" with "-Wl,-rpath,"
+  *darwin* )
+     X_LIBS=`echo $X_LIBS | sed s/-R/-Wl,-rpath,/`
+     AC_SUBST(X_LIBS)
+  ;;
+esac
+
 MODULE_INSTALL_DIR='${prefix}/lib/modules'
 SL_FILES_INSTALL_DIR='${prefix}/share'
 AC_SUBST(MODULE_INSTALL_DIR)
