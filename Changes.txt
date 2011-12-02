@@ -92,6 +92,8 @@ Changes since 1.6.1 (released Jul 2010)
 51.  fork_slaves, manage_slaves provide more control options
      through new qualifiers.
 52.  New parallel_map function.
+53.  Update configure and install instructions to support
+     MacOS 10.7 (Lion)
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
