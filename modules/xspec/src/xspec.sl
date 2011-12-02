@@ -406,7 +406,7 @@ define build_xspec_local_models () %{{{
 
    variable cmd;
 
-   cmd = ". $HEADAS/headas-init.sh ; initpackage $pkg_name $lmoddir/lmodel.dat $lmoddir"$;
+   cmd = ". $HEADAS/headas-init.sh ; initpackage $pkg_name $lmoddir/lmodel.dat $lmoddir -udmget"$;
    if (0 != system (cmd))
      {
         vmessage ("*** Error while running 'initpackage'");
