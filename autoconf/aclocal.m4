@@ -962,6 +962,7 @@ case "$host_os" in
     ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
     CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
     ELF_FC_FCFLAGS="-fPIC"
+    FC_SHARED="\$(FC) \$(FCFLAGS) -shared -fPIC"
     ;;
   *solaris* )
     if test "$GCC" = yes
@@ -974,6 +975,7 @@ case "$host_os" in
       ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
       CC_SHARED="\$(CC) \$(CFLAGS) -G -fPIC"
       ELF_FC_FCFLAGS="-fPIC"
+      FC_SHARED="\$(FC) \$(FCFLAGS) -G -fPIC"
     else
       DYNAMIC_LINK_FLAGS=""
       ELF_CC="\$(CC)"
@@ -983,6 +985,7 @@ case "$host_os" in
       ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
       CC_SHARED="\$(CC) \$(CFLAGS) -G -KPIC"
       ELF_FC_FCFLAGS="-KPIC"
+      FC_SHARED="\$(FC) \$(FCFLAGS) -G -KPIC"
     fi
     ;;
    # osr5 or unixware7 with current or late autoconf
@@ -997,6 +1000,7 @@ case "$host_os" in
        ELF_DEP_LIBS=
        CC_SHARED="\$(CC) \$(CFLAGS) -G -fPIC"
        ELF_FC_FCFLAGS="-fPIC"
+       FC_SHARED="\$(FC) \$(FCFLAGS) -G -fPIC"
      else
        DYNAMIC_LINK_FLAGS=""
        ELF_CC="\$(CC)"
@@ -1007,6 +1011,7 @@ case "$host_os" in
        ELF_DEP_LIBS=
        CC_SHARED="\$(CC) \$(CFLAGS) -G -Kpic"
        ELF_FC_FCFLAGS="-Kpic"
+       FC_SHARED="\$(FC) \$(FCFLAGS) -G -Kpic"
      fi
      ;;
   *irix6.5* )
@@ -1023,6 +1028,7 @@ case "$host_os" in
        ELF_DEP_LIBS=
        CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
        ELF_FC_FCFLAGS="-fPIC"
+       FC_SHARED="\$(FC) \$(FCFLAGS) -shared -fPIC"
      else
        DYNAMIC_LINK_FLAGS=""
        ELF_CC="\$(CC)"
@@ -1032,6 +1038,7 @@ case "$host_os" in
        ELF_DEP_LIBS=
        CC_SHARED="\$(CC) \$(CFLAGS) -shared -Kpic"
        ELF_FC_FCFLAGS="-Kpic"
+       FC_SHARED="\$(FC) \$(FCFLAGS) -shared -Kpic"
      fi
      ;;
   *darwin* )
@@ -1053,6 +1060,7 @@ case "$host_os" in
      ELFLIB_MAJOR="lib\$(THIS_LIB).\$(ELF_MAJOR_VERSION).dylib"
      ELFLIB_MAJOR_MINOR="lib\$(THIS_LIB).\$(ELF_MAJOR_VERSION).\$(ELF_MINOR_VERSION).dylib"
      ELF_FC_FCFLAGS=""
+     FC_SHARED="\$(FC) -bundle -flat_namespace -undefined suppress \$(FCFLAGS) -fno-common"
      ;;
   *freebsd* )
     ELFLIB_MAJOR_MINOR="\$(ELFLIB).\$(ELF_MAJOR_VERSION)"
@@ -1067,6 +1075,7 @@ case "$host_os" in
     ELF_DEP_LIBS="\$(DL_LIB) -lm"
     CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
     ELF_FC_FCFLAGS="-fPIC"
+    FC_SHARED="\$(FC) \$(FCFLAGS) -shared -fPIC"
     ;;
 
   *cygwin* )
@@ -1079,6 +1088,7 @@ case "$host_os" in
     ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
     CC_SHARED="\$(CC) \$(CFLAGS) -shared"
     ELF_FC_FCFLAGS=""
+    FC_SHARED="\$(FC) \$(FCFLAGS) -shared"
     ISIS_LIB_FOR_MODULES="-L\$(config_dir)/src/objs -lisis"
     SLANG_LIB_FOR_MODULES="\$(SLANG_LIB)"
     CFITSIO_LIB_FOR_MODULES="\$(CFITSIO_LIB)"
@@ -1093,6 +1103,7 @@ case "$host_os" in
     ELF_LINK_CMD="\$(ELF_LINK)"
     ELF_DEP_LIBS="\$(DL_LIB) -lm -lc"
     CC_SHARED="\$(CC) \$(CFLAGS) -shared -fPIC"
+    FC_SHARED="\$(FC) \$(FCFLAGS) -shared -fPIC"
     ELF_FC_FCFLAGS="-fPIC"
 esac
 
@@ -1104,6 +1115,7 @@ AC_SUBST(ELF_DEP_LIBS)
 AC_SUBST(ELF_FC_FCFLAGS)
 AC_SUBST(DYNAMIC_LINK_FLAGS)
 AC_SUBST(CC_SHARED)
+AC_SUBST(FC_SHARED)
 AC_SUBST(ISIS_LIB_FOR_MODULES)
 AC_SUBST(SLANG_LIB_FOR_MODULES)
 AC_SUBST(CFITSIO_LIB_FOR_MODULES)

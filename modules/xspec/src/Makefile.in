@@ -42,6 +42,7 @@ ELF_CFLAGS   = @ELF_CFLAGS@ $(CFLAGS)
 CC_SHARED    = @CC_SHARED@
 ELF_DEP_LIBS = @ELF_DEP_LIBS@
 
+FC_SHARED    = @FC_SHARED@
 ELF_FC_FCFLAGS = @ELF_FC_FCFLAGS@
 
 #---------------------------------------------------------------------------
@@ -165,7 +166,7 @@ $(OBJDIR) :
 
 $(ELFDIR_ELF_LIB): $(SRCDIR)/config-xspec-version $(ELFDIR) $(CONFIG_H) $(ELFOBJS)
 	-$(RM) $(ELFDIR_ELF_LIB)
-	cd $(ELFDIR); $(CC_SHARED) -o $(ELFLIB) $(OFILES) $(LIBS) $(ELF_DEP_LIBS)
+	cd $(ELFDIR); $(FC_SHARED) -o $(ELFLIB) $(OFILES) $(LIBS) $(ELF_DEP_LIBS)
 	@echo ""
 	@echo $(ELFLIB) created in $(ELFDIR).
 
