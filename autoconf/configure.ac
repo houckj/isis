@@ -32,6 +32,24 @@ CFLAGS="$CFLAGS $IEEE_CFLAGS"
 # Extra Headers for xlibs
 AC_PATH_XTRA
 
+# Fixup X_LIBS definition produced by AC_PATH_XTRA
+case "$host_os" in
+  # Fix rpath issue on Macs:
+  # The Apple/Xcode gcc understands the -R option but the
+  # hpc.sourceforge.net compilers (gcc, g++, gfortran) do not.
+  # When using the Apple gcc, AC_PATH_XTRA produces e.g.
+  #     X_LIBS=-L/usr/X11/lib -R/usr/X11/lib
+  # Later, when linking with the sourceforge gfortran, the
+  # '-R' will will not be recognized, causing an error.
+  # To avoid the link error, we replace "-R" with "-Wl,-rpath,".
+  # The latter option is currently accepted by both Apple
+  # (gcc-4.2.1) and hpc.sourceforge.net (gcc-4.6.1) compilers.
+  *darwin* )
+     X_LIBS=`echo $X_LIBS | sed s/-R/-Wl,-rpath,/`
+     AC_SUBST(X_LIBS)
+  ;;
+esac
+
 AC_FC_WRAPPERS
 AC_FC_LIBRARY_LDFLAGS
 AC_FC_DUMMY_MAIN(,
@@ -159,17 +177,6 @@ JH_TERMCAP_LIB
 JH_WITH_READLINE
 
 JH_SYS_EXTRA_LIBS
-
-case "$host_os" in
-  # Fix rpath issue on Macs.
-  # AC_PATH_XTRA produces e.g. X_LIBS=-L/usr/X11/lib -R/usr/X11/lib -lX11
-  # but on the Mac, the -R compiler option is not supported.
-  # To fix it, we just replace "-R" with "-Wl,-rpath,"
-  *darwin* )
-     X_LIBS=`echo $X_LIBS | sed s/-R/-Wl,-rpath,/`
-     AC_SUBST(X_LIBS)
-  ;;
-esac
 
 MODULE_INSTALL_DIR='${prefix}/lib/modules'
 SL_FILES_INSTALL_DIR='${prefix}/share'
