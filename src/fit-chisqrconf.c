@@ -365,21 +365,36 @@ static int find_limit (double *conf_limit, unsigned int idx, /*{{{*/
              mode = USE_BISECT;
           }
 
-     } while ((fabs(test) > accept_tol) && (k++ < MAX_CONVERGE_TRIES));
+        k++;
+
+     } while ((fabs(test) > accept_tol) && (k < MAX_CONVERGE_TRIES));
 
    *conf_limit = ptest;
 
    if (fabs(test) > accept_tol)
      {
         status = EVAL_INVALID;
-        goto finish;
+        if ((k == MAX_CONVERGE_TRIES)
+            && (a.chisqr <= target_chisqr)
+            && (target_chisqr <= b.chisqr))
+          {
+             if (verbose > 0)
+               {
+                  verbose_warn_hook (NULL, "limit did not converge but bracket: %15.8e<=limit<=%15.8e: dstat= %11.4e\n",
+                                     a.v, b.v, chisqr - sinfo->min_chisqr);
+               }
+             status = EVAL_OK;
+          }
      }
-
-   if (verbose > 0)
-     verbose_warn_hook (NULL,"limit found: %15.8e  dstat= %11.4e\n",
-                        ptest, chisqr - sinfo->min_chisqr);
-
-   status = EVAL_OK;
+   else
+     {
+        if (verbose > 0)
+          {
+             verbose_warn_hook (NULL, "limit found: %15.8e  dstat= %11.4e\n",
+                                ptest, chisqr - sinfo->min_chisqr);
+          }
+        status = EVAL_OK;
+     }
 
    finish:
 
