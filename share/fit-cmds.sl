@@ -2191,13 +2191,6 @@ define conf_grid () %{{{
 
 %}}}
 
-private define generate_grid (pmin, pmax, num) %{{{
-{
-   return [pmin:pmax:#num];
-}
-
-%}}}
-
 define get_params () %{{{
 {
    variable msg = "p = get_params ([list])";
@@ -2633,11 +2626,33 @@ private define parallel_map_chisqr (num_slaves, px, py, %{{{
 
 #endif
 
+private define validate_param_range (p)
+{
+   variable msg, info = get_par_info (p.index);
+
+   if (isnan(p.min) || isnan(p.max))
+     {
+        msg = sprintf ("*** Invalid interval for %s:  [%S, %S]",
+                       info.name, p.min, p.max);
+        throw InvalidParmError, msg;
+     }
+
+   if (p.min < info.min || info.max < p.max)
+     {
+        msg = sprintf ("*** %s interval [%g,%g) extends outside allowed value range [%g,%g)",
+                       info.name, p.min, p.max, info.min, info.max);
+        throw UsageError, msg;
+     }
+}
+
 private define generate_contours (px, py, info) %{{{
 {
+   validate_param_range (px);
+   validate_param_range (py);
+
    variable
-     pxs = generate_grid (px.min, px.max, px.num),
-     pys = generate_grid (py.min, py.max, py.num);
+     pxs = [px.min:px.max:#px.num],
+     pys = [py.min:py.max:#py.num];
 
    variable
      ix = _get_index(px.index),
@@ -2840,8 +2855,8 @@ define conf_joint () %{{{
    (dims,,) = array_info (s.chisqr);
 
    variable xs, ys;
-   xs = generate_grid (px.min, px.max, px.num);
-   ys = generate_grid (py.min, py.max, py.num);
+   xs = [px.min:px.max:#px.num];
+   ys = [py.min:py.max:#py.num];
 
    variable pxmin, pxmax, pymin, pymax;
    pxmin = [dims[1]-1, 0];
