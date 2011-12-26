@@ -62,7 +62,7 @@ set_kernel (1, "pileup");
 set_par ("pileup(1)", [1, 1, 0.5, 1], [1,1,0,1]);
 
 static variable s;
-() = eval_counts (Assigned_RMFARF, &s);
+() = eval_counts (&s);
 if (s.statistic/s.num_bins > 1.0)
   failed ("pileup:  stat/num_bins = %g", s.statistic/s.num_bins);
 

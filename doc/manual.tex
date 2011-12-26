@@ -11314,7 +11314,7 @@ at $E_0$ with width $\sigma$.
 \begin{isisfunction}
 {eval\_counts} %name
 {evaluate the fit-model using the current parameters} %purpose
-{s = eval\_counts([response\_type] [,\&info\_struct])} %usage
+{s = eval\_counts([\&info\_struct])} %usage
 {fit\_counts, renorm\_counts, ignore, notice, rebin, [un]assign\_arf, [un]assign\_rmf, eval\_stat\_counts}
 
 This function evaluates the fit-model and compares it with the
@@ -11329,7 +11329,7 @@ See {\tt fit\_counts} for details.
 \begin{isisfunction}
 {eval\_flux} %name
 {evaluate the fit-model using the current parameters} %purpose
-{s = eval\_flux([response\_type][, \&info\_struct])} %usage
+{s = eval\_flux([\&info\_struct])} %usage
 {fit\_flux, factor\_rsp, renorm\_flux, ignore, notice, rebin, [un]assign\_arf, [un]assign\_rmf}
 
 Analogous to {\tt eval\_counts} except that the model is compared
@@ -11500,7 +11500,7 @@ One can also refer to parameters by name:
 \begin{isisfunction}
 {fit\_counts} %name
 {search for best fit parameters} %purpose
-{s = fit\_counts ([response\_type][,\&info\_struct])} %usage
+{s = fit\_counts ([\&info\_struct])} %usage
 {eval\_counts, renorm\_counts, ignore, notice, freeze, thaw,
 rebin, [un]assign\_arf, [un]assign\_rmf, fit\_flux, fit\_search, set\_post\_model\_hook}
 
@@ -11509,8 +11509,6 @@ data by folding the model through the instrument response. If no
 instrument response has been assigned, an ideal instrument is
 assumed.  If no errors occurred during the fit, the return status
 is zero, otherwise the return value is -1.
-
-The two optional arguments may appear in any order.
 
 The optional \verb|Struct_Type| argument should provide the address of
 a structure:
@@ -11522,12 +11520,13 @@ fit-statistic ({\tt statistic}), the number of variable fit
 parameters ({\tt num\_variable\_params}) and the number of data
 bins ({\tt num\_bins}).
 
-The {\tt response\_type} option specifies what instrument
-responses should be applied.  Supported options are
+The {\tt response} qualifier specifies what instrument
+responses should be applied.  Supported qualifier values are
 \verb|Ideal_ARF|, \verb|Ideal_RMF|, \verb|Ideal_ARFRMF|,
 \verb|Ideal_RMFARF|, \verb|Assigned_RMF|,
 \verb|Assigned_ARFRMF|, \verb|Assigned_RMFARF|.
-As indicated above, the default is \verb|Assigned_RMFARF|.
+As indicated above, the default qualifier value is
+\verb|Assigned_RMFARF|.
 
 When folding models through the instrument response, the spectral
 model will be computed on the ARF grid. Furthermore, the model
@@ -11586,7 +11585,7 @@ intrinsic variable \verb|Fit_Verbose|.
 \begin{isisfunction}
 {fit\_flux} %name
 {search for best fit parameters} %purpose
-{s = fit\_flux ([response\_type][, \&info\_struct])} %usage
+{s = fit\_flux ([\&info\_struct])} %usage
 {eval\_flux, renorm\_flux, factor\_rsp, ignore, notice, freeze, thaw, rebin, [un]assign\_arf, [un]assign\_rmf, fit\_counts, fit\_search}
 
 Analogous to \verb|fit_counts| except that the model is
@@ -13344,7 +13343,7 @@ struct will have the form
 \begin{isisfunction}
 {renorm\_counts} %name
 {Automatically adjust fit normalization} %purpose
-{s = renorm\_counts ([response\_type])} %usage
+{s = renorm\_counts ()} %usage
 {renorm\_flux}
 
 This function automatically adjusts the normalization of the model
@@ -13356,7 +13355,7 @@ details.
 \begin{isisfunction}
 {renorm\_flux} %name
 {Automatically adjust fit normalization} %purpose
-{s = renorm\_flux ([response\_type])} %usage
+{s = renorm\_flux ()} %usage
 {renorm\_counts}
 
 This function automatically adjusts the normalization of the model
@@ -14441,10 +14440,10 @@ EXAMPLE:
 EXAMPLE:
   define compute_and_write_file (file, a, b)
   {
-      % ...perform expensive computation 
+      % ...perform expensive computation
       % and save results to `file'...
   }
-  parallel_map (Void_Type, &compute_and_write_file, 
+  parallel_map (Void_Type, &compute_and_write_file,
                 filename_array, A_array, B_array)
 \end{verbatim}
 \end{isisfunction}

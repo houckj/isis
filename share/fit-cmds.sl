@@ -1103,31 +1103,17 @@ private define _do_eval_fit (_do_eval, data_type, msg, nargs) %{{{
    variable tmp, ref = &tmp,
      response_type = qualifier ("response", Assigned_ARFRMF);
 
-   switch (nargs)
+   % nargs == 0 is ok.
+   if (nargs > 1)
      {
-      case 0:
-        % do nothing
-     }
-     {
-      case 1:
-        variable x = ();
-	if (typeof (x) == Ref_Type)
-	  {
-             ref = x;
-	  }
-	else
-	  {
-	     response_type = x;
-	  }
-     }
-     {
-      case 2:
-	(response_type, ref) = ();
-     }
-     {
-	% default:
 	_pop_n (nargs);
 	usage (msg);
+     }
+   else if (nargs == 1)
+     {
+        ref = ();
+	if (typeof (ref) != Ref_Type)
+          usage (msg);
      }
 
    _isis->_set_fit_type (response_type, data_type);
@@ -1156,28 +1142,28 @@ private define _do_eval_fit (_do_eval, data_type, msg, nargs) %{{{
 define fit_counts ()
 {
    _isis->error_if_fit_in_progress (_function_name);
-   variable msg = "s = fit_counts ([response_type][, &info_struct])";
+   variable msg = "s = fit_counts ([&info_struct])";
    return _do_eval_fit (&_isis->_fit, 0, msg, _NARGS ;; __qualifiers);
 }
 
 define fit_flux ()
 {
    _isis->error_if_fit_in_progress (_function_name);
-   variable msg = "s = fit_flux ([response_type][, &info_struct])";
+   variable msg = "s = fit_flux ([&info_struct])";
    return _do_eval_fit (&_isis->_fit, 1, msg, _NARGS ;; __qualifiers);
 }
 
 define eval_counts ()
 {
    _isis->error_if_fit_in_progress (_function_name);
-   variable msg = "s = eval_counts ([response_type][, &info_struct])";
+   variable msg = "s = eval_counts ([&info_struct])";
    return _do_eval_fit (&_isis->_eval_model, 0, msg, _NARGS ;; __qualifiers);
 }
 
 define eval_flux ()
 {
    _isis->error_if_fit_in_progress (_function_name);
-   variable msg = "s = eval_flux ([response_type][, &info_struct])";
+   variable msg = "s = eval_flux ([&info_struct])";
    return _do_eval_fit (&_isis->_eval_model, 1, msg, _NARGS ;; __qualifiers);
 }
 
@@ -1700,7 +1686,7 @@ define vfconf ()
 
 %{{{ renorm
 
-private define _renorm (fit_ref, response_type) %{{{
+private define _renorm (fit_ref) %{{{
 {
    variable i, p, pars, ids, num_pars;
    variable vnorms, num_vnorms, i_scale, norm_scale;
@@ -1774,7 +1760,7 @@ private define _renorm (fit_ref, response_type) %{{{
    % At this point, there should be exactly one free parameter
 
    variable status, new_pars;
-   status = (@fit_ref) (response_type ;; __qualifiers);
+   status = (@fit_ref) ( ;; __qualifiers);
    if (-1 == status)
      {
 	if (Isis_Verbose >= _isis->_WARN)
@@ -1800,13 +1786,8 @@ private define _renorm (fit_ref, response_type) %{{{
 define renorm_counts () %{{{
 {
    _isis->error_if_fit_in_progress (_function_name);
-   variable msg = "s = renorm_counts ([response_type])";
-   variable response_type = Assigned_ARFRMF;
-
-   if (_isis->get_varargs (&response_type, _NARGS, 0, msg))
-     return;
-
-   _renorm (&fit_counts, response_type ;; __qualifiers);
+   variable msg = "s = renorm_counts ()";
+   _renorm (&fit_counts ;; __qualifiers);
 }
 
 %}}}
@@ -1814,13 +1795,8 @@ define renorm_counts () %{{{
 define renorm_flux () %{{{
 {
    _isis->error_if_fit_in_progress (_function_name);
-   variable msg = "s = renorm_flux ([response_type])";
-   variable response_type = Assigned_ARFRMF;   % won't apply ARF twice
-
-   if (_isis->get_varargs (&response_type, _NARGS, 0, msg))
-     return;
-
-   _renorm (&fit_flux, response_type ;; __qualifiers);
+   variable msg = "s = renorm_flux ()";
+   _renorm (&fit_flux ;; __qualifiers);
 }
 
 %}}}

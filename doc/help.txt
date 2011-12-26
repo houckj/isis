@@ -10016,7 +10016,7 @@ eval_counts
     evaluate the fit-model using the current parameters
 
  USAGE
-    s = eval_counts([response_type] [,&info_struct])
+    s = eval_counts([&info_struct])
 
  DESCRIPTION
     This function evaluates the fit-model and compares it with the
@@ -10038,7 +10038,7 @@ eval_flux
     evaluate the fit-model using the current parameters
 
  USAGE
-    s = eval_flux([response_type][, &info_struct])
+    s = eval_flux([&info_struct])
 
  DESCRIPTION
     Analogous to eval_counts except that the model is compared with
@@ -10249,7 +10249,7 @@ fit_counts
     search for best fit parameters
 
  USAGE
-    s = fit_counts ([response_type][,&info_struct])
+    s = fit_counts ([&info_struct])
 
  DESCRIPTION
     By default, this function fits the current model to the counts
@@ -10257,8 +10257,6 @@ fit_counts
     no instrument response has been assigned, an ideal instrument
     is assumed.  If no errors occurred during the fit, the return
     status is zero, otherwise the return value is -1.
-
-    The two optional arguments may appear in any order.
 
     The optional Struct_Type argument should provide the address of
     a structure:
@@ -10270,11 +10268,11 @@ fit_counts
     parameters ( num_variable_params) and the number of data bins (
     num_bins).
 
-    The response_type option specifies what instrument responses
-    should be applied.  Supported options are Ideal_ARF, Ideal_RMF,
-    Ideal_ARFRMF, Ideal_RMFARF, Assigned_RMF, Assigned_ARFRMF,
-    Assigned_RMFARF. As indicated above, the default is
-    Assigned_RMFARF.
+    The response qualifier specifies what instrument responses
+    should be applied.  Supported qualifier values are Ideal_ARF,
+    Ideal_RMF, Ideal_ARFRMF, Ideal_RMFARF, Assigned_RMF,
+    Assigned_ARFRMF, Assigned_RMFARF. As indicated above, the
+    default qualifier value is Assigned_RMFARF.
 
     When folding models through the instrument response, the
     spectral model will be computed on the ARF grid. Furthermore,
@@ -10339,7 +10337,7 @@ fit_flux
     search for best fit parameters
 
  USAGE
-    s = fit_flux ([response_type][, &info_struct])
+    s = fit_flux ([&info_struct])
 
  DESCRIPTION
     Analogous to fit_counts except that the model is compared with
@@ -12415,7 +12413,7 @@ renorm_counts
     Automatically adjust fit normalization
 
  USAGE
-    s = renorm_counts ([response_type])
+    s = renorm_counts ()
 
  DESCRIPTION
     This function automatically adjusts the normalization of the
@@ -12433,7 +12431,7 @@ renorm_flux
     Automatically adjust fit normalization
 
  USAGE
-    s = renorm_flux ([response_type])
+    s = renorm_flux ()
 
  DESCRIPTION
     This function automatically adjusts the normalization of the
