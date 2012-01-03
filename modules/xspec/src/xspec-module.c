@@ -1,7 +1,7 @@
 /* -*- mode: C; mode: fold -*- */
 
 /*  This file is part of ISIS, the Interactive Spectral Interpretation System
-    Copyright (C) 1998-2011 Massachusetts Institute of Technology
+    Copyright (C) 1998-2012 Massachusetts Institute of Technology
 
     Author:  John C. Houck <houck@space.mit.edu>
 
