@@ -94,6 +94,9 @@ Changes since 1.6.1 (released Jul 2010)
 52.  New parallel_map function.
 53.  Update configure and install instructions to support
      MacOS 10.7 (Lion)
+54.  Change interface of fit_counts, renorm_counts, fit_flux,
+     renorm_flux to use a qualifier instead of an optional
+     function parameter to select response_type, e.g. Ideal_ARF
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
