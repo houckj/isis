@@ -370,6 +370,8 @@ public define conf_loop()
         usage (msg);
      }
 
+   variable is_scalar = _eqs(indices, indices[0]);
+
    indices = valid_param_indices (indices);
    if (length(indices) == 0)
      throw UsageError, "*** conf_loop:  no free parameters";
@@ -480,6 +482,9 @@ public define conf_loop()
                          pmin_final, pmax_final,
                          path_concat (Dir, "${Basename}save"$));
      }
+
+   if (is_scalar)
+     return pmin_final[0], pmax_final[0];
 
    return pmin_final, pmax_final;
 }
