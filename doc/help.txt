@@ -12983,7 +12983,7 @@ set_par
     set the value of a fit parameter
 
  USAGE
-    set_par (idx, value [, freeze, [ min, max]])
+    set_par (idx [, value [, freeze, [ min, max]]])
 
  DESCRIPTION
           idx    parameter index or string identifier
@@ -12994,6 +12994,8 @@ set_par
     Qualifiers:
          step=VAL    initial parameter absolute step size
       relstep=VAL    initial parameter relative step size
+          min=VALUE  parameter min value
+          max=VALUE  parameter max value
 
     If allowed ranges are not specified by the user or if min=
     max=0, the parameter value range is unlimited; this is the

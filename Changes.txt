@@ -97,6 +97,7 @@ Changes since 1.6.1 (released Jul 2010)
 54.  Change interface of fit_counts, renorm_counts, fit_flux,
      renorm_flux to use a qualifier instead of an optional
      function parameter to select response_type, e.g. Ideal_ARF
+55.  set_par supports setting min/max via qualifiers
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------

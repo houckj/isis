@@ -13847,7 +13847,7 @@ the new \verb|min|, \verb|value|, \verb|max|.  For example:
 \begin{isisfunction}
 {set\_par} %name
 {set the value of a fit parameter} %purpose
-{set\_par (idx, value [, freeze, [ min, max]])} %usage
+{set\_par (idx [, value [, freeze, [ min, max]]])} %usage
 {edit\_par, load\_par, get\_par, set\_par\_fun, \_\_set\_hard\_limits, tie, set\_params}
 \begin{verbatim}
       idx    parameter index or string identifier
@@ -13860,6 +13860,8 @@ the new \verb|min|, \verb|value|, \verb|max|.  For example:
 Qualifiers:
      step=VAL    initial parameter absolute step size
   relstep=VAL    initial parameter relative step size
+      min=VALUE  parameter min value
+      max=VALUE  parameter max value
 \end{verbatim}
 
 If allowed ranges are not specified by the user or if

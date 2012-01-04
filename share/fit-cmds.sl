@@ -762,17 +762,20 @@ define set_par() %{{{
 {
    _isis->error_if_fit_in_progress (_function_name);
    variable msg =
-`set_par (idx, value [,freeze, [ min, max]]);
+`set_par (idx [, value [,freeze, [ min, max]]]);
    Qualifiers:
        step=VALUE   absolute parameter step size
     relstep=VALUE   relative parameter step size
+        min=VALUE   parameter min value
+        max=VALUE   parameter max value
 `;
-   variable idx, freeze, value, update_minmax;
+   variable idx, freeze, value, update_minmax, has_value;
    variable par_min, par_max, preserve_tie, step, relstep;
 
    freeze = -1;        % default means dont change current setting
    preserve_tie = -1;  % default means dont change current setting
    update_minmax = 0;
+   has_value = 1;
    par_min = 0;
    par_max = 0;
 
@@ -781,6 +784,12 @@ define set_par() %{{{
    relstep = qualifier ("relstep", _NaN);
 
    switch (_NARGS)
+     {
+      case 1:
+	idx = ();
+	has_value = 0;
+	value = NULL;
+     }
      {
       case 2:
 	(idx, value) = ();
@@ -826,17 +835,53 @@ define set_par() %{{{
 	  }
      }
 
-   if (orelse
-       {typeof (value) == String_Type}
-       {value == NULL})
+   if (update_minmax == 0)
+     {
+	variable qmin = qualifier ("min");
+	variable qmax = qualifier ("max");
+	if ((qmin != NULL) || (qmax != NULL))
+	  {
+	     par_min = qmin;
+	     par_max = qmax;
+	     update_minmax = 1;
+	  }
+     }
+
+   if ((typeof (value) == String_Type)
+       || ((value == NULL) && has_value))
      {
 	set_par_fun (id, value);
+	if (update_minmax)
+	  {
+	     if (par_min == NULL)
+	       par_min = get_par_info(id).min;
+	     if (par_max == NULL)
+	       par_max = get_par_info(id).max;
+	  }
 	_isis->_set_par (id, preserve_tie, freeze, get_par(id),
                          par_min, par_max, update_minmax,
                          step, relstep);
      }
    else
      {
+	if (update_minmax)
+	  {
+	     if (par_min == NULL)
+	       {
+		  par_min = array_map (Double_Type,
+				       &get_struct_field,
+				       get_par_info(id), "min");
+	       }
+	     if (par_max == NULL)
+	       {
+		  par_min = array_map (Double_Type,
+				       &get_struct_field,
+				       get_par_info(id), "min");
+	       }
+	  }
+	if (has_value == 0)
+	  value = get_par (id);
+
 	array_map (Void_Type, &_isis->_set_par, id, preserve_tie,
 		   freeze, value, par_min, par_max,
 		   update_minmax, step, relstep);
