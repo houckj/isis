@@ -98,6 +98,8 @@ Changes since 1.6.1 (released Jul 2010)
      renorm_flux to use a qualifier instead of an optional
      function parameter to select response_type, e.g. Ideal_ARF
 55.  set_par supports setting min/max via qualifiers
+56.  Apply patch from John E. Davis to fix floating point overflow 
+     bug in pileup kernel
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------

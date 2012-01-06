@@ -1,17 +1,17 @@
-/*  
-    Copyright (C) 2000 Massachusetts Institute of Technology 
- 
+/*
+    Copyright (C) 2000 Massachusetts Institute of Technology
+
     Author:  John E. Davis <davis@space.mit.edu>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
- 
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details. 
+    GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
@@ -64,14 +64,13 @@
    double arf_frac_exposure; \
    int verbose;
 
-
 #include "isis.h"
 #include "util.h"
 #include "errors.h"
 
 static unsigned int Num_Parameters;
 
-#define PILEUP_VERSION "0.1.1"
+#define PILEUP_VERSION "0.1.2"
 
 /* Make this a power of 2 so that ffts are fast */
 #define NUM_POINTS      (1024*4)
@@ -87,14 +86,14 @@ static double Max_Probability_Cutoff = 0.99999;
 static unsigned int JDMbinary_search_d (double x, double *xp, unsigned int n)
 {
    unsigned int n0, n1, n2;
-   
+
    n0 = 0;
    n1 = n;
 
    while (n1 > n0 + 1)
      {
 	n2 = (n0 + n1) / 2;
-	if (xp[n2] >= x) 
+	if (xp[n2] >= x)
 	  {
 	     if (xp[n2] == x) return n2;
 	     n1 = n2;
@@ -104,23 +103,22 @@ static unsigned int JDMbinary_search_d (double x, double *xp, unsigned int n)
    return n0;
 }
 
-   
 #if 0
 static double JDMinterpolate_d (double x, double *xp, double *yp, unsigned int n)
 {
    unsigned int n0, n1;
    double x0, x1;
-   
+
    n0 = JDMbinary_search_d (x, xp, n);
-   
+
    x0 = xp[n0];
    n1 = n0 + 1;
-   
+
    if ((x == x0) || (n1 == n)) return yp[n0];
-   
+
    x1 = xp[n1];
    if (x1 == x0) return yp[n0];
-   
+
    return yp[n0] + (yp[n1] - yp[n0]) / (x1 - x0) * (x - x0);
 }
 #endif
@@ -130,13 +128,13 @@ static double JDMinterpolate_d (double x, double *xp, double *yp, unsigned int n
 #include "djbfft.inc"
 #else
 /* Here fft_s is a complex array with num*2*2 complex elements */
-static int setup_convolution_fft (double *s, unsigned int num, 
+static int setup_convolution_fft (double *s, unsigned int num,
 				  double *fft_s)
 {
    double *right;
    unsigned int i;
    int num2;
-   
+
    num2 = (int) num * 2;
 
    /* Set the left part to 0 --- this serves as a pad */
@@ -152,7 +150,7 @@ static int setup_convolution_fft (double *s, unsigned int num,
    return JDMfftn (1, &num2, fft_s, fft_s + 1, 2, -2);
 }
 
-static int do_convolution (double *fft_s, double *s, unsigned int num, 
+static int do_convolution (double *fft_s, double *s, unsigned int num,
 			   double *fft_s_tmp)
 {
    unsigned int num4;
@@ -168,14 +166,14 @@ static int do_convolution (double *fft_s, double *s, unsigned int num,
      {
 	double re0, im0, re1, im1;
 	unsigned int i1;
-	
+
 	i1 = i + 1;
 
 	re0 = fft_s_tmp[i];
 	re1 = fft_s[i];
 	im0 = fft_s_tmp[i1];
 	im1 = fft_s[i1];
-	
+
 	fft_s_tmp[i] = re0 * re1 - im0 * im1;
 	fft_s_tmp[i1] = re0 * im1 + re1 * im0;
 
@@ -186,8 +184,9 @@ static int do_convolution (double *fft_s, double *s, unsigned int num,
    /* Perform inverse and return left half of real part */
    (void) JDMfftn (1, &num2, fft_s_tmp, fft_s_tmp + 1, -2, -2);
    for (i = 0; i < num; i++)
-     s[i] = fft_s_tmp[2*i];
-	
+     if ((s[i] = fft_s_tmp[2*i]) < 0)
+       s[i] = 0;
+
    return 0;
 }
 #endif
@@ -200,7 +199,7 @@ static int add_in_xspec (Isis_Kernel_t *k, double *arf_s, double psf_frac,
    psf_frac *= k->num_frames;
    for (i = 0; i < num; i++)
      results[i] += arf_s[i] * psf_frac;
-   
+
    return 0;
 }
 
@@ -252,13 +251,29 @@ static int perform_pileup (Isis_Kernel_t *k,
    if (integ_arf_s == 0.0)
      return 0;
 
-   /* Normalize by integ_arf_s to avoid possible floating point overflow. 
+   /* Normalize by integ_arf_s to avoid possible floating point overflow.
     * This will be corrected below.
     */
+   exp_factor = exp (-k->integral_ae);
+   if (exp_factor == 0.0)
+     {
+	if (pileup_dist != NULL)
+	  {
+	     for (i = 2; i <= k->max_num_terms; i++)
+	       {
+#ifndef DOUBLE_MAX
+# define DOUBLE_MAX 1.7976931348623157e+308
+#endif
+		  pileup_dist[i] = DOUBLE_MAX;
+	       }
+	     for (i = 0; i < num; i++)
+	       results[i] = 0.0;
+	  }
+	return 0;
+     }
+
    for (i = 0; i < num; i++)
      arf_s_tmp[i] /= integ_arf_s;
-
-   exp_factor = exp (-k->integral_ae);
 
    (void) setup_convolution_fft (arf_s_tmp, num, fft_s);
 
@@ -274,21 +289,21 @@ static int perform_pileup (Isis_Kernel_t *k,
      {
 	unsigned int j;
 	double norm_i;
-	
+
 	i_factorial *= i;
 	integ_arf_s_n *= integ_arf_s;
 	norm_i = integ_arf_s_n / i_factorial;
 	total_prob += norm_i;
 
 	(void) do_convolution (fft_s, arf_s_tmp, num, arf_s_fft_tmp);
-	
+
 	norm_i *= gfactors[i-2];
 
 	for (j = 0; j < num; j++)
 	  {
-#ifndef HAVE_DJBFFT	     
+#ifndef HAVE_DJBFFT
 	     arf_s_tmp[j] *= fft_norm;
-#endif	     
+#endif
 	     results[j] += norm_i * arf_s_tmp[j];
 	  }
 
@@ -309,7 +324,7 @@ static int perform_pileup (Isis_Kernel_t *k,
 
    for (i = 0; i < num; i++)
      results [i] *= exp_factor;
-   
+
    return 0;
 }
 
@@ -320,9 +335,9 @@ static int evaluate_isis_model_on_grid (double *lamlo, double *lamhi,
    Isis_Hist_t h;
    unsigned int i;
    int status;
-	     
+
    memset ((char *)&h, 0, sizeof (h));
-   
+
    h.bin_lo = lamlo;
    h.bin_hi = lamhi;
    h.nbins = num;
@@ -331,16 +346,15 @@ static int evaluate_isis_model_on_grid (double *lamlo, double *lamhi,
 
    if (NULL == (h.notice_list = XMALLOC (num, int)))
      return -1;
-   
+
    for (i = 0; i < num; i++)
      h.notice_list[i] = i;
-   
+
    status = isis_eval_model_on_alt_grid (&h);
-   
+
    free ((char *) h.notice_list);
    return status;
 }
-
 
 /* By definition, S(y)|dy| = s(E)|dE|, where E = hc/y.
  * So, s(E) = S(y) |dy/dE|
@@ -410,7 +424,6 @@ static int convert_results (Isis_Kernel_t *k, Isis_Hist_t *g)
    double *lamlo, *lamhi;
    double de;
 
-
    num = k->num;
    results = k->results;
    energies = k->energies;
@@ -428,7 +441,7 @@ static int convert_results (Isis_Kernel_t *k, Isis_Hist_t *g)
      lamhi[num-1] = ANGSTROM_TO_KEV/(energies[0]/2.0);
    else
      lamhi[num-1] = ANGSTROM_TO_KEV/(energies[0]);
-   
+
    s_dlam[num-1] = results[0];
    for (i = 1; i < num; i++)
      {
@@ -452,7 +465,6 @@ static int convert_results (Isis_Kernel_t *k, Isis_Hist_t *g)
    return 0;
 }
 
-   
 static void init_coeffs (double alpha,
 			 double *coeffs, unsigned int npiles)
 {
@@ -486,7 +498,7 @@ static int compute_kernel (Isis_Kernel_t *k, double *result, Isis_Hist_t *g, dou
 	isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "pileup: Pileup requires that all bins be noticed.");
 	return -1;
      }
-   
+
    if (-1 == convert_spectrum (fun, k, g))
      return -1;
 
@@ -505,7 +517,7 @@ static int compute_kernel (Isis_Kernel_t *k, double *result, Isis_Hist_t *g, dou
 			     coeffs, k->pileup_fractions,
 			     k->results))
      return -1;
-   
+
    psf_frac = 1.0 - psf_frac;
    if (psf_frac > 0.0)
      {
@@ -516,7 +528,7 @@ static int compute_kernel (Isis_Kernel_t *k, double *result, Isis_Hist_t *g, dou
    if (-1 == convert_results (k, g))
      return -1;
 
-   return k->apply_rmf (k->rsp.rmf, result, k->num_orig_data, 
+   return k->apply_rmf (k->rsp.rmf, result, k->num_orig_data,
 			g->val, g->notice_list, g->n_notice);
 }
 
@@ -532,7 +544,7 @@ static int save_results (Isis_Kernel_t *k)
      {
 	fprintf (fp, "%e\t%e\n", k->energies[i], k->results[i]);
      }
-   
+
    fclose (fp);
    return 0;
 }
@@ -545,7 +557,7 @@ static int print_kernel (Isis_Kernel_t *k)
 
    if (k == NULL)
      return -1;
-   
+
    sum = sum_piled = 0.0;
    if (k->num_terms >= 1)
      sum = k->pileup_fractions[1];
@@ -612,8 +624,7 @@ static int handle_verbose_option (char *subsystem, char *optname, char *value, v
    return 0;
 }
 
-
-static Isis_Option_Table_Type Option_Table [] = 
+static Isis_Option_Table_Type Option_Table [] =
 {
      {"nterms", handle_nterms_option, ISIS_OPT_REQUIRES_VALUE, "30", "Max number of piled photons"},
      {"fracexpo", handle_fracexpo_option, ISIS_OPT_REQUIRES_VALUE, "1.0", "Fraction exposure for ARF"},
@@ -628,7 +639,7 @@ static int process_options (Isis_Kernel_t *k, char *options)
 
    k->max_num_terms = MAX_NUM_TERMS;
    k->arf_frac_exposure = 1.0;
-   
+
    o = isis_parse_option_string (options);
    if (o == NULL)
      return -1;
@@ -638,7 +649,6 @@ static int process_options (Isis_Kernel_t *k, char *options)
    return status;
 }
 
-	  
 static void delete_kernel (Isis_Kernel_t *k)
 {
    if (NULL == k)
@@ -705,16 +715,16 @@ static Isis_Kernel_t *allocate_kernel (Isis_Obs_t *o, char *options)
 	return NULL;
      }
    max_num_terms = k->max_num_terms;
-   
+
    /* public fields */
    k->delete_kernel = delete_kernel;
    k->compute_kernel = compute_kernel;
    k->print_kernel = print_kernel;
-   
+
    k->max_num_terms = max_num_terms;
-   
+
    k->arf_frac_exposure = o->rsp.arf->fracexpo.s;
-   
+
    frame_time = o->frame_time;
    if (frame_time == 0.0)
      {
@@ -750,11 +760,11 @@ static Isis_Kernel_t *allocate_kernel (Isis_Obs_t *o, char *options)
 	delete_kernel (k);
 	return NULL;
      }
-   
+
    bin_lo = o->rsp.arf->bin_lo;
    bin_hi = o->rsp.arf->bin_hi;
    num_bins = o->rsp.arf->nbins;
-   
+
    if (bin_lo[0] > 0.0)
      max_energy = ANGSTROM_TO_KEV / bin_lo[0];
    else
@@ -764,19 +774,19 @@ static Isis_Kernel_t *allocate_kernel (Isis_Obs_t *o, char *options)
    min_energy = 0.0;
    /* max_energy = 1024 * 0.0146; */
    k->de = delta_energy = (max_energy - min_energy) / NUM_POINTS;
-   
+
    arf = k->arf_time;
    energies = k->energies;
 
    arf[0] = 0.0;
    energies[0] = 0.0001;	       /* MUST be non-zero */
-   
+
    min_lambda = bin_lo[0];
    max_lambda = bin_hi[num_bins-1];
    for (i = 1; i < NUM_POINTS; i++)
      {
 	double lambda;
-	
+
 	energies[i] = min_energy + delta_energy * i;
 	lambda = ANGSTROM_TO_KEV / energies[i];
 	if ((lambda >= max_lambda) || (lambda < min_lambda))
@@ -788,21 +798,21 @@ static Isis_Kernel_t *allocate_kernel (Isis_Obs_t *o, char *options)
 	if (arf[i] < 0)
 	  arf[i] = 0;
      }
-   
+
    return k;
 }
 
 static int parse_init_options (char *options)
 {
    (void) options;
-   
+
    return 0;
 }
 
 ISIS_USER_KERNEL_MODULE(pileup,def,options)
 {
 #define NUM_PILEUP_PARMS 4
-   static char *kernel_parm_names[NUM_PILEUP_PARMS] = 
+   static char *kernel_parm_names[NUM_PILEUP_PARMS] =
      {
 	"nregions", "g0", "alpha", "psffrac"
      };
@@ -820,9 +830,9 @@ ISIS_USER_KERNEL_MODULE(pileup,def,options)
      };
    static unsigned int default_freeze [] =
      {
-	1, 1, 0, 1,	
+	1, 1, 0, 1,
      };
-   
+
 #if 0
 #ifdef _FPU_SETCW
    unsigned int cw = 0x137f;
@@ -830,7 +840,7 @@ ISIS_USER_KERNEL_MODULE(pileup,def,options)
    _FPU_SETCW (cw);
 #endif
 #endif
-   
+
    if (-1 == parse_init_options (options))
      return -1;
 
@@ -840,14 +850,14 @@ ISIS_USER_KERNEL_MODULE(pileup,def,options)
    def->allocate_kernel = allocate_kernel;
    def->num_kernel_parms = Num_Parameters;
    def->kernel_parm_names = kernel_parm_names;
-   
+
    def->default_min = default_min;
-   def->default_max = default_max;   
+   def->default_max = default_max;
    def->default_value = default_value;
    def->default_freeze = default_freeze;
 
    def->allows_ignoring_model_intervals = NULL;
-   
+
    return 0;
 }
 
@@ -880,7 +890,7 @@ int main ()
    o.num = 10;
    o.arf_bin_lo = lo;
    o.arf_bin_hi = hi;
-   
+
    g.n_notice = 10;
    g.nbins = 10;
    g.bin_lo = lo;
@@ -888,10 +898,10 @@ int main ()
    g.val = val;
 
    k = pileup_allocate_kernel (&o, 7);
-   
+
    (void) k->compute_kernel (k, &g, result);
    (void) k->delete_kernel (k);
-   
+
    return 0;
 }
 
