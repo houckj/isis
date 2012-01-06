@@ -174,7 +174,7 @@ private define conf_slave (s, indices, ctrl)
 
         send_msg (s, SLAVE_RESULT);
         send_objs (s, index, param_version,
-                   result, info, get_params(indices));
+                   result, info, get_params());
      }
 
    return 0;
@@ -204,7 +204,7 @@ private define send_next_task (slv)
    if (x.next_task < length(x.indices))
      {
         variable index = x.indices[x.next_task];
-        send_objs (slv, index, x.param_version, get_params(x.indices));
+        send_objs (slv, index, x.param_version, get_params());
         x.next_task++;
         slv.status = SLAVE_RUNNING;
      }

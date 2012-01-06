@@ -100,6 +100,9 @@ Changes since 1.6.1 (released Jul 2010)
 55.  set_par supports setting min/max via qualifiers
 56.  Apply patch from John E. Davis to fix floating point overflow 
      bug in pileup kernel
+57.  When running in parallel, conf_loop should have been passing
+     all parameters between master and slave processes and not just
+     the selected parameters.
 
 Changes since 1.6.0 (released Apr 2010)
 ---------------------------------------
