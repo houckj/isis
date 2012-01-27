@@ -246,7 +246,7 @@ private define init_search_paths () %{{{
    if (NULL != stat_file (_isis_install_prefix_sans_subdir))
      {
         prepend_to_isis_load_path (path_concat (_isis_install_prefix_sans_subdir, "share/isis"));
-        prepend_to_isis_module_path (path_concat (_isis_install_prefix_sans_subdir, "lib/isis"));
+        prepend_to_isis_module_path (path_concat (_isis_install_prefix_sans_subdir, "lib/isis/modules"));
      }
 
    variable ascds_path_file = path_concat (_isis_srcdir, "ascds_install_path");
