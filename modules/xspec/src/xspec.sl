@@ -501,7 +501,7 @@ define load_xspec_local_models () %{{{
    vmessage ("Loading %s", Model_File);
 
    variable dir = path_dirname (lib_path);
-   variable buf = load_buf (path_concat (dir, "lmodel.dat"), dir);
+   variable buf = load_buf (path_concat (dir, "lmodel.dat"));
    () = load_shared_model_table (buf);
 }
 
@@ -570,7 +570,7 @@ private define load_lmodels_from_dir (dir, file) %{{{
      }
    vmessage ("Loading %s", Model_File);
 
-   return load_shared_model_table (load_buf(Model_Dat, dir));
+   return load_shared_model_table (load_buf(Model_Dat));
 }
 
 %}}}
@@ -618,9 +618,8 @@ define _load_xspec_local_models () %{{{
 
    Model_Dat = lmodeldat_path;
    Model_File = libso_path;
-   Model_Srcdir = path_dirname(lmodeldat_path);
 
-   () = load_shared_model_table (load_buf(Model_Dat, Model_Srcdir));
+   () = load_shared_model_table (load_buf(Model_Dat));
 }
 
 %}}}
@@ -659,7 +658,7 @@ private define try_loading_local_models () %{{{
    Model_Dat = path_concat (dirs[0], "lmodel.dat");
    if (NULL != stat_file (Model_Dat))
      {
-        () = parse_model_table (load_buf (Model_Dat, NULL), 0, &find_xspec_fun, 0);
+        () = parse_model_table (load_buf (Model_Dat), 0, &find_xspec_fun, 0);
      }
 }
 
@@ -670,7 +669,7 @@ private define load_xspec_models () %{{{
 {
    % load static models first
    Model_Dat = find_model_dat_file ("$HEADAS"$, Xspec_Version);
-   () = parse_model_table (load_buf (Model_Dat, NULL), 0, &find_xspec_fun, 1);
+   () = parse_model_table (load_buf (Model_Dat), 0, &find_xspec_fun, 1);
 
    try_loading_local_models ();
 }

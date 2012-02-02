@@ -55,20 +55,6 @@ define any (a)
 }
 #endif
 
-private define set_model_srcdir (s) %{{{
-{
-   Model_Srcdir = s;
-}
-
-%}}}
-
-private define get_model_srcdir () %{{{
-{
-   return Model_Srcdir;
-}
-
-%}}}
-
 private define set_field (f, col, name, type, print) %{{{
 {
    f.col = col;
@@ -110,79 +96,6 @@ private define name_split (name) %{{{
      }
 
    return (name[0], true_name, ext);
-}
-
-%}}}
-
-private define find_file (name) %{{{
-{
-   variable path, model_srcdir;
-   model_srcdir = get_model_srcdir ();
-
-   variable true_name, ext;
-   (, true_name, ext) = name_split (name);
-   path = path_concat (model_srcdir, true_name + ext);
-
-   if (NULL != stat_file (path))
-     return path;
-
-   if (assoc_key_exists (Filename_Alias, name))
-     {
-	path = path_concat (model_srcdir, Filename_Alias[name] + ext);
-	if (NULL != stat_file (path))
-	  return path;
-     }
-
-   vmessage ("%s:  File not found: %s", name, path);
-
-   return NULL;
-}
-
-%}}}
-
-private define find_interface (routine_name) %{{{
-{
-   variable path, fp, buf;
-
-   path = find_file (routine_name);
-   if (path == NULL)
-     return NULL;
-
-   % For now, we only try parsing fortran files
-   variable extname = path_extname (path);
-   if (extname != ".f")
-     return NULL;
-
-   fp = fopen (path, "r");
-   if (fp == NULL)
-     {
-	vmessage ("Failed reading %s", path);
-	return NULL;
-     }
-
-   buf = fgetslines (fp);
-   () = fclose (fp);
-
-   variable i, words, lines = [0:length(buf)-1];
-
-   foreach (lines)
-     {
-	i = ();
-
-	words = strtok(buf[i], " \t\n,()");
-	if (length(words) < 2)
-	  continue;
-
-        if (0 == strcmp (strlow(words[0]), "subroutine")
-            and 0 == strcmp (strlow(words[1]), routine_name))
-          {
-             return buf[i];
-             break;
-          }
-     }
-
-   %vmessage ("%s:  Interface not found:  %s", routine_name, path);
-   return NULL;
 }
 
 %}}}
@@ -234,7 +147,6 @@ private define emit_name_string (fp, m) %{{{
 private define scan_buf (b, fp) %{{{
 {
    variable buf = b.buf;
-   set_model_srcdir (b.model_srcdir);
 
    variable n_add, n_mul, n_con;
    variable e, m, s = 0;
@@ -285,18 +197,13 @@ private define scan_buf (b, fp) %{{{
 
 %}}}
 
-private define do_scan (src, fp) %{{{
+private define do_scan (model_dat, fp) %{{{
 {
-   variable buf = load_buf (src.model_dat, src.model_srcdir);
+   variable buf = load_buf (model_dat);
    scan_buf (buf, fp);
 }
 
 %}}}
-
-private variable Source_Type = struct
-{
-   model_dat, model_srcdir
-};
 
 private define open_output_files (xspec_version) %{{{
 {
@@ -304,7 +211,7 @@ private define open_output_files (xspec_version) %{{{
      {
         names, struct_fields, externs
      };
-   
+
    fp.names = fopen ("_names_${xspec_version}.dat"$, "w");
 
    fp.struct_fields = fopen ("_model_table_${xspec_version}.inc"$, "w");
@@ -326,29 +233,19 @@ private define close_output_files (fp) %{{{
 
 %}}}
 
-private define make_interface (input_files, xspec_version) %{{{
+private define make_interface (model_dat_files, xspec_version) %{{{
 {
    variable fp = open_output_files (xspec_version);
-   array_map (Void_Type, &do_scan, input_files, fp);
+   array_map (Void_Type, &do_scan, model_dat_files, fp);
    close_output_files (fp);
 }
 
 %}}}
 
-private define find_xspec_sources (dir, xspec_version) %{{{
+private define xspec_model_dat (dir, xspec_version) %{{{
 {
-   variable s = @Source_Type;
-   s.model_dat = find_model_dat_file (dir, xspec_version);
-   s.model_srcdir = find_model_srcdir (dir, xspec_version);
-   return s;
-}
-
-%}}}
-
-private define xspec_source (dir, xspec_version) %{{{
-{
-   variable s = find_xspec_sources (dir, xspec_version);
-   if (s == NULL)
+   variable model_dat = find_model_dat_file (dir, xspec_version);
+   if (model_dat == NULL)
      {
         vmessage ("*** Could not find model.dat file for %s", dir);
         exit(1);
@@ -357,14 +254,12 @@ private define xspec_source (dir, xspec_version) %{{{
    variable local_dir = getenv ("LMODDIR");
    if (local_dir != NULL)
      {
-	variable t = @Source_Type;
-	t.model_dat = path_concat (local_dir, "lmodel.dat");
-	t.model_srcdir = local_dir;
+	variable lmodel_dat = path_concat (local_dir, "lmodel.dat");
 
-	s = [s, t];
+	model_dat = [model_dat, lmodel_dat];
      }
 
-   return s;
+   return model_dat;
 }
 
 %}}}
@@ -373,7 +268,7 @@ define slsh_main ()
 {
    variable msg = "Usage:  code_gen.sl <xspec-version> [<headas-source-dir>]";
    variable root_dir, xspec_version;
-   
+
    switch (__argc)
      {
       case 3:
@@ -389,7 +284,7 @@ define slsh_main ()
         % default
         vmessage (msg);
         return;
-     }   
+     }
 
    ifnot (xspec_version == 11 or xspec_version == 12)
      {
@@ -408,8 +303,8 @@ define slsh_main ()
         return;
      }
 
-   vmessage ("Searching for XSPEC source code in: %s", root_dir);
-   make_interface (xspec_source (root_dir, xspec_version), 
+   vmessage ("Searching for XSPEC model.dat in: %s", root_dir);
+   make_interface (xspec_model_dat (root_dir, xspec_version),
                    sprintf ("xspec%d", xspec_version));
 }
 

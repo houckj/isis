@@ -27,26 +27,11 @@
 %
 
 variable Model_Dat;     % path to model.dat file
-variable Model_Srcdir;  % path to source code directory
 
 variable Supported_Model_Types = Assoc_Type[];
 Supported_Model_Types["add"] = "add";
 Supported_Model_Types["mul"] = "mul";
 Supported_Model_Types["con"] = "con";
-
-define set_model_srcdir (s) %{{{
-{
-   Model_Srcdir = s;
-}
-
-%}}}
-
-define get_model_srcdir () %{{{
-{
-   return Model_Srcdir;
-}
-
-%}}}
 
 private define filter (s) %{{{
 {
@@ -73,10 +58,8 @@ private define filter (s) %{{{
 
 %}}}
 
-define load_buf (model_dat, model_srcdir) %{{{
+define load_buf (model_dat) %{{{
 {
-   set_model_srcdir (model_srcdir);
-
 #ifnexists Isis_Load_File_Verbose_Mask
    variable Isis_Load_File_Verbose_Mask = 1;
 #endif
@@ -108,12 +91,11 @@ define load_buf (model_dat, model_srcdir) %{{{
 
    variable s = struct
      {
-	buf, model_dat, model_srcdir
+	buf, model_dat
      };
 
    s.buf = buf;
    s.model_dat = model_dat;
-   s.model_srcdir = model_srcdir;
 
    return s;
 }
@@ -302,40 +284,6 @@ private define handle_xspec_object_not_found (object, xspec_version) %{{{
 #endif
 
    throw ApplicationError, s;
-}
-
-%}}}
-
-define find_model_srcdir (dir, xspec_version) %{{{
-{
-   variable model_srcdirs;
-   switch (xspec_version)
-     {
-      case 11:
-        model_srcdirs = ["src/spectral/xspec/src/functions/",
-                         "ftools/spectral/xspec/src/functions/"];
-     }
-     {
-      case 12:
-        model_srcdirs = ["Xspec/src/XSFunctions/"];
-     }
-     {
-        % default:
-        throw ApplicationError, "xspec version ${xspec_version} is unsupported"$;
-     }
-
-   variable i, n = length(model_srcdirs);
-
-   for (i = 0 ; i < n; i++)
-     {
-        variable path = path_concat (dir, model_srcdirs[i]);
-        if (NULL != stat_file (path))
-          return path;
-     }
-
-   handle_xspec_object_not_found ("source code", xspec_version);
-
-   return NULL;
 }
 
 %}}}

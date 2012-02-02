@@ -151,8 +151,8 @@ xspec_O_DEP = $(SRCDIR)/xspec-compat.inc
 #---------------------------------------------------------------------------
 # Rules
 #---------------------------------------------------------------------------
-all:  $(ELFDIR_ELF_LIB)
-static:  $(OBJDIR_NORMAL_LIB)
+all:  new-xspec12-code $(ELFDIR_ELF_LIB)
+static:  new-xspec12-code $(OBJDIR_NORMAL_LIB)
 
 $(OBJDIR_NORMAL_LIB): $(SRCDIR)/config-xspec-version $(OBJDIR) $(CONFIG_H) $(OBJS)
 	-$(RM) $(OBJDIR_NORMAL_LIB)
