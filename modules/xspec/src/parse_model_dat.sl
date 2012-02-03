@@ -299,8 +299,8 @@ define find_model_dat_file (dir, xspec_version) %{{{
      }
      {
       case 12:
-        model_dat_paths = ["Xspec/src/manager/model.dat"
-                           , "spectral/manager/model.dat"];
+        model_dat_paths = ["spectral/manager/model.dat"
+                           , "Xspec/src/manager/model.dat"];
      }
      {
         % default:
