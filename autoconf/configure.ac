@@ -246,6 +246,15 @@ JH_CREATE_FC_MODULE_ORULES(src)
 JH_APPEND_FC_RULES(src/Makefile)
 JH_APPEND_FC_ELFRULES(src/Makefile)
 
+dnl
+dnl Run xspec module code generator, but don't
+dnl assume that slsh is on the path.
+dnl
+if test "x$HEADAS_DIR" != "x" ; then
+    ( cd modules/xspec/src;
+      $SLANG_LIBDIR/../bin/slsh code_gen.sl 12 $HEADAS_DIR )
+fi
+
 echo ""
 echo "You are compiling with this compiler configuration:"
 echo "       CC =" "$CC"
@@ -263,10 +272,10 @@ if test "x$HEADAS_DIR" != "x" ; then
        headas_arg="headas"
     fi
     echo "    --with-${headas_arg} = $HEADAS_DIR"
-    ./autoconf/compiler_check.sh "$CC" "$FC" "$HEADAS_DIR"
+    autoconf/compiler_check.sh "$CC" "$FC" "$HEADAS_DIR"
 else
     echo "The XSPEC module will not be compiled."
-    ./autoconf/compiler_check.sh "$CC" "$FC"
+    autoconf/compiler_check.sh "$CC" "$FC"
 fi
     echo ""
 echo "isis will be installed in" "$prefix"

@@ -313,7 +313,7 @@ define find_model_dat_file (dir, xspec_version) %{{{
         variable path = path_concat (dir, x);
         if (NULL != stat_file (path))
           return path;
-        path = path_concat (dir + "/..", x);
+        path = path_concat (path_concat (dir, ".."), x);
         if (NULL != stat_file (path))
           return path;
      }

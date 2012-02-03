@@ -151,8 +151,8 @@ xspec_O_DEP = $(SRCDIR)/xspec-compat.inc
 #---------------------------------------------------------------------------
 # Rules
 #---------------------------------------------------------------------------
-all:  new-xspec12-code $(ELFDIR_ELF_LIB)
-static:  new-xspec12-code $(OBJDIR_NORMAL_LIB)
+all:  $(ELFDIR_ELF_LIB)
+static:  $(OBJDIR_NORMAL_LIB)
 
 $(OBJDIR_NORMAL_LIB): $(SRCDIR)/config-xspec-version $(OBJDIR) $(CONFIG_H) $(OBJS)
 	-$(RM) $(OBJDIR_NORMAL_LIB)
@@ -177,7 +177,9 @@ $(SRCDIR)/config-xspec-version:
 	HEADAS=$(HEA); export HEADAS; /bin/sh xspec_libs
 
 new-xspec11-code:
-	./code_gen.sl 11 $(HEA)/..
+	@echo '*** WARNING:  The xspec 11 interface is no longer maintained'
+	@echo '*** Use xspec 12 instead.'
+	@#./code_gen.sl 11 $(HEA)/..
 
 new-xspec12-code:
 	./code_gen.sl 12 $(HEA)/..
