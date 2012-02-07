@@ -1,3 +1,7 @@
+Changes since 1.6.2 (released Jan 2012)
+---------------------------------------
+ 1.  Autogenerate code for xspec-module at configure time
+
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
  1.  get_params now works with regular expressions, for example:
