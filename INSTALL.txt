@@ -8,10 +8,143 @@ For more information about isis, see: http://space.mit.edu/cxc/isis/
 Send bug reports, comments and suggestions to:
 isis-users@space.mit.edu
 
+Overview
+--------
+*****************************************************************
+The easiest way to set up a new isis installation is to run an
+installation script that will automatically download and
+install isis and a few commonly used modules. This installation
+method is documented in Part I, <<XI,Scripted Installation>>.
+
+For those who prefer greater control and customization, full details
+of the isis installation process are documented in Part II,
+<<XII,Manual Installation>>.
+*****************************************************************
+
+[[XI]]
+I. Scripted Installation
+------------------------
+This installation method is intended to simplify the most
+common situation in which isis is being installed for use as a
+spectral analysis tool with support for using the XSPEC
+spectral model library.
+
+*For The Impatient:* assuming certain prerequisites are met, the
+following steps should be sufficient to install isis into
+directory 'DIR':
+..........................................................
+   wget http://space.mit.edu/cxc/isis/install-isis.sh
+   setenv HEADAS /usr/local/headas/x86_64-unknown-linux-gnu-libc2.7/
+   sh install-isis.sh DIR
+..........................................................
+If reading instructions just isn't for you, then by all means
+go ahead and try that now, substituting the +HEADAS+ path
+appropriate for your system.
+
+The next section explains the process and requirements in a
+little more detail.
+
+Prerequisites
+~~~~~~~~~~~~~
+Before running the installation script, the following programs
+must be available on your system:
+
+- +wget+
+- +tar+
+- +make+
+- C compiler (eg. +gcc+)
+- Fortran compiler (eg. +gfortran+)
+
+See below for <<Xa,advice>> on choosing C and Fortran compilers.
+
+The simplest way to obtain the XSPEC spectral model library is
+to install XSPEC itself.  Isis also uses the +cfitsio+ and
++pgplot+ libraries that come with XSPEC. For this reason, The
+isis installation script assumes that XSPEC has been installed
+on your system; XSPEC is available from: +
+   http://heasarc.gsfc.nasa.gov/docs/software/lheasoft/
+
+When installing XSPEC, we strongly recommend compiling it from
+source code.
+
+Installation
+~~~~~~~~~~~~
+Once the above prerequisites are satisfied, isis installation
+can proceed as follows:
+
+. Move to a working directory where you have at least 200 MB of
+space to download and compile the software, then download the
+isis installation script into that directory:
++
+.....................................................................
+   cd isis-src
+   wget http://space.mit.edu/cxc/isis/install-isis.sh
+.....................................................................
+
+. Set the +HEADAS+ environment variable to provide the path
+to your XSPEC installation.  To set it, (t)csh users should
+type something like:
++
+.....................................................................
+   setenv HEADAS /usr/local/headas/x86_64-unknown-linux-gnu-libc2.7/
+.....................................................................
++
+while users of bash, ksh, etc.. should type something like
++
+.........................................................
+   HEADAS=/usr/local/headas/x86_64-unknown-linux-gnu-libc2.7/
+   export HEADAS
+.........................................................
+
+. Run the installation script to install everything into
+directory 'DIR'
++
+..........................
+   sh install-isis.sh DIR
+..........................
++
+If no directory 'DIR' is provided on the script command line,
+then everything will be installed into the current directory.
+
+If all goes well, the script will download, compile and install
+isis along with a few commonly used modules.  When the script
+finishes, it will provide the path to the isis executable, e.g.
+'DIR/bin/isis'. When you run isis, you should see something
+like this:
+
+............................................................
+> DIR/bin/isis
+
+Welcome to ISIS Version 1.6.2
+Copyright (C) 1998-2012 Massachusetts Institute of Technology
+
+          Isis web page: http://space.mit.edu/cxc/isis/
+   Mailing list archive: http://space.mit.edu/cxc/isis/archive/
+ Send questions to the mailing list: <isis-users@space.mit.edu>.
+     For a summary of recent changes, type:  "help changes"
+
+isis>
+............................................................
+
+To run isis by typing 'isis' instead of 'DIR/bin/isis',
+consider adding the 'DIR/bin' directory to your command search
+path. Alternatively, you might consider putting an appropriate
+symbolic link into a bin directory that's already on your path.
+To do that, type:
+.....................................
+    ln -s DIR/bin/isis $HOME/bin/isis
+.....................................
+
+[[XII]]
+II. Manual Installation
+-----------------------
+The manual installation method is available for those
+who want more control over the installation process.
+
 Prerequisites
 -------------
 =======================================================================
-The S-Lang library is required (version 2.2 or newer).
+The S-Lang library is required (version 2.2.4 or newer).
 This library is available from: +
   http://www.jedsoft.org/slang/
 
@@ -100,7 +233,7 @@ because they have the same version number and because they came
 from the same Linux distribution (Debian).
 
 To specify which compilers to use when building isis, set the
-CC and FC environment variables.  For example, to set these
++CC+ and +FC+ environment variables.  For example, to set these
 environment variables, (t)csh users should type:
 
 .................................................................
@@ -240,9 +373,9 @@ After downloading the source code tar files, move the
 files to '/soft/src':
 +
 .................................................................
-       mv slang-2.2.0.tar.gz /soft/src
-       mv isis-1.5.0.tar.gz /soft/src
-       mv heasoft-6.6.3.tar.gz /soft/src
+       mv slang-2.2.4.tar.gz /soft/src
+       mv isis-1.6.2.tar.gz /soft/src
+       mv heasoft-6.11.1.tar.gz /soft/src
 .................................................................
 
 . Specify compilers:
@@ -272,8 +405,8 @@ In Bourne shell variants, such as bash, ksh, etc.  type:
 +
 .................................................................
        cd /soft/src
-       gunzip -c slang-2.2.0.tar.gz | tar xf -
-       cd slang-2.2.0
+       gunzip -c slang-2.2.4.tar.gz | tar xf -
+       cd slang-2.2.4
        ./configure --prefix=/soft
        make
        make install
@@ -308,8 +441,8 @@ as shown above.
 +
 .................................................................
        cd /soft/src
-       gunzip -c isis-1.5.0.tar.gz | tar xf -
-       cd isis-1.5.0
+       gunzip -c isis-1.6.2.tar.gz | tar xf -
+       cd isis-1.6.2
        ./configure --prefix=/soft --with-slang=/soft \
                    --with-headas=$HEADAS
        make
@@ -321,12 +454,17 @@ At this point, '/soft/bin/isis' should be a symbolic link to the
 isis executable.  When you run it, you should see something
 like this:
 .................................................................
-     > /soft/bin/isis
+> /soft/bin/isis
 
-     Welcome to ISIS Version 1.5.0
-     Copyright (C) 1998-2010 Massachusetts Institute of Technology
+Welcome to ISIS Version 1.6.2
+Copyright (C) 1998-2012 Massachusetts Institute of Technology
 
-     isis>
+          Isis web page: http://space.mit.edu/cxc/isis/
+   Mailing list archive: http://space.mit.edu/cxc/isis/archive/
+ Send questions to the mailing list: <isis-users@space.mit.edu>.
+     For a summary of recent changes, type:  "help changes"
+
+isis>
 .................................................................
 
 For a complete list of supported configure options, do:
