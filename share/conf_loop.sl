@@ -370,7 +370,7 @@ public define conf_loop()
         usage (msg);
      }
 
-   variable is_scalar = _eqs(indices, indices[0]);
+   variable is_scalar = typeof(indices) == Integer_Type;
 
    indices = valid_param_indices (indices);
    if (length(indices) == 0)
