@@ -351,18 +351,7 @@ public define conf_loop()
    variable indices;
 
    switch(_NARGS)
-     {
-      case 0:
-        variable p, params = get_params();
-        indices = Int_Type[0];
-        foreach p (params)
-          {
-             if (p.freeze == 0 && p.tie == NULL)
-               indices = [indices, p.index];
-          }
-        if (length(indices) == 0)
-          usage(msg);
-     }
+     {case 0: indices = NULL;}
      {case 1: indices = ();}
      {case 2: (indices, ctrl.level) = ();}
      {case 3: (indices, ctrl.level, ctrl.tol) = ();}
