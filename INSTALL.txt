@@ -29,7 +29,7 @@ common situation in which isis is being installed for use as a
 spectral analysis tool with support for using the XSPEC
 spectral model library.
 
-*For The Impatient:* assuming certain prerequisites are met, the
+*For The Impatient:* assuming certain requirements are met, the
 following steps should be sufficient to install isis into
 directory 'DIR':
 ..........................................................
@@ -44,8 +44,8 @@ appropriate for your system.
 The next section explains the process and requirements in a
 little more detail.
 
-Prerequisites
-~~~~~~~~~~~~~
+Requirements
+~~~~~~~~~~~~
 Before running the installation script, the following programs
 must be available on your system:
 
@@ -57,9 +57,16 @@ must be available on your system:
 
 See below for <<Xa,advice>> on choosing C and Fortran compilers.
 
+To verify that each of these programs is available on your
+command search path, use +which+:
+................
+    > which wget
+    /usr/bin/wget
+................
+
 The simplest way to obtain the XSPEC spectral model library is
 to install XSPEC itself.  Isis also uses the +cfitsio+ and
-+pgplot+ libraries that come with XSPEC. For this reason, The
++pgplot+ libraries that come with XSPEC. For these reasons, the
 isis installation script assumes that XSPEC has been installed
 on your system; XSPEC is available from: +
    http://heasarc.gsfc.nasa.gov/docs/software/lheasoft/
@@ -69,7 +76,7 @@ source code.
 
 Installation
 ~~~~~~~~~~~~
-Once the above prerequisites are satisfied, isis installation
+Once the above requirements are satisfied, isis installation
 can proceed as follows:
 
 . Move to a working directory where you have at least 200 MB of
@@ -126,11 +133,13 @@ Copyright (C) 1998-2012 Massachusetts Institute of Technology
 isis>
 ............................................................
 
-To run isis by typing 'isis' instead of 'DIR/bin/isis',
-consider adding the 'DIR/bin' directory to your command search
-path. Alternatively, you might consider putting an appropriate
-symbolic link into a bin directory that's already on your path.
-To do that, type:
+To run isis by typing 'isis' at the unix command prompt instead
+of 'DIR/bin/isis', consider adding the 'DIR/bin' directory to
+your command search path. Alternatively, you might consider
+putting an appropriate symbolic link into a bin directory
+that's already on your path. For example, if '$HOME/bin' is on
+your command search path, consider putting a symbolic link
+there:
 .....................................
     ln -s DIR/bin/isis $HOME/bin/isis
 .....................................
@@ -141,8 +150,8 @@ II. Manual Installation
 The manual installation method is available for those
 who want more control over the installation process.
 
-Prerequisites
--------------
+Requirements
+------------
 =======================================================================
 The S-Lang library is required (version 2.2.4 or newer).
 This library is available from: +
