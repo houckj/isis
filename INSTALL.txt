@@ -171,7 +171,7 @@ installed.
 If you want to make use of the ATOMDB spectroscopy database,
 then this database must be installed on your system.
 The database is available from: +
-  http://cxc.harvard.edu/atomdb/
+  http://www.atomdb.org/
 =======================================================================
 
 Optional Software
@@ -504,6 +504,10 @@ d. Configure options
     that may be available on your system. For this reason, it
     is usually best to avoid combining the --with-headas option
     with any of the --with-cfitsio or --with-pgplot options.
+
+--with-atomdb=$ATOMDB::
+    Use this option to provide the path to the ATOMDB
+    spectroscopy database, available from: http://www.atomdb.org/
 
 --with-xspec-version=nn::
     When your local HEASoft installation includes both xspec11
