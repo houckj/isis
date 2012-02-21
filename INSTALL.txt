@@ -19,6 +19,10 @@ method is documented in Part I, <<XI,Scripted Installation>>.
 For those who prefer greater control and customization, full details
 of the isis installation process are documented in Part II,
 <<XII,Manual Installation>>.
+
+Once isis is installed, a number of optional components are
+available to support a variety of specialized tasks.  For
+details, see Part III, <<XIII,Optional Components>>.
 *****************************************************************
 
 [[XI]]
@@ -167,29 +171,6 @@ Along with the spectral model library, the HEASoft installation
 also provides the cfitsio and pgplot libraries; if you choose
 not to install HEASoft, then cfitsio and pgplot must be
 installed.
-
-If you want to make use of the ATOMDB spectroscopy database,
-then this database must be installed on your system.
-The database is available from: +
-  http://www.atomdb.org/
-=======================================================================
-
-Optional Software
------------------
-=======================================================================
-A growing collection of modules and data analysis packages is
-available from: +
-  http://space.mit.edu/cxc/isis/modules.html
-
-The available data analysis packages provide support for timing
-analysis, automated processing of Chandra grating data, and
-analysis of density-dependent line ratios from He-like triplet
-lines.
-
-The available modules provide support for low-level I/O
-of FITS and HDF5 files, interaction with the ds9 image viewer,
-an interface to the GSL scientific library, 3D visualization,
-PVM-based parallel processing, and more.
 =======================================================================
 
 Table of Contents
@@ -206,7 +187,6 @@ Table of Contents
   - <<Xmac,Mac OS X>>
   - <<Xsolaris,Solaris>>
 . <<X3,TROUBLESHOOTING>>
-. <<X5,Appendix>>
 
 [[X1]]
 1. Installing from source code
@@ -688,9 +668,32 @@ If isis did not compile:
 
  - Are your C and Fortran compilers <<Xa,compatible>>?
 
-[[X5]]
-4. Appendix
------------
+[[XIII]]
+III. Optional Components
+------------------------
+=======================================================================
+Isis provides extensive support for constructing
+multi-component collisional ionization equilibrium spectral
+models using the ATOMDB spectroscopy database, available from: +
+  http://www.atomdb.org/
+
+A growing collection of modules and data analysis packages is
+available from: +
+  http://space.mit.edu/cxc/isis/modules.html
+
+The available data analysis packages provide support for timing
+analysis, automated processing of Chandra grating data, and
+analysis of density-dependent line ratios from He-like triplet
+lines.
+
+The available modules provide support for low-level I/O
+of FITS and HDF5 files, interaction with the ds9 image viewer,
+an interface to the GSL scientific library, 3D visualization,
+PVM-based parallel processing, and more.
+=======================================================================
+
+Appendix
+--------
 
 ***********************************************************************
 Below, I have attached the generic INSTALL instructions included in the
@@ -778,7 +781,7 @@ is an example:
 ....................................................
      ./configure CC=c89 CFLAGS=-O2 LIBS=-lposix
 ...................................................
-See <<X4,Defining Variables>>, for more details.
+See <<X7,Defining Variables>>, for more details.
 
 Compiling For Multiple Architectures
 ------------------------------------
@@ -876,7 +879,7 @@ default values for variables like 'CC', 'cache_file', and 'prefix'.
 'CONFIG_SITE' environment variable to the location of the site script.
 A warning: not all 'configure' scripts look for a site script.
 
-[[X4]]
+[[X7]]
 Defining Variables
 ------------------
 
