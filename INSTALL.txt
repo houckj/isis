@@ -148,6 +148,9 @@ there:
     ln -s DIR/bin/isis $HOME/bin/isis
 .....................................
 
+Now that isis is working, you may want to consider installing
+some of the optional software mentioned in <<XIII,Part III>>.
+
 [[XII]]
 II. Manual Installation
 -----------------------
@@ -455,6 +458,9 @@ Copyright (C) 1998-2012 Massachusetts Institute of Technology
 
 isis>
 .................................................................
+
+Once isis is working, you may want to consider installing
+some of the optional software mentioned in <<XIII,Part III>>.
 
 For a complete list of supported configure options, do:
 ..................................
