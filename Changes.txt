@@ -1,6 +1,7 @@
 Changes since 1.6.2 (released Jan 2012)
 ---------------------------------------
- 1.  Autogenerate code for xspec-module at configure time
+ 1.  Autogenerate code for xspec-module at configure time.
+ 2.  Retrieve literature references from atomdb "ionrec" files.
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
