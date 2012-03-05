@@ -345,6 +345,52 @@ private define warn_dup (who, num, up, lo, file) %{{{
 
 %}}}
 
+private define load_ir_refs (ion, upper, lower, ionrec_file) %{{{
+{
+   variable x = fits_read_col_struct (ionrec_file,
+                                      ["ion_final", "level_final",
+                                       "rate_ref", "wave_ref", "wv_obs_ref", "br_rat_ref"]);
+
+   variable num_tr = length(upper);
+   variable refs = struct
+     {
+        ir_rate_ref = String_Type[num_tr],
+        ir_wave_ref = String_Type[num_tr],
+        ir_wv_obs_ref = String_Type[num_tr],
+        ir_br_rat_ref = String_Type[num_tr]
+     };
+
+   refs.ir_rate_ref[*] = "";
+   refs.ir_wave_ref[*] = "";
+   refs.ir_wv_obs_ref[*] = "";
+   refs.ir_br_rat_ref[*] = "";
+
+   variable j;
+   _for j (0, num_tr-1, 1)
+     {
+        % select ionization/recombination rates that directly
+        % affect the upper level in the final ion
+        variable i_ref = where (x.ion_final == ion
+                                and x.level_final == upper[j]);
+        if (length(i_ref) == 0)
+          continue;
+        else if (length(i_ref) != 1)
+          {
+             warn_dup("IR", length(i_ref), upper[j], lower[j], ionrec_file);
+          }
+        i_ref = i_ref[0];
+
+        refs.ir_rate_ref[j] = x.rate_ref[i_ref];
+        refs.ir_wave_ref[j] = x.wave_ref[i_ref];
+        refs.ir_wv_obs_ref[j] = x.wv_obs_ref[i_ref];
+        refs.ir_br_rat_ref[j] = x.br_rat_ref[i_ref];
+     }
+
+   return refs;
+}
+
+%}}}
+
 private define load_dr_refs1 (upper, lower, dr_file) %{{{
 {
    variable r = fits_read_col_struct (dr_file,
@@ -524,9 +570,21 @@ private define load_lv_refs (levs, elev_file) %{{{
 
 private define load_la_refs1 (upper, lower, wave_file) %{{{
 {
-   variable x = fits_read_col_struct (wave_file,
-                                      ["upper_lev", "lower_lev",
-                                       "wave_ref", "wv_obs_ref", "ein_a_ref"]);
+   variable colnames = ["upper_lev", "lower_lev",
+                        "wave_ref", "ein_a_ref"];
+
+   variable wv_obs_ref = "wv_obs_ref";
+   variable have_wv_obs_ref = fits_binary_table_column_exists (wave_file, wv_obs_ref);
+   if (have_wv_obs_ref)
+     colnames = [colnames, wv_obs_ref];
+
+   variable x = fits_read_col_struct (wave_file, colnames);
+
+   ifnot (have_wv_obs_ref)
+     {
+        x = struct_combine (x, wv_obs_ref);
+        x.wv_obs_ref = String_Type[length(x.upper_lev)];
+     }
 
    variable refs = struct
      {
@@ -776,6 +834,7 @@ define aped_bib () %{{{
 
              variable r;
              switch (type)
+               {case 1: r = load_ir_refs (i, up, lo, file);}
                {
                 case 2:
                   variable levs = [up, lo];
@@ -788,7 +847,9 @@ define aped_bib () %{{{
                {case 6: r = load_dr_refs (up, lo, file);}
                {
                   % default:
-                  vmessage ("unimplemented type: $type file: $file"$);
+                  vmessage ("skipping unsupported file type=%d (for Z=%d ion=%d) file: %s",
+                            type, fm.Z[k], i, file);
+                  continue;
                }
 
              refs = struct_append_strings (refs, r);
