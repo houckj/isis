@@ -2,6 +2,7 @@ Changes since 1.6.2 (released Jan 2012)
 ---------------------------------------
  1.  Autogenerate code for xspec-module at configure time.
  2.  Retrieve literature references from atomdb "ionrec" files.
+ 3.  Update xspec module code generator for heasoft-6.12 release.
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
