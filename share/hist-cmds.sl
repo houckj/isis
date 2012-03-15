@@ -665,9 +665,6 @@ define assign_arf () %{{{
 
    (arf_index, hist_index) = ();
 
-   if (length(arf_index) == 1)
-     arf_index = ones(length(arf_index))*arf_index;
-
    array_map (Void_Type, &_isis->_assign_arf_to_hist, arf_index, hist_index);
 }
 
@@ -840,9 +837,6 @@ define assign_rmf () %{{{
      return;
 
    (rmf_index, hist_index) = ();
-
-   if (length(rmf_index) == 1)
-     rmf_index = ones(length(rmf_index))*rmf_index;
 
    array_map (Void_Type, &do_rmf_assign, rmf_index, hist_index);
 }
