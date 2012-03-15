@@ -150,35 +150,46 @@ private define xspec12_filter (buf) %{{{
              continue;
           }
 
-        variable tok, num_tok;
-
         variable flag_char = NULL;
         if ((ts[0] == '$') || (ts[0] == '*'))
           flag_char = ts[[0]];
 
-        if (flag_char != NULL)
-          {
-             tok = strtok (ts[[1:]]);
-             num_tok = length(tok);
+        if (flag_char == NULL)
+          continue;
 
-             if (num_tok >= 8)
-               {
-                  (buf[i], ) = strreplace (buf[i], flag_char, "", 1);
-               }
+        variable tok = strtok (ts[[1:]]);
+        variable num_tok = length(tok);
+
+        variable name = tok[0];
+        variable value;
+
+        switch (flag_char)
+          {
+           case "$":
+             if (num_tok > 1 && (0 == is_substr(tok[1], "X")))
+               value = tok[1];
+             else if (num_tok > 2 && (0 == is_substr(tok[2], "X")))
+               value = tok[2];
+             else
+               value = "0";
+
+             buf[i] = "$name  XXX  $value  0   0  10    10   -1"$;
+          }
+          {
+           case "*":
+             if (num_tok > 4)
+               (buf[i], ) = strreplace (buf[i], flag_char, "", 1);
              else
                {
-                  variable name, value;
-                  name = tok[0];
-
-                  if (num_tok > 1 && (0 == is_substr(tok[1], "X")))
-                    value = tok[1];
-                  else if (num_tok > 2 && (0 == is_substr(tok[2], "X")))
-                    value = tok[2];
-                  else
-                    value = "0";
-
-                  buf[i] = "$name  XXX  $value  0   0  1    10   -1"$;
+                  variable units = (num_tok == 3) ? tok[1] : "";
+                  value = tok[-1];
+                  buf[i] = "$name $units $value 0 0 10 10 -1"$;
                }
+          }
+          {
+             % default:
+             variable msg = sprintf ("*** Failed parsing model.dat line: %s", buf[i]);
+             throw ApplicationError, msg;
           }
      }
 
