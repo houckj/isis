@@ -33,12 +33,14 @@ diskm
 disko
 diskpbb
 diskpn
+eplogpar
 eqpair
 eqtherm
 equil
 expdec
 ezdiskbb
 gaussian
+gadem
 gnei
 grad
 grbm
@@ -47,6 +49,7 @@ kerrd
 kerrdisk
 laor
 laor2
+logpar
 lorentz
 meka
 mekal
@@ -59,7 +62,10 @@ nsatmos
 nsmax
 nteea
 nthComp
+optxagn
+optxagnf
 pegpwrlw
+pexmon
 pexrav
 pexriv
 plcabs
@@ -76,6 +82,7 @@ step
 vapec
 vbremss
 vequil
+vgadem
 vgnei
 vmeka
 vmekal
