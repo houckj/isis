@@ -1,9 +1,9 @@
   S-Lang Maplib Module Reference
   John E. Davis, <davis@space.mit.edu>
-  Mar 5, 2009
+  Jun 16, 2008
   ____________________________________________________________
 
-                            Table of Contents
+                            [1mTable of Contents[0m
 
   1. Introduction to the Maplib Module
   2. Usage
@@ -14,7 +14,7 @@
   3.4. maplib_reproject
 
 
-  1.  Introduction to the Maplib Module
+  [1m1.  Introduction to the Maplib Module[0m
 
   The routines in this module implement various mapping projections from
   a unit sphere to a surface such as a plane or cylinder.
@@ -27,39 +27,39 @@
 
   At the moment, the following map mappings are supported by the module:
 
-     Gnomic
+     [1mGnomic[0m
         A perspective projection from the center of a sphere to a plane
         tangent to some point on the surface of the sphere.  Great
         circles on the sphere are mapped to straight lines on the plane.
 
-     Orthographic
+     [1mOrthographic[0m
         A perspective projection of the unit sphere to a tangent plane
         on the unit sphere from an infinite distance.
 
-     Stereographic
+     [1mStereographic[0m
         A perspective projection to a tangent plane from the point on
         the unit sphere that is antipodal to the point of tangency.
 
-     Lambert
+     [1mLambert[0m
         An azimuthal equal area projection.
 
-     Hammer-Aitoff
+     [1mHammer-Aitoff[0m
         An equal area projection of the sphere onto an ellipse.
 
   In addition, the module supports the additional transformations:
 
-     Linear
+     [1mLinear[0m
         A simple 1-1 mapping from a point on one plane to a point on
         another.  The mapping may involve translation, scaling, or
         rotation.
 
-     Sphere
+     [1mSphere[0m
         A rotation of a sphere onto itself.
 
   Addition map projections will be added in future versions of the
   module.
 
-  2.  Usage
+  [1m2.  Usage[0m
 
   In order to a particular map projection, it must first be created via
   the maplib_new function.  It takes a single string parameter that
@@ -126,17 +126,17 @@
 
            (x_A,y_A) = maplib_reproject (A, B, x_A, x_B);
 
-  3.  Maplib Module Function Reference
+  [1m3.  Maplib Module Function Reference[0m
 
-  3.1.  maplib_new
+  [1m3.1.  maplib_new[0m
 
-      Synopsis
+      [1mSynopsis[0m
         Create a new mapping instance
 
-      Usage
+      [1mUsage[0m
         m = maplib_new (String_Type mapname)
 
-      Description
+      [1mDescription[0m
         This function creates a new instance of a mapping of the
         specified name.  If the mapping exists, the function returns a
         structure whose fields depend upon the specified mapping.
@@ -172,7 +172,7 @@
      The following transformations return a structure whose fields
      differ from the above:
 
-        sphere
+        [1msphere[0m
 
                 field-name   default-value             description
                   name         sphere         Rotation of the unit sphere
@@ -180,7 +180,7 @@
                   lon1,lat1    (0,90)           into the point (lon1,lat1)
                   beta           0            Additional rotation about (lon1,lat1)
 
-        linear
+        [1mlinear[0m
 
                 field-name   default-value             description
                   name         linear         A linear transformation
@@ -188,72 +188,72 @@
                   x1,y1        (0,0)
                   A           [1,0,0,1]
 
-      Example
+      [1mExample[0m
 
               m = maplib_new ("gnomic");
               m.lon0 = 20;
               m.lat0 = 35;
               (x,y) = maplib_project (m, 45, 22);
 
-      See Also
+      [1mSee Also[0m
         ``maplib_project'', ``maplib_deproject'', ``maplib_reproject''
 
-  3.2.  maplib_project
+  [1m3.2.  maplib_project[0m
 
-      Synopsis
+      [1mSynopsis[0m
         Project
 
-      Usage
+      [1mUsage[0m
         (x,y) = maplib_project (Struct_Type m, Double_Type lon,
         Double_Type lat)
 
-      Description
+      [1mDescription[0m
         This function applies the mapping specified by the first
         parameter m to the longitude and latitude pairs (lon,lat).  The
         coordinates of the projected points will be returned.
 
-      Notes
+      [1mNotes[0m
         For some transformations, the parameters lon and lat need not
         represent longitude and latitude coordinates.  The "linear"
         transformtion is one example.
 
         This function is the inverse of maplib_deproject.
 
-      See Also
+      [1mSee Also[0m
         ``maplib_new'', ``maplib_deproject'', ``maplib_reproject''
 
-  3.3.  maplib_deproject
+  [1m3.3.  maplib_deproject[0m
 
-      Synopsis
+      [1mSynopsis[0m
         Project
 
-      Usage
+      [1mUsage[0m
         (lon,lat) = maplib_project (Struct_Type m, Double_Type x,
         Double_Type y)
 
-      Description
+      [1mDescription[0m
         This function applies the inverse of the mapping specified by
         the first parameter m to the projected coordinates (x,y) and
         returns the result.
 
-      Notes
+      [1mNotes[0m
         This function is the inverse of maplib_project.
 
-      See Also
+      [1mSee Also[0m
         ``maplib_new'', ``maplib_project'', ``maplib_reproject''
 
-  3.4.  maplib_reproject
+  [1m3.4.  maplib_reproject[0m
 
-      Synopsis
+      [1mSynopsis[0m
         Reproject the coordinates to another projection
 
-      Usage
+      [1mUsage[0m
         (x1,y1)=maplib_reproject (m_to, m_from, x, y)
 
              Struct_Type m_to, m_from;
              Double_Type x, Double_Type y;
 
-      Description
+      [1mDescription[0m
         The maplib_reproject function reprojects the coordinates (x,y)
         associated with the mapping m_from to coordinates described by
         the mapping m_to.  This function is equivalent to
@@ -261,7 +261,7 @@
                (lon, lat) = maplib_deproject (m_from, x, y);
                (x1, y1) = maplib_reproject (m_to, lon, lat);
 
-      Notes
+      [1mNotes[0m
         It is strongly recommended that this function be used for
         reprojections rather than the two step process outlined above.
         The main reason is that if (x,y) are expressed in single
@@ -271,6 +271,6 @@
         maplib_reproject does not have this problem because double
         precision is used throughout.
 
-      See Also
+      [1mSee Also[0m
         ``maplib_new'', ``maplib_project'', ``maplib_deproject''
 

@@ -1,12 +1,12 @@
 % These routines perform FITS WCS transformations using maplib.
 % Public routines:
-% 
+%
 %    (x',y') = wcsfuns_project (wcs, x, y);           % From WCS to image
 %    (x',y') = wcsfuns_deproject (wcs, x, y);         % From image to WCS
 %    (x',y') = wcsfuns_reproject (wcs', wcs, x, y);   % From image to image
 %
 % The wcs structure is assumed to be the same as given by the fitswcs.
-% 
+%
 % Author: John E. Davis <davis@space.mit.edu>
 %---------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ $2 = 1;  % Patch-level
 
 public variable _wcsfuns_version = $0*10000 + $1*100 + $2;
 public variable _wcsfuns_version_string = sprintf ("%d.%d.%d", $0, $1, $2);
-	     
+
 require ("maplib");
 require ("fitswcs");
 % Note: the fitswcs structure may not include the equinox and radsys
@@ -30,13 +30,13 @@ private define parse_ctype (ctype)
    variable sys, proj;
    if (strlen (ctype) < 6)
      return NULL, "linear";
-   
+
    if (ctype[4] != '-')
      return NULL, "linear";
 
    sys = strtrim_end (substr (ctype, 1, 4), "-");
    proj = strtrim_end (substr (ctype, 6, -1), "- ");
-   
+
    return sys, proj;
 }
 
@@ -64,7 +64,7 @@ private define get_lon_lat_indices (sys_0, sys_1)
 }
 
 % The FITSWCS-II paper defines the following conventions:
-% 
+%
 % The native system is the system where the coordinate mappings are
 % defined.  For example, the FITS azimuthal projections use a native
 % system in which the (native) pole is located at the center of the
@@ -72,27 +72,27 @@ private define get_lon_lat_indices (sys_0, sys_1)
 % the celestial ones by (alpha,delta).  The location of the celestial
 % pole is give by (phi_p,theta_p) in native coordinates.  LATPOLEa and
 % LONPOLEa keywords encode these values.  The location of the native
-% pole is given by (alpha_p, delta_p) in celestial coordinates. 
-% 
+% pole is given by (alpha_p, delta_p) in celestial coordinates.
+%
 % A fiducial point is defined with coordinates (phi_0,theta_0) and
 % (alpha_0,delta_0) in the native and celestial systems, resp.  The
 % pair (alpha_0,delta_0) is given by CRVALia.  And (PVi_1a,PVi_2a)
 % give the corresponding native coordinates.
-% 
+%
 % For azimuthal projections, (alpha_0, theta_0) correspond to maplib's
 % lon0 and lat0 parameters.
 %
-% In FITS parlance, (lon0,lat0) specifies the celestial coordinate of the 
+% In FITS parlance, (lon0,lat0) specifies the celestial coordinate of the
 % native pole, assumed to be located at the center of the map (given by crpix).
 % The FITSWCS-II paper denotes the native coordinate by (phi,theta), and the
 % celestial coordinate by (alpha,delta).
-% 
+%
 % The CRVAL keywords give the fiducial celestial coordinates
 % (alpha0,delta0). The associated native coordinate is given by
 % (phi0,theta0).  The azimuthal projections use (phi0,theta0)=(0,90).
 % This means that for azimuthal projections, CRVAL provides the
 % celestial coordinates of the native pole.
-% 
+%
 % The LONPOLEa keyword gives the native longitude of the celestial
 % pole.  It corresponds to beta in the "sphere" projection.  Its
 % default value is 0 for delta0>=theta0, and -180 otherwise.  Recall
@@ -100,14 +100,14 @@ private define get_lon_lat_indices (sys_0, sys_1)
 % longitude of the celestial pole fixes the rotation angle.  For the
 % azimuthal projections, maplib automatically chooses the correct
 % implicit value for beta by the constraint that (xhat,yhat) have the
-% same directions as (lonhat,lathat) at the fiducial point. 
-% 
+% same directions as (lonhat,lathat) at the fiducial point.
+%
 % FIXME!!!
 % Non-default values of LONPOLEa will require a rotation of the
 % tangent plane.
-% 
-% 
-% 
+%
+%
+%
 private define init_simple_azimuthal_proj (proj, wcs)
 {
    variable m = maplib_new (proj);
@@ -117,7 +117,7 @@ private define init_simple_azimuthal_proj (proj, wcs)
    m.y0 = wcs.crpix[1];
    m.xscale = wcs.cdelt[0];
    m.yscale = wcs.cdelt[1];
-   
+
    return m;
 }
 
@@ -184,8 +184,8 @@ private define init_linear_proj (proj, wcs)
 {
    variable m = maplib_new ("linear");
 
-   % In FITS parlance, projections take place from image planes to 
-   % the WCS system, which is the reverse of how maplib defines the 
+   % In FITS parlance, projections take place from image planes to
+   % the WCS system, which is the reverse of how maplib defines the
    % projections.  Hence, use the inverse matrix here, and reverse x0<->x1.
    m.x0 = wcs.crval[0];
    m.y0 = wcs.crval[1];
@@ -216,32 +216,33 @@ Fits_To_Maplib_Funs["tan"] = &init_tan_proj;
 Fits_To_Maplib_Funs["sin"] = &init_sin_proj;
 Fits_To_Maplib_Funs["stg"] = &init_stg_proj;
 Fits_To_Maplib_Funs["linear"] = &init_linear_proj;
+Fits_To_Maplib_Funs["car"] = &init_linear_proj;
 
 % This routine converts a FITS WCS specification to a maplib specification.
 % FITS WCS defines a transformation from "image" coordinates X_j to, e.g.,
 % celestial coordinates, W_i via:
-% 
+%
 %     Q_i = \sum_j D_i PC_ij (X_j - X0_j)
 %     W_i = F_i(Q_1, Q_2)
-%  
+%
 % where, generally speaking F_i are non-linear functions.  The precise meaning
-% of the FITS crval keywords depend upon the function F_i.  Generally it appears 
+% of the FITS crval keywords depend upon the function F_i.  Generally it appears
 % that CRVAL_1 = F_1(0,0) and CRVAL_2 = F_2(0,0).  In other words, the CRVALs
 % may be regarded as the WCS value of the reference pixel.  However, the FITS
 % WCS documents do not force this interpretation.  For this reason, the last
 % step will be written as
-% 
+%
 %     W_i = F_i(Q_1, Q_2; W0_1, W0_2)
 %
 % where the CRVALs have been represented by W0_i.
-% 
+%
 % The maplib projections from the tangent plane to the sphere are of the form
-% 
+%
 %    U_i = D_i (X_i - X0_i)
 %    W_i = M_i(U_1, U_2, W0_1, W0_2)
 %
 % The maplib linear transformation is:
-% 
+%
 %    W_i = W0_i + \sum_j R_ij (X_j-X0_j)
 %
 % Hence, the FITS WCS transformation will have to be written as two maplib
@@ -249,41 +250,41 @@ Fits_To_Maplib_Funs["linear"] = &init_linear_proj;
 % The linear transformation is required only when PC_ij is not diagonal.
 %
 % Case 1:
-% 
+%
 %   1.  F_i correspond to a linear transformation (ctypes are linear).
-%   
+%
 %      Want: W_i = W0_i + D_i \sum_j PC_ij (X_j - X0_j)
 %      Use maplib linear:
-%      
+%
 %           W_i = W0_i + \sum_j R_ij (X_j - X0_j)
 %           R_ij = D_i PC_ij
-%      
+%
 %   2. F_i correspond to a celestial mapping.
 %   2a. PC_ij is present
-%   
+%
 %      Want:
 %           Q_i = \sum_j D_i PC_ij (X_j - X0_j)
 %           W_i = F_i(Q_1, Q_2; W0_1, W0_2)
-%           
+%
 %      Use: Maplib linear followed by Maplib projection
-%   
+%
 %       Linear:      U_i = 0 + \sum_j R_ij (X_j - X0_j) ; R_ij = D_i PC_ij
 %       Projection:  W_i = M_i(U_1, U_2, W0_1, W0_2)
-%       
+%
 %   2b. PC_ij is not present
-%   
+%
 %       Want: Q_i = D_i (X_i - X0_i)
 %             W_i = F_i(Q_1, Q_2, W0_1, W0_2)
-%       
+%
 %       Use single maplib projection.
-%       
+%
 % Finally note that the matrix for linear transformations should be specified
 % as the inverse of PC_ij.  This is because FITS defines "projection" as being
 % from the tangent plane to the WCS, whereas maplib treats it the other way.
 define wcsfuns_fitswcs_to_maplib ()
 {
    variable wcs, flipped_ref;
-   
+
    if (_NARGS != 2)
      usage ("(m1, m2)=%s(wcs_struct, flipped_ref); %% if m2 is non-NULL apply it after m1 for maplib_project", _function_name());
 
@@ -299,7 +300,7 @@ define wcsfuns_fitswcs_to_maplib ()
    % The convention regarding the fits ctype is as follows:
    %
    %   If the ctypes are not in the so-called 4-3 format, then the projection
-   %   is linear.  Otherwise, the name contains the coordinate system and 
+   %   is linear.  Otherwise, the name contains the coordinate system and
    %   projection
    variable sys_x, proj_x, sys_y, proj_y;
    variable ctype_x = wcs.ctype[0];
@@ -326,7 +327,7 @@ define wcsfuns_fitswcs_to_maplib ()
      }
 
    m2 = NULL;
-   if ((proj_x != "linear") 
+   if ((proj_x != "linear")
        and (wcs.pc != NULL))
      {
 	m2 = maplib_new ("linear");
@@ -346,14 +347,14 @@ define wcsfuns_fitswcs_to_maplib ()
      }
 
    m1 = (@Fits_To_Maplib_Funs[proj_x])(proj_x, wcs);
-   
+
    return m1, m2;
 }
 
 private define maplib_xxxproject_helper (calling_func_name, nargs)
 {
    variable wcs, x, y;
-   
+
    if (nargs != 3)
      usage ("(x1,y1)=%s(wcs_struct,x,y)", calling_func_name);
 
@@ -372,7 +373,7 @@ define wcsfuns_project ()
    variable m1, m2, x, y, flipped;
 
    (m1, m2, x, y, flipped) = maplib_xxxproject_helper (_function_name(), _NARGS);
-   
+
    (x,y) = maplib_project (m1, __tmp(x), __tmp(y));
    if (m2 != NULL)
      (x,y) = maplib_project (m2, __tmp(x), __tmp(y));
@@ -387,8 +388,8 @@ define wcsfuns_deproject ()
 {
    variable m1, m2, x, y, flipped;
    (m1, m2, x, y, flipped) = maplib_xxxproject_helper (_function_name(), _NARGS);
-   
-   if (flipped) 
+
+   if (flipped)
      (x,y) = (y,x);
 
    if (m2 != NULL)
@@ -416,14 +417,14 @@ define wcsfuns_reproject ()
 
    if (m2_from != NULL)
      (x,y) = maplib_deproject (m2_from, __tmp(x), __tmp(y));
-   
+
    (x, y) = maplib_reproject (m1_to, m1_from, __tmp(x), __tmp(y));
 
    if (m2_to != NULL)
      (x, y) = maplib_project (m2_to, __tmp(x), __tmp(y));
-   
+
    if (flipped_to) return y,x;
    return x, y;
 }
-   
+
 provide ("wcsfuns");

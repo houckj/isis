@@ -39,23 +39,23 @@ _debug_info = 1;
 
 % Regression tests go here
 
-% The idea behind these tests is that the specific cases will be compare 
-% to a more general projection with parameters set to mimick to specific 
+% The idea behind these tests is that the specific cases will be compare
+% to a more general projection with parameters set to mimick to specific
 % case.
 
 static define generate_lon_lats (n, lon0, lat0, dlon, dlat)
 {
    variable lon, lat;
-   
+
    lon = dlon * (2.0*urand (n)-1.0);
    lat = dlon * (2.0*urand (n)-1.0);
-   
+
    variable m = maplib_new ("sphere");
    m.lon0 = 0;
    m.lat0 = 0;
    m.lon1 = lon0;
    m.lat1 = lat0;
-   
+
    (lon, lat) = maplib_project (m, lat, lon);
 
    variable i, j;
@@ -97,7 +97,8 @@ static define check_a_diff (x, x1, tol, lon, lat, axis, name, fun)
    () = fprintf (stderr, "*** WARNING: %s tolerance for %s %s exceeded (%e>%g) %d/%d times\n",
 		 axis, fun, name, max(dx), tol, length(i), length(x));
    i = wherefirst (max(dx) == dx);
-   () = fprintf (stderr, "             %g vs %g at (%g,%g)\n", x[i], x1[i], lon[i], lat[i]);
+   () = fprintf (stderr, "             %g vs %g at (%g,%g) [type=%S]\n", x[i], x1[i], lon[i], lat[i],
+		_typeof(x));
 }
 
 static define check_diffs (x, y, x1, y1, tol_x, tol_y, lon, lat, name, fun)
@@ -106,7 +107,6 @@ static define check_diffs (x, y, x1, y1, tol_x, tol_y, lon, lat, name, fun)
    check_a_diff (y, y1, tol_y, lon, lat, "Y", name, fun);
 }
 
-     
 static define test_gnomic ()
 {
    variable g = maplib_new ("gnomic");
@@ -116,11 +116,11 @@ static define test_gnomic ()
    p.p_lon = 0.0;
    p.p_lat = 0.0;
    p.p_len = 0.0;
-   
+
    variable lat, lon;
    (lon,lat) = generate_lon_lats (10000, p.lon0, p.lat0, 45, 45);
    variable x,y,x1,y1;
-   
+
    variable tol_x = 1e-12;
    variable tol_y = 1e-12;
 
@@ -129,7 +129,7 @@ static define test_gnomic ()
 	(x,y) = maplib_project (p, lon, lat);
 	(x1,y1) = maplib_project (g, lon, lat);
 	check_diffs (x,y,x1,y1,tol_x,tol_y,lon,lat, "gnomic", "maplib_project");
-	
+
 	lon = typecast(lon,Float_Type);
 	lat = typecast(lat,Float_Type);
      }
@@ -152,11 +152,11 @@ static define test_ortho ()
      p.p_lon -= 360.0;
 #endif
    p.p_len = 1e30;	       %  Inf
-   
+
    variable lat, lon;
    (lon,lat) = generate_lon_lats (10000, p.lon0, p.lat0, 89, 89);
    variable x,y,x1,y1;
-   
+
    variable tol_x = 1e-12;
    variable tol_y = 1e-12;
 
@@ -174,7 +174,7 @@ static define test_ortho ()
 %	(x1, y1) = maplib_project (g, typecast(lon,Float_Type), typecast(lat,Float_Type));
 %	check_diffs (x, y, x1, y1, tol_x, tol_y, lon, lat, "ortho float vs double", "maplib_project");
 	break;
-	  
+
 	lon = typecast(lon,Float_Type);
 	lat = typecast(lat,Float_Type);
 	tol_x = 1e-5;
@@ -193,11 +193,11 @@ static define test_stereo ()
    if (p.p_lon > 180.0)
      p.p_lon -= 360.0;
    p.p_len = 1.0;
-   
+
    variable lat, lon;
    (lon,lat) = generate_lon_lats (10000, p.lon0, p.lat0, 45, 45);
    variable x,y,x1,y1;
-   
+
    variable tol_x = 1e-12;
    variable tol_y = 1e-12;
 
@@ -259,13 +259,13 @@ static define test_plane ()
      {
 	p.p_len = ();
 	variable x,y,lon1,lat1;
-   
+
 	variable tol_x = 1e-12;
 	variable tol_y = 1e-12;
 
 	(x,y) = maplib_project (p, lon, lat);
 	(lon1, lat1) = maplib_deproject (p, x, y);
-	check_diffs (lon,lat,lon1,lat1,tol_x,tol_y,lon,lat, "plane", 
+	check_diffs (lon,lat,lon1,lat1,tol_x,tol_y,lon,lat, "plane",
 		     sprintf ("maplib_project/deproject@plen=%g",p.p_len));
      }
 }
@@ -292,7 +292,7 @@ define test_generic (name, lon0, lat0, dlon, dlat)
 test_generic ("sinusoidal", 20, 0, 180, 90);
 test_generic ("bonne", 20, 45, 180, 90);
 test_generic ("mercator", 20, 45, 180, 89);
-   
+
 test_plane ();
 test_gnomic ();
 test_ortho ();
