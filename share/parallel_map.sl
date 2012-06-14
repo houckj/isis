@@ -104,6 +104,8 @@ private define recv_slave_result (slv)
         variable i, n = length(names);
         _for i (0, n-1, 1)
           {
+             if (x.return_types[i] == Void_Type)
+               continue;
              variable v = get_struct_field (x.results, names[i]);
              variable o = objs[i+1];
              if (x.return_types[i] == Array_Type
