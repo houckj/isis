@@ -588,8 +588,6 @@ static int load_level_list (DB_level_t *level_list, int n_levels, cfitsfile *p) 
         level->n = n_quan[i];
         level->L = L_quan[i];
         level->S = S_quan[i];
-        s = strchr (label[i], ' ');
-        if (s != NULL) *s = 0;
         isis_strcpy (level->label, label[i], LEVEL_NAME_SIZE);
      }
 
