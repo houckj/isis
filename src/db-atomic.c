@@ -580,7 +580,6 @@ static int load_level_list (DB_level_t *level_list, int n_levels, cfitsfile *p) 
 
    for(i = 0; i < n_levels; ++i)
      {
-        char *s;
         level = &level_list[i];
         level->indx = i+1;
         level->energy = energy[i];
