@@ -376,8 +376,8 @@ private define check_trace_element_contin_abundance_scaling (temp, dens, element
    variable s = default_plasma_state ();
    s.temperature = temp;
    s.density = dens;
-   s.elem = elements,
-   s.elem_abund = abund,
+   s.elem = elements;
+   s.elem_abund = abund;
    create_aped_fun ("xaped", s, &xaped_hook);
    fit_fun ("xaped");
    variable c = 1.e-14 * eval_fun (lo, hi);

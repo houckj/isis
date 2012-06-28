@@ -1027,10 +1027,9 @@ define maybe_wrap_assigned_model_ref (ref)
      return r;
 
    variable name = "__assigned_model_${Wrapped_Model_Num}"$;
-   r = eval ("private define $name(){return $ref;} __get_reference(\"$name\");"$);
+   eval ("define ${name}(){return ${ref};}"$);
    Wrapped_Model_Num++;
-
-   return r;
+   return __get_reference(name);
 }
 
 define assign_model ()

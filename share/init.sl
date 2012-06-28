@@ -25,6 +25,16 @@
 
 require ("arrayfuns");
 
+define __eval();  % prototype
+% eval_result performs the same function as 'eval' except that it
+% explicitly returns a result.  Use eval_result instead of eval
+% to avoid warnings from the stack checker.
+define eval_result (s)
+{
+   eval(sprintf ("define __eval (){return %s;}", s));
+   return __eval();
+}
+
 $1 =
 [
    "physconst"

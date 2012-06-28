@@ -33,7 +33,7 @@ define write_file (file, nrows, ncols) %{{{
 
 define mismatch (vec, val)
 {
-   length (where (vec != val));
+   return length (where (vec != val));
 }
 
 define try1_col (file, c)

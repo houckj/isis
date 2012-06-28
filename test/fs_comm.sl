@@ -72,14 +72,14 @@ private define send_test_items (s)
 
    __fs_pack (buf, _list, _struct, _assoc);
 
-   __fs_send_buffer (s.fp, buf);
+   return __fs_send_buffer (s.fp, buf);
 }
 
 private define sender (s)
 {
    loop (3)
      {
-        send_test_items (s);
+        () = send_test_items (s);
      }
 
    return 0;

@@ -1032,7 +1032,7 @@ private define send_item (fp, item)
 % {
 %    eval (sprintf ("define __atos__(){return struct {%s};}",
 %                   strjoin (fields, ",")));
-%    return eval ("__atos__()");
+%    return eval_result ("__atos__()");
 % }
 
 private define recv_one_struct (fp)

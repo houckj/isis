@@ -859,7 +859,7 @@ private define array_to_struct (fields) %{{{
 {
    eval (sprintf ("define __atos__(){return struct {%s};}",
                   strjoin (fields, ",")));
-   return eval ("__atos__()");
+   return eval_result ("__atos__()");
 }
 %}}}
 

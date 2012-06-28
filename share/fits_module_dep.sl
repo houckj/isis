@@ -136,7 +136,7 @@ define save_conf () %{{{
 
    add_fits_header_blurb (fp);
 
-   _fits_close_file (fp);
+   return _fits_close_file (fp);
 }
 
 %}}}
@@ -311,7 +311,7 @@ require ("readascii");
 
 private define expand_string (s) %{{{
 {
-   return eval(sprintf ("\"%s\"$", s));
+   return eval_result(sprintf ("\"%s\"$", s));
 }
 
 %}}}
