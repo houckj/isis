@@ -368,6 +368,16 @@ static void free_hist (Hist_t *h) /*{{{*/
    Isis_Hist_free (&h->model_flux);
    map_rsp_list (&h->a_rsp, &release_rsp);
    map_rsp_list (h->a_rsp.next, &free_rsp);
+   if (h->f_rsp.arf && Arf_is_identity (h->f_rsp.arf))
+     {
+        /* FIXME? -
+         * This is an ugly hack but it does prevent a memory leak
+         * caused by assign_rsp (0,rmf,pha); when
+         * using slang RMFs or user-defined RMFs (e.g. RMF_USER)
+         * I guess this means my reference counting scheme needs work.
+         */
+        h->f_rsp.arf->ref_count--;
+     }
    release_rsp (&h->f_rsp);
    free_kernel (h);
 

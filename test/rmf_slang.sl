@@ -60,7 +60,8 @@ define test_norm ()
                         linear_grid (0.1, 10, 1024),
                         linear_grid (0.1, 10, 2048);; __qualifiers);
 
-   assign_rmf (1, 1);
+   %assign_rmf (1, 1);
+   assign_rsp (0, 1, 1);  % <-- memory leak test
    () = eval_counts();
 
    variable m = _A(get_model_counts (1));
