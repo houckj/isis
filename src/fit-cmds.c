@@ -3719,9 +3719,15 @@ int fit_statistic (Fit_Object_Type *fo, int optimize, double *stat, int *num_bin
         Fit_Store_Model = 0;
         fit_ret = isis_fit_perform_fit (ft, par->idx, NULL, dt->data, dt->weight, dt->num,
                                         par->par, par->npars, stat);
-
+#if 0
         if (slang_optimizer)
-          set_slopt_fit_object (NULL);
+          {
+             /* It seems safest to set the global to NULL here, but
+              * causes a memory leak -- so this is commented out.
+              */
+             set_slopt_fit_object (NULL);
+          }
+#endif
 
         if ((fit_ret != 0)
             && (Looking_For_Confidence_Limits == 0))

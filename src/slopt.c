@@ -71,9 +71,9 @@ static int slfe_optimize (Isis_Fit_Type *ift, void *clientdata, /*{{{*/
    memcpy ((char *)sl_pars_min->data, (char *)e->par_min, npars * sizeof(double));
    memcpy ((char *)sl_pars_max->data, (char *)e->par_max, npars * sizeof(double));
 
-   /* Increment the reference count to prevent a segv
-    * if the user deletes their copy.  Is there a better
-    * way to handle this? */
+   /* FIXME: Increment the reference count to prevent a segv.
+    * There must be a better way.
+    */
    SLang_inc_mmt (Current_Fit_Object_MMT);
 
    SLang_start_arg_list ();
