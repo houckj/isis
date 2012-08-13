@@ -39,7 +39,7 @@ extern "C" {
 #define ISIS_VERSION_STRING  "1.6.2-4"
 #define ISIS_VERSION_PREFIX   1.6.2
 
-#define ISIS_API_VERSION 5
+#define ISIS_API_VERSION 6
 
 enum
 {
@@ -121,6 +121,9 @@ struct Isis_Rmf_t
     * data (int *chan) array is assumed to have offset zero. */
 
    int (*init) (Isis_Rmf_t *);
+   int (*pre_apply) (Isis_Rmf_t *);
+   int (*post_apply) (Isis_Rmf_t *);
+   int (*post_fit) (Isis_Rmf_t *);
 
    int (*get_arf_grid)(Isis_Rmf_t *, double **, double **, unsigned int *);
    int (*get_data_grid)(Isis_Rmf_t *, double **, double **, unsigned int *, int *);

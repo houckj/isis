@@ -60,6 +60,7 @@ extern Isis_Rmf_t *Rmf_create_delta_rmf (Isis_Rmf_Grid_Type *arf, Isis_Rmf_Grid_
 extern int Rmf_apply_rmf (Isis_Rmf_t *rmf, double *x, int num_orig_data,
                           double *arf_src, int *arf_notice_list,
                           int num_arf_noticed);
+extern int Rmf_run_post_fit_method (Isis_Rmf_t *rmf);
 
 extern char *Rmf_name (Isis_Rmf_t *rmf);
 

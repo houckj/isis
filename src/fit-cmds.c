@@ -211,6 +211,9 @@ static int post_fit (Hist_t *h, void *cl) /*{{{*/
 {
    (void) cl;
 
+   if (-1 == Hist_run_rmf_post_fit_method (h))
+     return -1;
+
    if (is_flux (Fit_Data_Type))
      {
         Kernel_Info_t p;
@@ -3470,10 +3473,11 @@ static void fit_object_close (Fit_Object_Type *fo) /*{{{*/
      return;
 
    deinit_verbose_hook ();
-   (void) map_datasets (post_fit, NULL);
-
    Current_Fit_Data_Info = NULL;
    isis_fit_close_fit (fo->ft);
+
+   (void) map_datasets (post_fit, NULL);
+
    free_fit_data (fo->d);
    free_fit_object_data (fo->dt);
    if (fo->info) free_fit_param_type (fo->info->par);

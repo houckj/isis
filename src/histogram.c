@@ -2092,6 +2092,11 @@ int Hist_copy_histogram_keywords (Hist_t *dst, Hist_t *src) /*{{{*/
 
 /*}}}*/
 
+int Hist_run_rmf_post_fit_method (Hist_t *h)
+{
+   return Rmf_run_post_fit_method (h->a_rsp.rmf);
+}
+
 static int set_hist_grid_using_rmf (Isis_Rmf_t *rmf, Hist_t *h) /*{{{*/
 {
    double *lo = NULL;

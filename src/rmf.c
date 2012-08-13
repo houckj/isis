@@ -414,6 +414,13 @@ int Rmf_id_list (Isis_Rmf_t *head, unsigned int **ids, unsigned int *num) /*{{{*
 
 /*}}}*/
 
+int Rmf_run_post_fit_method (Isis_Rmf_t *rmf)
+{
+   if (rmf->post_fit == NULL)
+     return 0;
+   return (*rmf->post_fit)(rmf);
+}
+
 /*}}}*/
 
 int Rmf_apply_rmf (Isis_Rmf_t *rmf, double *x, int num_orig_data, /*{{{*/
@@ -425,6 +432,12 @@ int Rmf_apply_rmf (Isis_Rmf_t *rmf, double *x, int num_orig_data, /*{{{*/
    if (NULL == rmf || NULL == arf_src )
      return -1;
 
+   if (rmf->pre_apply != NULL)
+     {
+        if (-1 == (*rmf->pre_apply)(rmf))
+          return -1;
+     }
+
    for (k = 0; k < num_arf_noticed; k++)
      {
         int nk;
@@ -432,6 +445,12 @@ int Rmf_apply_rmf (Isis_Rmf_t *rmf, double *x, int num_orig_data, /*{{{*/
           continue;
         nk = (arf_notice_list != NULL) ? arf_notice_list[k] : k;
         if (-1 == rmf->redistribute (rmf, nk, arf_src[k], x, num_orig_data))
+          return -1;
+     }
+
+   if (rmf->post_apply != NULL)
+     {
+        if (-1 == (*rmf->post_apply)(rmf))
           return -1;
      }
 

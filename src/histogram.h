@@ -240,6 +240,7 @@ extern int Hist_copy_histogram_keywords (Hist_t *dst, Hist_t *src);
 /* responses */
 extern int Hist_set_fit_responses
   (Hist_t *h, unsigned int fit_data_type, unsigned int response_mask);
+extern int Hist_run_rmf_post_fit_method (Hist_t *h);
 
 /* ignore/notice */
 extern int Hist_num_data_noticed (Hist_t *h);
