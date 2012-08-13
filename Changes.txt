@@ -7,6 +7,8 @@ Changes since 1.6.2 (released Jan 2012)
      labels now contain spaces.  However, the code assumed that
      there were no embedded spaces, so the labels were being wrongly
      truncated at the first embedded space.
+ 5.  Add support parametrized software RMFs with fittable parameters
+     (for calibration work).
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
