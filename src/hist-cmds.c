@@ -2384,6 +2384,8 @@ static void _rebin_dataset (int *hist_index) /*{{{*/
 
    if (-1 == Hist_rebin (h, lo, hi, nbins))
      {
+        SLang_free_array (sl_lo);
+        SLang_free_array (sl_hi);
         isis_vmesg (INTR, I_FAILED, __FILE__, __LINE__, "rebinning dataset %d", *hist_index);
         return;
      }
