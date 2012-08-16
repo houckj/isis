@@ -396,6 +396,7 @@ define fork_slave ()
         return NULL;
      }
 
+   () = fflush (stdout);
    signal (SIGCHLD, &sigchld_handler);
 
    variable pid = fork ();
