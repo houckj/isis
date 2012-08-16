@@ -3985,17 +3985,14 @@ EXAMPLE:
 {load\_arf, load\_rmf, fit\_fun, set\_frame\_time, set\_arf\_exposure, define\_back, set\_fake}
 
 This function may be used to generate fake data with user-defined
-uncertainties for a list of ARF, RMF pairs (any real datasets
-which happen to be loaded at the time will not be overwritten). If
-a noise function (\verb|noise_fun|) is not provided, Poisson
-statistics are assumed; to generate noiseless data, use
-\verb|fakeit (NULL)|.
+uncertainties for a list of ARF, RMF pairs (any real datasets which happen to
+be loaded at the time will not be overwritten). The exposure time is taken
+from the ARF. If a noise function (\verb|noise_fun|) is not provided, Poisson
+statistics are assumed; to generate noiseless data, use \verb|fakeit (NULL)|.
 
-For example, to generate a single fake data set,
-first load a matching ARF and RMF
-and assign them to a non-existent data set index,
-causing \isisx to generate an empty data set.
-For example:
+For example, to generate a single fake data set, first load a matching ARF and
+RMF and assign them to a non-existent data set index, causing \isisx to
+generate an empty data set. For example:
 \begin{verbatim}
   load_arf ("arf.fits");
   load_rmf ("rmf.fits");
@@ -4037,6 +4034,10 @@ distributed noise with a 10\% amplitude use:
 
   fakeit (&my_noise);
 \end{verbatim}
+
+Each call to `fakeit' regenerates all fake spectra. To keep a particular fake
+spectrum from being over-written by subsequent calls to `fakeit', use
+\verb|set_fake| to mark that spectrum as `real'.
 
 \end{isisfunction}
 

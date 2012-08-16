@@ -1884,9 +1884,9 @@ fakeit
     This function may be used to generate fake data with
     user-defined uncertainties for a list of ARF, RMF pairs (any
     real datasets which happen to be loaded at the time will not be
-    overwritten). If a noise function (noise_fun) is not provided,
-    Poisson statistics are assumed; to generate noiseless data, use
-    fakeit (NULL).
+    overwritten). The exposure time is taken from the ARF. If a
+    noise function (noise_fun) is not provided, Poisson statistics
+    are assumed; to generate noiseless data, use fakeit (NULL).
 
     For example, to generate a single fake data set, first load a
     matching ARF and RMF and assign them to a non-existent data set
@@ -1932,6 +1932,10 @@ fakeit
 
       fakeit (&my_noise);
 
+    Each call to `fakeit' regenerates all fake spectra. To keep a
+    particular fake spectrum from being over-written by subsequent
+    calls to `fakeit', use set_fake to mark that spectrum as
+    `real'.
 
 
  SEE ALSO
