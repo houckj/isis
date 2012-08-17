@@ -1859,7 +1859,7 @@ static int read_col (FitsFile_Type *ft, int *colnum, int *firstrowp,
 	else
 	  {
 	     if (width > 0)
-	       num_substrs = width;
+	       num_substrs = repeat/width;
 	     else
 	       num_substrs = 0;
 	  }

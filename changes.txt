@@ -17,3 +17,8 @@ Changes since 0.4.6
    that the specified fitsio.h file is picked up.  Unfortunately,
    fitsio.h is often scattered all over the filesystem.
 10. src/fits.sl: Fixed a regression in fits_read_cell
+11. src/cfitsio-module.c: The fits_get_eqcoltype function returns a
+    width value such that the number of substrings is repeat/width.
+    The module was interpreting the width as the number of substrings.
+    Note that the fits standard does not define a width for TFORM
+    fields.  Apparantly this is a cfitsio extension.
