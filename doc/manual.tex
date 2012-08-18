@@ -3531,6 +3531,39 @@ corresponds to \verb|Allow_Multiple_Arf_Factors=0|.
 \end{isisfunction}
 
 \begin{isisfunction}
+{assign\_back} %name
+{Define the background counts of one dataset using the model counts spectrum from another} %purpose
+{assign\_back (source\_index[], destination\_index[])} %usage
+{\_define\_back, define\_back, unassign\_back}
+
+Use this function to copy the model counts spectrum from one dataset to the
+background counts spectrum of another dataset.  The \verb|BACKSCALE| and
+\verb|EXPOSURE| values from the source dataset are also copied to the
+destination dataset.
+
+\begin{verbatim}
+Example:
+   % Use model counts spectrum from dataset #2
+   % to define the background for dataset #1
+        assign_back (2, 1);
+
+   % Use model counts spectrum from dataset #2
+   % to define the background for datasets 3,4,5,6
+        assign_back (2, [3:6]);
+
+   % Remove the background assigned to dataset #3
+   % (same as unassign_back(3))
+        assign_back (NULL, 3);
+\end{verbatim}
+
+If an ARF has been assigned to the source dataset, the ARF exposure time is
+used to define the background exposure time, otherwise, the data exposure time
+is used.  If multiple ARFs have been assigned to the source dataset, the
+exposure time of the first ARF is used.
+
+\end{isisfunction}
+
+\begin{isisfunction}
 {assign\_rmf} %name
 {Assign an RMF to one or more spectra} %purpose
 {assign\_rmf (rmf\_index[], hist\_index[])} %usage
@@ -6515,6 +6548,23 @@ EXAMPLES:
 Example:
         unassign_arf (1);             % unassign the ARF for spectrum 1
         unassign_arf ([3:6]);         % unassign the ARF for spectra 3, 4, 5 and 6
+
+\end{verbatim}
+\end{isisfunction}
+
+\begin{isisfunction}
+{unassign\_back} %name
+{Undo the assignment of a background spectrum to a dataset} %purpose
+{unassign\_back (id[])} %usage
+{assign\_back, define\_back, \_define\_back}
+
+\begin{verbatim}
+Example:
+   % unassign the background for spectrum 1
+        unassign_back (1);
+
+   % unassign the background for spectra 3, 4, 5 and 6
+        unassign_back ([3:6]);
 
 \end{verbatim}
 \end{isisfunction}

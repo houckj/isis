@@ -3088,3 +3088,62 @@ define x2i_group () %{{{
 
 %}}}
 
+define unassign_back () %{{{
+{
+   variable msg = "unassign_back (id[])";
+
+   if (_NARGS != 1)
+     {
+        usage (msg);
+     }
+
+   variable id = ();
+   () = array_map (Int_Type, &_define_back, id, NULL);
+}
+
+%}}}
+
+private define assign_back1 (from, to) %{{{
+{
+   variable area = get_data_backscale (from);
+
+   variable
+     exposure = get_data_exposure (from),
+     arfs = get_data_info (from).arfs;
+
+   if ((length(arfs) > 0) && (arfs[0] > 0))
+     {
+        exposure = get_arf_exposure (arfs[0]);
+     }
+
+   variable counts = get_model_counts (from).value;
+   if (_define_back (to, counts, area, exposure) < 0)
+     throw ApplicationError,
+     "*** Error defining background for dataset $to using model counts from dataset $from"$;
+}
+
+%}}}
+
+define assign_back () %{{{
+{
+   variable msg = "assign_back (id_from[], id_to[])";
+
+   if (_NARGS != 2)
+     {
+        usage (msg);
+     }
+
+   variable from, to;
+   (from, to) = ();
+
+   if (from == NULL)
+     {
+        unassign_back (to);
+        return;
+     }
+
+   array_map (Void_Type, &assign_back1, from, to);
+}
+
+%}}}
+

@@ -1335,6 +1335,44 @@ assign_arf
     load_arf, list_arf, unassign_arf, flux_corr, assign_rsp
 
 ------------------------------------------------------------------------
+assign_back
+
+ SYNOPSIS
+    Define the background counts of one dataset using the model counts spectrum from another
+
+ USAGE
+    assign_back (source_index[], destination_index[])
+
+ DESCRIPTION
+    Use this function to copy the model counts spectrum from one
+    dataset to the background counts spectrum of another dataset.
+    The BACKSCALE and EXPOSURE values from the source dataset are
+    also copied to the destination dataset.
+
+    Example:
+       % Use model counts spectrum from dataset #2
+       % to define the background for dataset #1
+            assign_back (2, 1);
+
+       % Use model counts spectrum from dataset #2
+       % to define the background for datasets 3,4,5,6
+            assign_back (2, [3:6]);
+
+       % Remove the background assigned to dataset #3
+       % (same as unassign_back(3))
+            assign_back (NULL, 3);
+
+    If an ARF has been assigned to the source dataset, the ARF
+    exposure time is used to define the background exposure time,
+    otherwise, the data exposure time is used.  If multiple ARFs
+    have been assigned to the source dataset, the exposure time of
+    the first ARF is used.
+
+
+ SEE ALSO
+    _define_back, define_back, unassign_back
+
+------------------------------------------------------------------------
 assign_rmf
 
  SYNOPSIS
@@ -4797,6 +4835,28 @@ unassign_arf
 
  SEE ALSO
     load_arf, list_arf, assign_arf
+
+------------------------------------------------------------------------
+unassign_back
+
+ SYNOPSIS
+    Undo the assignment of a background spectrum to a dataset
+
+ USAGE
+    unassign_back (id[])
+
+ DESCRIPTION
+    Example:
+       % unassign the background for spectrum 1
+            unassign_back (1);
+
+       % unassign the background for spectra 3, 4, 5 and 6
+            unassign_back ([3:6]);
+
+
+
+ SEE ALSO
+    assign_back, define_back, _define_back
 
 ------------------------------------------------------------------------
 unassign_rmf
