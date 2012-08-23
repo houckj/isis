@@ -10,6 +10,7 @@ Changes since 1.6.2 (released Jan 2012)
  5.  Add support parametrized software RMFs with fittable parameters
      (for calibration work).
  6.  Add assign_back, unassign_back
+ 7.  Xspec module was sometimes linking to the wrong library symbol
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
