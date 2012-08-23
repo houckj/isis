@@ -242,13 +242,13 @@ static define choose_exec_symbol_hook (m) %{{{
         switch (prefix)
           {
            case "C_" or case "c_":
-             m.routine_name = m.routine_name[[2:]];
+             %m.routine_name = m.routine_name[[2:]];
              fmt = "_xspec_%s_C_hook";
              m.has_fortran_linkage = 0;
           }
           {
            case "F_":
-             m.routine_name = m.routine_name[[2:]];
+             %m.routine_name = m.routine_name[[2:]];
              fmt = "_xspec_%s_F_hook";
              m.has_fortran_linkage = 1;
           }
