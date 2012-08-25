@@ -1531,7 +1531,14 @@ private define __get_hist (num, version, msg) %{{{
    variable hist_index = ();
 
    variable depth = _stkdepth ();
-   _isis->_get_hist (hist_index, version);
+   try
+     {
+        _isis->_get_hist (hist_index, version);
+     }
+   catch IsisError:
+     {
+        return NULL;
+     }
    depth = _stkdepth () - depth;
 
    switch (depth)
