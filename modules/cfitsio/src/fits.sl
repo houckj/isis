@@ -1465,6 +1465,9 @@ define fits_write_binary_table ()
 	     t = "B";
 	  }
 	  {
+	   case Int64_Type: t = "K";
+	  }
+	  {
 	     verror ("%s: %s column: %S type not supported", _function_name, colname, t);
 	  }
 
