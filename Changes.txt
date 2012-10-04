@@ -11,6 +11,7 @@ Changes since 1.6.2 (released Jan 2012)
      (for calibration work).
  6.  Add assign_back, unassign_back
  7.  Xspec module was sometimes linking to the wrong library symbol
+ 8.  New load_data qualifier supports loading BACKGROUND_UP/DOWN columns
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
