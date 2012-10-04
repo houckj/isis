@@ -5031,7 +5031,7 @@ zero indicates success).
 \begin{isisfunction}
 {load\_data} %name
 {read a spectrum from an ASCII file or FITS Type I or II PHA file} %purpose
-{status = load\_data("pha\_filename" [, rows])} %usage
+{status = load\_data("pha\_filename" [, rows] [; qualifiers])} %usage
 {load\_dataset, define\_counts, define\_flux, define\_back,
 get\_data\_*, put\_data\_*, plot\_unit, set\_dataset\_metadata,
 get\_dataset\_metadata, get\_sys\_err\_frac, Minimum\_Stat\_Err}
@@ -5051,6 +5051,22 @@ array of row numbers as the (optional) second argument.
 
         isis> id = load_data ("hetg_pha2.fits", [9,10]);
 \end{verbatim}
+
+\begin{verbatim}
+Qualifiers:
+-----------
+ with_bkg_updown  if present, load BACKGROUND_UP/DOWN columns
+\end{verbatim}
+
+When the \verb|with_bkg_updown| qualifier is present,
+the background is defined using the \verb|BACKGROUND_UP|
+and \verb|BACKGROUND_DOWN| columns using this definition:
+\begin{verbatim}
+  back = (BACKGROUND_UP /BACKSCUP
+          + BACKGROUND_DOWN /BACKSCDN)
+\end{verbatim}
+This background is subsequently scaled in the usual way using
+the relevant \verb|BACKSCAL| and \verb|EXPOSURE| values.
 
 Although a Type I PHA file can be loaded without first
 specifying the RMF, an RMF is required to use the data.  The

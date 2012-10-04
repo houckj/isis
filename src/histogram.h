@@ -131,7 +131,7 @@ extern int Hist_map (Hist_t *head, int (*fun)(Hist_t *, void *), void *cl, int c
 /* data I/O */
 extern int Hist_read_ascii (Hist_t *head, char *filename);
 extern int Hist_read_fits (Hist_t *head, Isis_Arf_t *arf_head, Isis_Rmf_t *rmf_head, char *pha_filename,
-                           int **indices, int *num_spectra, int strict, int just_one);
+                           int **indices, int *num_spectra, int strict, int just_one, int use_bkg_updown);
 extern int Hist_define_data (Hist_t *head, Isis_Hist_t *x, unsigned int bin_type, unsigned int has_grid);
 extern int Hist_assign_arf_to_hist (Hist_t *h_head, int hist_index, Isis_Arf_t *r_head, int arf_index);
 extern int Hist_assign_rmf_to_hist (Hist_t *h_head, int hist_index, Isis_Rmf_t *r_head, int rmf_index);

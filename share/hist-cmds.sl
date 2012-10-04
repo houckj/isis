@@ -317,7 +317,11 @@ variable Isis_Use_PHA_Grouping = 0;
 
 define load_data () %{{{
 {
-   variable msg = "id = load_data (\"pha_filename\", [row_num])";
+   variable msg =
+`id = load_data ("filename", [row_num]  [; <qualifiers>])
+     Qualifiers:
+      with_bkg_updown   if present, load BACKGROUND_UP/DOWN columns
+`;
    variable file, row = 0;
 
    if (_isis->get_varargs(&file, &row, _NARGS, 1, msg))
@@ -327,7 +331,7 @@ define load_data () %{{{
 
    if (typeof(row) == Integer_Type)
      {
-	id = _isis->_load_data (file, row);
+	id = _isis->_load_data (file, row;; __qualifiers);
         if (Isis_Use_PHA_Grouping)
           {
              variable fun = "use_file_group";
@@ -344,7 +348,7 @@ define load_data () %{{{
         _for (0, n-1, 1)
           {
              k = ();
-             id[k] = _isis->_load_data (file, row[k]);
+             id[k] = _isis->_load_data (file, row[k];; __qualifiers);
           }
      }
 

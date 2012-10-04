@@ -2336,6 +2336,81 @@ static int read_fits_bg_counts_column (cfitsfile *fp, int k, Hist_t *h) /*{{{*/
 
 /*}}}*/
 
+static int read_fits_background_updown_columns (cfitsfile *fp, int k, Hist_t *h) /*{{{*/
+{
+   Area_Type *a;
+   double *up, *down, *area;
+   int i, n = h->nbins;
+
+   if (NULL == (up = (double *) ISIS_MALLOC (2*h->nbins * sizeof(double))))
+     return -1;
+   down = up + h->nbins;
+
+   memset ((char *)up, 0, 2*h->nbins*sizeof(double));
+
+   if (cfits_col_exist ("BACKGROUND_UP", fp))
+     {
+        double backscup;
+        if (-1 == cfits_read_double_col (up, h->nbins, k, "BACKGROUND_UP", fp))
+          {
+             ISIS_FREE(up);
+             return -1;
+          }
+        if (-1 == cfits_read_double_keyword (&backscup, "BACKSCUP", fp))
+          {
+             ISIS_FREE(up);
+             return -1;
+          }
+        if (backscup != 0)
+          {
+             for (i = 0; i < h->nbins; i++)
+               {
+                  up[i] /= backscup;
+               }
+          }
+     }
+   if (cfits_col_exist ("BACKGROUND_DOWN", fp))
+     {
+        double backscdn;
+        if (-1 == cfits_read_double_col (down, h->nbins, k, "BACKGROUND_DOWN", fp))
+          {
+             ISIS_FREE(up);
+             return -1;
+          }
+        if (-1 == cfits_read_double_keyword (&backscdn, "BACKSCDN", fp))
+          {
+             ISIS_FREE(up);
+             return -1;
+          }
+        if (backscdn != 0)
+          {
+             for (i = 0; i < h->nbins; i++)
+               {
+                  down[i] /= backscdn;
+               }
+          }
+     }
+
+   for (i = 0; i < n; i++)
+     {
+        up[i] += down[i];
+     }
+
+   a = &h->bgd_area;
+   area = a->is_vector ? a->value.v : &a->value.s;
+   if (-1 == Hist_define_background (h, h->exposure, area, a->is_vector,
+                                     up, h->nbins))
+     {
+        ISIS_FREE(up);
+        return -1;
+     }
+
+   ISIS_FREE(up);
+   return 0;
+}
+
+/*}}}*/
+
 static int is_whitespace (const char *s) /*{{{*/
 {
    if (s == NULL)
@@ -2383,7 +2458,7 @@ static char *read_file_keyword (cfitsfile *fp, const char *keyname, const char *
 
 /*}}}*/
 
-static Hist_t *_read_typeI_pha (char *pha_filename) /*{{{*/
+static Hist_t *_read_typeI_pha (char *pha_filename, int use_bkg_updown) /*{{{*/
 {
    Keyword_t *keytable = Hist_Keyword_Table;
    Hist_t *h = NULL;
@@ -2472,6 +2547,13 @@ static Hist_t *_read_typeI_pha (char *pha_filename) /*{{{*/
         if (-1 == read_fits_bg_counts_column (fp, 1, h))
           goto finish;
      }
+   else if (use_bkg_updown
+            && (cfits_col_exist ("BACKGROUND_UP", fp)
+                || cfits_col_exist ("BACKGROUND_DOWN", fp)))
+     {
+        if (-1 == read_fits_background_updown_columns (fp, 1, h))
+          goto finish;
+     }
 
    if (cfits_col_exist ("RATE", fp))
      {
@@ -2555,14 +2637,14 @@ static Hist_t *_read_typeI_pha (char *pha_filename) /*{{{*/
 
 static int read_typeI_pha (Hist_t *head, Isis_Arf_t *arf_head, /*{{{*/
                            Isis_Rmf_t *rmf_head, char *file,
-                           int *hist_index, int strict)
+                           int *hist_index, int strict, int use_bkg_updown)
 {
    Hist_t *h;
    int id;
 
    (void) strict;
 
-   if (NULL == (h = _read_typeI_pha (file)))
+   if (NULL == (h = _read_typeI_pha (file, use_bkg_updown)))
      return -1;
 
    if (h->respfile)
@@ -2647,7 +2729,7 @@ static int load_background_from_file (Hist_t *h, char *file) /*{{{*/
    else
      {
         cfits_close_file (fp);
-        if (NULL == (b = _read_typeI_pha (file)))
+        if (NULL == (b = _read_typeI_pha (file, 0)))
           return -1;
         if (-1 == set_hist_grid_using_rmf (h->a_rsp.rmf, b))
           {
@@ -2714,7 +2796,8 @@ int Hist_set_background_from_file (Hist_t *h, char *file) /*{{{*/
 
 /*}}}*/
 
-static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *num_spectra, int just_one) /*{{{*/
+static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *num_spectra, int just_one, /*{{{*/
+                            int use_bkg_updown)
 {
    Keyword_t *keytable = Hist_Keyword_Table;
    Hist_t *h1 = NULL;
@@ -2723,6 +2806,7 @@ static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *n
    char bin_units[CFLEN_VALUE];
    int k, num, nbins, reset = 0;
    int have_backscal_col, have_bg_area_col, have_bg_counts_col;
+   int have_bkg_up_col, have_bkg_down_col;
    int have_areascal_col, have_rate, have_bin_lohi, have_exposure_col;
    int have_sys_err_col, have_sys_err_keyword, have_areascal_keyword;
    int input_units;
@@ -2776,6 +2860,9 @@ static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *n
    have_backscal_col = cfits_col_exist ("BACKSCAL", cfp);
    have_bg_counts_col = cfits_col_exist ("BG_COUNTS", cfp);
    have_bg_area_col = cfits_col_exist ("BG_AREA", cfp);
+
+   have_bkg_up_col = cfits_col_exist ("BACKGROUND_UP", cfp);
+   have_bkg_down_col = cfits_col_exist ("BACKGROUND_DOWN", cfp);
 
    have_areascal_col = cfits_col_exist ("AREASCAL", cfp);
 
@@ -2896,6 +2983,11 @@ static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *n
              if (-1 == read_fits_bg_counts_column (cfp, k, h))
                goto finish;
           }
+        else if (use_bkg_updown && (have_bkg_up_col || have_bkg_down_col))
+          {
+             if (-1 == read_fits_background_updown_columns (cfp, k, h))
+               goto finish;
+          }
 
         if (have_areascal_col || have_areascal_keyword)
           {
@@ -2989,7 +3081,7 @@ static int get_pha_type (cfitsfile *fp) /*{{{*/
 /*}}}*/
 
 int Hist_read_fits (Hist_t *head, Isis_Arf_t *arf_head, Isis_Rmf_t *rmf_head, char * pha_filename, /*{{{*/
-                    int **indices, int *num_spectra, int strict, int just_one)
+                    int **indices, int *num_spectra, int strict, int just_one, int use_bkg_updown)
 {
    cfitsfile *cfp = NULL;
    int pha_type;
@@ -3010,10 +3102,10 @@ int Hist_read_fits (Hist_t *head, Isis_Arf_t *arf_head, Isis_Rmf_t *rmf_head, ch
         *num_spectra = 1;
         if (NULL == (*indices = (int *) ISIS_MALLOC (sizeof(int))))
           return -1;
-        return read_typeI_pha (head, arf_head, rmf_head, pha_filename, *indices, strict);
+        return read_typeI_pha (head, arf_head, rmf_head, pha_filename, *indices, strict, use_bkg_updown);
 
       case PHA_TYPE_II:
-        return read_typeII_pha (head, pha_filename, indices, num_spectra, just_one);
+        return read_typeII_pha (head, pha_filename, indices, num_spectra, just_one, use_bkg_updown);
 
       default:
         break;

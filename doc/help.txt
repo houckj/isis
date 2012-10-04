@@ -3104,7 +3104,7 @@ load_data
     read a spectrum from an ASCII file or FITS Type I or II PHA file
 
  USAGE
-    status = load_data("pha_filename" [, rows])
+    status = load_data("pha_filename" [, rows] [; qualifiers])
 
  DESCRIPTION
     The format of the Type II PHA file is defined in the CXCDS
@@ -3121,6 +3121,20 @@ load_data
               % (usually the MEG +1 and -1 order spectra):
 
             isis> id = load_data ("hetg_pha2.fits", [9,10]);
+
+    Qualifiers:
+    -----------
+     with_bkg_updown  if present, load BACKGROUND_UP/DOWN columns
+
+    When the with_bkg_updown qualifier is present, the background
+    is defined using the BACKGROUND_UP and BACKGROUND_DOWN columns
+    using this definition:
+
+      back = (BACKGROUND_UP /BACKSCUP
+              + BACKGROUND_DOWN /BACKSCDN)
+
+    This background is subsequently scaled in the usual way using
+    the relevant BACKSCAL and EXPOSURE values.
 
     Although a Type I PHA file can be loaded without first
     specifying the RMF, an RMF is required to use the data.  The

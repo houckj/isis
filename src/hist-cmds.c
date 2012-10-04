@@ -106,12 +106,15 @@ static void _load_data (char * pha_filename, int *just_one) /*{{{*/
    int *indices = NULL;
    int num_spectra = 0;
    int ret = -1;
+   int use_bkg_updown;
 
    if (-1 == init_lists ())
      goto error_return;
 
+   use_bkg_updown = SLang_qualifier_exists ("with_bkg_updown");
+
    ret = Hist_read_fits (Data_List_Head, Arf_List_Head, Rmf_List_Head, pha_filename,
-                         &indices, &num_spectra, 1, *just_one);
+                         &indices, &num_spectra, 1, *just_one, use_bkg_updown);
    if (ret == NOT_FITS_FORMAT)
      ret = Hist_read_ascii (Data_List_Head, pha_filename);
 
