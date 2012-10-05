@@ -2286,9 +2286,8 @@ get_convolved_model_flux
 
     The convolved model flux is computed using the expression
 
-    F(h) = \int R(h,E)S(E)dE
+      F(h) = \frac{\int dE R(h,E) A(E) s(E)}{\int dE R(h,E) A(E)}.
 
-    unless flux_corr_model_counts was called for this data set.
 
 
  SEE ALSO
@@ -3542,9 +3541,7 @@ plot_convolved_model_flux
     broadened using the assigned RMF.  The convolved model flux is
     computed using the expression
 
-    F(h) = \int R(h,E)S(E)dE
-
-    unless flux_corr_model_counts was called for this data set.
+      F(h) = \frac{\int dE R(h,E) A(E) s(E)}{\int dE R(h,E) A(E)}.
 
     See get_convolved_model_flux and plot_model_counts for details.
 
@@ -10423,35 +10420,17 @@ fit_flux
     fit-statistic. By definition, the model for the flux-corrected
     histogram is
 
-      F(h) = \int dE R(h,E) s(E),
+      F(h) = \frac{\int dE R(h,E) A(E) s(E)}{\int dE R(h,E) A(E)},
 
     where E is the incident photon energy, s(E) is the model
     spectrum, R(h,E) is the redistribution function or RMF and h is
-    the detector channel. Note that this definition is independent
-    of the assigned fit-kernel.  When a fit-kernel supports
-    flux-correction, that operation should be consistent with this
-    definition for F(h).
+    the detector channel. This form ensures that the predicted
+    counts are flux-corrected in the same manner as the observed,
+    background-subtracted counts.  Note that this definition is
+    independent of the assigned fit-kernel.  When a fit-kernel
+    supports flux-correction, that operation should be consistent
+    with this definition for F(h).
 
-    When the assigned redistribution function includes the
-    effective area, an error will be generated.  Use factor_rsp to
-    factor such a response matrix, R(h,E) into an effective area
-    function, a(E) and a normalized redistribution function, r(h,E)
-    satisfying R(h,E) = r(h,E)a(E). If an effective area function,
-    A(E) has also been assigned, it may be modified to include the
-    a(E) factor so that the product, R(h,E)A(E) is preserved. For
-    example:
-
-        A = load_arf ("arf.fits");    % arf.fits provides A(E)
-        R = load_rmf ("rsp.fits");    % RMF includes additional area factor `a'
-        a = factor_rsp (R);           % factor R(h,E) -> r(h,E)*a(E)
-
-     % To preserve the product, A*R = (A*a)*r = A'*r
-     % replace A with A' = A*a:
-
-        A_struct = get_arf(A);
-        a_struct = get_arf(a);
-        A_struct.value *= a_struct.value;
-        put_arf (A, A_struct);
 
 
  SEE ALSO
@@ -10826,32 +10805,10 @@ get_convolved_model_flux
 
     The value returned by get_convolved_model_flux is
 
-        F(h) = \int dE R(h,E) S(E)
+      F(h) = \frac{\int dE R(h,E) A(E) s(E)}{\int dE R(h,E) A(E)},
 
     where the integral extends over the full energy range, ensuring
     that the instrumental redistribution is fully accounted for.
-
-    Keep in mind that, when the RMF is not unit-normalized, the
-    value computed by eval_flux may not be directly comparable with
-    the integral of S(E) over the bin-width. In such cases, one may
-    wish to consider using factor_rsp to factor the RMF into a
-    unit-normalized redistribution function and a
-    wavelength-dependent normalization factor.  This normalization
-    factor might then be shifted into the ARF.
-
-    For example:
-
-            rmf = load_rmf ("un_normalized_rmf.fits");
-            arf = load_arf ("arf.fits");
-
-            % factor out a normalized RMF:
-            new_arf_index = factor_rsp (rmf);
-
-            % shift the norm factor into the ARF:
-            factor = get_arf (new_arf_index);
-            arf_struct = get_arf (arf);
-            arf_struct.value *= factor.value;
-            put_arf (arf, arf_struct);
 
 
 

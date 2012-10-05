@@ -224,6 +224,7 @@ extern int Hist_set_color (Hist_t *h, int color);
 extern int Hist_unset_color (Hist_t *h);
 extern int Hist_set_object_name (Hist_t *h, char *object);
 extern int Hist_get_flux_corr_weights (Hist_t *h, double **weights, int *num_weights);
+extern int Hist_flux_corr_model (Hist_t *h, double *bincts);
 
 /* misc.. */
 extern int Hist_is_fake (Hist_t *h);

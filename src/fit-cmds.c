@@ -2129,6 +2129,7 @@ static int add_instrumental_background (double *cts, Hist_t *h) /*{{{*/
           return -1;
      }
 
+   /* FIXME - calling this hook here is ugly. */
    if (NULL != Hist_post_model_hook (h))
      {
         int status = Hist_run_post_model_hook (h, cts, bgd);
@@ -2223,6 +2224,12 @@ static int compute_hist_model (Hist_t *h, double *bincts) /*{{{*/
 
    if (-1 == Hist_apply_rebin_and_notice_list (bincts, cts, h))
      goto finish;
+
+   if (is_flux(Fit_Data_Type))
+     {
+        if (-1 == Hist_flux_corr_model (h, bincts))
+          goto finish;
+     }
 
    if (Fit_Store_Model)
      {

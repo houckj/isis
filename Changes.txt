@@ -12,6 +12,8 @@ Changes since 1.6.2 (released Jan 2012)
  6.  Add assign_back, unassign_back
  7.  Xspec module was sometimes linking to the wrong library symbol
  8.  New load_data qualifier supports loading BACKGROUND_UP/DOWN columns
+ 9.  Introduce more consistent model definition for flux-corrected data
+     (see fit_flux).
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------

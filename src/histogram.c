@@ -6421,7 +6421,7 @@ int Hist_set_fit_responses (Hist_t *h, unsigned int fit_data_type, /*{{{*/
     * However, if the assigned response is not used, the fit
     * will use only a single ARF/RMF pair.
     */
-   if ((is_flux_data || want_ideal_arf(response_mask))
+   if ((/* is_flux_data || */ want_ideal_arf(response_mask))
         && (0 == Arf_is_identity (rsp.arf)))
      {
         rsp.arf = identity_arf_on_arf_grid (h);
@@ -6434,6 +6434,7 @@ int Hist_set_fit_responses (Hist_t *h, unsigned int fit_data_type, /*{{{*/
         warn_single_rsp (&rsp);
      }
 
+#if 0
    if (is_flux_data
        && Rmf_includes_effective_area (rsp.rmf))
      {
@@ -6441,6 +6442,7 @@ int Hist_set_fit_responses (Hist_t *h, unsigned int fit_data_type, /*{{{*/
         isis_vmesg (FAIL, I_INFO, __FILE__, __LINE__, " ==> Use factor_rsp() to factor out the effective area.");
         return -1;
      }
+#endif
 
    return set_fit_response (h, &rsp);
 }
@@ -7596,6 +7598,10 @@ static int rebin_flux_using_weights (Hist_t *h, /*{{{*/
         return -1;
      }
 
+   /* f(h) = (D(h)-B(h)) / t \int dy R(h,y) A(y)   [photons/s/cm^2/A]
+    * The weights are defined so that the rebinned result yields
+    * F(H) [photons/s/cm^2/A] on the big bins.
+    */
    if (-1 == apply_rebin_weights (old_flux, h->flux_weights, 1,
                                   h->orig_nbins, h->rebin, h->nbins, new_flux))
      return -1;
@@ -7604,6 +7610,9 @@ static int rebin_flux_using_weights (Hist_t *h, /*{{{*/
    lo = h->bin_lo;
    hi = h->bin_hi;
 
+   /* multiply by the bin width, dy, to yield the rebinned flux
+    * F(H) in bin-integrated units, photons/s/cm^2/bin
+    */
    for (i = 0; i < n; i++)
      {
         new_flux[i] *= hi[i] - lo[i];
@@ -7700,6 +7709,7 @@ int Hist_flux_correct (Hist_t *h, double frac, double *bkg, int using_model, /*{
    if (-1 == setup_flux_correct (h, using_model, &cts, &f, &f_err))
      return -1;
 
+   /* f(h) = (D(h)-B(h)) / t \int dy R(h,y) A(y)   [photons/s/cm^2/A]  */
    if (-1 == k->compute_flux (k, kernel_params, num_kernel_params,
                               &cts, bkg, f, f_err, &wt, options))
      goto return_status;
@@ -7753,6 +7763,58 @@ int Hist_flux_correct (Hist_t *h, double frac, double *bkg, int using_model, /*{
      }
 
    return status;
+}
+
+/*}}}*/
+
+int Hist_flux_corr_model (Hist_t *h, double *bincts) /*{{{*/
+{
+   double *wt_sum = NULL, *lo, *hi;
+   int k, n_notice, *notice_list;
+
+   if (h->flux_weights == NULL)
+     {
+        if (NULL == (h->flux_weights = isis_unit_source_response (h->kernel)))
+          return -1;
+     }
+
+   if (NULL == (wt_sum = (double *) ISIS_MALLOC (h->nbins * sizeof(double))))
+     return -1;
+
+   if (-1 == Hist_apply_rebin_and_notice_list (wt_sum, h->flux_weights, h))
+     {
+        ISIS_FREE(wt_sum);
+        return -1;
+     }
+
+   lo = h->bin_lo;
+   hi = h->bin_hi;
+   n_notice = h->n_notice;
+   notice_list = h->notice_list;
+
+   /* [bincts] = counts
+    * [wt_sum] = sec Angstrom (cm^2 counts/photon)
+    * [bincts/wt_sum] = photons/sec/cm^2/A
+    * so multiply by bin width to get bin-integrated photon flux,
+    *   photons/sec/cm^2/bin
+    *
+    * We're operating on the data in place for efficiency,
+    * so even though the array name is no longer mnemonic, the
+    * final result has flux units.
+    */
+
+   for (k = 0; k < n_notice; k++)
+     {
+        int i = notice_list[k];
+        if (wt_sum[i] != 0.0)
+          {
+             bincts[k] *= (hi[i] - lo[i]) / wt_sum[i];
+          }
+     }
+
+   ISIS_FREE(wt_sum);
+
+   return 0;
 }
 
 /*}}}*/
