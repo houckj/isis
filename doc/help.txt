@@ -1778,6 +1778,23 @@ define_counts
     is missing), a default uncertainty array will be supplied
     assuming Poisson statistics.
 
+    Qualifiers
+    ----------
+     min_stat_err     require stat_err >= min_stat_err
+
+    By default, any input uncertainty values smaller than
+    min_stat_err are reset according to
+
+       stat_err = max[ sqrt(counts), min_stat_err ]
+
+    where min_stat_err is the smallest acceptable (positive)
+    uncertainty value. When the min_stat_err qualifier is not
+    present, the value of the intrinsic variable Minimum_Stat_Err
+    is used if positive, otherwise, the default minimum uncertainty
+    is 1.  To shut off warnings about invalid uncertainties being
+    replaced, set Warn_Invalid_Uncertainties=0.
+
+
  SEE ALSO
     define_flux, define_back, Minimum_Stat_Err
 
@@ -3124,6 +3141,7 @@ load_data
     Qualifiers:
     -----------
      with_bkg_updown  if present, load BACKGROUND_UP/DOWN columns
+     min_stat_err     require stat_err >= min_stat_err
 
     When the with_bkg_updown qualifier is present, the background
     is defined using the BACKGROUND_UP and BACKGROUND_DOWN columns
@@ -3156,15 +3174,17 @@ load_data
 
     Input data values must be bin-integral quantities rather than
     bin-densities; uncertainty values should be positive.  By
-    default, any input STAT_ERR uncertainty values smaller than 1
-    are reset to
+    default, any input STAT_ERR uncertainty values smaller than
+    min_stat_err are reset according to
 
-       stat_err = max[ sqrt(N), Minimum_Stat_Err ]
+       stat_err = max[ sqrt(counts), min_stat_err ]
 
-    Where Minimum_Stat_Err is the smallest acceptable (positive)
-    uncertainty value with a default value of 1. To shut off
-    warnings about invalid uncertainties being replaced, set
-    Warn_Invalid_Uncertainties=0.
+    where min_stat_err is the smallest acceptable (positive)
+    uncertainty value. When the min_stat_err qualifier is not
+    present, the value of the intrinsic variable Minimum_Stat_Err
+    is used if positive, otherwise, the default minimum uncertainty
+    is 1.  To shut off warnings about invalid uncertainties being
+    replaced, set Warn_Invalid_Uncertainties=0.
 
     If the SYS_ERR column or header keyword is present, a
     systematic error is always added in quadrature so that the
@@ -3280,7 +3300,8 @@ load_data
  SEE ALSO
     load_dataset, define_counts, define_flux, define_back, get_data_*,
     put_data_*, plot_unit, set_dataset_metadata, get_dataset_metadata,
-    get_sys_err_frac, Minimum_Stat_Err
+    get_sys_err_frac, Minimum_Stat_Err, set_min_stat_err,
+    get_min_stat_err
 
 ------------------------------------------------------------------------
 load_dataset
@@ -4551,6 +4572,54 @@ set_frame_time
     set_kernel, load_kernel, set_data_info
 
 ------------------------------------------------------------------------
+get_min_stat_err
+
+ SYNOPSIS
+    Get the minimum acceptable counts uncertainty for a dataset
+
+ USAGE
+    min_stat_err = get_min_stat_err (hist_index)
+
+ DESCRIPTION
+    Retrieve the value of min_stat_err for a particular dataset.
+    If min_stat_err has not been set, the return value is -1.  For
+    details, see Minimum_Stat_Err.
+
+
+ SEE ALSO
+    Minimum_Stat_Err, set_min_stat_err, load_data, define_counts
+
+------------------------------------------------------------------------
+set_min_stat_err
+
+ SYNOPSIS
+    Modify the minimum acceptable counts uncertainty for a dataset
+
+ USAGE
+    set_min_stat_err (hist_index, min_stat_err)
+
+ DESCRIPTION
+    See load_data for details on how the min_stat_err value is
+    defined and used.  Normally, the min_stat_err value is
+    specified on input, and it is rarely useful to modify the
+    threshold value afterward.
+
+    When min_stat_err is modified using this function, the
+    dataset's uncertainty values are not updated automatically. The
+    uncertainty values are updated when the counts data are
+    rebinned.
+
+    Note that because the imposition of the min_stat_err floor is
+    intended to validate the input data, any below-threshold
+    uncertainty values are replaced by the floor values and the
+    original input values are not retained. To revert to the
+    original input uncertainties, it may be necessary to reload the
+    original input data.
+
+ SEE ALSO
+    Minimum_Stat_Err, get_min_stat_err, load_data, define_counts
+
+------------------------------------------------------------------------
 set_post_model_hook
 
  SYNOPSIS
@@ -4767,10 +4836,10 @@ set_rebin_error_hook
     corresponding to the specified grouping. To indicate an error,
     the function should return NULL. Because ISIS validates the
     uncertainties returned by this routine, it may also be
-    necessary to change the value of Minimum_Stat_Err to ensure
-    that the uncertainties computed by the error-hook are not
-    modified. Uncertainties must always be positive -- negative or
-    zero values are not allowed.
+    necessary to change the value of min_stat_err to ensure that
+    the uncertainties computed by the error-hook are not modified
+    (see set_min_stat_err). Uncertainties must always be positive
+    -- negative or zero values are not allowed.
 
     For example, to add bin uncertainties in quadrature when
     dataset 1 is rebinned:
@@ -4792,7 +4861,7 @@ set_rebin_error_hook
 
 
  SEE ALSO
-    rebin_data, group_data, rebin_dataset, Minimum_Stat_Err
+    rebin_data, group_data, rebin_dataset, set_min_stat_err
 
 ------------------------------------------------------------------------
 set_rebin_error_method
@@ -4826,7 +4895,7 @@ set_rebin_error_method
 
  SEE ALSO
     rebin_data, group, group_bin, group_data, rebin_dataset,
-    Minimum_Stat_Err
+    set_min_stat_err
 
 ------------------------------------------------------------------------
 unassign_arf
@@ -11911,16 +11980,19 @@ simann
 Minimum_Stat_Err
 
  SYNOPSIS
-    Defines the minimum valid uncertainty for counts data
+    Defines the default minimum valid uncertainty for counts data
 
  USAGE
     (intrinsic global variable)
 
  DESCRIPTION
     When input data values are to be treated as counts, isis
-    attempts to validate the uncertainty values, requiring them all
-    to be greater than or equal to Minimum_Stat_Err, where
-    Minimum_Stat_Err has a default value of 1.
+    attempts to validate the corresponding uncertainty values,
+    requiring them all to be greater than or equal to some minimum
+    positive value, min_stat_err.  The minimum valid uncertainty
+    may be specified when the data is loaded using (e.g. see
+    load_data), otherwise, if Minimum_Stat_Err is positive, its
+    value is used, otherwise, the minimum value is 1.
 
     For example, defining a single-bin counts dataset with has bin
     value 1.e-5 and uncertainty 1.e-8:
@@ -11936,10 +12008,9 @@ Minimum_Stat_Err
 
     To force isis to retain positive counts-uncertainty values
     smaller than unity, define a minimum (positive) allowable
-    uncertainty value using Minimum_Stat_Err:
+    uncertainty value using the min_stat_err qualifier:
 
-    isis> Minimum_Stat_Err=1.e-20;
-    isis> define_counts (1.0, 2.0, 1.e-5, 1.e-8);
+    isis> define_counts (1.0, 2.0, 1.e-5, 1.e-8; min_stat_err=1.e-20);
     2
     isis> print(get_data_counts(2).err);
     1e-08
@@ -11961,7 +12032,8 @@ Minimum_Stat_Err
 
 
  SEE ALSO
-    load_data, define_counts, define_flux, fit_counts, fit_flux
+    load_data, define_counts, fit_counts, set_min_stat_err,
+    get_min_stat_err
 
 ------------------------------------------------------------------------
 notice

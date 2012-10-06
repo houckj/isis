@@ -177,14 +177,14 @@ set_rebin_error_hook (1, "returns_null");
 try_broken_hook();
 
 % Here, isis will validate the uncertainties and reset
-% them to Minimum_Stat_Err.
+% them to min_stat_err
 set_rebin_error_hook (1, "returns_zeros");
-Minimum_Stat_Err = 1.0;
+set_min_stat_err (1, 1.0);
 
 rebin_data (1,0);
 d = get_data_counts (1);
 if (length(d.err) != length(where (d.err == 1)))
-  failed ("applying Minimum_Stat_Err");
+  failed ("applying min_stat_err");
 
 define random_rebin ()
 {

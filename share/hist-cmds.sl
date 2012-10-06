@@ -321,17 +321,21 @@ define load_data () %{{{
 `id = load_data ("filename", [row_num]  [; <qualifiers>])
      Qualifiers:
       with_bkg_updown   if present, load BACKGROUND_UP/DOWN columns
+      min_stat_err=VAL  require stat_err >= min_stat_err
 `;
    variable file, row = 0;
 
    if (_isis->get_varargs(&file, &row, _NARGS, 1, msg))
      return;
 
+   variable with_bkg_updown = qualifier_exists ("with_bkg_updown");
+   variable min_stat_err = qualifier ("min_stat_err", Minimum_Stat_Err);
+
    variable id;
 
    if (typeof(row) == Integer_Type)
      {
-	id = _isis->_load_data (file, row;; __qualifiers);
+	id = _isis->_load_data (file, row, min_stat_err, with_bkg_updown);
         if (Isis_Use_PHA_Grouping)
           {
              variable fun = "use_file_group";
@@ -348,7 +352,7 @@ define load_data () %{{{
         _for (0, n-1, 1)
           {
              k = ();
-             id[k] = _isis->_load_data (file, row[k];; __qualifiers);
+             id[k] = _isis->_load_data (file, row[k], min_stat_err, with_bkg_updown);
           }
      }
 
@@ -546,6 +550,7 @@ typedef struct
    spec_num, order, part, srcid, exclude, combo_id, combo_weight, target,
      instrument, grating,
      tstart, frame_time,
+     min_stat_err,
      arfs, rmfs,
      notice, notice_list, rebin,
      file, bgd_file
@@ -1698,14 +1703,20 @@ private define get_args_for_define_hist (num, msg) %{{{
 define define_counts () %{{{
 {
    _isis->error_if_fit_in_progress (_function_name);
-   variable msg = "s = define_counts (struct | bins | lo, hi, n, err);";
+   variable msg =
+`s = define_counts (struct | bins[] | lo[], hi[], n[], err[]);
+    Qualifiers:
+      min_stat_err   require err[*] >= min_stat_err
+`;
    variable s;
 
    s = get_args_for_define_hist (_NARGS, msg);
    if (s == NULL)
      return;
 
-   return _isis->_define_hist (_V.data_counts, s.bin_lo, s.bin_hi, s.value, s.err);
+   variable min_stat_err = qualifier ("min_stat_err", Minimum_Stat_Err);
+
+   return _isis->_define_hist (_V.data_counts, s.bin_lo, s.bin_hi, s.value, s.err, min_stat_err);
 }
 
 %}}}
@@ -1713,13 +1724,13 @@ define define_counts () %{{{
 define define_flux () %{{{
 {
    _isis->error_if_fit_in_progress (_function_name);
-   variable msg = "s = define_flux (struct | lo, hi, f, err);";
+   variable msg = "s = define_flux (struct | lo[], hi[], f[], err[]);";
    variable s;
 
    s = get_args_for_define_hist (_NARGS, msg);
    if (s == NULL) return;
 
-   return _isis->_define_hist (_V.data_flux, s.bin_lo, s.bin_hi, s.value, s.err);
+   return _isis->_define_hist (_V.data_flux, s.bin_lo, s.bin_hi, s.value, s.err, -1.0);
 }
 
 %}}}
@@ -2189,6 +2200,32 @@ define set_arf_exposure () %{{{
 }
 
 %}}}
+
+define set_min_stat_err () %{{{
+{
+   _isis->error_if_fit_in_progress (_function_name);
+   variable msg = "set_min_stat_err (hist_index, min_stat_err)";
+
+   if (_isis->chk_num_args (_NARGS, 2, msg))
+     return;
+
+   variable hist_index, min_stat_err;
+   (hist_index, min_stat_err) = ();
+   _isis->_set_hist_min_stat_err (hist_index, min_stat_err);
+}
+
+%}}}
+
+define get_min_stat_err () %{{{
+{
+   variable msg = "min_stat_err = get_min_stat_err (hist_index)";
+
+   if (_isis->chk_num_args (_NARGS, 1, msg))
+     return;
+
+   variable hist_index = ();
+   return _isis->_get_hist_min_stat_err (hist_index);
+}
 
 define set_frame_time () %{{{
 {

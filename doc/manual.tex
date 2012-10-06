@@ -3909,6 +3909,26 @@ missing), they are ignored, and the data grid is assumed to be
 supplied by an RMF.  If the uncertainty array is shorter than the
 \verb|counts| array (or is missing), a default uncertainty array
 will be supplied assuming Poisson statistics.
+
+\begin{verbatim}
+Qualifiers
+----------
+ min_stat_err     require stat_err >= min_stat_err
+\end{verbatim}
+
+By default, any input uncertainty values smaller than
+\verb|min_stat_err| are reset according to
+\begin{verbatim}
+   stat_err = max[ sqrt(counts), min_stat_err ]
+\end{verbatim}
+where \verb|min_stat_err| is the smallest acceptable (positive)
+uncertainty value. When the \verb|min_stat_err| qualifier is
+not present, the value of the intrinsic variable
+\verb|Minimum_Stat_Err| is used if positive, otherwise, the
+default minimum uncertainty is 1.  To shut off warnings about
+invalid uncertainties being replaced, set
+\verb|Warn_Invalid_Uncertainties=0|.
+
 \end{isisfunction}
 
 \begin{isisfunction}
@@ -5034,7 +5054,8 @@ zero indicates success).
 {status = load\_data("pha\_filename" [, rows] [; qualifiers])} %usage
 {load\_dataset, define\_counts, define\_flux, define\_back,
 get\_data\_*, put\_data\_*, plot\_unit, set\_dataset\_metadata,
-get\_dataset\_metadata, get\_sys\_err\_frac, Minimum\_Stat\_Err}
+get\_dataset\_metadata, get\_sys\_err\_frac, Minimum\_Stat\_Err,
+set\_min\_stat\_err, get\_min\_stat\_err}
 
 The format of the Type II PHA file is defined in the CXCDS Level 2
 Data Products ICD. An ASCII-format file should contain the histogram
@@ -5056,6 +5077,7 @@ array of row numbers as the (optional) second argument.
 Qualifiers:
 -----------
  with_bkg_updown  if present, load BACKGROUND_UP/DOWN columns
+ min_stat_err     require stat_err >= min_stat_err
 \end{verbatim}
 
 When the \verb|with_bkg_updown| qualifier is present,
@@ -5094,15 +5116,19 @@ set the intrinsic variable \verb|Isis_Use_PHA_Grouping| to a
 non-zero value.
 
 Input data values must be bin-integral quantities rather than
-bin-densities; uncertainty values should be positive.  By default, any
-input {\tt STAT\_ERR} uncertainty values smaller than 1 are reset to
+bin-densities; uncertainty values should be positive.  By
+default, any input {\tt STAT\_ERR} uncertainty values smaller
+than \verb|min_stat_err| are reset according to
 \begin{verbatim}
-   stat_err = max[ sqrt(N), Minimum_Stat_Err ]
+   stat_err = max[ sqrt(counts), min_stat_err ]
 \end{verbatim}
-Where \verb|Minimum_Stat_Err| is the smallest acceptable
-(positive) uncertainty value with a default value of 1.
-To shut off warnings about invalid uncertainties being
-replaced, set \verb|Warn_Invalid_Uncertainties=0|.
+where \verb|min_stat_err| is the smallest acceptable (positive)
+uncertainty value. When the \verb|min_stat_err| qualifier is
+not present, the value of the intrinsic variable
+\verb|Minimum_Stat_Err| is used if positive, otherwise, the
+default minimum uncertainty is 1.  To shut off warnings about
+invalid uncertainties being replaced, set
+\verb|Warn_Invalid_Uncertainties=0|.
 
 \index{Minimum\_Stat\_Err@{\tt Minimum\_Stat\_Err}}
 \index{Minimum valid stat\_err!see{{\tt Minimum\_Stat\_Err}}}
@@ -6304,6 +6330,43 @@ pileup model.  The frame time is specified in units of seconds.
 \end{isisfunction}
 
 \begin{isisfunction}
+{get\_min\_stat\_err} %name
+{Get the minimum acceptable counts uncertainty for a dataset} %purpose
+{min\_stat\_err = get\_min\_stat\_err (hist\_index)} %usage
+{Minimum\_Stat\_Err, set\_min\_stat\_err, load\_data, define\_counts}
+
+Retrieve the value of \verb|min_stat_err| for a particular
+dataset.  If \verb|min_stat_err| has not been set, the return
+value is \verb|-1|.  For details, see \verb|Minimum_Stat_Err|.
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{set\_min\_stat\_err} %name
+{Modify the minimum acceptable counts uncertainty for a dataset} %purpose
+{set\_min\_stat\_err (hist\_index, min\_stat\_err)} %usage
+{Minimum\_Stat\_Err, get\_min\_stat\_err, load\_data,
+define\_counts}
+
+See \verb|load_data| for details on how the \verb|min_stat_err|
+value is defined and used.  Normally, the \verb|min_stat_err|
+value is specified on input, and it is rarely useful to modify
+the threshold value afterward.
+
+When \verb|min_stat_err| is modified using this function, the
+dataset's uncertainty values are not updated automatically. The
+uncertainty values are updated when the counts data are
+rebinned.
+
+Note that because the imposition of the \verb|min_stat_err|
+floor is intended to validate the input data, any
+below-threshold uncertainty values are replaced by the floor
+values and the original input values are not retained. To
+revert to the original input uncertainties, it may be necessary
+to reload the original input data.
+\end{isisfunction}
+
+\begin{isisfunction}
 {set\_post\_model\_hook} %name
 {Modify the computed model before computing the fit-statistic} %purpose
 {set\_post\_model\_hook (id[], \&func)} %usage
@@ -6479,7 +6542,7 @@ in effect (or if the dataset does not exist).
 {set\_rebin\_error\_hook}
 {Change the way rebinning propagates uncertainties}
 {set\_rebin\_error\_hook (hist\_index, \&hook)}
-{rebin\_data, group\_data, rebin\_dataset, Minimum\_Stat\_Err}
+{rebin\_data, group\_data, rebin\_dataset, set\_min\_stat\_err}
 \index{Rebinning!error propagation}
 
 Use this function to provide a S-Lang function to define how uncertainties are
@@ -6496,13 +6559,14 @@ where
          grouping = index array specifying which bins are to
                     be grouped (see rebin_data() for details)
 \end{verbatim}
-This function should return the array of uncertainties corresponding to the
-specified grouping. To indicate an error, the function should return
-\verb|NULL|. Because ISIS validates the uncertainties returned by this
-routine, it may also be necessary to change the value of
-\verb|Minimum_Stat_Err| to ensure that the uncertainties computed by the
-error-hook are not modified. Uncertainties must always be positive -- negative
-or zero values are not allowed.
+This function should return the array of uncertainties
+corresponding to the specified grouping. To indicate an error,
+the function should return \verb|NULL|. Because ISIS validates
+the uncertainties returned by this routine, it may also be
+necessary to change the value of \verb|min_stat_err| to ensure
+that the uncertainties computed by the error-hook are not
+modified (see \verb|set_min_stat_err|). Uncertainties must
+always be positive -- negative or zero values are not allowed.
 
 For example, to add bin uncertainties in quadrature when dataset 1
 is rebinned:
@@ -6528,7 +6592,8 @@ statistics), use
 {set\_rebin\_error\_method}
 {Change the way rebinning propagates uncertainties}
 {set\_rebin\_error\_method (hist\_index, "method\_name" [, \&method\_hook])}
-{rebin\_data, group, group\_bin, group\_data, rebin\_dataset, Minimum\_Stat\_Err}
+{rebin\_data, group, group\_bin, group\_data, rebin\_dataset,
+set\_min\_stat\_err}
 \index{Rebinning!error propagation}
 
 Use this function to define the way statistical uncertainties are propagated
@@ -12945,14 +13010,18 @@ with Simulated Annealing,'' Journal of Econometrics, vol. 60, no.
 
 \begin{isisfunction}
 {Minimum\_Stat\_Err}
-{Defines the minimum valid uncertainty for counts data}
+{Defines the default minimum valid uncertainty for counts data}
 {(intrinsic global variable)}
-{load\_data, define\_counts, define\_flux, fit\_counts, fit\_flux}
+{load\_data, define\_counts, fit\_counts, set\_min\_stat\_err,
+get\_min\_stat\_err}
 
 When input data values are to be treated as counts, isis
-attempts to validate the uncertainty values, requiring them all
-to be greater than or equal to \verb|Minimum_Stat_Err|, where
-\verb|Minimum_Stat_Err| has a default value of 1.
+attempts to validate the corresponding uncertainty values,
+requiring them all to be greater than or equal to some minimum
+positive value, \verb|min_stat_err|.  The minimum valid
+uncertainty may be specified when the data is loaded using
+(e.g. see \verb|load_data|), otherwise, if \verb|Minimum_Stat_Err| is
+positive, its value is used, otherwise, the minimum value is 1.
 
 For example, defining a single-bin counts dataset with has
 bin value \verb|1.e-5| and uncertainty \verb|1.e-8|:
@@ -12968,10 +13037,9 @@ kind of data.
 
 To force isis to retain positive counts-uncertainty values
 smaller than unity, define a minimum (positive) allowable uncertainty
-value using \verb|Minimum_Stat_Err|:
+value using the \verb|min_stat_err| qualifier:
 \begin{verbatim}
-isis> Minimum_Stat_Err=1.e-20;
-isis> define_counts (1.0, 2.0, 1.e-5, 1.e-8);
+isis> define_counts (1.0, 2.0, 1.e-5, 1.e-8; min_stat_err=1.e-20);
 2
 isis> print(get_data_counts(2).err);
 1e-08

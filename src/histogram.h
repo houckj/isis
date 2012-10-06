@@ -87,6 +87,7 @@ struct _Hist_Stat_t
 typedef struct
 {
    double tstart;
+   double min_stat_err;
    double combo_weight;
    char object[CFLEN_VALUE];
    char instrument[CFLEN_VALUE];
@@ -129,10 +130,12 @@ extern int Hist_id_list (Hist_t *head, int noticed, unsigned int **ids, unsigned
 extern int Hist_map (Hist_t *head, int (*fun)(Hist_t *, void *), void *cl, int check_exclude);
 
 /* data I/O */
-extern int Hist_read_ascii (Hist_t *head, char *filename);
+extern int Hist_read_ascii (Hist_t *head, char *filename, double min_stat_err);
 extern int Hist_read_fits (Hist_t *head, Isis_Arf_t *arf_head, Isis_Rmf_t *rmf_head, char *pha_filename,
-                           int **indices, int *num_spectra, int strict, int just_one, int use_bkg_updown);
-extern int Hist_define_data (Hist_t *head, Isis_Hist_t *x, unsigned int bin_type, unsigned int has_grid);
+                           int **indices, int *num_spectra, int strict, int just_one,
+                           double min_stat_err, int use_bkg_updown);
+extern int Hist_define_data (Hist_t *head, Isis_Hist_t *x, unsigned int bin_type, unsigned int has_grid,
+                            double min_stat_err);
 extern int Hist_assign_arf_to_hist (Hist_t *h_head, int hist_index, Isis_Arf_t *r_head, int arf_index);
 extern int Hist_assign_rmf_to_hist (Hist_t *h_head, int hist_index, Isis_Rmf_t *r_head, int rmf_index);
 extern int Hist_get_rsp_list (Hist_t *h, int **arfs, int **rmfs, int *num);
@@ -210,6 +213,8 @@ extern int Hist_copy_sys_err_frac (Hist_t *h, double **sys_err_frac, int *nbins)
 /* generic access */
 extern int Hist_get_info (Hist_t *h, Hist_Info_Type *info);
 extern int Hist_set_info (Hist_t *h, Hist_Info_Type *info);
+extern int Hist_set_min_stat_err (Hist_t *h, double min_stat_err);
+extern int Hist_get_min_stat_err (Hist_t *h, double *min_stat_err);
 extern int Hist_set_frame_time (Hist_t *h, double frame_time);
 extern int Hist_get_frame_time (Hist_t *h, double *frame_time);
 extern int Hist_get_exposure (Hist_t *h, double *exposure);

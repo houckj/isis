@@ -101,22 +101,20 @@ static int init_lists (void) /*{{{*/
 
 /*}}}*/
 
-static void _load_data (char * pha_filename, int *just_one) /*{{{*/
+static void _load_data (char *pha_filename, int *just_one, /*{{{*/
+                        double *min_stat_err, int *use_bkg_updown)
 {
    int *indices = NULL;
    int num_spectra = 0;
    int ret = -1;
-   int use_bkg_updown;
 
    if (-1 == init_lists ())
      goto error_return;
 
-   use_bkg_updown = SLang_qualifier_exists ("with_bkg_updown");
-
    ret = Hist_read_fits (Data_List_Head, Arf_List_Head, Rmf_List_Head, pha_filename,
-                         &indices, &num_spectra, 1, *just_one, use_bkg_updown);
+                         &indices, &num_spectra, 1, *just_one, *min_stat_err, *use_bkg_updown);
    if (ret == NOT_FITS_FORMAT)
-     ret = Hist_read_ascii (Data_List_Head, pha_filename);
+     ret = Hist_read_ascii (Data_List_Head, pha_filename, *min_stat_err);
 
    if ((ret == -1) || (indices == NULL))
      goto error_return;
@@ -543,7 +541,7 @@ static void get_sys_err_frac_intrin (int *hist_index) /*{{{*/
 
 /*}}}*/
 
-static int _define_hist (void) /*{{{*/
+static int _define_hist (double *min_stat_err) /*{{{*/
 {
    SLang_Array_Type *binlo, *binhi, *value, *uncert;
    Isis_Hist_t x;
@@ -595,7 +593,7 @@ static int _define_hist (void) /*{{{*/
         isis_vmesg (WARN, I_WARNING, __FILE__, __LINE__, "valid data grid not supplied, using default");
      }
 
-   hist_index = Hist_define_data (Data_List_Head, &x, bin_type, has_grid);
+   hist_index = Hist_define_data (Data_List_Head, &x, bin_type, has_grid, *min_stat_err);
 
    free_and_return:
 
@@ -1246,6 +1244,34 @@ static void _get_rmf_info (int *rmf_index) /*{{{*/
 
 /*}}}*/
 
+static void _set_hist_min_stat_err (int *hist_index, double *min_stat_err) /*{{{*/
+{
+   Hist_t *h = find_hist (*hist_index);
+   if (-1 == Hist_set_min_stat_err (h, *min_stat_err))
+     {
+        isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__, "couldn't set min_stat_err for data set %d",
+                    *hist_index);
+     }
+}
+
+/*}}}*/
+
+static double _get_hist_min_stat_err (int *hist_index) /*{{{*/
+{
+   Hist_t *h = find_hist (*hist_index);
+   double min_stat_err = isis_nan();
+
+   if (-1 == Hist_get_min_stat_err (h, &min_stat_err))
+     {
+        isis_vmesg (INTR, I_ERROR, __FILE__, __LINE__, "couldn't get min_stat_err for data set %d",
+                    *hist_index);
+     }
+
+   return min_stat_err;
+}
+
+/*}}}*/
+
 static void _set_hist_frame_time (int *hist_index, double *frame_time) /*{{{*/
 {
    Hist_t *h = find_hist (*hist_index);
@@ -1425,6 +1451,7 @@ static SLang_CStruct_Field_Type Hist_Info_Layout [] =
    MAKE_CSTRUCT_FIELD (Hist_Info_Type, combo_id, "combo_id", SLANG_INT_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Hist_Info_Type, combo_weight, "combo_weight", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Hist_Info_Type, tstart, "tstart", SLANG_DOUBLE_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Hist_Info_Type, min_stat_err, "min_stat_err", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Hist_Info_Type, file, "file", SLANG_STRING_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Hist_Info_Type, bgd_file, "bgd_file", SLANG_STRING_TYPE, 0),
    SLANG_END_CSTRUCT_TABLE
@@ -2791,13 +2818,13 @@ static SLang_Intrin_Fun_Type Hist_Intrinsics [] =
    MAKE_INTRINSIC("_array_interp_points", array_interp_points, V, 0),
    MAKE_INTRINSIC_1("_set_stat_error_hook", set_stat_error_hook, V, I),
    MAKE_INTRINSIC_1("_get_stat_error_hook", get_stat_error_hook, V, I),
-   MAKE_INTRINSIC_2("_load_data", _load_data, V, S, I),
+   MAKE_INTRINSIC_4("_load_data", _load_data, V, S, I, D, I),
    MAKE_INTRINSIC_I("_delete_hist", _delete_hist, V),
    MAKE_INTRINSIC_2("_get_hist", get_hist, V, I, UI),
    MAKE_INTRINSIC_2("_get_hist_notice_info", get_hist_notice_info, V, I, UI),
    MAKE_INTRINSIC("_put_hist", put_hist, V, 0),
    MAKE_INTRINSIC("put_model_intrin", put_model_intrin, V, 0),
-   MAKE_INTRINSIC("_define_hist", _define_hist, I, 0),
+   MAKE_INTRINSIC_1("_define_hist", _define_hist, I,D),
    MAKE_INTRINSIC("_define_arf", _define_arf, I, 0),
    MAKE_INTRINSIC_2("_define_bgd", define_bgd, I, I,D),
    MAKE_INTRINSIC_2("_define_bgd_file", define_bgd_file, I, I,S),
@@ -2826,6 +2853,8 @@ static SLang_Intrin_Fun_Type Hist_Intrinsics [] =
    MAKE_INTRINSIC_I("_set_arf_info", _set_arf_info, V),
    MAKE_INTRINSIC_1("_get_arf_exposure_time", _get_arf_exposure_time, D, I),
    MAKE_INTRINSIC_2("_set_arf_exposure_time", _set_arf_exposure_time, V, I, D),
+   MAKE_INTRINSIC_2("_set_hist_min_stat_err", _set_hist_min_stat_err, V, I, D),
+   MAKE_INTRINSIC_1("_get_hist_min_stat_err", _get_hist_min_stat_err, D, I),
    MAKE_INTRINSIC_2("_set_hist_frame_time", _set_hist_frame_time, V, I, D),
    MAKE_INTRINSIC_1("_get_hist_frame_time", _get_hist_frame_time, D, I),
    MAKE_INTRINSIC_1("_get_kernel", _get_kernel, V, I),

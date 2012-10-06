@@ -14,6 +14,7 @@ Changes since 1.6.2 (released Jan 2012)
  8.  New load_data qualifier supports loading BACKGROUND_UP/DOWN columns
  9.  Introduce more consistent model definition for flux-corrected data
      (see fit_flux).
+10.  Support setting per-dataset minimum stat_err via load_data qualifier
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------

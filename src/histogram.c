@@ -146,6 +146,8 @@ struct _Hist_t
    char *bgd_file;               /* name of background file */
    char *file;                   /* name of data file */
 
+   double min_stat_err;
+
    /* [R] marks things directly or indirectly affected by re-binning */
 
    double *bin_lo;               /* [R] bin left edge */
@@ -556,6 +558,8 @@ static Hist_t *Hist_new_hist (int nbins) /*{{{*/
    if (NULL == (h = (Hist_t *) ISIS_MALLOC (sizeof(Hist_t))))
      return NULL;
    memset ((char *)h, 0, sizeof(*h));
+
+   h->min_stat_err = Hist_Min_Stat_Err;
 
    area_init (&h->area);
    h->exposure = 1.0;
@@ -981,15 +985,15 @@ Hist_t *Hist_init_list (void) /*{{{*/
 
 /*}}}*/
 
-static double counts_uncertainty (double counts) /*{{{*/
+static double counts_uncertainty (double counts, double min_stat_err) /*{{{*/
 {
    if (counts >= 1.0)
      {
         return sqrt (counts);
      }
-   else if (Hist_Min_Stat_Err > 0.0)
+   else if (min_stat_err > 0.0)
      {
-        return Hist_Min_Stat_Err;
+        return min_stat_err;
      }
 
    return 1.0;
@@ -997,18 +1001,18 @@ static double counts_uncertainty (double counts) /*{{{*/
 
 /*}}}*/
 
-static int fixup_stat_err (double *counts, double *stat_err, int n) /*{{{*/
+static int fixup_stat_err (double *counts, double *stat_err, int n, double min_stat_err) /*{{{*/
 {
    int i, reset = 0;
 
-   if (Hist_Min_Stat_Err > 0.0)
+   if (min_stat_err > 0.0)
      {
         for (i = 0; i < n; i++)
           {
-             if (stat_err[i] >= Hist_Min_Stat_Err)
+             if (stat_err[i] >= min_stat_err)
                continue;
              reset = 1;
-             stat_err[i] = Hist_Min_Stat_Err;
+             stat_err[i] = min_stat_err;
           }
      }
    else
@@ -1018,7 +1022,7 @@ static int fixup_stat_err (double *counts, double *stat_err, int n) /*{{{*/
              if (stat_err[i] > 0.9)
                continue;
              reset = 1;
-             stat_err[i] = counts_uncertainty (counts[i]);
+             stat_err[i] = counts_uncertainty (counts[i], min_stat_err);
           }
      }
 
@@ -1032,7 +1036,7 @@ static int validate_stat_err (Hist_t *h) /*{{{*/
    if (NULL == h)
      return -1;
 
-   return fixup_stat_err (h->counts, h->stat_err, h->nbins);
+   return fixup_stat_err (h->counts, h->stat_err, h->nbins, h->min_stat_err);
 }
 /*}}}*/
 
@@ -1207,7 +1211,7 @@ static Keyword_t Hist_Keyword_Table[] =
 
 /*}}}*/
 
-static Hist_t *read_ascii (char * filename) /*{{{*/
+static Hist_t *read_ascii (char *filename, double min_stat_err) /*{{{*/
 {
    FILE *fp = NULL;
    Hist_t *h = NULL;
@@ -1279,6 +1283,8 @@ static Hist_t *read_ascii (char * filename) /*{{{*/
 
    if (NULL == (h = Hist_new_hist (nbins)))
      return NULL;
+
+   h->min_stat_err = min_stat_err;
 
    if (NULL == (fp = fopen (filename, "r")))
      {
@@ -1420,11 +1426,11 @@ static Hist_t *read_ascii (char * filename) /*{{{*/
 
 /*}}}*/
 
-int Hist_read_ascii (Hist_t *head, char * filename) /*{{{*/
+int Hist_read_ascii (Hist_t *head, char *filename, double min_stat_err) /*{{{*/
 {
    Hist_t *h;
 
-   if (NULL == (h = read_ascii (filename)))
+   if (NULL == (h = read_ascii (filename, min_stat_err)))
      return -1;
 
    if (NULL == (h->file = isis_make_string (filename)))
@@ -1438,7 +1444,7 @@ int Hist_read_ascii (Hist_t *head, char * filename) /*{{{*/
 
 /*}}}*/
 
-static Hist_t * create_hist_from_grid (Hist_t *head, Isis_Hist_t *x, unsigned int x_unit) /*{{{*/
+static Hist_t *create_hist_from_grid (Hist_t *head, Isis_Hist_t *x, unsigned int x_unit) /*{{{*/
 {
    Hist_t *h = NULL;
    unsigned int i, n, size;
@@ -1448,8 +1454,7 @@ static Hist_t * create_hist_from_grid (Hist_t *head, Isis_Hist_t *x, unsigned in
 
    n = x->nbins;
 
-   h = Hist_new_hist (n);
-   if (h == NULL)
+   if (NULL == (h = Hist_new_hist (n)))
      return NULL;
 
    h->is_fake_data = 1;
@@ -1624,7 +1629,8 @@ static int redefine_fake_data_grid (Hist_t *head, Isis_Rmf_t *r, Hist_t **h) /*{
 
 /*}}}*/
 
-int Hist_define_data (Hist_t *head, Isis_Hist_t *x, unsigned int bin_type, unsigned int has_grid) /*{{{*/
+int Hist_define_data (Hist_t *head, Isis_Hist_t *x, unsigned int bin_type, unsigned int has_grid, /*{{{*/
+                      double min_stat_err)
 {
    int (*validate_fcn)(Hist_t *) = NULL;
    Hist_t *h = NULL;
@@ -1635,8 +1641,8 @@ int Hist_define_data (Hist_t *head, Isis_Hist_t *x, unsigned int bin_type, unsig
    if (x == NULL || head == NULL)
      return -1;
 
-   h = Hist_new_hist (x->nbins);
-   if (h == NULL) return -1;
+   if (NULL == (h = Hist_new_hist (x->nbins)))
+     return -1;
 
    size = x->nbins * sizeof(double);
 
@@ -1651,6 +1657,7 @@ int Hist_define_data (Hist_t *head, Isis_Hist_t *x, unsigned int bin_type, unsig
      }
    else
      {
+        h->min_stat_err = min_stat_err;
         validate_fcn = validate_stat_err;
         memcpy ((char *)h->counts, (char *)x->val, size);
         if (x->val_err)
@@ -1858,7 +1865,7 @@ static int scale_background (Hist_t *h, int do_rebin, /*{{{*/
    for (i = 0; i < n; i++)
      {
         /* note - order is important here */
-        berr[i] = scale[i] * counts_uncertainty (b[i]);
+        berr[i] = scale[i] * counts_uncertainty (b[i], h->min_stat_err);
         b[i] *= scale[i];
      }
 
@@ -2458,7 +2465,7 @@ static char *read_file_keyword (cfitsfile *fp, const char *keyname, const char *
 
 /*}}}*/
 
-static Hist_t *_read_typeI_pha (char *pha_filename, int use_bkg_updown) /*{{{*/
+static Hist_t *_read_typeI_pha (char *pha_filename, double min_stat_err, int use_bkg_updown) /*{{{*/
 {
    Keyword_t *keytable = Hist_Keyword_Table;
    Hist_t *h = NULL;
@@ -2493,6 +2500,8 @@ static Hist_t *_read_typeI_pha (char *pha_filename, int use_bkg_updown) /*{{{*/
 
    if (NULL == (h = Hist_new_hist (nbins)))
      goto finish;
+
+   h->min_stat_err = min_stat_err;
 
    (void) Key_read_header_keywords (fp, (char *)h, keytable, FITS_FILE);
 
@@ -2637,14 +2646,15 @@ static Hist_t *_read_typeI_pha (char *pha_filename, int use_bkg_updown) /*{{{*/
 
 static int read_typeI_pha (Hist_t *head, Isis_Arf_t *arf_head, /*{{{*/
                            Isis_Rmf_t *rmf_head, char *file,
-                           int *hist_index, int strict, int use_bkg_updown)
+                           int *hist_index, int strict,
+                           double min_stat_err, int use_bkg_updown)
 {
    Hist_t *h;
    int id;
 
    (void) strict;
 
-   if (NULL == (h = _read_typeI_pha (file, use_bkg_updown)))
+   if (NULL == (h = _read_typeI_pha (file, min_stat_err, use_bkg_updown)))
      return -1;
 
    if (h->respfile)
@@ -2723,13 +2733,13 @@ static int load_background_from_file (Hist_t *h, char *file) /*{{{*/
    /* First try opening as FITS, then as ASCII */
    if (NULL == (fp = cfits_open_file_readonly_silent (file)))
      {
-        if (NULL == (b = read_ascii (file)))
+        if (NULL == (b = read_ascii (file, h->min_stat_err)))
           return -1;
      }
    else
      {
         cfits_close_file (fp);
-        if (NULL == (b = _read_typeI_pha (file, 0)))
+        if (NULL == (b = _read_typeI_pha (file, h->min_stat_err, 0)))
           return -1;
         if (-1 == set_hist_grid_using_rmf (h->a_rsp.rmf, b))
           {
@@ -2797,7 +2807,7 @@ int Hist_set_background_from_file (Hist_t *h, char *file) /*{{{*/
 /*}}}*/
 
 static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *num_spectra, int just_one, /*{{{*/
-                            int use_bkg_updown)
+                            double min_stat_err, int use_bkg_updown)
 {
    Keyword_t *keytable = Hist_Keyword_Table;
    Hist_t *h1 = NULL;
@@ -2885,6 +2895,8 @@ static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *n
 
         if (NULL == (h = Hist_new_hist (nbins)))
           goto finish;
+
+        h->min_stat_err = min_stat_err;
 
         /* read keywords first pass only */
         if (num > 0)
@@ -3081,7 +3093,8 @@ static int get_pha_type (cfitsfile *fp) /*{{{*/
 /*}}}*/
 
 int Hist_read_fits (Hist_t *head, Isis_Arf_t *arf_head, Isis_Rmf_t *rmf_head, char * pha_filename, /*{{{*/
-                    int **indices, int *num_spectra, int strict, int just_one, int use_bkg_updown)
+                    int **indices, int *num_spectra, int strict, int just_one,
+                    double min_stat_err, int use_bkg_updown)
 {
    cfitsfile *cfp = NULL;
    int pha_type;
@@ -3102,10 +3115,12 @@ int Hist_read_fits (Hist_t *head, Isis_Arf_t *arf_head, Isis_Rmf_t *rmf_head, ch
         *num_spectra = 1;
         if (NULL == (*indices = (int *) ISIS_MALLOC (sizeof(int))))
           return -1;
-        return read_typeI_pha (head, arf_head, rmf_head, pha_filename, *indices, strict, use_bkg_updown);
+        return read_typeI_pha (head, arf_head, rmf_head, pha_filename, *indices, strict,
+                               min_stat_err, use_bkg_updown);
 
       case PHA_TYPE_II:
-        return read_typeII_pha (head, pha_filename, indices, num_spectra, just_one, use_bkg_updown);
+        return read_typeII_pha (head, pha_filename, indices, num_spectra, just_one,
+                                min_stat_err, use_bkg_updown);
 
       default:
         break;
@@ -3454,6 +3469,7 @@ int Hist_get_info (Hist_t *h, Hist_Info_Type *info) /*{{{*/
      return -1;
 
    info->tstart = h->tstart;
+   info->min_stat_err = h->min_stat_err;
    info->spec_num = h->spec_num;
    info->order = h->order;
    info->part = h->part;
@@ -3480,6 +3496,7 @@ int Hist_set_info (Hist_t *h, Hist_Info_Type *info) /*{{{*/
      return -1;
 
    h->tstart = info->tstart;
+   h->min_stat_err = info->min_stat_err;
    h->spec_num = info->spec_num;
    h->order = info->order;
    h->part = info->part;
@@ -3579,6 +3596,30 @@ int Hist_set_exposure (Hist_t *h, double exposure) /*{{{*/
      return -1;
 
    h->exposure = exposure;
+
+   return 0;
+}
+
+/*}}}*/
+
+int Hist_set_min_stat_err (Hist_t *h, double min_stat_err) /*{{{*/
+{
+   if (NULL == h)
+     return -1;
+
+   h->min_stat_err = min_stat_err;
+
+   return 0;
+}
+
+/*}}}*/
+
+int Hist_get_min_stat_err (Hist_t *h, double *min_stat_err) /*{{{*/
+{
+   if (h == NULL || min_stat_err == NULL)
+     return -1;
+
+   *min_stat_err = h->min_stat_err;
 
    return 0;
 }
