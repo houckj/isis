@@ -85,6 +85,10 @@ FitsFile_Type;
 
 static SLtype Fits_Type_Id = 0;
 
+/* This routine is used for binary tables --- not keywords.  For a binary table,
+ * TLONG always specifies a 32 bit integer, but for a keyword is simply means
+ * a long integer.
+ */
 static int map_fitsio_type_to_slang (int *typep, long *repeat, SLtype *stype)
 {
    int type = *typep;
@@ -705,7 +709,10 @@ static int update_key (void)
    FitsFile_Type *ft;
    char *comment;
    int i;
+   unsigned int ui;
    double d;
+   long l;
+   unsigned long ul;
    char *s;
    char *key;
    int type;
@@ -729,11 +736,36 @@ static int update_key (void)
 	v = (VOID_STAR) s;
 	break;
 
+      case SLANG_CHAR_TYPE:
+      case SLANG_SHORT_TYPE:
       case SLANG_INT_TYPE:
 	type = TINT;
 	if (-1 == SLang_pop_integer (&i))
 	  goto free_and_return;
 	v = (VOID_STAR) &i;
+	break;
+
+      case SLANG_UCHAR_TYPE:
+      case SLANG_USHORT_TYPE:
+      case SLANG_UINT_TYPE:
+	type = TUINT;
+	if (-1 == SLang_pop_uint (&ui))
+	  goto free_and_return;
+	v = (VOID_STAR) &ui;
+	break;
+
+      case SLANG_LONG_TYPE:
+	type = TLONG;
+	if (-1 == SLang_pop_long (&l))
+	  goto free_and_return;
+	v = (VOID_STAR) &l;
+	break;
+
+      case SLANG_ULONG_TYPE:
+	type = TULONG;
+	if (-1 == SLang_pop_long (&l))
+	  goto free_and_return;
+	v = (VOID_STAR) &ul;
 	break;
 
       case SLANG_NULL_TYPE:
