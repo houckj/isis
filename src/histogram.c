@@ -7821,6 +7821,7 @@ int Hist_flux_corr_model (Hist_t *h, double *bincts) /*{{{*/
 
    if (NULL == (wt_sum = (double *) ISIS_MALLOC (h->nbins * sizeof(double))))
      return -1;
+   memset ((char *)wt_sum, 0, h->nbins * sizeof(double));
 
    if (-1 == Hist_apply_rebin_and_notice_list (wt_sum, h->flux_weights, h))
      {
