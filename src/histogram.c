@@ -7811,7 +7811,7 @@ int Hist_flux_correct (Hist_t *h, double frac, double *bkg, int using_model, /*{
 int Hist_flux_corr_model (Hist_t *h, double *bincts) /*{{{*/
 {
    double *wt_sum = NULL, *lo, *hi;
-   int k, n_notice, *notice_list;
+   int i, n_notice, *notice_list;
 
    if (h->flux_weights == NULL)
      {
@@ -7845,12 +7845,12 @@ int Hist_flux_corr_model (Hist_t *h, double *bincts) /*{{{*/
     * final result has flux units.
     */
 
-   for (k = 0; k < n_notice; k++)
+   for (i = 0; i < n_notice; i++)
      {
-        int i = notice_list[k];
+        int k = notice_list[i];
         if (wt_sum[i] != 0.0)
           {
-             bincts[k] *= (hi[i] - lo[i]) / wt_sum[i];
+             bincts[i] *= (hi[k] - lo[k]) / wt_sum[i];
           }
      }
 
