@@ -111,7 +111,7 @@ private define emit_name_string (fp, m) %{{{
 
    variable interface_type = "f";
    if (m.routine_name[1] == '_')
-     interface_type = sprintf ("%c", m.routine_name[0]);
+     interface_type = m.routine_name[[0]];
 
    !if (photer)
      interface_type += "n";
