@@ -682,6 +682,8 @@ int Arf_set_arf_info (Isis_Arf_t *a, Arf_Info_Type *ai) /*{{{*/
 
 int Arf_get_arf_info (Isis_Arf_t *a, Arf_Info_Type *ai) /*{{{*/
 {
+   char *s;
+
    if (a == NULL || ai == NULL)
      return -1;
 
@@ -701,13 +703,9 @@ int Arf_get_arf_info (Isis_Arf_t *a, Arf_Info_Type *ai) /*{{{*/
 
    ai->fracexpo_is_vector = a->fracexpo_is_vector;
 
-   if (a->file)
-     {
-        char *s;
-        if (NULL == (s = isis_make_string (a->file)))
-          return -1;
-        ai->file = s;
-     }
+   if (NULL == (s = isis_make_string ((a->file != NULL) ? a->file : "")))
+     return -1;
+   ai->file = s;
 
    if (NULL == (ai->object = isis_make_string (a->object)))
      return -1;
