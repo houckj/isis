@@ -336,4 +336,3 @@ define find_model_dat_file (dir, xspec_version) %{{{
 
 %}}}
 
-provide ("parse_model_dat");
