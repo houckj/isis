@@ -164,6 +164,9 @@ define try_user_statistic () %{{{
      failed ("max_like [chisqr]");
 
    () = evalfile ("max_like.sl");
+   if (NULL == get_fit_statistic ())
+     failed ("max_like [name]");
+
    variable max_info;
    if (-1 == eval_counts(&max_info))
      failed ("max_like [1]");

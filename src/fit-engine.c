@@ -512,6 +512,12 @@ static int sl_report_function (Isis_Fit_Statistic_Type *s, void *pfp, double sta
 
 /*}}}*/
 
+static void sl_deallocate_function (Isis_Fit_Statistic_Type *s)
+{
+   ISIS_FREE (s->symbol);
+   ISIS_FREE (s->option_string);
+}
+
 static Isis_Fit_Statistic_Type *init_sl_statistic (void) /*{{{*/
 {
    SLang_Name_Type *statistic_fun, *report_fun;
@@ -543,6 +549,7 @@ static Isis_Fit_Statistic_Type *init_sl_statistic (void) /*{{{*/
      }
 
    s->compute_statistic = sl_statistic_function;
+   s->deallocate = sl_deallocate_function;
    s->report = sl_report_function;
    s->sl_fun = statistic_fun;
    s->sl_report = report_fun;
@@ -552,10 +559,26 @@ static Isis_Fit_Statistic_Type *init_sl_statistic (void) /*{{{*/
 
 /*}}}*/
 
+static int fixup_sl_statistic_name (char *name)
+{
+   Isis_Fit_Statistic_Type *s;
+
+   if (NULL == (s = find_statistic (name)))
+     return -1;
+
+   if (NULL == (s->option_string = isis_make_string (name)))
+     return -1;
+
+   return 0;
+}
+
 void _add_slang_statistic (char *name) /*{{{*/
 {
-   if (-1 == isis_fit_add_statistic (name, init_sl_statistic))
-     isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "adding fit statistic %s", name);
+   if ((-1 == isis_fit_add_statistic (name, init_sl_statistic))
+       || (-1 == fixup_sl_statistic_name (name)))
+     {
+        isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "adding fit statistic %s", name);
+     }
 }
 
 /*}}}*/
