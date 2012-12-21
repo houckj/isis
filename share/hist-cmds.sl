@@ -2622,12 +2622,6 @@ define rplot_counts () %{{{
    multiplot ([3,1]);
 
    variable ebar_state = _isis->_errorbar_state();
-   variable new_ebar_state;
-   if (ebar_state > 0)
-     new_ebar_state = ebar_state;
-   else
-     new_ebar_state = 1;
-   errorbars (new_ebar_state);
 
    variable info = get_plot_info();
    plot_data_counts(id);
@@ -2640,7 +2634,7 @@ define rplot_counts () %{{{
    yrange;
    errorbars(0);
    _rplot_counts (id);
-   if (ebar_state >= 0) errorbars (ebar_state);
+   errorbars (ebar_state);
 
    if (info.ylog == 0)
      yrange (info.ymin, info.ymax);
@@ -2678,12 +2672,6 @@ define rplot_flux () %{{{
    multiplot ([3,1]);
 
    variable ebar_state = _isis->_errorbar_state();
-   variable new_ebar_state;
-   if (ebar_state > 0)
-     new_ebar_state = ebar_state;
-   else
-     new_ebar_state = 1;
-   errorbars (new_ebar_state);
 
    variable info = get_plot_info();
    plot_data_flux(id);
@@ -2696,7 +2684,7 @@ define rplot_flux () %{{{
    yrange;
    errorbars(0);
    _rplot_flux (id);
-   if (ebar_state >= 0) errorbars (ebar_state);
+   errorbars (ebar_state);
 
    if (info.ylog == 0)
      yrange (info.ymin, info.ymax);

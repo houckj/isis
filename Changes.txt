@@ -22,6 +22,8 @@ Changes since 1.6.2 (released Jan 2012)
 13.  get_fit_statistic was returning NULL for slang fit statistics
 14.  Fix definition of maximum likelihood statistic introduced in
      1.6.1-38
+15.  'errorbars' should control plotting of error bars in
+     rplot_counts and rplot_flux
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
