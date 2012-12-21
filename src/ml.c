@@ -59,7 +59,7 @@ static int ml_function (Isis_Fit_Statistic_Type *st, /*{{{*/
         double fxi = fx[i];
         double log_fxi = (fxi > 0) ? log(fxi) : (double) DBL_MIN_10_EXP;
 
-        s = fxi + lgamma (fxi+1) - y[i] * log_fxi;
+        s = 2 * (fxi + lgamma (y[i] + 1) - y[i] * log_fxi);
 
         val[i] = s;
         vec[i] = s;

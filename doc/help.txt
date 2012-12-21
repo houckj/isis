@@ -12891,7 +12891,7 @@ set_fit_statistic
     See Cash (ApJ 228, 939) and the XSPEC manual for details. The
     max-likelihood (ML) statistic is defined to be
 
-     S_{\rm ml} \equiv \sum_i \left(M_i + \ln \Gamma (M_i+1) - C_i \ln M_i\right)
+     S_{\rm ml} \equiv 2 \sum_i \left(M_i + \ln \Gamma (C_i+1) - C_i \ln M_i\right)
 
 
  SEE ALSO

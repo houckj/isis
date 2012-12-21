@@ -20,6 +20,8 @@ Changes since 1.6.2 (released Jan 2012)
 12.  Fix indexing bug associated with handling ignore/notice in
      change #9 above.
 13.  get_fit_statistic was returning NULL for slang fit statistics
+14.  Fix definition of maximum likelihood statistic introduced in
+     1.6.1-38
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
