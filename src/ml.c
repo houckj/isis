@@ -109,7 +109,7 @@ ISIS_FIT_STATISTIC_METHOD (ml)
 
    s->compute_statistic = ml_function;
    s->report = ml_report;
-   s->delta_is_chisqr_distributed = 0;
+   s->delta_is_chisqr_distributed = 1;
    s->deallocate = deallocate;
    if (NULL == (s->symbol = isis_make_string ("ML")))
      {
