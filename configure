@@ -2587,6 +2587,13 @@ fi
 JD_Above_Dir2=`cd ..;pwd`
 
 
+if test -f "$prefix/src/isis.c" ; then
+   echo ""
+   echo "*** Error:  installing isis in the source code directory is not supported."
+   echo ""
+   exit 1
+fi
+
 
 
 # Check whether --with-subdir was given.

@@ -34,7 +34,7 @@ all:	makefiles
 	    cd extras ; $(MAKE) all ; \
 	 fi
 	@echo ""
-	@echo "To continue with the installation, type"
+	@echo "To complete the installation, type"
 	@echo "   make install"
 	@echo ""
 
@@ -44,7 +44,7 @@ check:
 memcheck:
 	cd test; $(MAKE) memcheck
 
-install:	test_install_dir
+install:
 	cd src; $(MAKE) install
 	cd modules; $(MAKE) install
 	@if test "$(LINK_XSPEC_STATIC)" = "yes" ; then \
@@ -86,11 +86,11 @@ modules/xspec/src/Makefile:	configure modules/xspec/src/Makefile.in
 	@echo "Please re-run the configure script."
 	@exit 1
 
-install-elf:	test_install_dir
+install-elf:
 	cd src; $(MAKE) install-elf
 	cd modules; $(MAKE) install-elf
 
-install-modules:	test_install_dir
+install-modules:
 	cd modules; $(MAKE) install-modules
 
 custom-xspec-module:
@@ -125,14 +125,6 @@ distclean:
 
 confclean:
 	-$(RM) Makefile config.status config.log config.cache files.pck autoconf/f77test.out .##* *~
-
-test_install_dir:
-	@if test "$(prefix)" = "`pwd`" ; then \
-	    echo "" ;\
-	    echo "*** Please don't install into the distribution directory" ; \
-	    echo "" ;\
-	    exit 1 ; \
-	fi
 
 #
 #  These targets are used by the maintainer

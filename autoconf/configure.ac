@@ -4,6 +4,13 @@ AC_PREFIX_DEFAULT(/usr/local)
 JH_CONFIG_DIR_SANS_AMD
 JD_INIT
 
+if test -f "$prefix/src/isis.c" ; then
+   echo ""
+   echo "*** Error:  installing isis in the source code directory is not supported."
+   echo ""
+   exit 1
+fi
+
 JH_WITH_SUBDIR
 
 AC_CONFIG_HEADER(\
