@@ -18,9 +18,11 @@ cemekl
 cevmkl
 cflow
 compbb
+compmag
 compLS
 compPS
 compST
+comptb
 compth
 compTT
 cplinear
@@ -154,6 +156,7 @@ lsmooth
 partcov
 rdblur
 reflect
+rgsxsrc
 simpl
 zashift
 zmshift

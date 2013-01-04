@@ -125,8 +125,10 @@ private define emit_name_string (fp, m) %{{{
    variable symbol_name;
    (,symbol_name,) = name_split (m.routine_name);
 
-   if (m.routine_name[[0:1]] == "C_" or m.routine_name[[0:1]] == "c_")
+   if (m.routine_name[[0:1]] == "C_")
      symbol_name = m.routine_name;
+   else if (m.routine_name[[0:1]] == "c_")
+     symbol_name = m.routine_name[[2:]];
    else
      {
         variable s = symbol_name;

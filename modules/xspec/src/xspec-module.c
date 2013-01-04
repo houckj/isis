@@ -362,6 +362,7 @@ typedef void Fcn_f_Type (float *, int *, float *, int *, float *, float *);
 typedef void Fcn_fn_Type (float *, int *, float *, int *, float *);
 typedef void Fcn_F_Type (double *, int *, double *, int *, double *, double *);
 typedef void Fcn_C_Type (double *, int, double *, int, double *, double *, const char *);
+typedef void Fcn_c_Type (double *, int, double *, int, double *, double *, const char *);
 
 static void f_sub (Xspec_Param_t *p) /*{{{*/
 {
