@@ -25,6 +25,8 @@ Changes since 1.6.2 (released Jan 2012)
 15.  'errorbars' should control plotting of error bars in
      rplot_counts and rplot_flux
 16.  Update xspec module for heasoft-6.13/xspec-12.8 release.
+17.  Explicitly link Fortran libraries to avoid run-time link
+     error on new Mac OS X systems.
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
