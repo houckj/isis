@@ -33,7 +33,7 @@ SLANG_LIB	= @SLANG_LIB@ -lslang
 #---------------------------------------------------------------------------
 FC		= @FC@
 FCFLAGS		= @FCFLAGS@
-FCLIBS		=# @FCLIBS@
+FCLIBS		= @FCLIBS@
 
 #---------------------------------------------------------------------------
 # Additional Libraries required by the module
