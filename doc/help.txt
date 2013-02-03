@@ -2540,18 +2540,96 @@ get_frame_time
 get_back
 
  SYNOPSIS
-    Retrieve the scaled instrumental background for a given spectrum
+    Retrieve the background for a given spectrum
 
  USAGE
     b = get_back (hist_index)
 
  DESCRIPTION
-    Returns an array of instrumental background values. These
-    values are on the same wavelength grid as that returned by e.g.
-    get_data_counts.
+    Returns an array of instrumental background values.  If no
+    back_fun has been specified, the scaled instrumental background
+    is returned, otherwise the result of the specified background
+    model is returned. These values are on the same wavelength grid
+    as that returned by e.g. get_data_counts.
 
  SEE ALSO
-    define_back, _define_back, back_fun
+    define_back, _define_back, back_fun, get_back_data, get_back_model,
+    get_back_data_scale_factor
+
+------------------------------------------------------------------------
+get_back_data
+
+ SYNOPSIS
+    Retrieve the un-scaled instrumental background for a given spectrum
+
+ USAGE
+    b = get_back_data (hist_index)
+
+ DESCRIPTION
+    Qualifiers
+    ----------
+     rebin        If present, return rebinned array.
+                  Otherwise, return full resolution.
+
+    Returns an array of instrumental background values with no
+    scaling applied.
+
+ SEE ALSO
+    define_back, _define_back, get_back_data_scale_factor,
+    get_back_model, get_back
+
+------------------------------------------------------------------------
+get_back_data_scale_factor
+
+ SYNOPSIS
+    Retrieve the background scale factor for a given spectrum
+
+ USAGE
+    scale = get_back_data_scale_factor (hist_index)
+
+ DESCRIPTION
+    Qualifiers
+    ----------
+     rebin        If present, return rebinned array.
+                  Otherwise, return full resolution.
+
+    Returns the factor used to scale the instrumental background.
+    The scale factor is defined as
+
+      scale = (data_backscale * exposure) / (back_backscale * back_exposure)
+
+    The exposure time value used for the data is normally taken
+    from the ARF.  If the ARF exposure is unspecified or invalid,
+    the data exposure value is used.  Either backscale value may be
+    a vector quantity, defined on the same wavelength grid as the
+    data.
+
+
+ SEE ALSO
+    define_back, _define_back, get_back_data, get_back_model, get_back
+
+------------------------------------------------------------------------
+get_back_model
+
+ SYNOPSIS
+    Retrieve the instrumental background model for a given spectrum
+
+ USAGE
+    b = get_back_model (hist_index)
+
+ DESCRIPTION
+    Qualifiers
+    ----------
+     rebin        If present, return rebinned array.
+                  Otherwise, return full resolution.
+
+    Returns the value of the current instrumental background model,
+    specified by back_fun.
+
+
+ SEE ALSO
+    back_fun, define_back, _define_back, get_back_data_scale_factor,
+    get_back
 
 ------------------------------------------------------------------------
 get_rmf_arf_grid
@@ -2822,7 +2900,8 @@ back_fun
 
 
  SEE ALSO
-    fit_fun, set_par, flux_corr, define_back, _define_back, get_back
+    fit_fun, set_par, flux_corr, define_back, _define_back,
+    get_back_model, get_back
 
 ------------------------------------------------------------------------
 interpol

@@ -4558,13 +4558,74 @@ pileup model.  The frame time is specified in units of seconds.
 
 \begin{isisfunction}
 {get\_back}
-{Retrieve the scaled instrumental background for a given spectrum}
+{Retrieve the background for a given spectrum}
 {b = get\_back (hist\_index)}
-{define\_back, \_define\_back, back\_fun}
+{define\_back, \_define\_back, back\_fun, get\_back\_data, get\_back\_model,
+get\_back\_data\_scale\_factor}
 
-Returns an array of instrumental background values.
-These values are on the same wavelength grid as that returned
-by e.g. \verb|get_data_counts|.
+Returns an array of instrumental background values.  If no \verb|back_fun| has
+been specified, the scaled instrumental background is returned, otherwise the
+result of the specified background model is returned. These values are on the
+same wavelength grid as that returned by e.g. \verb|get_data_counts|.
+\end{isisfunction}
+
+\begin{isisfunction}
+{get\_back\_data}
+{Retrieve the un-scaled instrumental background for a given spectrum}
+{b = get\_back\_data (hist\_index)}
+{define\_back, \_define\_back, get\_back\_data\_scale\_factor, get\_back\_model, get\_back}
+
+\begin{verbatim}
+Qualifiers
+----------
+ rebin        If present, return rebinned array.
+              Otherwise, return full resolution.
+\end{verbatim}
+
+Returns an array of instrumental background values with no scaling applied.
+\end{isisfunction}
+
+\begin{isisfunction}
+{get\_back\_data\_scale\_factor}
+{Retrieve the background scale factor for a given spectrum}
+{scale = get\_back\_data\_scale\_factor (hist\_index)}
+{define\_back, \_define\_back, get\_back\_data, get\_back\_model, get\_back}
+
+\begin{verbatim}
+Qualifiers
+----------
+ rebin        If present, return rebinned array.
+              Otherwise, return full resolution.
+\end{verbatim}
+
+Returns the factor used to scale the instrumental background.
+The scale factor is defined as
+\begin{verbatim}
+  scale = (data_backscale * exposure) / (back_backscale * back_exposure)
+\end{verbatim}
+The \verb|exposure| time value used for the data is normally taken from the
+ARF.  If the ARF exposure is unspecified or invalid, the data exposure value
+is used.  Either \verb|backscale| value may be a vector quantity, defined on
+the same wavelength grid as the data.
+
+\end{isisfunction}
+
+\begin{isisfunction}
+{get\_back\_model}
+{Retrieve the instrumental background model for a given spectrum}
+{b = get\_back\_model (hist\_index)}
+{back\_fun, define\_back, \_define\_back, get\_back\_data\_scale\_factor, get\_back}
+
+\begin{verbatim}
+Qualifiers
+----------
+ rebin        If present, return rebinned array.
+              Otherwise, return full resolution.
+\end{verbatim}
+
+Returns the value of the current instrumental background model,
+specified by \verb|back_fun|.
+
 \end{isisfunction}
 
 \begin{isisfunction}
@@ -4730,7 +4791,8 @@ Example:
 {back\_fun} %name
 {Specify instrumental background function for a data-set} %purpose
 {back\_fun (idx, "function")} %usage
-{fit\_fun, set\_par, flux\_corr, define\_back, \_define\_back, get\_back}
+{fit\_fun, set\_par, flux\_corr, define\_back, \_define\_back,
+get\_back\_model, get\_back}
 \index{background!fitted}
 
 This function allows one to define the component of the background

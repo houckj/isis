@@ -31,7 +31,7 @@ INCS = -I$(config_dir)/src $(SLANG_INC)
 SHARED_LIBRARIES = rmf_user.so example-profile.so
 
 TEST_SCRIPTS = aped_models array_fit arrayops assign_model assign_back \
-   backscale cache confmap constraint ds_combine eval_fun2 fit \
+   backscale backio cache confmap constraint ds_combine eval_fun2 fit \
    flux_corr fs_comm group hist multi notice_values opfun \
    param_defaults par_fun pileup post_model_hook readcol \
    rebin_dataset rebin region_stats renorm rmf_slang stat \

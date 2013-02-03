@@ -1831,6 +1831,44 @@ static double *background_scale_factor (Hist_t *h, int do_rebin) /*{{{*/
 
 /*}}}*/
 
+static int copy_input_background (Hist_t *h, int do_rebin, double **bc, int *nbc) /*{{{*/
+{
+   double *b = NULL;
+   int n;
+
+   if (h == NULL || h->orig_bgd == NULL
+       || bc == NULL || nbc == NULL)
+     return -1;
+
+   *bc = NULL;
+   *nbc = 0;
+
+   n = do_rebin ? h->nbins : h->orig_nbins;
+
+   if (NULL == (b = (double *) ISIS_MALLOC (n * sizeof(double))))
+     return -1;
+
+   if (do_rebin)
+     {
+        if (-1 == apply_rebin (h->orig_bgd, h->orig_nbins, h->rebin, h->nbins, b))
+          {
+             ISIS_FREE(b);
+             return -1;
+          }
+     }
+   else
+     {
+        memcpy ((char *)b, (char *)h->orig_bgd, n * sizeof(double));
+     }
+
+   *bc = b;
+   *nbc = n;
+
+   return 0;
+}
+
+/*}}}*/
+
 static int scale_background (Hist_t *h, int do_rebin, /*{{{*/
                              double **scaled_bgd, double **scaled_bgd_err)
 {
@@ -1843,23 +1881,13 @@ static int scale_background (Hist_t *h, int do_rebin, /*{{{*/
    if (h->orig_bgd == NULL)
      return 0;
 
-   n = do_rebin ? h->nbins : h->orig_nbins;
-
-   if ((NULL == (b = (double *) ISIS_MALLOC (n * sizeof(double))))
-       || (NULL == (berr = (double *) ISIS_MALLOC (n * sizeof(double)))))
-     goto error_return;
-
-   if (do_rebin)
-     {
-        if (-1 == apply_rebin (h->orig_bgd, h->orig_nbins, h->rebin, h->nbins, b))
-          goto error_return;
-     }
-   else
-     {
-        memcpy ((char *)b, (char *)h->orig_bgd, n * sizeof(double));
-     }
+   if (-1 == copy_input_background (h, do_rebin, &b, &n))
+     return -1;
 
    if (NULL == (scale = background_scale_factor (h, do_rebin)))
+     goto error_return;
+
+   if (NULL == (berr = (double *) ISIS_MALLOC (n * sizeof(double))))
      goto error_return;
 
    for (i = 0; i < n; i++)
@@ -3709,19 +3737,38 @@ int Hist_get_hist_rebin_info (Hist_t *h, int **rebin, int *orig_nbins) /*{{{*/
 
 /*}}}*/
 
+int Hist_copy_input_background (Hist_t *h, int do_rebin, double **bgd, int *nbins) /*{{{*/
+{
+   if (h == NULL)
+     return -1;
+   *bgd = NULL;
+   *nbins = 0;
+   if (h->orig_bgd == NULL)
+     return 0;
+   return copy_input_background (h, do_rebin, bgd, nbins);
+}
+
+/*}}}*/
+
+int Hist_background_scale_factor (Hist_t *h, int do_rebin, double **scale_factor, int *nbins) /*{{{*/
+{
+   if (h == NULL)
+     return -1;
+   *nbins = do_rebin ? h->nbins : h->orig_nbins;
+   *scale_factor = background_scale_factor (h, do_rebin);
+   return (scale_factor != NULL) ? 0 : -1;
+}
+
+/*}}}*/
+
 int Hist_copy_scaled_background (Hist_t *h, double **bgd) /*{{{*/
 {
    if ((h == NULL) || (bgd == NULL))
      return -1;
-
    *bgd = NULL;
-
-   if (h->orig_bgd)
-     {
-        return scale_background (h, 0, bgd, NULL);
-     }
-
-   return 0;
+   if (h->orig_bgd == NULL)
+     return 0;
+   return scale_background (h, 0, bgd, NULL);
 }
 
 /*}}}*/

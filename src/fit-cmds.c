@@ -2065,7 +2065,7 @@ static int pop_stored_background (SLang_Array_Type **sl_bgd, Hist_t *h) /*{{{*/
 
 /*}}}*/
 
-int pop_instrumental_background (SLang_Array_Type **bgd, Hist_t *h) /*{{{*/
+static int eval_instrumental_background_hook (SLang_Array_Type **bgd, Hist_t *h)
 {
    SLang_Name_Type *hook = Hist_get_instrumental_background_hook (h);
    Isis_Hist_t *g;
@@ -2073,12 +2073,8 @@ int pop_instrumental_background (SLang_Array_Type **bgd, Hist_t *h) /*{{{*/
 
    *bgd = NULL;
 
-   /* If available, use background data by default.
-    * Probably this isn't rigorously correct, but it
-    * its the way most people treat the background.
-    */
    if (hook == NULL)
-     return pop_stored_background (bgd, h);
+     return 0;
 
    /* g is a pointer to a global structure */
    if (NULL == (g = get_evaluation_grid ()))
@@ -2113,6 +2109,21 @@ int pop_instrumental_background (SLang_Array_Type **bgd, Hist_t *h) /*{{{*/
    free_notice_arrays (g);
 
    return ret;
+}
+
+int pop_instrumental_background (SLang_Array_Type **bgd, Hist_t *h) /*{{{*/
+{
+   SLang_Name_Type *hook = Hist_get_instrumental_background_hook (h);
+   *bgd = NULL;
+
+   /* If available, use background data by default.
+    * Probably this isn't rigorously correct, but it
+    * its the way most people treat the background.
+    */
+   if (hook == NULL)
+     return pop_stored_background (bgd, h);
+
+   return eval_instrumental_background_hook (bgd, h);
 }
 
 /*}}}*/
@@ -4365,6 +4376,92 @@ static void confidence_limits (int *idx, double *delta_chisqr, int *verbose, dou
 
 /* etc */
 
+static void get_stored_background_intrin (int *hist_index, int *do_rebin)
+{
+   SLang_Array_Type *sl_back = NULL;
+   Hist_t *h;
+
+   if (NULL != (h = find_hist (*hist_index)))
+     {
+        double *b = NULL;
+        int n;
+
+        if (-1 == Hist_copy_input_background (h, *do_rebin, &b, &n))
+          {
+             isis_vmesg (INTR, I_INFO, __FILE__, __LINE__,
+                         "no background for dataset %d", *hist_index);
+          }
+        else if ((b != NULL)
+                 && (NULL == (sl_back = SLang_create_array (SLANG_DOUBLE_TYPE, 0, b, &n, 1))))
+          {
+             ISIS_FREE(b);
+          }
+     }
+
+   SLang_push_array (sl_back, 1);
+}
+
+static void get_stored_background_scale_factor_intrin (int *hist_index, int *do_rebin)
+{
+   SLang_Array_Type *sl_scale = NULL;
+   Hist_t *h;
+
+   if (NULL != (h = find_hist (*hist_index)))
+     {
+        double *s = NULL;
+        int n;
+
+        if (-1 == Hist_background_scale_factor (h, *do_rebin, &s, &n))
+          {
+             isis_vmesg (INTR, I_INFO, __FILE__, __LINE__,
+                         "no background scale factor for dataset %d",
+                         *hist_index);
+          }
+        else if ((s != NULL)
+                 && (NULL == (sl_scale = SLang_create_array (SLANG_DOUBLE_TYPE, 0, s, &n, 1))))
+          {
+             ISIS_FREE(s);
+          }
+     }
+
+   SLang_push_array (sl_scale, 1);
+}
+
+static void get_background_model_intrin (int *hist_index, int *do_rebin)
+{
+   SLang_Array_Type *sl_back = NULL;
+   Hist_t *h;
+
+   if (NULL != (h = find_hist (*hist_index)))
+     {
+        if (-1 == eval_instrumental_background_hook (&sl_back, h))
+          {
+             isis_vmesg (INTR, I_INFO, __FILE__, __LINE__,
+                         "failed evaluating background model for dataset %d",
+                         *hist_index);
+          }
+     }
+
+   if ((sl_back != NULL) && do_rebin)
+     {
+        double *rebin_b;
+        int nrebin;
+
+        if (-1 == Hist_apply_rebin ((double *)sl_back->data, h, &rebin_b, &nrebin))
+          {
+             isis_vmesg (INTR, I_FAILED, __FILE__, __LINE__,
+                         "rebinning background for dataset %d", *hist_index);
+          }
+        else
+          {
+             SLang_free_array (sl_back);
+             sl_back = SLang_create_array (SLANG_DOUBLE_TYPE, 0, rebin_b, &nrebin, 1);
+          }
+     }
+
+   SLang_push_array (sl_back, 1);
+}
+
 static void get_instrumental_background (int *hist_index) /*{{{*/
 {
    SLang_Array_Type *bgd = NULL;
@@ -5030,6 +5127,9 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
    MAKE_INTRINSIC("_get_differential_model", get_differential_model, V, 0),
    MAKE_INTRINSIC("_get_model_on_user_grid", get_model_on_user_grid, V, 0),
    MAKE_INTRINSIC_I("_get_instrumental_background", get_instrumental_background, V),
+   MAKE_INTRINSIC_2("get_stored_background_intrin", get_stored_background_intrin, V, I,I),
+   MAKE_INTRINSIC_2("get_stored_background_scale_factor_intrin", get_stored_background_scale_factor_intrin, V, I,I),
+   MAKE_INTRINSIC_2("get_background_model_intrin", get_background_model_intrin, V, I,I),
    MAKE_INTRINSIC_2("_set_fit_type", set_fit_type, V, I, I),
    MAKE_INTRINSIC_2("_load_fit_method", load_fit_method, I, S, S),
    MAKE_INTRINSIC_2("_load_fit_statistic", load_fit_statistic, I, S, S),

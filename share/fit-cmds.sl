@@ -1423,6 +1423,62 @@ define get_back () %{{{
    return bgd;
 }
 
+define get_back_data ()
+{
+   variable msg =
+`back = get_back_data (hist_index)
+   Qualifiers:   rebin   if absent, full-resolution array is returned
+`;
+
+   if (_isis->chk_num_args (_NARGS, 1, msg))
+     return;
+
+   variable id = ();
+   return _isis->get_stored_background_intrin (id, qualifier_exists ("rebin"));
+}
+
+define get_back_data_scale_factor ()
+{
+   variable msg =
+`back = get_back_data_scale_factor (hist_index)
+   Qualifiers:   rebin   if absent, full-resolution array is returned
+`;
+
+   if (_isis->chk_num_args (_NARGS, 1, msg))
+     return;
+
+   variable id = ();
+   return _isis->get_stored_background_scale_factor_intrin (id, qualifier_exists ("rebin"));
+}
+
+define get_back_model () %{{{
+{
+   variable msg =
+`back = get_back_model (hist_index)
+   Qualifiers:   rebin   if absent, full-resolution array is returned
+`;
+
+   if (_isis->chk_num_args (_NARGS, 1, msg))
+     return;
+
+   variable id = ();
+
+   variable save_active_dataset = Isis_Active_Dataset;
+   variable back;
+
+   try
+     {
+        Isis_Active_Dataset = id;
+        back = _isis->get_background_model_intrin (id, qualifier_exists ("rebin"));
+     }
+   finally
+     {
+        Isis_Active_Dataset = save_active_dataset;
+     }
+
+   return back;
+}
+
 %}}}
 
 %{{{ function caching and cloning

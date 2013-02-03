@@ -158,7 +158,7 @@ extern int Hist_set_pre_combine_hook (Hist_t *h, SLang_Name_Type *hook);
 /* model evaluation grid */
 typedef struct
 {
-   int (*make_grid)(Hist_t *, void *);   
+   int (*make_grid)(Hist_t *, void *);
    int (*eval_model)(Hist_t *, Isis_Hist_t *);
    void *options;
    void (*destroy_options)(void *);
@@ -166,7 +166,7 @@ typedef struct
    int id;
    int cache_model_values;
    /* boolean:  non-zero means one grid shared between datasets
-    *           with the same type/id */   
+    *           with the same type/id */
 }
 Hist_Eval_Grid_Method_Type;
 
@@ -197,12 +197,14 @@ extern int Hist_plot (Hist_t *h, unsigned int version, Hist_Plot_Tune_Type *info
 /* background */
 extern int Hist_set_background_from_file (Hist_t *h, char *file);
 extern int Hist_set_background_name (Hist_t *h, char *name);
+extern int Hist_copy_input_background (Hist_t *h, int do_rebin, double **bgd, int *nbins);
+extern int Hist_background_scale_factor (Hist_t *h, int do_rebin, double **scale_factor, int *nbins);
 extern int Hist_copy_scaled_background (Hist_t *h, double **bgd);
 extern int Hist_set_instrumental_background_hook_name (Hist_t *h, char *hook_name);
 extern int Hist_set_instrumental_background_hook (Hist_t *h, SLang_Name_Type *hook);
 extern char *Hist_get_instrumental_background_hook_name (Hist_t *h);
 extern SLang_Name_Type *Hist_get_instrumental_background_hook(Hist_t *h);
-extern int Hist_define_background (Hist_t *h, double bgd_exposure, 
+extern int Hist_define_background (Hist_t *h, double bgd_exposure,
                                    double *bgd_area, int area_is_vector,
                                    double *bgd, unsigned int nbins);
 
