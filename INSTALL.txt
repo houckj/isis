@@ -107,6 +107,10 @@ while users of bash, ksh, etc.. should type something like
    export HEADAS
 .........................................................
 
+. Set any compiler environment variables 'CC', 'CFLAGS', 'FC',
+'FFLAGS', and 'LDFLAGS' necessary to properly define your
+build environment (*<<Xmac, Important Note for Mac Users>>*).
+
 . Run the installation script to install everything into
 directory 'DIR'
 +
