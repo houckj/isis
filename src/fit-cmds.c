@@ -4187,7 +4187,7 @@ typedef struct
 {
    double stat;
    SLang_Array_Type *covar;
-   unsigned int num_vary;
+   int num_vary;
    int num_bins;
 }
 Fit_Result_Type;
@@ -4196,7 +4196,7 @@ static SLang_CStruct_Field_Type Fit_Result_Type_Layout [] =
 {
    MAKE_CSTRUCT_FIELD (Fit_Result_Type, stat, "statistic", SLANG_DOUBLE_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Fit_Result_Type, covar, "covariance_matrix", SLANG_ARRAY_TYPE, 0),
-   MAKE_CSTRUCT_FIELD (Fit_Result_Type, num_vary, "num_variable_params", SLANG_UINT_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Fit_Result_Type, num_vary, "num_variable_params", SLANG_INT_TYPE, 0),
    MAKE_CSTRUCT_FIELD (Fit_Result_Type, num_bins, "num_bins", SLANG_INT_TYPE, 0),
    SLANG_END_CSTRUCT_TABLE
 };
@@ -4240,7 +4240,7 @@ static int iterate_fit_fun (int optimize, SLang_Ref_Type *ref) /*{{{*/
 {
    Fit_Result_Type fr;
    Fit_Object_Type *fo = NULL;
-   unsigned int num_pars = 0;
+   int num_pars = 0;
    int status = -1;
 
    memset ((char *)&fr, 0, sizeof(fr));

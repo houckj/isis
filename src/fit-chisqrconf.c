@@ -466,7 +466,7 @@ static Param_Info_t *get_valid_param_info (Param_t *pt, int idx) /*{{{*/
 static int init_conf_limit_search (Param_t *pt, int idx, /*{{{*/
                                    Param_Info_t **par_info, Fit_Param_t **pars)
 {
-   unsigned int num_all, num_vary;
+   int num_all, num_vary;
 
    if (NULL == (*par_info = get_valid_param_info (pt, idx)))
      return -1;

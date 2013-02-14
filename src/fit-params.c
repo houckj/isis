@@ -890,7 +890,7 @@ double *Fit_get_kernel_params (Param_t *pt, int id, Isis_Kernel_Def_t *def) /*{{
 
 typedef struct
 {
-   unsigned int all, vary;
+   int all, vary;
 }
 Count_Type;
 
@@ -910,7 +910,7 @@ static int count (Param_Info_t *p, void *cl) /*{{{*/
 
 /*}}}*/
 
-int Fit_count_params (Param_t *pt, unsigned int *num_all, unsigned int *num_vary) /*{{{*/
+int Fit_count_params (Param_t *pt, int *num_all, int *num_vary) /*{{{*/
 {
    Count_Type num;
 

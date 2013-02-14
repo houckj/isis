@@ -149,7 +149,7 @@ extern int Fit_pack_all_params (Param_t *pt, Fit_Param_t *p);
 extern int Fit_unpack_all_params (Param_t *pt, double *par);
 extern int Fit_sync_tied_params (Param_t *pt);
 extern int Fit_sync_derived_params (Param_t *pt);
-extern int Fit_count_params (Param_t *pt, unsigned int *num_all, unsigned int *num_vary);
+extern int Fit_count_params (Param_t *pt, int *num_all, int *num_vary);
 extern int Fit_pack_variable_params (Param_t *pt, Fit_Param_t *p);
 extern int Fit_unpack_variable_params (Param_t *pt, double * par);
 
@@ -229,8 +229,8 @@ typedef struct Fit_Info_Type Fit_Info_Type;
 struct Fit_Info_Type
 {
    Fit_Param_t *par;
-   unsigned int num_pars;
-   unsigned int num_vary;
+   int num_pars;
+   int num_vary;
    int verbose;
    void *cl_verbose;
 };
