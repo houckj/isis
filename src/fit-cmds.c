@@ -2342,7 +2342,7 @@ static int compute_model (double *model, double *par_list, int npars_vary) /*{{{
 
    Num_Statistic_Evaluations++;
    if (model == model_end)
-     return 0;
+     return (SLang_get_error() == 0) ? 0 : -1;
 
    severity = Looking_For_Confidence_Limits ? FAIL : INTR;
 
