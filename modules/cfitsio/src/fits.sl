@@ -1291,6 +1291,7 @@ private define add_keys_and_history_func (fp, keys, history)
 	  {
 	     variable keyword = ();
 	     val = get_struct_field (keys, keyword);
+	     if (keyword[0] == '_') keyword = keyword[[1:]];   %  HACK!!! FIXME
 	     fits_check_error (_fits_update_key (fp, keyword, val, NULL), keyword);
 	  }
      }

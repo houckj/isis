@@ -17,19 +17,19 @@
 %    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 % TODO:
-% 
+%
 %   * Add support for cross-references when dealing with vector columns.
-% 
+%
 %   * Add support for writing binary table WCS info
 %
 % Notes:
-% 
+%
 %   Some fits files do not use the WCSAXES keyword to specifiy the dimensionality
 %   of the WCS.  Instead a common practice is to add so-called degenerate axes
 %   where one increases the NAXIS keyword to the WCS dimensionality and adds
-%   keywords NAXISj=1 for the new dimensions.  To deal with this hack, the 
+%   keywords NAXISj=1 for the new dimensions.  To deal with this hack, the
 %   user will be required to reshape the image to its proper dimensionality.
-%   Then the projection routines defined here may be used on any subspace of 
+%   Then the projection routines defined here may be used on any subspace of
 %   the WCS by extracting that subspace via the fitswcs_slice routine.
 
 require ("fits");
@@ -52,33 +52,33 @@ private variable PV_INDX	= 7;
 private variable PS_INDX	= 8;
 % private variable CNAME_INDX	= 9;
 
-private variable Image_Formats = 
+private variable Image_Formats =
   ["CTYPE%d", "CUNIT%d", "CRVAL%d", "CDELT%d", "CRPIX%d",
    "PC%d_%d", "CD%d_%d", "PV%d_%d", "PS%d_%d"]; %, "CNAME%d"];
 private variable Image_Formats_Alt = Image_Formats + "%c";
 
 private variable Column_Formats =
-  ["TCTYP%d", "TCUNI%d", "TCRVL%d", "TCDLT%d", "TCRPX%d", 
+  ["TCTYP%d", "TCUNI%d", "TCRVL%d", "TCDLT%d", "TCRPX%d",
    "TP%d_%d", "TC%d_%d", "TV%d_%d", "TS%d_%d"]; %, ""];
 private variable Column_Formats_Alt =
-  ["TCTY%d%c", "TCUN%d%c", "TCRV%d%c", "TCDE%d%c", "TCRP%d%c", 
+  ["TCTY%d%c", "TCUN%d%c", "TCRV%d%c", "TCDE%d%c", "TCRP%d%c",
    "TP%d_%d%c", "TC%d_%d%c", "TV%d_%d%c", "TS%d_%d%c"]; %, "TCNA%d"];
 
-private variable Vector_Formats = 
-  ["%dCTYP%d", "%dCUNI%d", "%dCRVL%d", "%dCDLT%d", "%dCRPX%d", 
+private variable Vector_Formats =
+  ["%dCTYP%d", "%dCUNI%d", "%dCRVL%d", "%dCDLT%d", "%dCRPX%d",
    "%dP%d_%d", "%dC%d_%d", "%dV%d_%d", "%dS%d_%d"];%, "%dCNA%d"];
 private variable Vector_Formats_Alt =
-  ["%dCTY%d%c", "%dCUN%d%c", "%dCRV%d%c", "%dCDE%d%c", "%dCRP%d%c", 
+  ["%dCTY%d%c", "%dCUN%d%c", "%dCRV%d%c", "%dCDE%d%c", "%dCRP%d%c",
    "%dP%d_%d%c", "%dC%d_%d%c", "%dV%d_%d%c", "%dS%d_%d%c"];% "%dCNA%d%c"];
 
 % This structure defines a transformation of the following form:
-% 
+%
 %    B_i = CDELT_i PC_ij (A_j - CRPIX_j)        (no sum on i)
 %    {X} = PROJ_FUNC({CTYPE}, {PV}, {PS}, {B})
-% 
-% where {X} signifies the set of values.  Using this notation, the first 
+%
+% where {X} signifies the set of values.  Using this notation, the first
 % equation could have been written
-% 
+%
 %    {B}_i = {CDELT}_i {PC}_ij ({A}_j - {CRPIX}_j)  (no sum on i)
 %
 private variable WCS_Type = struct
@@ -90,7 +90,7 @@ private variable WCS_Type = struct
    crpix,			       %  Double_Type[naxis]
    cdelt,			       %  Double_Type[naxis]
    pc,				       %  Double_Type[naxis,naxis] or NULL
-   pv,				       %  array of parameters 
+   pv,				       %  array of parameters
    ps,				       %  array of string parms
    wcsname,			       %  String_Type
    radsys,
@@ -125,14 +125,13 @@ define fitswcs_new (naxis)
    return wcs;
 }
 
-
 %!%+
 %\function{fitswcs_slice}
 %\synopsis{Form a new wcs from one or more axes of another}
 %\usage{new_wcs = fitswcs_slice (wcs, dims)}
 %\description
-%  This function may be used to construct a new wcs from another by rearranging 
-%  its axes or by using a subset of them.  The \exmp{dims} argument specifies 
+%  This function may be used to construct a new wcs from another by rearranging
+%  its axes or by using a subset of them.  The \exmp{dims} argument specifies
 %  the dimensions to use.
 %\example
 %  Suppose that \exmp{wcs} represents a 4 dimensional WCS. Then
@@ -151,11 +150,11 @@ define fitswcs_slice ()
 {
    if (_NARGS < 2)
      usage ("wcs1 = %s(wcs, dims-array)", _function_name ());
-   
+
    variable wcs, dims;
    (wcs, dims) = ();
    variable new_wcs = @wcs;
-   
+
    new_wcs.naxis = length (dims);
    new_wcs.ctype = wcs.ctype[dims];
    new_wcs.cunit = wcs.cunit[dims];
@@ -166,7 +165,6 @@ define fitswcs_slice ()
      new_wcs.pc = wcs.pc[dims, dims];
    return new_wcs;
 }
-
 
 %---------------------------------------------------------------------------
 % Some simple utility functions
@@ -200,7 +198,7 @@ private define inverse_2x2 (a)
 private define dup_wcs (wcs)
 {
    wcs = @wcs;
-   
+
    foreach (get_struct_field_names (wcs))
      {
 	variable field = ();
@@ -222,10 +220,10 @@ private define read_simple_wcs_keywords ()
    variable indices = __pop_args (_NARGS-2);
    variable formats = ();
    variable fp = ();
-   
+
    variable ctype, cunit, crval, crpix, cdelt;
-   
-   (ctype, cunit, crval, crpix, cdelt) = 
+
+   (ctype, cunit, crval, crpix, cdelt) =
      fits_read_key (fp, sprintf (formats[CTYPE_INDX], __push_args(indices)),
 		    sprintf (formats[CUNIT_INDX], __push_args(indices)),
 		    sprintf (formats[CRVAL_INDX], __push_args(indices)),
@@ -248,14 +246,14 @@ private define read_matrix_wcs_keywords (fp, pc_fmt, is, js, a, diag)
 {
    variable pc = NULL;
    variable n = length (is);
-   foreach (is)
+   variable i1, j1;
+
+   _for i1 (0, n-1, 1)
      {
-	variable i = ();
-	variable i1 = i-1;
-	foreach (js)
+	variable i = is[i1];
+	_for j1 (0, n-1, 1)
 	  {
-	     variable j = ();
-	     variable j1 = j-1;
+	     variable j = js[j1];
 	     variable pc_ij = sprintf (pc_fmt, i, j, a);
 	     pc_ij = fits_read_key (fp, pc_ij);
 	     if ((pc_ij == NULL) and (pc == NULL))
@@ -285,7 +283,6 @@ private define open_interesting_hdu (file, type)
    return fp;
 }
 
-
 private define check_for_crota_hack (fp, wcs)
 {
    if (wcs.naxis < 2)
@@ -303,12 +300,12 @@ private define check_for_crota_hack (fp, wcs)
    % Apparantly, this angle gets applied AFTER cdelts applied.  Hence, we have
    %
    %     B_i = R(rot)_ij CDELT_j (A_j - CRPIX_j)     (no sum on i)
-   % 
-   % instead of 
+   %
+   % instead of
    %
    %    B_i = CDELT_i PC_ij (A_j - CRPIX_j)   (no sum on i)
    %
-   % Hence, 
+   % Hence,
    %
    %   PC_ij = R(rot)_ij CDELT_j/CDELT_i  (no sum)
    variable pc = make_diag_matrix (wcs.naxis);
@@ -348,10 +345,10 @@ define fitswcs_get_img_wcs ()
 
    if (typeof (fp) == String_Type)
      fp = open_interesting_hdu (fp, _FITS_IMAGE_HDU);
-   
+
    variable naxis = get_wcs_naxis (fp);
    variable wcs = fitswcs_new (naxis);
-   variable ctype = wcs.ctype, cunit = wcs.cunit, crval = wcs.crval, 
+   variable ctype = wcs.ctype, cunit = wcs.cunit, crval = wcs.crval,
      crpix = wcs.crpix, cdelt = wcs.cdelt;
 
    wcs.wcsname = fits_read_key (fp, sprintf ("WCSNAME%c", a));
@@ -362,7 +359,7 @@ define fitswcs_get_img_wcs ()
      {
 	variable i = ();
 
-	(ctype[i], cunit[i], crval[i], crpix[i], cdelt[i]) 
+	(ctype[i], cunit[i], crval[i], crpix[i], cdelt[i])
 	  = read_simple_wcs_keywords (fp, formats, i+1, a);
      }
 
@@ -375,10 +372,9 @@ define fitswcs_get_img_wcs ()
      pc = check_for_crota_hack (fp, wcs);
 
    wcs.pc = pc;
-   
+
    return reverse_wcs (wcs);
 }
-
 
 %!%+
 %\function{fitswcs_get_column_wcs}
@@ -386,7 +382,7 @@ define fitswcs_get_img_wcs ()
 %\usage{fitswcs_get_column_wcs (fp, columns-array [,alt]}
 %\description
 %  This function may be used to obtain the WCS associated with one or more
-%  columns of a binary table.  The file descriptor \exmp{fp} must specify 
+%  columns of a binary table.  The file descriptor \exmp{fp} must specify
 %  a binary table.  The \exmp{columns-array} parameter should be an array
 %  of columns names.  The third parameter is optional and is used to specify
 %  an alternate WCS.
@@ -410,24 +406,24 @@ define fitswcs_get_column_wcs ()
      (fp, column_names, a) = ();
    else if (_NARGS == 2)
      (fp, column_names) = ();
-   
+
    if ((column_names == NULL) or (typeof(a) == String_Type))
-     usage ("wcs = %s(file, array_of_column_names [,alt_axis_char]);\n%s", 
+     usage ("wcs = %s(file, array_of_column_names [,alt_axis_char]);\n%s",
 	    _function_name,
 	    sprintf ("Example: wcs = %s(\"evt1.fits\", [\"X\",\"Y\"],'A');\n",
 		     _function_name));
 
    if (typeof (fp) == String_Type)
      fp = open_interesting_hdu (fp, _FITS_BINARY_TBL);
-   
+
    variable naxis = length (column_names);
 
    variable wcs = fitswcs_new (naxis);
-   variable ctype = wcs.ctype, cunit = wcs.cunit, crval = wcs.crval, 
+   variable ctype = wcs.ctype, cunit = wcs.cunit, crval = wcs.crval,
      crpix = wcs.crpix, cdelt = wcs.cdelt;
 
    % The wcsname is not supported.  The specification of this is flawed for
-   % "pixel-lists".  A wcsname applies to the WCS as a whole-- not just a 
+   % "pixel-lists".  A wcsname applies to the WCS as a whole-- not just a
    % column.
    wcs.wcsname = NULL;
 
@@ -442,7 +438,7 @@ define fitswcs_get_column_wcs ()
 	variable col = fits_get_colnum (fp, column_names[i]);
 	column_nums[i] = col;
 
-	(ctype[i], cunit[i], crval[i], crpix[i], cdelt[i]) 
+	(ctype[i], cunit[i], crval[i], crpix[i], cdelt[i])
 	  = read_simple_wcs_keywords (fp, formats, col, a);
      }
 
@@ -461,7 +457,7 @@ private define read_key_or_col (fp, key, row)
    variable val = fits_read_key (fp, key);
    if (val != NULL)
      return val;
-   
+
    % Perhaps it is the name of a column.
    if (fits_binary_table_column_exists (fp, key))
      val = fits_read_cell (fp, key, row);
@@ -493,7 +489,6 @@ private define read_vector_matrix_wcs_keywords (fp, pc_fmt, is, js, col, row, a,
      }
    return pc;
 }
-
 
 %!%+
 %\function{fitswcs_get_vector_wcs}
@@ -532,7 +527,7 @@ define fitswcs_get_vector_wcs ()
      {
 	usage ("wcs = %s(file, column, row [,alt])", _function_name);
      }
-   
+
    if (typeof (fp) == String_Type)
      fp = open_interesting_hdu (fp, _FITS_BINARY_TBL);
 
@@ -550,7 +545,7 @@ define fitswcs_get_vector_wcs ()
 	naxis = length (dims);
      }
    variable wcs = fitswcs_new (naxis);
-   variable ctype = wcs.ctype, cunit = wcs.cunit, crval = wcs.crval, 
+   variable ctype = wcs.ctype, cunit = wcs.cunit, crval = wcs.crval,
      crpix = wcs.crpix, cdelt = wcs.cdelt;
 
    wcs.wcsname = read_key_or_col (fp, sprintf ("WCSN%d%c", col, a), row);
@@ -564,7 +559,7 @@ define fitswcs_get_vector_wcs ()
 	variable i = ();
 	variable i1 = i+1;
 	variable val;
-	
+
 	val = read_key_or_col (fp, sprintf (formats[CTYPE_INDX], i1, col, a), row);
 	if (val != NULL) ctype[i] = val;
 
@@ -590,7 +585,6 @@ define fitswcs_get_vector_wcs ()
    wcs.pc = pc;
    return reverse_wcs (wcs);
 }
-
 
 %!%+
 %\function{fitswcs_new_img_wcs}
@@ -642,14 +636,13 @@ private define write_wcs_keyword (fp, format, index, axis, a, value, i)
    fits_update_key (fp, key, value, "");
 }
 
-
 %!%+
 %\function{fitswcs_put_img_wcs}
 %\synopsis{Write a WCS out to an image header}
 %\usage{fitswcs_put_img_wcs (fp, wcs [,alt])}
 %\description
 %  The \sfun{fitswcs_put_img_wcs} may be used to write the specified wcs
-%  out to the image HDU specified by the \exmp{fp} parameter.  An optional 
+%  out to the image HDU specified by the \exmp{fp} parameter.  An optional
 %  third parameter may be used to specify an alternate WCS.
 %\example
 %#v+
@@ -680,7 +673,7 @@ define fitswcs_put_img_wcs ()
    % Write the wcs out in FORTRAN order
    wcs = reverse_wcs (wcs);
 
-   variable ctype = wcs.ctype, cunit = wcs.cunit, crval = wcs.crval, 
+   variable ctype = wcs.ctype, cunit = wcs.cunit, crval = wcs.crval,
      crpix = wcs.crpix, cdelt = wcs.cdelt, naxis = wcs.naxis;
 
    fits_update_key (fp, sprintf ("WCSAXES%c", a), naxis);
@@ -719,7 +712,6 @@ define fitswcs_put_img_wcs ()
    % FIXME: Write the rest of the wcs structure
 }
 
-
 %!%+
 %\function{fitswcs_put_column_wcs}
 %\synopsis{Write the WCS attached to one or more table columns}
@@ -753,15 +745,15 @@ define fitswcs_put_column_wcs ()
 	usage ("%s(fp, wcs-struct, columns-array [,alt])", _function_name());
      }
 
-   variable ctype = wcs.ctype, cunit = wcs.cunit, crval = wcs.crval, 
+   variable ctype = wcs.ctype, cunit = wcs.cunit, crval = wcs.crval,
      crpix = wcs.crpix, cdelt = wcs.cdelt, naxis = wcs.naxis;
 
    if (length (columns) != naxis)
      verror ("The dimensionality of the specified WCS does not match the number of columns");
-   
+
    if (typeof (fp) != Fits_File_Type)
      fp = fits_open_file (fp, "w");
-   
+
    variable i, cols = Int_Type[naxis];
    _for (0, naxis-1, 1)
      {
@@ -802,8 +794,6 @@ define fitswcs_put_column_wcs ()
    % FIXME: Write the rest of the wcs structure
 }
 
-
-
 % This function will be used later when applying the wcs
 private define simplify_wcs (wcs)
 {
@@ -821,7 +811,7 @@ private define simplify_wcs (wcs)
 	     wcs.cdelt *= pc[i];
 	     wcs.pc = NULL;
 	  }
-	else 
+	else
 	  {
 	     _for (0, n-1, 1)
 	       {
@@ -878,7 +868,7 @@ private define simplify_wcs (wcs)
 %       A: 2-d array (or 1-d array representing a diagonal matrix)
 %#v-
 %\description
-%  This function may be used to create a new WCS by applying a linear 
+%  This function may be used to create a new WCS by applying a linear
 %  transformation to an existing one.  This is useful when one
 %  has a WCS associated with physical coordinates \exmp{X}, and then
 %  applies the linear transformation
@@ -891,7 +881,7 @@ private define simplify_wcs (wcs)
 %     new_wcs = fitswcs_linear_transform_wcs (wcs, U0, A, X0);
 %#v-
 %\notes
-%  The dimensionality of the WCS is limited to 2 in the 
+%  The dimensionality of the WCS is limited to 2 in the
 %  current implementation.
 %\seealso{fitswcs_rebin_wcs, fitswcs_bin_wcs}
 %!%-
@@ -923,7 +913,7 @@ define fitswcs_linear_transform_wcs ()
 	    _function_name,
 	    "where U = U0 + A#(X-X0) is the relationship between the new coordinates U",
 	    "and the old coordintes X");
-   
+
    variable wcs, u0, a, x0;
    (wcs, u0, a, x0) = ();
 
@@ -934,7 +924,7 @@ define fitswcs_linear_transform_wcs ()
    variable dims, num_dims;
    (dims, num_dims, ) = array_info (a);
    variable naxis;
-   
+
    if (num_dims == 1)
      {
 	naxis = dims[0];
@@ -954,7 +944,7 @@ define fitswcs_linear_transform_wcs ()
      verror ("%s: The wcs requires A to be [%d,%d]", _function_name, wcs_naxis, wcs_naxis);
 
    wcs = dup_wcs (wcs);
-   
+
    % Compute this: CRPIX' = U0 + A#(CRPIX-X0)
    wcs.crpix = u0 + a#(wcs.crpix-x0);
    variable inv_a = inverse_2x2(a);
@@ -965,11 +955,10 @@ define fitswcs_linear_transform_wcs ()
      }
    else
      pc = inv_a;
-   
+
    wcs.pc = pc;
    return simplify_wcs (wcs);
 }
-
 
 %!%+
 %\function{fitswcs_rebin_wcs}
@@ -980,9 +969,9 @@ define fitswcs_linear_transform_wcs ()
 %  the WCS of of the unbinned image.  The grid parameters specify the linear
 %  grids the new image.
 %\example
-%  new_img = hist2d_rebin (new_yrid, new_xgrid, 
+%  new_img = hist2d_rebin (new_yrid, new_xgrid,
 %                          old_ygrid, old_xgrid, old_img);
-%  new_wcs = fitswcs_rebin_wcs (old_wcs, 
+%  new_wcs = fitswcs_rebin_wcs (old_wcs,
 %                               array_shape(old_img),
 %                               array_shape(new_img));
 %\seealso{fitswcs_bin_wcs, fitswcs_linear_transform_wcs, fitswcs_slice}
@@ -1025,7 +1014,7 @@ define fitswcs_rebin_wcs ()
 %
 % Denote the grid used for binning by
 %   X = [X0,X0+dX,...,X0+(N)dX] = X0+[0,1,..,N]*dX
-% The associated image system will be 
+% The associated image system will be
 %   I = [0.5,1.5,,...0.5+(N)] = 0.5+[0,1,..N]
 % This defines a linear transformation from X to I:
 %
@@ -1066,7 +1055,7 @@ define fitswcs_rebin_wcs ()
 
    variable wcs, old_dims, new_dims;
    (wcs, old_dims, new_dims) = ();
-   
+
    variable n = length (old_dims);
    if (n != length(new_dims))
      verror ("The old_dims and new_dims must have an equal number of dimensions");
