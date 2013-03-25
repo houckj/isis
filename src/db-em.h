@@ -106,7 +106,7 @@ extern int EM_get_abundance_table_index_by_name (EM_t *em, char *name);
 extern int EM_get_abundance_table (EM_t *em, int k, char **name, float **a, int **z, int *n);
 extern int EM_add_abundance_table (EM_t *em, char *name, float *abun, int *Z, int num_abun);
 
-extern int EM_get_ion_fraction (float * frac, float * par_val,
+extern int EM_get_ion_fraction (float * frac, float temp, float dens,
                                 int proton_number, int charge, int table_id,
                                 EM_t *em);
 extern int EM_load_alt_ionization_table (char *file, EM_t *em);
@@ -114,13 +114,13 @@ extern void EM_free_alt_ionization_table (EM_t *em);
 
 extern int EM_get_nlines (EM_line_emis_t *t);
 extern void EM_free_line_emis_list (EM_line_emis_t *p);
-extern EM_line_emis_t *EM_get_line_spectrum (char *flag, float *par, float *ionpop_new, EM_t *em);
+extern EM_line_emis_t *EM_get_line_spectrum (char *flag, float temp, float dens, float *ionpop_new, EM_t *em);
 
 extern EM_cont_type_t *EM_new_continuum (int nbins);
 extern void EM_free_continuum (EM_cont_type_t *t);
-extern int EM_get_continuum (EM_cont_type_t *cont, float *par, float *ionpop_new, EM_cont_select_t *s, EM_t *em);
+extern int EM_get_continuum (EM_cont_type_t *cont, float temp, float dens, float *ionpop_new, EM_cont_select_t *s, EM_t *em);
 
-extern int EM_sum_line_emissivity (float *emis, float *par,
+extern int EM_sum_line_emissivity (float *emis, float temp, float dens,
                                    int *list, int nlines, EM_t *em);
 
 extern int _EM_get_line_emis_wl (DB_line_t **line, float *emis, float *wl, int k,

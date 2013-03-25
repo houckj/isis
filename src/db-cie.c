@@ -72,12 +72,6 @@
 #define DENSITY_TOL   1.e-4
 #define TEMP_TOL      1.e-4
 
-enum
-{
-   EM_TEMP = 0,               /* temperature */
-   EM_DENS = 1                /* density */
-};
-
 unsigned int EM_Use_Memory = EM_USE_MEMORY_DEFAULT;
 /* EM_Use_Memory is a bitmap.  See set_memory_usage_level() for details */
 
@@ -136,7 +130,8 @@ struct _EM_line_emis_t
    DB_line_t **line;          /* vector of ptrs to atomic data for each line */
    float *emissivity;         /* vector of line emissivities */
    int *lookup;
-   float par[2];              /* e.g (T, density) values for these emissivities */
+   float temperature;
+   float density;
    int nlines;
 };
 /* contains all the line emissivities for e.g. a given (T, density) pair */
@@ -164,7 +159,8 @@ struct _EM_cont_emis_t        /* mirrors structure of FITS file extension */
 struct _EM_ionfrac_t
 {
    float *fraction;    /* packed vector of ionization fractions */
-   float par[2];       /* e.g (T, density) values for this ioniz. structure */
+   float temperature;
+   float density;
 };
 
 struct _EM_ioniz_table_t
@@ -875,8 +871,8 @@ static EM_ioniz_table_t *load_ionization_table (char * filename) /*{{{*/
 
         p = t->ionfrac[i];
 
-        if (-1 == cfits_read_float_col(&p->par[EM_TEMP], 1, start_row, "Temperature", fp)
-            || -1 == cfits_read_float_col(&p->par[EM_DENS], 1, start_row, "Density", fp)
+        if (-1 == cfits_read_float_col(&p->temperature, 1, start_row, "Temperature", fp)
+            || -1 == cfits_read_float_col(&p->density, 1, start_row, "Density", fp)
             || -1 == cfits_read_float_col(p->fraction, num_ions, start_row, "X_IONPOP", fp))
           {
              isis_vmesg (FAIL, I_READ_COL_FAILED, __FILE__, __LINE__, "%s", filename);
@@ -902,11 +898,9 @@ static EM_ioniz_table_t *load_ionization_table (char * filename) /*{{{*/
 }
 /*}}}*/
 
-static int get_ion_fraction (float *frac, float *par, int Z, int q, EM_ioniz_table_t *t) /*{{{*/
+static int get_ion_fraction (float *frac, float temp, float dens, int Z, int q, EM_ioniz_table_t *t) /*{{{*/
 {
-   float etemp, edens;
-   int i, n;
-   int off;
+   int i, n, off;
 
    if (NULL == t)
      {
@@ -929,9 +923,8 @@ static int get_ion_fraction (float *frac, float *par, int Z, int q, EM_ioniz_tab
 
    off = t->offset[ Z ] + q;
 
-   etemp = par[ EM_TEMP ];
-   edens = par[ EM_DENS ];          /* FIXME: ignoring density dependence of ionization */
-   (void) edens;
+   /* FIXME: ignoring density dependence of ionization */
+   (void) dens;
 
    n = t->num_td_pairs;
 
@@ -939,14 +932,14 @@ static int get_ion_fraction (float *frac, float *par, int Z, int q, EM_ioniz_tab
      {
         EM_ionfrac_t *p  = t->ionfrac[i  ];
         EM_ionfrac_t *pn = t->ionfrac[i+1];
-        float t1 = p->par[ EM_TEMP ];
-        float t2 = pn->par[ EM_TEMP ];
+        float t1 = p->temperature;
+        float t2 = pn->temperature;
         float x, f1, f2;
 
-        if (etemp < t1 || t2 <= etemp)
+        if (temp < t1 || t2 <= temp)
           continue;
 
-        x = (etemp - t1) / (t2 - t1);
+        x = (temp - t1) / (t2 - t1);
 
         f1 = p->fraction[ off ];
         f2 = pn->fraction[ off ];
@@ -958,14 +951,14 @@ static int get_ion_fraction (float *frac, float *par, int Z, int q, EM_ioniz_tab
    *frac = 0.0;
    isis_vmesg (FAIL, I_RANGE_ERROR, __FILE__, __LINE__,
                "%11.4e K out of range [%11.4e, %11.4e]",
-               etemp,
-               t->ionfrac[0  ]->par[ EM_TEMP ],
-               t->ionfrac[n-1]->par[ EM_TEMP ]);
+               temp,
+               t->ionfrac[0  ]->temperature,
+               t->ionfrac[n-1]->temperature);
    return -1;
 }
 /*}}}*/
 
-int EM_get_ion_fraction (float *frac, float *par, int Z, int q, int k, EM_t *em) /*{{{*/
+int EM_get_ion_fraction (float *frac, float temp, float dens, int Z, int q, int k, EM_t *em) /*{{{*/
 {
    if (k != 0 && k != 1)
      {
@@ -973,7 +966,7 @@ int EM_get_ion_fraction (float *frac, float *par, int Z, int q, int k, EM_t *em)
         return -1;
      }
 
-   return get_ion_fraction (frac, par, Z, q, em->ioniz_table[k]);
+   return get_ion_fraction (frac, temp, dens, Z, q, em->ioniz_table[k]);
 }
 
 /*}}}*/
@@ -991,7 +984,8 @@ static int use_alt_ioniz (EM_t *em) /*{{{*/
 /*}}}*/
 
 static int get_ioniz_factor (float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PROTON_NUMBER+1], /*{{{*/
-                             float *par, EM_ioniz_table_t *t_new, EM_ioniz_table_t *t_old,
+                             float temp, float dens,
+                             EM_ioniz_table_t *t_new, EM_ioniz_table_t *t_old,
                              float *ionpop_new)
 {
    int dim = ISIS_MAX_PROTON_NUMBER+1;
@@ -1000,7 +994,6 @@ static int get_ioniz_factor (float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PR
    int num_failures[ISIS_MAX_PROTON_NUMBER+1];
 
    if ((NULL == t_old)
-       || (par == NULL)
        || (NULL == t_new && ionpop_new == NULL))
      return -1;
 
@@ -1022,12 +1015,12 @@ static int get_ioniz_factor (float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PR
                {
                   float f_old, f_new, ff;
 
-                  if (get_ion_fraction (&f_old, par, Z, q, t_old) != 0)
+                  if (get_ion_fraction (&f_old, temp, dens, Z, q, t_old) != 0)
                     f_old = 1.0;
 
                   if (t_new != NULL)
                     {
-                       if (get_ion_fraction (&f_new, par, Z, q, t_new) != 0)
+                       if (get_ion_fraction (&f_new, temp, dens, Z, q, t_new) != 0)
                          f_new = 1.0;
                     }
                   else f_new = ionpop_new[Z*dim + q];
@@ -1055,7 +1048,7 @@ static int get_ioniz_factor (float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PR
      {
         isis_vmesg (WARN, I_WARNING, __FILE__, __LINE__,
                     "Ion fraction rescaling problem: at T=%g K, n=%g cm^-3, %d ion fractions could not be rescaled because the `old' ion fraction is zero.",
-                    par[0], par[1], num_rescale_failures);
+                    temp, dens, num_rescale_failures);
         if (Isis_Verbose >= WARN)
           {
              fprintf (stderr, "Num failures: ");
@@ -1078,14 +1071,14 @@ static int get_ioniz_factor (float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PR
 
 /*}}}*/
 
-static int scale_line_ionization (EM_line_emis_t *t, float *par, float *ionpop_new, EM_t *em) /*{{{*/
+static int scale_line_ionization (EM_line_emis_t *t, float temp, float dens, float *ionpop_new, EM_t *em) /*{{{*/
 {
    EM_ioniz_table_t *t_old;
    EM_ioniz_table_t *t_new;
    float f_ioniz[ISIS_MAX_PROTON_NUMBER+1][ISIS_MAX_PROTON_NUMBER+1];
    int k;
 
-   if (NULL == em || NULL == t || par == NULL
+   if (NULL == em || NULL == t
        || em->ioniz_table == NULL)
      return -1;
 
@@ -1096,7 +1089,7 @@ static int scale_line_ionization (EM_line_emis_t *t, float *par, float *ionpop_n
        || ((NULL == t_new) && (ionpop_new == NULL)))
      return 0;
 
-   if (-1 == get_ioniz_factor (f_ioniz, par, t_new, t_old, ionpop_new))
+   if (-1 == get_ioniz_factor (f_ioniz, temp, dens, t_new, t_old, ionpop_new))
      return -1;
 
    for (k = 0; k < t->nlines; k++)
@@ -1636,7 +1629,7 @@ static EM_line_emis_t *new_line_emis_list (int nlines) /*{{{*/
         return NULL;
      }
 
-   emis->par[0] = emis->par[1] = 0.0;
+   emis->temperature = emis->density = 0.0;
    emis->nlines = nlines;
    emis->lookup = NULL;
 
@@ -1773,8 +1766,8 @@ static int do_load_linefile_hdu (void **vp, int nread, int start_row, /*{{{*/
    DB_line_t **line = p->line;
    int i;
 
-   p->par[EM_TEMP] = x->temperature;
-   p->par[EM_DENS] = x->density;
+   p->temperature = x->temperature;
+   p->density = x->density;
 
    for (i=0; i < nread; i++)
      {
@@ -2620,11 +2613,8 @@ static int bilinear_interp (float c[/*4*/], int ip[/*4*/], /*{{{*/
 /*}}}*/
 
 static int interp_coeffs (float *coef, int *idx, int *npoints, /*{{{*/
-                          float *par, EM_filemap_t *map)
+                          float temp, float dens, EM_filemap_t *map)
 {
-   float temp = par [EM_TEMP];
-   float density = par [EM_DENS];
-
    if (map->num_densities == 1)
      {
         *npoints = 2;
@@ -2633,12 +2623,12 @@ static int interp_coeffs (float *coef, int *idx, int *npoints, /*{{{*/
    else if (map->num_temps == 1)
      {
         *npoints = 2;
-        return linear_interp (coef, idx, density, map->densities, map->num_densities);
+        return linear_interp (coef, idx, dens, map->densities, map->num_densities);
      }
    else
      {
         *npoints = 4;
-        return bilinear_interp (coef, idx, temp, density,
+        return bilinear_interp (coef, idx, temp, dens,
                                 map->temps, map->densities, map->num_hdus);
      }
 }
@@ -2831,7 +2821,7 @@ static EM_line_emis_t *interpolate_line_emis (char *flag, EM_line_emis_t **table
 }
 /*}}}*/
 
-EM_line_emis_t *EM_get_line_spectrum (char *flag, float *par, float *ionpop_new, EM_t *em) /*{{{*/
+EM_line_emis_t *EM_get_line_spectrum (char *flag, float temp, float dens, float *ionpop_new, EM_t *em) /*{{{*/
 {
    EM_line_data_t *ld;
    EM_line_emis_t *line = NULL;
@@ -2844,7 +2834,7 @@ EM_line_emis_t *EM_get_line_spectrum (char *flag, float *par, float *ionpop_new,
 
    ld  = em->line_data;
 
-   if (-1 == interp_coeffs (coef, idx, &npoints, par, ld->map))
+   if (-1 == interp_coeffs (coef, idx, &npoints, temp, dens, ld->map))
      return NULL;
 
    if (-1 == get_line_interp_points (em, npoints, idx, tbl))
@@ -2855,11 +2845,11 @@ EM_line_emis_t *EM_get_line_spectrum (char *flag, float *par, float *ionpop_new,
      goto close_and_return;
 
    if (-1 == scale_line_abundance (line, em)
-       || -1 == scale_line_ionization (line, par, ionpop_new, em))
+       || -1 == scale_line_ionization (line, temp, dens, ionpop_new, em))
      goto close_and_return;
 
-   line->par[EM_TEMP] = par[EM_TEMP];
-   line->par[EM_DENS] = par[EM_DENS];
+   line->temperature = temp;
+   line->density = dens;
 
    close_and_return:
 
@@ -2907,7 +2897,7 @@ int _EM_get_line_emis_wl (DB_line_t **line, float *emis, float *wl, int k, /*{{{
 
 /*}}}*/
 
-int EM_sum_line_emissivity (float * emis, float *par, /*{{{*/
+int EM_sum_line_emissivity (float * emis, float temp, float dens, /*{{{*/
                             int *list, int nlines, EM_t *em)
 {
    EM_line_emis_t *t = NULL;
@@ -2919,7 +2909,7 @@ int EM_sum_line_emissivity (float * emis, float *par, /*{{{*/
 
    /* also applies abundance and ion-fraction factors */
 
-   if (NULL == (t = EM_get_line_spectrum (NULL, par, NULL /* FIXME - ionpop_new? */, em)))
+   if (NULL == (t = EM_get_line_spectrum (NULL, temp, dens, NULL /* FIXME - ionpop_new? */, em)))
      return -1;
 
    max_index = DB_get_nlines (em->db);
@@ -3029,8 +3019,8 @@ int EM_get_line_emissivity_function (float **emis, float **temps, float **densit
                }
           }
 
-        (*temps)[i] = p->par[EM_TEMP];
-        (*densities)[i] = p->par[EM_DENS];
+        (*temps)[i] = p->temperature;
+        (*densities)[i] = p->density;
         (*emis)[i] = (found < 0) ? 0.0 : p->emissivity[found];
      }
 
@@ -3221,7 +3211,7 @@ static int add_cont_contrib (EM_cont_type_t *r, EM_cont_emis_t *t, float weight)
 
 static int interpolate_cont_emis (EM_t *em, EM_cont_select_t *s,  /*{{{*/
                                   EM_cont_emis_t **table,
-                                  float *coef, int n, float *par,
+                                  float *coef, int n, float temp, float dens,
                                   float *ionpop_new, EM_cont_type_t *r)
 {
    EM_cont_emis_t *t;
@@ -3275,7 +3265,7 @@ static int interpolate_cont_emis (EM_t *em, EM_cont_select_t *s,  /*{{{*/
         EM_ioniz_table_t *t_old = em->ioniz_table[0];
         EM_ioniz_table_t *t_new = em->ioniz_table[1];
 
-        if (-1 == get_ioniz_factor (f_ioniz, par, t_new, t_old, ionpop_new))
+        if (-1 == get_ioniz_factor (f_ioniz, temp, dens, t_new, t_old, ionpop_new))
           return -1;
      }
    else
@@ -3343,7 +3333,7 @@ static int interpolate_cont_emis (EM_t *em, EM_cont_select_t *s,  /*{{{*/
 
    isis_vmesg (FAIL, I_NOT_FOUND, __FILE__, __LINE__,
                "Z=%d q=%d continuum for T=%g K, n=%g cm^-3",
-               s->Z, s->q, par[EM_TEMP], par[EM_DENS]);
+               s->Z, s->q, temp, dens);
 
    return -1;
 }
@@ -3414,7 +3404,7 @@ static int get_cont_interp_points (EM_t *em, EM_cont_select_t *s, /*{{{*/
 
 /*}}}*/
 
-int EM_get_continuum (EM_cont_type_t *cont, float *par, float *ionpop_new, EM_cont_select_t *s, EM_t *em) /*{{{*/
+int EM_get_continuum (EM_cont_type_t *cont, float temp, float dens, float *ionpop_new, EM_cont_select_t *s, EM_t *em) /*{{{*/
 {
    EM_cont_data_t *cd;
    EM_cont_emis_t *tbl[4] = {NULL, NULL, NULL, NULL};
@@ -3450,13 +3440,13 @@ int EM_get_continuum (EM_cont_type_t *cont, float *par, float *ionpop_new, EM_co
    if (s->Z <= 0) s->Z = 0;
    if (s->q < 0) s->q = -1;
 
-   if (-1 == interp_coeffs (coef, idx, &npoints, par, cd->map))
+   if (-1 == interp_coeffs (coef, idx, &npoints, temp, dens, cd->map))
      return -1;
 
    if (-1 == get_cont_interp_points (em, s, npoints, idx, tbl))
      goto finish;
 
-   if (-1 == interpolate_cont_emis (em, s, tbl, coef, npoints, par, ionpop_new, cont))
+   if (-1 == interpolate_cont_emis (em, s, tbl, coef, npoints, temp, dens, ionpop_new, cont))
      goto finish;
 
    ret = 0;
@@ -3599,20 +3589,6 @@ void EM_end (EM_t *em) /*{{{*/
    free_cont_data (em->cont_data);
    ISIS_FREE (em);
 }
-/*}}}*/
-
-int EM_get_index_for_temperature (void)   /* prototype in db-cie.h */ /*{{{*/
-{
-   return EM_TEMP;
-}
-
-/*}}}*/
-
-int EM_get_index_for_density (void)   /* prototype in db-cie.h */ /*{{{*/
-{
-   return EM_DENS;
-}
-
 /*}}}*/
 
 /*}}}*/

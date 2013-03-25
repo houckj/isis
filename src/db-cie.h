@@ -33,9 +33,6 @@ extern "C" {
 }
 #endif
 
-extern int EM_get_index_for_temperature (void);
-extern int EM_get_index_for_density (void);
-
 /* this is here instead of in db-em.h because I used temp/density explicitly */
 extern int EM_get_line_emissivity_function (float **emis, float **temps, float **densities,
                                             int *num_points, int line_index, EM_t *em);

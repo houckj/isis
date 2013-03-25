@@ -248,22 +248,15 @@ static int get_ioniz_balance (float * charge, float * frac, /*{{{*/
                               int ion_table_id)
 {
    EM_t *em = ptr_to_emissivity_db ();
-   float par_val[2];
-   int q, t_indx, d_indx;
+   int q;
 
    if (NULL == em)
      return -1;
 
-   t_indx = EM_get_index_for_temperature();
-   d_indx = EM_get_index_for_density();
-
-   par_val[ t_indx ] = etemp;
-   par_val[ d_indx ] = edens;
-
    for (q=0; q <= Z; q++)
      {
         charge[q] = (float) q;
-        if (-1 == EM_get_ion_fraction (&frac[q], par_val, Z, q, ion_table_id, em))
+        if (-1 == EM_get_ion_fraction (&frac[q], etemp, edens, Z, q, ion_table_id, em))
           return -1;
      }
 
@@ -301,25 +294,19 @@ static void retrieve_ionization_bal (int *Z, float *temp, /*{{{*/
 
 /* get ionization fraction vs. T  */
 
-static int get_ioniz_vs_temp (float * frac, float * temp, int ntemp, /*{{{*/
+static int get_ioniz_vs_temp (float *frac, float *temp, int ntemp, /*{{{*/
                              int Z, int charge, int ion_table_id)
 {
    EM_t *em = ptr_to_emissivity_db ();
-   float par_val[2];
-   int i, t_indx, d_indx;
+   int i;
 
    if (NULL == em)
      return -1;
 
-   t_indx = EM_get_index_for_temperature();
-   d_indx = EM_get_index_for_density();
-
-   par_val[ d_indx ] = -1.0;    /* FIXME:  density not used */
-
    for (i=0; i < ntemp; i++)
      {
-        par_val[t_indx] = temp[i];
-        if (-1 == EM_get_ion_fraction (&frac[i], par_val, Z, charge, ion_table_id, em))
+        /* FIXME:  density not used */
+        if (-1 == EM_get_ion_fraction (&frac[i], temp[i], -1.0, Z, charge, ion_table_id, em))
           return -1;
      }
 
@@ -367,10 +354,7 @@ static int get_emissivity_fcn (float **emis, int *nemis, /*{{{*/
 {
    DB_t *db = ptr_to_atomic_db ();
    EM_t *em = ptr_to_emissivity_db ();
-   float par[2];
    int t, d;
-   int t_indx = EM_get_index_for_temperature();
-   int d_indx = EM_get_index_for_density();
 
    if (em == NULL || db == NULL)
      return -1;
@@ -384,13 +368,11 @@ static int get_emissivity_fcn (float **emis, int *nemis, /*{{{*/
 
    for (d=0; d < ndens; d++)
      {
-        par[ d_indx ] = dens[d];
         for (t=0; t < ntemp; t++)
           {
              float emis_sum;
-             par[ t_indx ] = temp[t];
 
-             if (-1 == EM_sum_line_emissivity (&emis_sum, par,
+             if (-1 == EM_sum_line_emissivity (&emis_sum, temp[t], dens[d],
                                                line_index, nlines, em))
                return -1;
 
@@ -509,10 +491,7 @@ static void _get_continuum (void) /*{{{*/
    SLang_Array_Type *sl_lo, *sl_hi, *sl_true, *sl_pseudo;
    float rel_abun[ISIS_MAX_PROTON_NUMBER+1];
    float temp, dens;
-   float par[2];
    int nbins, q, Z, size;
-   int id_temp = EM_get_index_for_temperature ();
-   int id_dens = EM_get_index_for_density ();
 
    if (NULL == em)
      return;
@@ -532,9 +511,6 @@ static void _get_continuum (void) /*{{{*/
        || sl_lo == NULL)
      goto finish;
 
-   par[id_temp] = temp;
-   par[id_dens] = dens;
-
    if (sl_hi->num_elements != sl_lo->num_elements)
      {
         isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__, "inconsistent array sizes");
@@ -553,7 +529,7 @@ static void _get_continuum (void) /*{{{*/
    s.Z = Z;
    s.q = q;
    s.rel_abun = rel_abun;
-   if (-1 == EM_get_continuum (p, par, NULL /* FIXME - ionpop_new? */, &s, em))
+   if (-1 == EM_get_continuum (p, temp, dens, NULL /* FIXME - ionpop_new? */, &s, em))
      {
         isis_vmesg (FAIL, I_FAILED, __FILE__, __LINE__, "retrieving continuum data");
         goto finish;

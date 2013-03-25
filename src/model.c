@@ -935,9 +935,6 @@ int Model_spectrum (Model_t *h, Model_Info_Type *info, /*{{{*/
      {
         EM_line_emis_t *emis_list = NULL;
         double *val_ptr;
-        float par[2];
-        par[0] = m->temperature;
-        par[1] = m->density;
 
         if (isis_user_break())
           {
@@ -973,7 +970,7 @@ int Model_spectrum (Model_t *h, Model_Info_Type *info, /*{{{*/
 
         if (include_lines)
           {
-             emis_list = EM_get_line_spectrum (flag, par, ionpop_new, info->em);
+             emis_list = EM_get_line_spectrum (flag, m->temperature, m->density, ionpop_new, info->em);
              if (NULL == emis_list)
                goto finish;
 
@@ -992,7 +989,7 @@ int Model_spectrum (Model_t *h, Model_Info_Type *info, /*{{{*/
              double *c_val, *p_val;
 
              s.Z = 0; s.q = -1;  s.rel_abun = m->rel_abund;
-             if (-1 == EM_get_continuum (cont, par, ionpop_new, &s, info->em))
+             if (-1 == EM_get_continuum (cont, m->temperature, m->density, ionpop_new, &s, info->em))
                goto finish;
 
              m_norm = m->norm;
