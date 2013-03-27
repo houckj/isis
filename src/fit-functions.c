@@ -1454,6 +1454,13 @@ int Fit_add_kernel_function (Isis_Kernel_Def_t *def) /*{{{*/
    char fun[256];
    int fun_type;
 
+   if (strlen (def->kernel_name) >= MAX_NAME_SIZE)
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                    "*** kernel name too long: %s\n", def->kernel_name);
+        return -1;
+     }
+
    sprintf (fun, "define %s_fit(l,h,p){return 1.0;}", def->kernel_name);
    if (-1 == SLang_load_string (fun))
      return -1;

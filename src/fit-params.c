@@ -259,6 +259,25 @@ Param_Info_t *Fit_param_info2 (Param_t *pt, unsigned int fun_type, unsigned int 
 
 /*}}}*/
 
+static int param_name_too_long (char *name)
+{
+   char *fname_end, *pname_start;
+
+   if (NULL == (fname_end = strpbrk (name, "(<")))
+     return 0;
+
+   if (fname_end - name - 1 >= MAX_NAME_SIZE)
+     return 1;
+
+   if (NULL == (pname_start = strpbrk (fname_end, ".")))
+     return 0;
+
+   if (strlen (pname_start + 1) >= MAX_NAME_SIZE)
+     return 1;
+
+   return 0;
+}
+
 Param_Info_t *Fit_find_param_info_by_full_name (Param_t *pt, char *name) /*{{{*/
 {
    Fit_Fun_t *ff;
@@ -267,6 +286,14 @@ Param_Info_t *Fit_find_param_info_by_full_name (Param_t *pt, char *name) /*{{{*/
 
    if (name == NULL)
      return NULL;
+
+   if (param_name_too_long (name))
+     {
+        isis_vmesg (FAIL, I_ERROR, __FILE__, __LINE__,
+                    "parameter name exceeds %d characters:\n%s\n",
+                    MAX_NAME_SIZE-1, name);
+        return NULL;
+     }
 
    n = sscanf (name, "%[^(<]%*1[(<]%d%*1[)>].%s", fun_name, &fun_id, par_name);
    if (n != 3)

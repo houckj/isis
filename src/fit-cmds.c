@@ -901,6 +901,31 @@ int Fit_copy_fun_params (char *fun_name, unsigned int fun_id, double **par, unsi
 
 /*}}}*/
 
+#define ALPHACHARS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+static int line_param_name_too_long (char *line)
+{
+   char *fname_start, *fname_end, *pname_start, *pname_end;
+
+   if (NULL == (fname_start = strpbrk (line, ALPHACHARS)))
+     return 0;
+   if (NULL == (fname_end = strpbrk (fname_start, "(<")))
+     return 0;
+
+   if (fname_end - fname_start - 1 >= MAX_NAME_SIZE)
+     return 1;
+
+   if (NULL == (pname_start = strpbrk (fname_end, ALPHACHARS)))
+     return 0;
+   if (NULL == (pname_end = strpbrk (pname_start, " \t")))
+     return 0;
+
+   if (pname_end - pname_start - 1 >= MAX_NAME_SIZE)
+     return 1;
+
+   return 0;
+}
+
 static int parse_param_info (char *line, int line_num, char *fname, unsigned int *idx) /*{{{*/
 {
    Param_Info_t *p;
@@ -908,6 +933,14 @@ static int parse_param_info (char *line, int line_num, char *fname, unsigned int
    double p_value, p_min, p_max;
    int n, fun_type, fun_id, fun_par, p_tie, p_freeze;
    char fun_name[MAX_NAME_SIZE], par_name[MAX_NAME_SIZE];
+
+   if (line_param_name_too_long (line))
+     {
+        isis_vmesg (FAIL, I_READ_FAILED, __FILE__, __LINE__,
+                    "parameter name exceeds %d characters in input line:\n%s\n",
+                    MAX_NAME_SIZE-1, line);
+        return -1;
+     }
 
    /* Although identifiers of the form foo(n).bar are expected,
     * identifiers of the form pileup<n>.foo are recognized for
