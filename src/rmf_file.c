@@ -530,7 +530,7 @@ static int read_rmf_ebounds (cfitsfile *rmf_fp, int chan_range[2], Isis_Rmf_Grid
      }
 
    *min_chan = INT_MAX;
-   max_chan = -INT_MAX;
+   max_chan = channel[0];
    for (i = 0; i < g->nbins; i++)
      {
         if (channel[i] < *min_chan)
