@@ -24,6 +24,7 @@
 %    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 private variable Dir, Basename;
+private variable __Fit_Method, __Eval_Method;
 
 public define save_par_limits()
 {
@@ -121,7 +122,7 @@ private define try_conf (index, ctrl)
           {
              % conf failed -- refit
              variable info;
-             () = fit_counts (&info ;; __qualifiers);
+             () = (@__Fit_Method)(&info ;; __qualifiers);
              s.num_retries++;
 
              if (save)
@@ -170,7 +171,7 @@ private define conf_slave (s, indices, ctrl)
         variable result = try_conf (index, ctrl ;; __qualifiers);
 
         variable info;
-        () = eval_counts (&info;; __qualifiers);
+        () = (@__Eval_Method) (&info;; __qualifiers);
 
         send_msg (s, SLAVE_RESULT);
         send_objs (s, index, param_version,
@@ -393,8 +394,19 @@ public define conf_loop()
           }
      }
 
+   if (__qualifiers != NULL && struct_field_exists (__qualifiers, "flux"))
+     {
+        __Fit_Method = &fit_flux;
+        __Eval_Method = &eval_flux;
+     }
+   else
+     {
+        __Fit_Method = &fit_counts;
+        __Eval_Method = &eval_counts;
+     }
+
    variable info;
-   () = eval_counts (&info;; __qualifiers);
+   () = (@__Eval_Method) (&info;; __qualifiers);
 
    variable slaves, num_slaves;
    num_slaves = qualifier ("num_slaves", min ([_num_cpus(), num_indices]));
@@ -463,7 +475,7 @@ public define conf_loop()
 
    % evaluate the model to make sure dependencies associated
    % with tied parameters, etc. are fully resolved
-   () = eval_counts (&info;; __qualifiers);
+   () = (@__Eval_Method) (&info;; __qualifiers);
 
    if (save != 0  && num_retries <= max_num_retries)
      {

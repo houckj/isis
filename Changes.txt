@@ -29,6 +29,8 @@ Changes since 1.6.2 (released Jan 2012)
      error on new Mac OS X systems.
 18.  New access functions: get_back_model, get_back_data,
      get_back_data_scale_factor
+19.  conf_loop fits flux-corrected data when 'flux' qualifier
+     is present
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
