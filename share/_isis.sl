@@ -633,6 +633,7 @@ define set_atomic_db_pointer (p, filemap) %{{{
    variable db = db_current();
    db.atomic_data_filemap = filemap;
    db.atomic_data = p;
+   db.emissivities = NULL;
 }
 
 %}}}
