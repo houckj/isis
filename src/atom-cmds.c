@@ -251,7 +251,10 @@ DB_t *ptr_to_atomic_db (void) /*{{{*/
 {
    DB_t *db = pop_atomic_db_pointer_intrin ();
    if (NULL == db)
-     isis_vmesg (WARN, I_INFO, __FILE__, __LINE__, "atomic database not loaded");
+     {
+        isis_vmesg (WARN, I_INFO, __FILE__, __LINE__, "atomic database not loaded");
+        isis_throw_exception (Isis_Error);
+     }
    return db;
 }
 

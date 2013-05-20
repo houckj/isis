@@ -201,7 +201,10 @@ EM_t *ptr_to_emissivity_db (void) /*{{{*/
 {
    EM_t *ptr = pop_emis_db_pointer_intrin ();
    if (NULL == ptr)
-     isis_vmesg (WARN, I_INFO, __FILE__, __LINE__, "Emissivity database not initialized");
+     {
+        isis_vmesg (WARN, I_INFO, __FILE__, __LINE__, "Emissivity database not initialized");
+        isis_throw_exception (Isis_Error);
+     }
    return ptr;
 }
 
