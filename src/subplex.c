@@ -102,7 +102,7 @@ static double fun (int *num, double *pars) /*{{{*/
    double statistic;
    unsigned int npars = (unsigned int) *num;
 
-   if (e->range_hook (clientdata, e->par_min, e->par_max, pars, npars))
+   if (e->range_hook (e->range_hook_client_data, e->par_min, e->par_max, pars, npars))
      return PARAM_OUTSIDE_BOUND_CONSTRAINTS;
 
    if (-1 == ift->compute_model (clientdata, fi->x, fi->npts, pars, npars, fi->fx))

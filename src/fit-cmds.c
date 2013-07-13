@@ -3390,12 +3390,12 @@ static void set_define_model_hook_intrin (void)
    set_hook_from_stack (&Define_Model_Hook);
 }
 
-static int set_fit_method_hooks (Isis_Fit_Type *f) /*{{{*/
+static int set_fit_method_hooks (Isis_Fit_Type *f, Fit_Param_t *par) /*{{{*/
 {
    if (Fit_Range_Hook)
-     isis_fit_set_range_hook (f, sl_fit_range_hook);
+     isis_fit_set_range_hook (f, sl_fit_range_hook, par->idx);
    else
-     isis_fit_set_range_hook (f, NULL);
+     isis_fit_set_range_hook (f, NULL, NULL);
 
    /* FIXME -- this is ugly */
    if (0 == isis_strcasecmp (Fit_Method, Fit_Default_Fit_Method))
@@ -3641,7 +3641,7 @@ static Fit_Object_Type *fit_object_open (void) /*{{{*/
    if (NULL == (fo->ft = isis_fit_open_fit (Fit_Method, Fit_Statistic, _fitfun, Fit_Constraint)))
      goto return_error;
 
-   set_fit_method_hooks (fo->ft);
+   set_fit_method_hooks (fo->ft, info->par);
 
    return fo;
 return_error:
@@ -3772,7 +3772,7 @@ int fit_statistic (Fit_Object_Type *fo, int optimize, double *stat, int *num_bin
 
         /* disable model copying during the fit */
         Fit_Store_Model = 0;
-        fit_ret = isis_fit_perform_fit (ft, par->idx, NULL, dt->data, dt->weight, dt->num,
+        fit_ret = isis_fit_perform_fit (ft, NULL, NULL, dt->data, dt->weight, dt->num,
                                         par->par, par->npars, stat);
 #if 0
         if (slang_optimizer)

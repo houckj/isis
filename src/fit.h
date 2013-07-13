@@ -316,7 +316,7 @@ extern int isis_fit_set_ranges (Isis_Fit_Type *f, double *par_min, double *par_m
 extern int isis_fit_set_param_step (Isis_Fit_Type *f, double *step, double *relstep);
 extern int isis_fit_set_warn_hook (Isis_Fit_Type *f, Isis_Fit_Warning_Hook_Type *v);
 extern int isis_fit_set_verbose_hook (Isis_Fit_Type *f, Isis_Fit_Verbose_Hook_Type *v);
-extern int isis_fit_set_range_hook (Isis_Fit_Type *f, Isis_Fit_Range_Hook_Type *r);
+extern int isis_fit_set_range_hook (Isis_Fit_Type *f, Isis_Fit_Range_Hook_Type *r, void *range_hook_client_data);
 extern int isis_fit_set_verbose_level (Isis_Fit_Type *f, int verbose);
 extern int isis_delta_stat_is_chisqr_distrib (Isis_Fit_Type *f);
 

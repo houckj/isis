@@ -337,7 +337,7 @@ static int marquardt (Isis_Fit_Type *ft, void *clientdata, /*{{{*/
                     }
                }
 
-             (void) e->range_hook (clientdata, e->par_min, e->par_max, a1, nparms);
+             (void) e->range_hook (e->range_hook_client_data, e->par_min, e->par_max, a1, nparms);
 
              if (-1 == (*f) (clientdata, x, ny, a1, nparms, y_1))
                {

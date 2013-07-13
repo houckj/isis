@@ -533,6 +533,7 @@ struct Isis_Fit_Engine_Type
    int (*set_options) (Isis_Fit_Engine_Type *, Isis_Option_Type *);
    int (*set_range_hook) (Isis_Fit_Engine_Type *, Isis_Fit_Range_Hook_Type *);
 
+   void *range_hook_client_data;
    Isis_Fit_Range_Hook_Type *range_hook;
    Isis_Fit_Verbose_Hook_Type *verbose_hook;
    Isis_Fit_Warning_Hook_Type *warn_hook;

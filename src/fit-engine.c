@@ -841,10 +841,11 @@ int isis_fit_set_verbose_hook (Isis_Fit_Type *f, Isis_Fit_Verbose_Hook_Type *v) 
 
 /*}}}*/
 
-int isis_fit_set_range_hook (Isis_Fit_Type *f, Isis_Fit_Range_Hook_Type *r) /*{{{*/
+int isis_fit_set_range_hook (Isis_Fit_Type *f, Isis_Fit_Range_Hook_Type *r, void *client_data) /*{{{*/
 {
    if ((f == NULL) || (f->engine->set_range_hook == NULL))
      return -1;
+   f->engine->range_hook_client_data = client_data;
    return f->engine->set_range_hook (f->engine, r);
 }
 
