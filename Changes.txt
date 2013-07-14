@@ -31,6 +31,8 @@ Changes since 1.6.2 (released Jan 2012)
      get_back_data_scale_factor
 19.  conf_loop fits flux-corrected data when 'flux' qualifier
      is present
+20.  Support fit statistic with explicit dependence on background 
+     (e.g. wstat)
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
