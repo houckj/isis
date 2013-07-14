@@ -132,6 +132,8 @@ ISIS_FIT_STATISTIC_METHOD (cash)
    s->compute_statistic = cash_function;
    s->report = cash_report;
    s->delta_is_chisqr_distributed = 1;
+   s->uses_opt_data = 0;
+   s->opt_data = NULL;
    s->deallocate = deallocate;
    if (NULL == (s->symbol = isis_make_string ("Cash")))
      {

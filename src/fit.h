@@ -299,7 +299,7 @@ extern Isis_Fit_Statistic_Type *isis_find_fit_statistic (char *name);
 extern void isis_fit_close_fit (Isis_Fit_Type *);
 extern Isis_Fit_Type *isis_fit_open_fit
   (char *method_name, char *statistic_name, Isis_Fit_Fun_Type *f,
-   SLang_Name_Type *constraint_fun);
+   SLang_Name_Type *constraint_fun, int n);
 extern int isis_fit_perform_fit
   (Isis_Fit_Type *f, void *clientdata,
    double *x, double *y, double *weights, unsigned int npts,

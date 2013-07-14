@@ -329,6 +329,46 @@ void list_statistics_and_engines (void) /*{{{*/
 
 /*}}}*/
 
+static void free_statistic_opt_data (Isis_Fit_Statistic_Optional_Data_Type *opt_data) /*{{{*/
+{
+   if (opt_data == NULL)
+     return;
+   ISIS_FREE(opt_data->bkg);
+   ISIS_FREE(opt_data->bkg_at);
+   ISIS_FREE(opt_data->src_at);
+   ISIS_FREE(opt_data);
+}
+
+/*}}}*/
+
+static Isis_Fit_Statistic_Optional_Data_Type *allocate_statistic_opt_data (int n) /*{{{*/
+{
+   Isis_Fit_Statistic_Optional_Data_Type *opt_data;
+
+   if (NULL == (opt_data = (Isis_Fit_Statistic_Optional_Data_Type *)ISIS_MALLOC (sizeof *opt_data)))
+     return NULL;
+   memset ((char *)opt_data, 0, sizeof *opt_data);
+
+   opt_data->num = n;
+   opt_data->malloced = 1;
+
+   if ((NULL == (opt_data->bkg = (double *)ISIS_MALLOC (n * sizeof(double))))
+       ||(NULL == (opt_data->bkg_at = (double *)ISIS_MALLOC (n * sizeof(double))))
+       ||(NULL == (opt_data->src_at = (double *)ISIS_MALLOC (n * sizeof(double))))
+       )
+     {
+        free_statistic_opt_data (opt_data);
+        return NULL;
+     }
+   memset ((char *)opt_data->bkg, 0, n*sizeof(double));
+   memset ((char *)opt_data->bkg_at, 0, n*sizeof(double));
+   memset ((char *)opt_data->src_at, 0, n*sizeof(double));
+
+   return opt_data;
+}
+
+/*}}}*/
+
 void isis_fit_free_fit_statistic (Isis_Fit_Statistic_Type *s) /*{{{*/
 {
    if (s == NULL)
@@ -412,6 +452,60 @@ int isis_fit_load_statistic (char *file, char *sname) /*{{{*/
 
 /*}}}*/
 
+typedef struct
+{
+   SLang_Array_Type *bkg;
+   SLang_Array_Type *bkg_at;
+   SLang_Array_Type *src_at;
+}
+Optional_Data_Type;
+
+static SLang_CStruct_Field_Type Optional_Data_Type_Layout [] =
+{
+   MAKE_CSTRUCT_FIELD (Optional_Data_Type, bkg, "bkg", SLANG_ARRAY_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Optional_Data_Type, bkg_at, "bkg_at", SLANG_ARRAY_TYPE, 0),
+   MAKE_CSTRUCT_FIELD (Optional_Data_Type, src_at, "src_at", SLANG_ARRAY_TYPE, 0),
+   SLANG_END_CSTRUCT_TABLE
+};
+
+static int push_opt_data (Isis_Fit_Statistic_Optional_Data_Type *opt_data) /*{{{*/
+{
+   Optional_Data_Type odt;
+   int n, status=-1;
+
+   if (opt_data == NULL)
+     {
+        SLang_push_null ();
+        return 0;
+     }
+
+   memset ((char *)&odt, 0, sizeof odt);
+
+   n = opt_data->num;
+
+   if ((NULL == (odt.bkg = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &n, 1)))
+       || (NULL == (odt.bkg_at = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &n, 1)))
+       || ((NULL == (odt.src_at = SLang_create_array (SLANG_DOUBLE_TYPE, 0, NULL, &n, 1)))))
+     goto free_and_return;
+
+   memcpy ((char *)odt.bkg->data, (char *)opt_data->bkg, n*sizeof(double));
+   memcpy ((char *)odt.bkg_at->data, (char *)opt_data->bkg_at, n*sizeof(double));
+   memcpy ((char *)odt.src_at->data, (char *)opt_data->src_at, n*sizeof(double));
+
+   if (-1 == SLang_push_cstruct ((VOID_STAR)&odt, Optional_Data_Type_Layout))
+     goto free_and_return;
+
+   status = 0;
+free_and_return:
+   SLang_free_array (odt.bkg);
+   SLang_free_array (odt.bkg_at);
+   SLang_free_array (odt.src_at);
+
+   return status;
+}
+
+/*}}}*/
+
 static int sl_statistic_function (Isis_Fit_Statistic_Type *s,/*{{{*/
                                   double *y, double *fx, double *w, unsigned int npts,
                                   double *vec, double *stat)
@@ -440,12 +534,16 @@ static int sl_statistic_function (Isis_Fit_Statistic_Type *s,/*{{{*/
    memcpy (a_fx->data, fx, npts*sizeof(double));
    memcpy (a_w->data, w, npts*sizeof(double));
 
-   /* (vec, stat) = slang_statistic (y, fx, w) */
+   /* (vec, stat) = slang_statistic (y, fx, w)
+    *   OR, if opt_data is used:
+    * (vec, stat) = slang_statistic (y, fx, w, opt_data)
+    */
 
    SLang_start_arg_list ();
    if ((-1 == SLang_push_array (a_y, 0))
        || (-1 == SLang_push_array (a_fx, 0))
-       || (-1 == SLang_push_array (a_w, 0)))
+       || (-1 == SLang_push_array (a_w, 0))
+       || ((s->uses_opt_data != 0) && (-1 == push_opt_data (s->opt_data))))
      goto free_and_return;
    SLang_end_arg_list ();
 
@@ -569,6 +667,10 @@ static int fixup_sl_statistic_name (char *name)
    if (NULL == (s->option_string = isis_make_string (name)))
      return -1;
 
+   ISIS_FREE(s->symbol);
+   if (NULL == (s->symbol = isis_make_string (name)))
+     return -1;
+
    return 0;
 }
 
@@ -641,7 +743,7 @@ void deinit_fit_engine (void) /*{{{*/
 /*}}}*/
 
 Isis_Fit_Type *isis_fit_open_fit (char *name, char *sname, Isis_Fit_Fun_Type *fun, /*{{{*/
-                                  SLang_Name_Type *constraint_fun)
+                                  SLang_Name_Type *constraint_fun, int n)
 {
    Isis_Fit_Engine_Type *e;
    Isis_Fit_Statistic_Type *s;
@@ -668,6 +770,15 @@ Isis_Fit_Type *isis_fit_open_fit (char *name, char *sname, Isis_Fit_Fun_Type *fu
 
    if (NULL == (f = (Isis_Fit_Type *) ISIS_MALLOC (sizeof(Isis_Fit_Type))))
      return NULL;
+
+   if (s->uses_opt_data)
+     {
+        if (NULL == (s->opt_data = allocate_statistic_opt_data (n)))
+          {
+             ISIS_FREE(f);
+             return NULL;
+          }
+     }
 
    /* When a constraint function is provided, we call it
     * by introducing an extra indirection.  When the
@@ -712,6 +823,12 @@ void isis_fit_close_fit (Isis_Fit_Type *f) /*{{{*/
      {
         fprintf (stdout, "%s\n", s->message_string);
         s->message_string = NULL;
+     }
+
+   if (s->opt_data)
+     {
+        free_statistic_opt_data (s->opt_data);
+        s->opt_data = NULL;
      }
 
    ISIS_FREE (f->covariance_matrix);

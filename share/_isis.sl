@@ -956,7 +956,7 @@ define set_slangfun_param_hard_limits (fun_name, par_name, index, hard_limits_on
 %}}}
 
 % Support tracking a list of combined datasets and their models
-private variable store_data, store_models;
+private variable store_data, store_models, store_opt_data;
 define set_combined_store_data_ref (ref)
 {
    store_data = ref;
@@ -964,6 +964,10 @@ define set_combined_store_data_ref (ref)
 define set_combined_store_models_ref (ref)
 {
    store_models = ref;
+}
+define set_combined_store_opt_data_ref (ref)
+{
+   store_opt_data = ref;
 }
 define store_combined_data ()
 {
@@ -974,6 +978,11 @@ define store_combined_models ()
 {
    variable a = __pop_args(_NARGS);
    (@store_models)(__push_args(a));
+}
+define store_combined_opt_data ()
+{
+   variable a = __pop_args(_NARGS);
+   (@store_opt_data)(__push_args(a));
 }
 
 % indirect eval to support passing qualifiers

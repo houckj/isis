@@ -443,6 +443,17 @@ typedef int Isis_Fit_Statistic_Report_Type
   (Isis_Fit_Statistic_Type *st, void *fp, double statistic,  unsigned int npts, unsigned int nvpars);
 typedef Isis_Fit_Statistic_Type *Isis_Fit_Statistic_Init_Type (void);
 
+typedef struct
+{
+   double *bkg;     /* UNSCALED background counts */
+   double *bkg_at;  /* bkg_at = bkg_area * bkg_exposure */
+   double *src_at;  /* src_at = src_area * src_exposure */
+   int num;
+   int malloced;
+   void *client_data;
+}
+Isis_Fit_Statistic_Optional_Data_Type;
+
 struct Isis_Fit_Statistic_Type
 {
    Isis_Fit_Statistic_Fun_Type *compute_statistic;
@@ -464,6 +475,9 @@ struct Isis_Fit_Statistic_Type
 
    char *option_string;
    char *message_string;
+
+   Isis_Fit_Statistic_Optional_Data_Type *opt_data;
+   int uses_opt_data;
 
 #ifdef ISIS_FIT_STATISTIC_PRIVATE_DATA
    ISIS_FIT_STATISTIC_PRIVATE_DATA
@@ -487,7 +501,7 @@ struct Isis_Fit_Statistic_Type
 
 /*{{{ Fit-method */
 
-typedef int Isis_Fit_Fun_Type(void *clientdata,
+typedef int Isis_Fit_Fun_Type(Isis_Fit_Statistic_Optional_Data_Type *opt_data,
                               double *x, unsigned int nbins,
                               double *par, unsigned int npars,
                               double *fx);

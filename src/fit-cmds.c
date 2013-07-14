@@ -903,7 +903,7 @@ int Fit_copy_fun_params (char *fun_name, unsigned int fun_id, double **par, unsi
 
 #define ALPHACHARS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-static int line_param_name_too_long (char *line)
+static int line_param_name_too_long (char *line) /*{{{*/
 {
    char *fname_start, *fname_end, *pname_start, *pname_end;
 
@@ -925,6 +925,8 @@ static int line_param_name_too_long (char *line)
 
    return 0;
 }
+
+/*}}}*/
 
 static int parse_param_info (char *line, int line_num, char *fname, unsigned int *idx) /*{{{*/
 {
@@ -2098,7 +2100,7 @@ static int pop_stored_background (SLang_Array_Type **sl_bgd, Hist_t *h) /*{{{*/
 
 /*}}}*/
 
-static int eval_instrumental_background_hook (SLang_Array_Type **bgd, Hist_t *h)
+static int eval_instrumental_background_hook (SLang_Array_Type **bgd, Hist_t *h) /*{{{*/
 {
    SLang_Name_Type *hook = Hist_get_instrumental_background_hook (h);
    Isis_Hist_t *g;
@@ -2144,6 +2146,8 @@ static int eval_instrumental_background_hook (SLang_Array_Type **bgd, Hist_t *h)
    return ret;
 }
 
+/*}}}*/
+
 int pop_instrumental_background (SLang_Array_Type **bgd, Hist_t *h) /*{{{*/
 {
    SLang_Name_Type *hook = Hist_get_instrumental_background_hook (h);
@@ -2161,7 +2165,40 @@ int pop_instrumental_background (SLang_Array_Type **bgd, Hist_t *h) /*{{{*/
 
 /*}}}*/
 
-static int add_instrumental_background (double *cts, Hist_t *h) /*{{{*/
+static int set_opt_bkg (Hist_t *h, SLang_Array_Type *bgd, double *opt_bkg) /*{{{*/
+{
+   double *b = NULL;
+   int nb;
+
+   if (NULL != Hist_get_instrumental_background_hook (h))
+     {
+        memcpy ((char *)opt_bkg, (char *)bgd->data, bgd->num_elements * sizeof(double));
+        return 0;
+     }
+
+   /* opt_bkg should be unscaled! */
+   if (-1 == Hist_copy_input_background (h, 0, &b, &nb))
+     {
+        ISIS_FREE(b);
+        return -1;
+     }
+
+   if (b != NULL)
+     {
+        memcpy ((char *)opt_bkg, (char *)b, nb * sizeof(double));
+        ISIS_FREE(b);
+     }
+   else
+     {
+        memset ((char *)opt_bkg, 0, nb*sizeof(double));
+     }
+
+   return 0;
+}
+
+/*}}}*/
+
+static int add_instrumental_background (double *cts, Hist_t *h, double *opt_bkg) /*{{{*/
 {
    SLang_Array_Type *bgd = NULL;
    unsigned int i, n;
@@ -2188,7 +2225,16 @@ static int add_instrumental_background (double *cts, Hist_t *h) /*{{{*/
    bd = (double *)bgd->data;
 
    for (i = 0; i < n; i++)
-     cts[i] += bd[i];
+     {
+        cts[i] += bd[i];
+     }
+
+   if ((opt_bkg != NULL)
+       && (-1 == set_opt_bkg (h, bgd, opt_bkg)))
+     {
+        SLang_free_array (bgd);
+        return -1;
+     }
 
    SLang_free_array (bgd);
 
@@ -2227,18 +2273,61 @@ static int apply_response (double *result, Isis_Hist_t *g, Hist_t *h) /*{{{*/
 
 /*}}}*/
 
-static int compute_hist_model (Hist_t *h, double *bincts) /*{{{*/
+static int provide_opt_data (Hist_t *h, double *opt_bkg, /*{{{*/
+                             Isis_Fit_Statistic_Optional_Data_Type *opt_data,
+                             int opt_data_offset)
+{
+   double *src_at=NULL, *bkg_at=NULL, *binned_bkg;
+   double *opt_src_at, *opt_bkg_at;
+   int nb;
+
+   if (opt_data == NULL)
+     return 0;
+
+   binned_bkg = opt_data->bkg + opt_data_offset;
+   if (-1 == Hist_apply_rebin_and_notice_list (binned_bkg, opt_bkg, h))
+     return -1;
+
+   if (-1 == Hist_scaling_vectors (h, 1, 1, &src_at, &bkg_at, &nb))
+     return -1;
+
+   opt_src_at = opt_data->src_at + opt_data_offset;
+   memcpy ((char *)opt_src_at, (char *)src_at, nb * sizeof(double));
+
+   opt_bkg_at = opt_data->bkg_at + opt_data_offset;
+   memcpy ((char *)opt_bkg_at, (char *)bkg_at, nb * sizeof(double));
+
+   ISIS_FREE(src_at);
+   ISIS_FREE(bkg_at);
+
+   opt_data->num += nb;
+
+   return 0;
+}
+
+/*}}}*/
+
+static int compute_hist_model (Hist_t *h, double *bincts, /*{{{*/
+                               Isis_Fit_Statistic_Optional_Data_Type *opt_data,
+                               int opt_data_offset)
 {
    Isis_Hist_t *g = NULL;
-   double *cts = NULL;
-   int orig_nbins;
+   double *temp_cts = NULL;
+   double *opt_bkg = NULL;
+   int orig_nbins, temp_cts_size;
    int ret = -1;
 
-   /* allocate space for the full-resolution result */
-   if ((-1 == (orig_nbins = Hist_orig_hist_size (h)))
-       || (NULL == (cts = (double *) ISIS_MALLOC (orig_nbins * sizeof(double)))))
+   if (-1 == (orig_nbins = Hist_orig_hist_size (h)))
      return -1;
-   memset ((char *)cts, 0, orig_nbins * sizeof(double));
+
+   temp_cts_size = orig_nbins * (opt_data ? 2 : 1);
+
+   /* allocate space for the full-resolution result */
+   if (NULL == (temp_cts = (double *) ISIS_MALLOC (temp_cts_size * sizeof(double))))
+     return -1;
+   memset ((char *)temp_cts, 0, temp_cts_size * sizeof(double));
+
+   opt_bkg = opt_data ? (temp_cts + orig_nbins) : NULL;
 
    /* g is a pointer to a global structure */
    if (NULL == (g = get_evaluation_grid ()))
@@ -2257,16 +2346,19 @@ static int compute_hist_model (Hist_t *h, double *bincts) /*{{{*/
    if (NULL == (g->val = (double *) ISIS_MALLOC ((g->n_notice + g->nbins) * sizeof(double))))
      goto finish;
 
-   if (-1 == apply_response (cts, g, h))
+   if (-1 == apply_response (temp_cts, g, h))
      goto finish;
 
    ISIS_FREE (g->val);
    memset ((char *)g, 0, sizeof (*g));
 
-   if (-1 == add_instrumental_background (cts, h))
+   if (-1 == add_instrumental_background (temp_cts, h, opt_bkg))
      goto finish;
 
-   if (-1 == Hist_apply_rebin_and_notice_list (bincts, cts, h))
+   if (-1 == Hist_apply_rebin_and_notice_list (bincts, temp_cts, h))
+     goto finish;
+
+   if (-1 == provide_opt_data (h, opt_bkg, opt_data, opt_data_offset))
      goto finish;
 
    if (is_flux(Fit_Data_Type))
@@ -2288,23 +2380,33 @@ static int compute_hist_model (Hist_t *h, double *bincts) /*{{{*/
    finish:
 
    ISIS_FREE (g->val);
-   ISIS_FREE (cts);
+   ISIS_FREE (temp_cts);
 
    return ret;
 }
 
 /*}}}*/
 
+typedef struct
+{
+   double *model;
+   Isis_Fit_Statistic_Optional_Data_Type *opt_data;
+   int offset;
+}
+Model_Map_Info_Type;
+
 static int compute_hist_model_hook (Hist_t *h, void *cl) /*{{{*/
 {
-   double **model = (double **)cl;
+   Model_Map_Info_Type *map_info = (Model_Map_Info_Type *)cl;
    int ret;
 
    if (Hist_num_data_noticed (h) < 1)
      return 0;
 
-   ret = compute_hist_model (h, *model);
-   *model += Hist_num_data_noticed (h);
+   ret = compute_hist_model (h, map_info->model + map_info->offset,
+                             map_info->opt_data,
+                             map_info->offset);
+   map_info->offset += Hist_num_data_noticed (h);
 
    return ret;
 }
@@ -2313,7 +2415,7 @@ static int compute_hist_model_hook (Hist_t *h, void *cl) /*{{{*/
 
 static int copy_hist_model_hook (Hist_t *h, void *cl) /*{{{*/
 {
-   double **model = (double **)cl;
+   Model_Map_Info_Type *map_info = (Model_Map_Info_Type *)cl;
    unsigned int model_type = 0;
    int status;
 
@@ -2326,19 +2428,22 @@ static int copy_hist_model_hook (Hist_t *h, void *cl) /*{{{*/
      }
 
    /* Assume the model has already been computed */
-   status = Hist_copy_packed_model (h, model_type, *model);
-   *model += Hist_num_data_noticed (h);
+   status = Hist_copy_packed_model (h, model_type,
+                                    map_info->model + map_info->offset);
+   /* FIXME? opt_data needs updating too? */
+   map_info->offset += Hist_num_data_noticed (h);
 
    return status;
 }
 
 /*}}}*/
 
-static int compute_model (double *model, double *par_list, int npars_vary) /*{{{*/
+static int compute_model (double *model, double *par_list, int npars_vary, /*{{{*/
+                          Isis_Fit_Statistic_Optional_Data_Type *opt_data)
 {
    static char hook_name[] = "isis_start_eval_hook";
-   double *model_end;
    Fit_Data_t *d = Current_Fit_Data_Info;
+   Model_Map_Info_Type map_info;
    int severity;
 
    if ((NULL == model) || (d == NULL)
@@ -2362,20 +2467,27 @@ static int compute_model (double *model, double *par_list, int npars_vary) /*{{{
      (void) SLang_run_hooks (hook_name, 0);
 
    cached_models_need_updating(d);
-   model_end = model + d->nbins;
+
+   map_info.model = model;
+   map_info.opt_data = opt_data;
+   map_info.offset = 0;
+
+   if (opt_data) opt_data->num = 0;
 
    if (Computing_Statistic_Only == 0)
      {
-        (void) map_datasets (&compute_hist_model_hook, &model);
+        (void) map_datasets (&compute_hist_model_hook, &map_info);
      }
    else
      {
-        (void) map_datasets (&copy_hist_model_hook, &model);
+        (void) map_datasets (&copy_hist_model_hook, &map_info);
      }
 
    Num_Statistic_Evaluations++;
-   if (model == model_end)
-     return (SLang_get_error() == 0) ? 0 : -1;
+   if (map_info.offset == d->nbins)
+     {
+        return (SLang_get_error() == 0) ? 0 : -1;
+     }
 
    severity = Looking_For_Confidence_Limits ? FAIL : INTR;
 
@@ -2481,6 +2593,61 @@ static int store_combined_data (Fit_Data_t *d, double *data, double *weight) /*{
 
 /*}}}*/
 
+static int store_combined_opt_data (Fit_Data_t *d, /*{{{*/
+                                    Isis_Fit_Statistic_Optional_Data_Type *opt_data)
+{
+   SLang_Array_Type *sl_bkg=NULL, *sl_src_at=NULL, *sl_bkg_at=NULL, *sl_combo_ids=NULL;
+   SLindex_Type i, n = d->nbins_after_datasets_combined;
+
+   if (opt_data == NULL)
+     return 0;
+
+   if (opt_data->num != d->nbins_after_datasets_combined)
+     {
+        isis_vmesg (FAIL, I_INTERNAL, __FILE__, __LINE__,
+                    "store_combined_opt_data:  inconsistent array size opt_data->num=%d  expected n=%d",
+                   opt_data->num, d->nbins_after_datasets_combined);
+        isis_throw_exception (Isis_Error);
+        return -1;
+     }
+
+   if ((NULL == (sl_bkg = SLang_create_array (SLANG_DOUBLE_TYPE, 1, NULL, &n, 1)))
+       ||(NULL == (sl_src_at = SLang_create_array (SLANG_DOUBLE_TYPE, 1, NULL, &n, 1)))
+       ||(NULL == (sl_bkg_at = SLang_create_array (SLANG_DOUBLE_TYPE, 1, NULL, &n, 1)))
+       ||(NULL == (sl_combo_ids = SLang_create_array (SLANG_INT_TYPE, 1, NULL, &d->num_datasets, 1)))
+      )
+     {
+        SLang_free_array (sl_bkg);
+        SLang_free_array (sl_src_at);
+        SLang_free_array (sl_bkg_at);
+        SLang_free_array (sl_combo_ids);
+        return -1;
+     }
+
+   memcpy ((char *)sl_bkg->data, (char *)opt_data->bkg, n * sizeof(double));
+   memcpy ((char *)sl_bkg_at->data, (char *)opt_data->bkg_at, n * sizeof(double));
+   memcpy ((char *)sl_src_at->data, (char *)opt_data->src_at, n * sizeof(double));
+
+   for (i = 0; i < d->num_datasets; i++)
+     {
+        Hist_t *h = d->datasets[i];
+        int combo_id = Hist_combination_id (h);
+        SLang_set_array_element (sl_combo_ids, &i, &combo_id);
+     }
+
+   SLang_start_arg_list ();
+   SLang_push_array (sl_combo_ids, 1);
+   SLang_push_array (sl_bkg, 1);
+   SLang_push_array (sl_bkg_at, 1);
+   SLang_push_array (sl_src_at, 1);
+   SLang_end_arg_list ();
+
+   SLang_execute_function ("_isis->store_combined_opt_data");
+   return 0;
+}
+
+/*}}}*/
+
 static int store_combined_models (Fit_Data_t *d, double *models) /*{{{*/
 {
    SLang_Array_Type *sl_models=NULL, *sl_combo_ids=NULL;
@@ -2516,13 +2683,38 @@ static int store_combined_models (Fit_Data_t *d, double *models) /*{{{*/
 
 /*}}}*/
 
-static int _fitfun (void *cl, double *x,  unsigned int nbins, /*{{{*/
+static int combine_opt_data (Fit_Data_t *d, Isis_Fit_Statistic_Optional_Data_Type *opt_data) /*{{{*/
+{
+   if (d == NULL || opt_data == NULL)
+     return 0;
+
+   memcpy ((char *)d->tmp, (char *)opt_data->bkg, opt_data->num*sizeof(double));
+   if (-1 == combine_marked_datasets (d, 0, d->tmp, opt_data->bkg))
+     return -1;
+
+   memcpy ((char *)d->tmp, (char *)opt_data->bkg_at, opt_data->num*sizeof(double));
+   if (-1 == combine_marked_datasets (d, 0, d->tmp, opt_data->bkg_at))
+     return -1;
+
+   memcpy ((char *)d->tmp, (char *)opt_data->src_at, opt_data->num*sizeof(double));
+   if (-1 == combine_marked_datasets (d, 0, d->tmp, opt_data->src_at))
+     return -1;
+
+   opt_data->num = d->nbins_after_datasets_combined;
+
+   return 0;
+}
+
+/*}}}*/
+
+static int _fitfun (Isis_Fit_Statistic_Optional_Data_Type *opt_data, /*{{{*/
+                    double *x,  unsigned int nbins,
                     double *par, unsigned int npars, double *model)
 {
    Fit_Data_t *d = Current_Fit_Data_Info;
    int no_combined_datasets, num_pars = npars;
    int status = -1;
-   (void) x; (void) cl; (void) nbins;
+   (void) x; (void) nbins;
 
    if (d == NULL)
      {
@@ -2533,15 +2725,23 @@ static int _fitfun (void *cl, double *x,  unsigned int nbins, /*{{{*/
    no_combined_datasets = (d->nbins == d->nbins_after_datasets_combined);
 
    if (no_combined_datasets)
-     return compute_model (model, par, num_pars);
+     {
+        return compute_model (model, par, num_pars, opt_data);
+     }
 
-   if (-1 == compute_model (d->tmp, par, num_pars))
+   if (-1 == compute_model (d->tmp, par, num_pars, opt_data))
      return -1;
 
-   status = combine_marked_datasets (d, 0, d->tmp, model);
+   if (-1 == combine_marked_datasets (d, 0, d->tmp, model))
+     goto return_status;
 
+   if (-1 == combine_opt_data (d, opt_data))
+     goto return_status;
+
+return_status:
    (void) store_combined_models (d, model);
-
+   (void) store_combined_opt_data (d, opt_data);
+   status = 0;
    return status;
 }
 
@@ -3261,6 +3461,18 @@ static void set_fit_statistic_delta_distrib_intrin (char *name, int *value) /*{{
 
 /*}}}*/
 
+static void set_fit_statistic_opt_data_flag_intrin (char *name, int *value) /*{{{*/
+{
+   Isis_Fit_Statistic_Type *s;
+
+   if (NULL == (s = isis_find_fit_statistic (name)))
+     return;
+
+   s->uses_opt_data = *value;
+}
+
+/*}}}*/
+
 Isis_Fit_Statistic_Type *current_fit_statistic (void) /*{{{*/
 {
    Isis_Fit_Statistic_Type *s;
@@ -3638,8 +3850,11 @@ static Fit_Object_Type *fit_object_open (void) /*{{{*/
    if (NULL == (fo->dt = setup_fit_object_data (fo->d)))
      goto return_error;
 
-   if (NULL == (fo->ft = isis_fit_open_fit (Fit_Method, Fit_Statistic, _fitfun, Fit_Constraint)))
-     goto return_error;
+   if (NULL == (fo->ft = isis_fit_open_fit (Fit_Method, Fit_Statistic, _fitfun,
+                                            Fit_Constraint, fo->d->nbins)))
+     {
+        goto return_error;
+     }
 
    set_fit_method_hooks (fo->ft, info->par);
 
@@ -3666,7 +3881,7 @@ static int eval_fit_stat2 (Isis_Fit_Statistic_Type *s,  int enable_copying, /*{{
 
    Fit_Store_Model = enable_copying;
 
-   if (-1 == _fitfun (NULL, NULL, n, par, npars, fx))
+   if (-1 == _fitfun (s->opt_data, NULL, n, par, npars, fx))
      {
         verbose_warn_hook (NULL, "Failed evaluating fit-function\n");
         ISIS_FREE (fx);
@@ -3821,13 +4036,14 @@ int fit_statistic (Fit_Object_Type *fo, int optimize, double *stat, int *num_bin
 /* fit data supplied directly as slang arrays */
 
 static SLang_Array_Type *X_Array;
-static int eval_array_fit_fun (void *cl, double *x, unsigned int nbins,  /*{{{*/
+static int eval_array_fit_fun (Isis_Fit_Statistic_Optional_Data_Type *opt_data, /*{{{*/
+                               double *x, unsigned int nbins,
                                double *par, unsigned int npars, double *model)
 {
    SLang_Array_Type *sl_pars = NULL;
    SLang_Array_Type *sl_model = NULL;
 
-   (void) cl;
+   (void) opt_data;
 
    if (x == NULL || par == NULL || model == NULL
        || Array_Fit_Fun == NULL || X_Array == NULL)
@@ -3935,7 +4151,7 @@ static void array_fit (void) /*{{{*/
      }
 
    if (NULL == (f = isis_fit_open_fit (Fit_Method, Fit_Statistic, eval_array_fit_fun,
-                                       Fit_Constraint)))
+                                       Fit_Constraint, nx)))
      {
         isis_throw_exception (Isis_Error);
         goto finish;
@@ -4339,7 +4555,7 @@ static int delta_stat_is_chisqr_distributed (void) /*{{{*/
    int flag;
 
    if (NULL == (f = isis_fit_open_fit (Fit_Method, Fit_Statistic, _fitfun,
-                                       Fit_Constraint)))
+                                       Fit_Constraint, 1)))
      return 0;
 
    flag = isis_delta_stat_is_chisqr_distrib (f);
@@ -4409,7 +4625,7 @@ static void confidence_limits (int *idx, double *delta_chisqr, int *verbose, dou
 
 /* etc */
 
-static void get_stored_background_intrin (int *hist_index, int *do_rebin)
+static void get_stored_background_intrin (int *hist_index, int *do_rebin) /*{{{*/
 {
    SLang_Array_Type *sl_back = NULL;
    Hist_t *h;
@@ -4434,7 +4650,9 @@ static void get_stored_background_intrin (int *hist_index, int *do_rebin)
    SLang_push_array (sl_back, 1);
 }
 
-static void get_stored_background_scale_factor_intrin (int *hist_index, int *do_rebin)
+/*}}}*/
+
+static void get_stored_background_scale_factor_intrin (int *hist_index, int *do_rebin) /*{{{*/
 {
    SLang_Array_Type *sl_scale = NULL;
    Hist_t *h;
@@ -4460,7 +4678,9 @@ static void get_stored_background_scale_factor_intrin (int *hist_index, int *do_
    SLang_push_array (sl_scale, 1);
 }
 
-static void get_background_model_intrin (int *hist_index, int *do_rebin)
+/*}}}*/
+
+static void get_background_model_intrin (int *hist_index, int *do_rebin) /*{{{*/
 {
    SLang_Array_Type *sl_back = NULL;
    Hist_t *h;
@@ -4494,6 +4714,8 @@ static void get_background_model_intrin (int *hist_index, int *do_rebin)
 
    SLang_push_array (sl_back, 1);
 }
+
+/*}}}*/
 
 static void get_instrumental_background (int *hist_index) /*{{{*/
 {
@@ -5186,6 +5408,7 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
    MAKE_INTRINSIC("_list_kernels", _list_kernels, V, 0),
    MAKE_INTRINSIC_1("_add_slang_statistic", _add_slang_statistic, V, S),
    MAKE_INTRINSIC_2("set_fit_statistic_delta_distrib_intrin", set_fit_statistic_delta_distrib_intrin, V, S,I),
+   MAKE_INTRINSIC_2("set_fit_statistic_opt_data_flag_intrin", set_fit_statistic_opt_data_flag_intrin, V, S,I),
    MAKE_INTRINSIC_2("_add_slang_optimizer", add_slang_fit_engine_intrin, V, S, S),
    MAKE_INTRINSIC("list_statistics_and_engines", list_statistics_and_engines, V, 0),
    MAKE_INTRINSIC("_define_hist_combination", mark_dataset_combination, I, 0),

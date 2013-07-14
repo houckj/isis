@@ -240,6 +240,8 @@ ISIS_FIT_STATISTIC_METHOD (chisqr)
    s->compute_statistic = chisqr_function;
    s->report = chisqr_report;
    s->delta_is_chisqr_distributed = 1;
+   s->uses_opt_data = 0;
+   s->opt_data = NULL;
    s->set_options = set_options;
    s->deallocate = deallocate;
    s->sigma = DATA_VARIANCE;

@@ -1831,6 +1831,124 @@ static double *background_scale_factor (Hist_t *h, int do_rebin) /*{{{*/
 
 /*}}}*/
 
+static int make_scaling_vector (Hist_t *h, int do_rebin, int pack_noticed, /*{{{*/
+                                Area_Type *a, double t, double **pvat, int *num_vat)
+{
+   double *vat = NULL, *av = NULL;
+   int i, k, n;
+
+   n = do_rebin ? h->nbins : h->orig_nbins;
+   *num_vat = n;
+
+   if (NULL == (vat = (double *) ISIS_MALLOC (n * sizeof(double))))
+     return -1;
+   *pvat = vat;
+
+#if 0
+   (void) a;
+   for (i = 0; i < n; i++)
+     {
+        vat[i] = t;
+     }
+#else
+   if (do_rebin == 0)
+     {
+        double at;
+        if (a->is_vector == 0)
+          {
+             at = t;
+             if (a->value.s > 0) at *= a->value.s;
+
+             for (i = 0; i < n; i++)
+               {
+                  vat[i] = at;
+               }
+          }
+        else
+          {
+             av = a->value.v;
+             for (i = 0; i < n; i++)
+               {
+                  vat[i] = t * av[i];
+               }
+          }
+     }
+   else
+     {
+        Area_Type a_cpy;
+
+        area_init (&a_cpy);
+        area_copy (&a_cpy, a);
+        if (-1 == rebin_backscale (&a_cpy, h, h->bin_lo, h->bin_hi, h->nbins))
+          {
+             area_free (&a_cpy);
+             ISIS_FREE(vat);
+             return -1;
+          }
+
+        av = a_cpy.value.v;
+        for (i = 0; i < n; i++)
+          {
+             vat[i] = t * av[i];
+          }
+        area_free (&a_cpy);
+     }
+#endif
+
+   if (pack_noticed == 0)
+     return 0;
+
+   if (NULL == (av = (double *)ISIS_MALLOC (h->n_notice * sizeof(double))))
+     return -1;
+   for (k = 0; k < h->n_notice; k++)
+     {
+        i = h->notice_list[k];
+        av[k] = vat[i];
+     }
+
+   *pvat = av;
+   *num_vat = h->n_notice;
+
+   ISIS_FREE(vat);
+
+   return 0;
+}
+
+/*}}}*/
+
+int Hist_scaling_vectors (Hist_t *h, int do_rebin, int pack_noticed, /*{{{*/
+                          double **psrc_at, double **pbkg_at, int *pnum)
+{
+   double src_exposure, bgd_exposure;
+   double *src_at=NULL, *bkg_at=NULL;
+   int n;
+
+   if (-1 == get_exposure_time (h, &src_exposure))
+     return -1;
+
+   /* Background exposure may not be up to date */
+
+   if (h->bgd_exposure <= 0.0)
+     h->bgd_exposure = src_exposure;
+   bgd_exposure = h->bgd_exposure;
+
+   if ((-1 == make_scaling_vector (h, do_rebin, pack_noticed, &h->bgd_area, bgd_exposure, &bkg_at, &n))
+       || (-1 == make_scaling_vector (h, do_rebin, pack_noticed, &h->area, src_exposure, &src_at, &n)))
+     {
+        ISIS_FREE(bkg_at);
+        ISIS_FREE(src_at);
+        return -1;
+     }
+
+   *pnum = n;
+   *pbkg_at = bkg_at;
+   *psrc_at = src_at;
+
+   return 0;
+}
+
+/*}}}*/
+
 static int copy_input_background (Hist_t *h, int do_rebin, double **bc, int *nbc) /*{{{*/
 {
    double *b = NULL;
@@ -5515,6 +5633,56 @@ static int compute_rate (double t, Isis_Hist_t *cpy) /*{{{*/
 
 /*}}}*/
 
+static void free_opt_data (Isis_Fit_Statistic_Optional_Data_Type *opt_data) /*{{{*/
+{
+   if (opt_data == NULL)
+     return;
+   ISIS_FREE(opt_data->bkg);
+   ISIS_FREE(opt_data->bkg_at);
+   ISIS_FREE(opt_data->src_at);
+}
+
+/*}}}*/
+
+static int init_opt_data (Hist_t *h, unsigned int version, /*{{{*/
+                          Isis_Fit_Statistic_Optional_Data_Type *opt_data)
+{
+   int nb, n = h->nbins;
+
+   opt_data->num = h->nbins;
+   opt_data->bkg = NULL;
+
+   if (is_counts(version))
+     {
+        if (h->instrumental_background_hook != NULL)
+          {
+             /* FIXME? */ fprintf (stderr, "*** init_opt_data:  sorry, this "
+                                   "functionality has not been implemented.\n");
+             return -1;
+          }
+        if (-1 == copy_input_background (h, 0, &opt_data->bkg, &nb))
+          return -1;
+        /* opt_data->bkg may be NULL here */
+     }
+
+   if (opt_data->bkg == NULL)
+     {
+        if (NULL == (opt_data->bkg = (double *)ISIS_MALLOC (n*sizeof(double))))
+          return -1;
+        memset ((char *)opt_data->bkg, 0, n*sizeof(double));
+     }
+
+   if (-1 == Hist_scaling_vectors (h, 0, 0, &opt_data->src_at, &opt_data->bkg_at, &nb))
+     {
+        free_opt_data (opt_data);
+        return -1;
+     }
+
+   return 0;
+}
+
+/*}}}*/
+
 static int compute_plot_residuals (Hist_t *h, unsigned int version, /*{{{*/
                                    Hist_Plot_Tune_Type *info,
                                    Isis_Fit_Statistic_Type *s,
@@ -5575,8 +5743,29 @@ static int compute_plot_residuals (Hist_t *h, unsigned int version, /*{{{*/
              double dv = total_err[i];
              wt[i] = 1.0/(dv*dv);
           }
-        if (-1 == s->compute_statistic (s, d->val, m->val, wt, n, cpy->val, &statistic))
-          goto return_error;
+          {
+             Isis_Fit_Statistic_Optional_Data_Type opt_data;
+             int stat_status;
+
+             if (s->uses_opt_data == 0)
+               s->opt_data = NULL;
+             else
+               {
+                  memset ((char *)&opt_data, 0, sizeof opt_data);
+                  if (-1 == init_opt_data (h, version, &opt_data))
+                    goto return_error;
+                  s->opt_data = &opt_data;
+               }
+
+             stat_status = s->compute_statistic (s, d->val, m->val, wt, n, cpy->val, &statistic);
+             s->opt_data = NULL;
+
+             if (s->uses_opt_data)
+               free_opt_data (&opt_data);
+
+             if (stat_status)
+               goto return_error;
+          }
         for (i = 0; i < n; i++)
           cpy->val_err[i] = 1.0;
         break;

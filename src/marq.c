@@ -120,7 +120,7 @@ static int _marquardt_compute_alpha_beta (Isis_Fit_Type *ft, void *clientdata, /
                                           unsigned int nparms)
 {
    Isis_Fit_Engine_Type *e = ft->engine;
-   Isis_Fit_Fun_Type *f = ft->compute_model;
+   Isis_Fit_Statistic_Type *fs = ft->stat;
    double *y_1 = NULL;
    double **dyda = NULL;
    int i, count_max, num_pars = nparms;
@@ -157,7 +157,7 @@ static int _marquardt_compute_alpha_beta (Isis_Fit_Type *ft, void *clientdata, /
 
              a[i] = a_test;
 
-             if (-1 == (*f) (clientdata, x, ny, a, nparms, y_1))
+             if (-1 == ft->compute_model (fs->opt_data, x, ny, a, nparms, y_1))
                {
                   e->warn_hook (clientdata, "function evaluation failed\n");
                   goto finish;
@@ -224,7 +224,6 @@ static int marquardt (Isis_Fit_Type *ft, void *clientdata, /*{{{*/
    double chisqr, chisqr0, chisqr1, lambda, dchisqr = 0.0;
    unsigned int i, j, k;
    int ret = -1;
-   Isis_Fit_Fun_Type *f;
 
    beta = a1 = y_1 = alpha_diag = vec = NULL;
 
@@ -250,9 +249,7 @@ static int marquardt (Isis_Fit_Type *ft, void *clientdata, /*{{{*/
         goto finish;
      }
 
-   f = ft->compute_model;
-
-   if (-1 == (*f) (clientdata, x, ny, a, nparms, y_1))
+   if (-1 == ft->compute_model (fs->opt_data, x, ny, a, nparms, y_1))
      {
         e->warn_hook (clientdata, "function evaluation failed\n");
         goto finish;
@@ -339,7 +336,7 @@ static int marquardt (Isis_Fit_Type *ft, void *clientdata, /*{{{*/
 
              (void) e->range_hook (e->range_hook_client_data, e->par_min, e->par_max, a1, nparms);
 
-             if (-1 == (*f) (clientdata, x, ny, a1, nparms, y_1))
+             if (-1 == ft->compute_model (fs->opt_data, x, ny, a1, nparms, y_1))
                {
                   e->warn_hook (clientdata, "function evaluation failed\n");
                   goto finish;

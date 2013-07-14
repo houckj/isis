@@ -225,6 +225,8 @@ extern int Hist_get_data_region_area (Hist_t *h, double **region_area, int *num)
 extern int Hist_get_back_region_area (Hist_t *h, double **region_area, int *num);
 extern int Hist_set_data_region_area (Hist_t *h, double *region_area, int num);
 extern int Hist_set_back_region_area (Hist_t *h, double *region_area, int num);
+extern int Hist_scaling_vectors (Hist_t *h, int do_rebin, int pack_noticed,
+                                 double **psrc_at, double **pbkg_at, int *pnum);
 extern int Hist_get_back_exposure (Hist_t *h, double *back_exposure);
 extern int Hist_set_back_exposure (Hist_t *h, double back_exposure);
 extern int Hist_set_color (Hist_t *h, int color);

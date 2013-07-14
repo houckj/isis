@@ -2031,6 +2031,7 @@ define add_slang_statistic ()
    variable msg =
 `add_slang_statistic (name, &fun, &report [; <qualifiers>])
    qualifiers:  delta_is_chisqr
+                uses_opt_data
 `;
    variable name, fun, report;
 
@@ -2043,6 +2044,9 @@ define add_slang_statistic ()
 
    if (qualifier_exists ("delta_is_chisqr"))
      _isis->set_fit_statistic_delta_distrib_intrin (name, 1);
+
+   if (qualifier_exists ("uses_opt_data"))
+     _isis->set_fit_statistic_opt_data_flag_intrin (name, 1);
 }
 
 define list_fit_methods ()
@@ -3502,6 +3506,7 @@ private define combination_struct (combo_id, indices, data, weights)
         data = data,
         err = sqrt(1./weights),
         model,
+        bkg, bkg_at, src_at,
         indices = indices,
      };
    return s;
@@ -3559,15 +3564,36 @@ private define store_combined_models (combo_ids, models) %{{{
 
 %}}}
 
+private define store_combined_opt_data (combo_ids, bkg, bkg_at, src_at) %{{{
+{
+   variable uniq_indices = unique(combo_ids),
+     n = length(uniq_indices);
+
+   variable j;
+   _for j (0, n-1, 1)
+     {
+        variable i = uniq_indices[j];
+        variable s = find_combo (combo_ids[i]);
+        s.bkg = bkg[s.indices];
+        s.bkg_at = bkg_at[s.indices];
+        s.src_at = src_at[s.indices];
+     }
+}
+
+%}}}
+
 _isis->set_combined_store_data_ref (&store_combined_data);
 _isis->set_combined_store_models_ref (&store_combined_models);
+_isis->set_combined_store_opt_data_ref (&store_combined_opt_data);
 
-private define unpack_combined1 (s) %{{{
+private define unpack_combined1 (ss) %{{{
 {
+   variable s = @ss;
+
    variable id = combination_members (s.combo_id)[0];
 
    variable d = get_data_counts (id);
-   variable num_bins = length(d.value);
+   variable num_bins = length(d.bin_lo);
 
    variable info = get_data_info (id);
    variable notice_list = info.notice_list;
@@ -3576,18 +3602,29 @@ private define unpack_combined1 (s) %{{{
    s.bin_hi = d.bin_hi;
 
    variable tmp;
-
    tmp = @s.data;
    s.data = Double_Type[num_bins];
    s.data[notice_list] = tmp;
 
    tmp = @s.err;
    s.err = Double_Type[num_bins];
-   d.err[notice_list] = tmp;
+   s.err[notice_list] = tmp;
 
    tmp = @s.model;
    s.model = Double_Type[num_bins];
    s.model[notice_list] = tmp;
+
+   tmp = @s.bkg;
+   s.bkg = Double_Type[num_bins];
+   s.bkg[notice_list] = tmp;
+
+   tmp = @s.bkg_at;
+   s.bkg_at = Double_Type[num_bins];
+   s.bkg_at[notice_list] = tmp;
+
+   tmp = @s.src_at;
+   s.src_at = Double_Type[num_bins];
+   s.src_at[notice_list] = tmp;
 
    return s;
 }
