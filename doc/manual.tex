@@ -7301,7 +7301,10 @@ This function returns a \slang\ structure defined as
 \begin{verbatim}
 struct
 {
-   id, lambda, A, flux, Z, ion, upper, lower, up_name, lo_name
+   id, lambda, A, flux, Z, ion,
+   upper, upper_g, upper_E, upper_L, upper_S,
+   lower, lower_g, lower_E, lower_L, lower_S,
+   up_name, lo_name
  }
 \end{verbatim}
 
@@ -7309,7 +7312,9 @@ The structure fields give the line index (id), wavelength (lambda)
 and Einstein A-value (A), and
 identify the ion and energy levels involved (proton number (Z), ionization
 state (ion), upper and lower energy level indices (upper/lower) and labels
-(up\_name/lo\_name) if available.  The ionization state is the integer
+(up\_name/lo\_name) if available.  For each energy level, the level
+degeneracy (g), excitation energy (E) and LS coupling quantum numbers
+are also provided.  The ionization state is the integer
 equivalent of the roman numeral; for example, an Fe XVII line would have
 {\tt Z=26}, {\tt ion=17}. The total flux from this line in the currently
 defined model (photons cm${}^{-2}$ s${}{-1}$) is returned in {\tt flux}.

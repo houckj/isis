@@ -987,6 +987,7 @@ typedef struct
    int indx;
    int proton_number, ion_charge;
    int   upper_index, lower_index;
+   float upper_g, lower_g;   /* statistical weights */
    float upper_E, lower_E;
    int   upper_L, upper_S;
    int   lower_L, lower_S;
@@ -1008,6 +1009,8 @@ static SLang_CStruct_Field_Type Line_Info_Table [] =
    MAKE_CSTRUCT_FIELD(Line_Info_Type, proton_number, "Z", I, 0),
    MAKE_CSTRUCT_FIELD(Line_Info_Type, upper_index, "upper", I, 0),
    MAKE_CSTRUCT_FIELD(Line_Info_Type, lower_index, "lower", I, 0),
+   MAKE_CSTRUCT_FIELD(Line_Info_Type, upper_g, "upper_g", F, 0),
+   MAKE_CSTRUCT_FIELD(Line_Info_Type, lower_g, "lower_g", F, 0),
    MAKE_CSTRUCT_FIELD(Line_Info_Type, upper_E, "upper_E", F, 0),
    MAKE_CSTRUCT_FIELD(Line_Info_Type, lower_E, "lower_E", F, 0),
    MAKE_CSTRUCT_FIELD(Line_Info_Type, upper_L, "upper_L", I, 0),
@@ -1076,6 +1079,7 @@ static void _get_line_info (int *id) /*{{{*/
    ion = DB_get_ion (db, Z, q);
    if (NULL != (e_upper = DB_get_ion_level (up, ion)))
      {
+        li.upper_g = e_upper->stat_weight;
         li.upper_E = e_upper->energy;
         li.upper_L = e_upper->L;
         li.upper_S = e_upper->S;
@@ -1083,6 +1087,7 @@ static void _get_line_info (int *id) /*{{{*/
 
    if (NULL != (e_lower = DB_get_ion_level (lo, ion)))
      {
+        li.lower_g = e_lower->stat_weight;
         li.lower_E = e_lower->energy;
         li.lower_L = e_lower->L;
         li.lower_S = e_lower->S;
