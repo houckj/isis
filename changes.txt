@@ -25,3 +25,7 @@ Changes since 0.4.6
 12. src/fits.sl:fits_write_binary_table: Added 64 bit integer support.
 13. src/cfitsio-module.c: Added explicit support for writing short and
     long integer keywords.
+14. src/cfitsio-module.c: If fits_update_key is passed a char-type,
+    then that value will be written as a fits logical keyword value.
+15. configure: Parse /etc/ld.so.conf to find additional system lib
+    directories.

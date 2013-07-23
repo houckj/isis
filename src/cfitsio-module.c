@@ -737,6 +737,15 @@ static int update_key (void)
 	break;
 
       case SLANG_CHAR_TYPE:
+      case SLANG_UCHAR_TYPE:
+	type = TLOGICAL;
+	if (-1 == SLang_pop_integer (&i))
+	  goto free_and_return;
+	if (i == 'F') i = 0;
+	i = (i != 0);
+	v = (VOID_STAR) &i;
+	break;
+
       case SLANG_SHORT_TYPE:
       case SLANG_INT_TYPE:
 	type = TINT;
@@ -745,7 +754,6 @@ static int update_key (void)
 	v = (VOID_STAR) &i;
 	break;
 
-      case SLANG_UCHAR_TYPE:
       case SLANG_USHORT_TYPE:
       case SLANG_UINT_TYPE:
 	type = TUINT;

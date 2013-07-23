@@ -1,4 +1,13 @@
 dnl# -*- mode: sh; mode: fold -*-
+dnl# 0.3.0-0: Added support for parsing /etc/ld.so.conf
+dnl# 0.2.7-3: Change ncurses5w-config to ncursesw5-config (Gilles Espinasse)
+dnl# 0.2.7-2: For the Makefile rules, use cd foo && bar instead of cd foo; bar
+dnl# 0.2.7-1: Use "$ARCH"elfobjs instead of elf"$ARCH"objs for better flexibility
+dnl# 0.2.7-0: Instead of expanding $ARCH at configure time, use \$ARCH for compile-time expansion
+dnl# 0.2.6-2: Missing hyphen for cygwin ELFLIB_MAJOR (Marco Atzeri)
+dnl# 0.2.6-1: Added optional second and third arguments to AC_DEFINE (Marco Atzeri)
+dnl# 0.2.6-0: On cygwin, change libfooX_Y_Z.dll to cygfoo-X_Y_Z.dll (Marco Atzeri)
+dnl# 0.2.5-3: Changed AC_DEFUN(foo...) to AC_DEFUN([foo]...)
 dnl# 0.2.5-2: JD_CHECK_FOR_LIBRARY will alse output *_INC_DIR and *_LIB_DIR
 dnl# 0.2.5-1: Updated using autoupdate
 dnl# 0.2.5-0: M_LIB output variable created for haiku support (Scott McCreary)
@@ -19,7 +28,7 @@ dnl# Version 0.1.7: removed "-K pic" from IRIX compiler lines
 dnl# Version 0.1.6: Added cygwin module support
 dnl# Version 0.1.5: Added gcc version-script support.
 
-AC_DEFUN(JD_INIT,     dnl#{{{
+AC_DEFUN([JD_INIT],     dnl#{{{
 [
 #These variable are initialized by JD init function
 CONFIG_DIR=`pwd`
@@ -48,7 +57,7 @@ dnl# This function expand the "prefix variables.  For example, it will expand
 dnl# values such as ${exec_prefix}/foo when ${exec_prefix} itself has a
 dnl# of ${prefix}.  This function produces the shell variables:
 dnl# jd_prefix_libdir, jd_prefix_incdir
-AC_DEFUN(JD_EXPAND_PREFIX, dnl#{{{
+AC_DEFUN([JD_EXPAND_PREFIX], dnl#{{{
 [
   if test "X$jd_prefix" = "X"
   then
@@ -77,7 +86,18 @@ EOF
 ])
 #}}}
 
-AC_DEFUN(JD_SET_OBJ_SRC_DIR, dnl#{{{
+AC_DEFUN([JD_GET_SYS_INCLIBS], dnl#{{{
+[
+  if test -x $ac_aux_dir/scripts/getsyslibs.sh
+  then
+    JD_SYS_INCLIBS=`$ac_aux_dir/scripts/getsyslibs.sh`
+  else
+    JD_SYS_INCLIBS=""
+  fi
+])
+dnl#}}}
+
+AC_DEFUN([JD_SET_OBJ_SRC_DIR], dnl#{{{
 [
 #---------------------------------------------------------------------------
 # Set the source directory and object directory.   The makefile assumes an
@@ -95,8 +115,8 @@ then
   fi
 fi
 
-OBJDIR=$SRCDIR/"$ARCH"objs
-ELFDIR=$SRCDIR/elf"$ARCH"objs
+OBJDIR=$SRCDIR/"\$(ARCH)"objs
+ELFDIR=$SRCDIR/"\$(ARCH)"elfobjs
 AC_SUBST(SRCDIR)dnl
 AC_SUBST(OBJDIR)dnl
 AC_SUBST(ELFDIR)dnl
@@ -104,7 +124,7 @@ AC_SUBST(ELFDIR)dnl
 dnl#}}}
 
 RPATH=""
-AC_DEFUN(JD_INIT_RPATH, dnl#{{{
+AC_DEFUN([JD_INIT_RPATH], dnl#{{{
 [
 dnl# determine whether or not -R or -rpath can be used
 case "$host_os" in
@@ -145,7 +165,7 @@ esac
 
 dnl#}}}
 
-AC_DEFUN(JD_SET_RPATH, dnl#{{{
+AC_DEFUN([JD_SET_RPATH], dnl#{{{
 [
 if test "X$1" != "X"
 then
@@ -157,7 +177,19 @@ then
       RPATH="$RPATH$1"
     fi
   else
-    RPATH="$RPATH:$1"
+    _already_there=0
+    for X in `echo $RPATH | sed 's/:/ /g'`
+    do
+      if test "$X" = "$1"
+      then
+        _already_there=1
+	break
+      fi
+    done
+    if test $_already_there = 0
+    then
+      RPATH="$RPATH:$1"
+    fi
   fi
 fi
 ])
@@ -165,7 +197,7 @@ AC_SUBST(RPATH)dnl
 
 dnl#}}}
 
-AC_DEFUN(JD_UPPERCASE, dnl#{{{
+AC_DEFUN([JD_UPPERCASE], dnl#{{{
 [
 changequote(<<, >>)dnl
 define(<<$2>>, translit($1, [a-z], [A-Z]))dnl
@@ -173,7 +205,7 @@ changequote([, ])dnl
 ])
 #}}}
 
-AC_DEFUN(JD_SIMPLE_LIB_DIR, dnl#{{{
+AC_DEFUN([JD_SIMPLE_LIB_DIR], dnl#{{{
 [
 JD_UPPERCASE($1,JD_UP_NAME)
 JD_UP_NAME[]_LIB_DIR=$JD_Above_Dir/$1/libsrc/"$ARCH"objs
@@ -199,7 +231,7 @@ undefine([JD_UP_NAME])dnl
 
 dnl#}}}
 
-AC_DEFUN(JD_FIND_GENERIC, dnl#{{{
+AC_DEFUN([JD_FIND_GENERIC], dnl#{{{
 [
   AC_REQUIRE([JD_EXPAND_PREFIX])dnl
 
@@ -276,12 +308,12 @@ fi
 JD_UP_NAME[]_INC="-I[$]JD_UP_NAME[]_INCLUDE"
 JD_UP_NAME[]_LIB="-L[$]JD_UP_NAME[]_LIB_DIR"
 JD_SET_RPATH([$]JD_UP_NAME[]_LIB_DIR)
-dnl if test "X$GCC" = Xyes
-dnl then
-dnl    RPATH_[]JD_UP_NAME="-Wl,-R[$]JD_UP_NAME[]_LIB_DIR"
-dnl else
-dnl    RPATH_[]JD_UP_NAME="-R[$]JD_UP_NAME[]_LIB_DIR"
-dnl fi
+dnl# if test "X$GCC" = Xyes
+dnl# then
+dnl#    RPATH_[]JD_UP_NAME="-Wl,-R[$]JD_UP_NAME[]_LIB_DIR"
+dnl# else
+dnl#    RPATH_[]JD_UP_NAME="-R[$]JD_UP_NAME[]_LIB_DIR"
+dnl# fi
 
 # gcc under solaris is often not installed correctly.  Avoid specifying
 # -I/usr/include.
@@ -300,23 +332,23 @@ AC_SUBST(JD_UP_NAME[]_LIB)dnl
 AC_SUBST(JD_UP_NAME[]_INC)dnl
 AC_SUBST(JD_UP_NAME[]_LIB_DIR)dnl
 AC_SUBST(JD_UP_NAME[]_INCLUDE)dnl
-dnl AC_SUBST(RPATH_[]JD_UP_NAME)dnl
+dnl# AC_SUBST(RPATH_[]JD_UP_NAME)dnl
 undefine([JD_UP_NAME])dnl
 ])
 
 dnl#}}}
 
-AC_DEFUN(JD_FIND_SLANG, dnl#{{{
+AC_DEFUN([JD_FIND_SLANG], dnl#{{{
 [
 JD_FIND_GENERIC(slang)
 ])
 
 dnl#}}}
 
-AC_DEFUN(JD_GCC_WARNINGS, dnl#{{{
+AC_DEFUN([JD_GCC_WARNINGS], dnl#{{{
 [
 AC_ARG_ENABLE(warnings,
-	      [  --enable-warnings       turn on GCC compiler warnings],
+	      AC_HELP_STRING([--enable-warnings],[turn on GCC compiler warnings]),
 	      [gcc_warnings=$enableval])
 if test -n "$GCC"
 then
@@ -324,7 +356,8 @@ then
   if test -n "$gcc_warnings"
   then
     CFLAGS="$CFLAGS -Wall -W -pedantic -Winline -Wmissing-prototypes \
- -Wnested-externs -Wpointer-arith -Wcast-align -Wshadow -Wstrict-prototypes"
+ -Wnested-externs -Wpointer-arith -Wcast-align -Wshadow -Wstrict-prototypes \
+ -Wformat=2"
     # Now trim excess whitespace
     CFLAGS=`echo $CFLAGS`
   fi
@@ -334,7 +367,7 @@ fi
 dnl#}}}
 
 IEEE_CFLAGS=""
-AC_DEFUN(JD_IEEE_CFLAGS, dnl#{{{
+AC_DEFUN([JD_IEEE_CFLAGS], dnl#{{{
 [
 case "$host_cpu" in
   *alpha* )
@@ -352,27 +385,27 @@ esac
 
 dnl#}}}
 
-AC_DEFUN(JD_CREATE_ORULE, dnl#{{{
+AC_DEFUN([JD_CREATE_ORULE], dnl#{{{
 [
 PROGRAM_OBJECT_RULES="$PROGRAM_OBJECT_RULES
 \$(OBJDIR)/$1.o : \$(SRCDIR)/$1.c \$(DOT_O_DEPS) \$("$1"_O_DEP)
-	cd \$(OBJDIR); \$(COMPILE_CMD) \$("$1"_C_FLAGS) \$(SRCDIR)/$1.c
+	cd \$(OBJDIR) && \$(COMPILE_CMD) \$("$1"_C_FLAGS) \$(SRCDIR)/$1.c
 "
 ])
 
 dnl#}}}
 
-AC_DEFUN(JD_CREATE_ELFORULE, dnl#{{{
+AC_DEFUN([JD_CREATE_ELFORULE], dnl#{{{
 [
 PROGRAM_ELF_ORULES="$PROGRAM_ELF_ORULES
 \$(ELFDIR)/$1.o : \$(SRCDIR)/$1.c \$(DOT_O_DEPS) \$("$1"_O_DEP)
-	cd \$(ELFDIR); \$(ELFCOMPILE_CMD) \$("$1"_C_FLAGS) \$(SRCDIR)/$1.c
+	cd \$(ELFDIR) && \$(ELFCOMPILE_CMD) \$("$1"_C_FLAGS) \$(SRCDIR)/$1.c
 "
 ])
 
 dnl#}}}
 
-AC_DEFUN(JD_CREATE_EXEC_RULE, dnl#{{{
+AC_DEFUN([JD_CREATE_EXEC_RULE], dnl#{{{
 [
 PROGRAM_OBJECT_RULES="$PROGRAM_OBJECT_RULES
 $1 : \$(OBJDIR)/$1
@@ -380,13 +413,13 @@ $1 : \$(OBJDIR)/$1
 \$(OBJDIR)/$1 : \$(OBJDIR)/$1.o \$("$1"_DEPS) \$(EXECDEPS)
 	\$(CC) -o \$(OBJDIR)/$1 \$(LDFLAGS) \$(OBJDIR)/$1.o \$("$1"_LIBS) \$(EXECLIBS)
 \$(OBJDIR)/$1.o : \$(SRCDIR)/$1.c \$(DOT_O_DEPS) \$("$1"_O_DEP)
-	cd \$(OBJDIR); \$(COMPILE_CMD) \$("$1"_INC) \$(EXECINC) \$(SRCDIR)/$1.c
+	cd \$(OBJDIR) && \$(COMPILE_CMD) \$("$1"_INC) \$(EXECINC) \$(SRCDIR)/$1.c
 "
 ])
 
 dnl#}}}
 
-AC_DEFUN(JD_CREATE_MODULE_ORULES, dnl#{{{
+AC_DEFUN([JD_CREATE_MODULE_ORULES], dnl#{{{
 [
  for program_module in $Program_Modules; do
    JD_CREATE_ORULE($program_module)
@@ -396,7 +429,7 @@ AC_DEFUN(JD_CREATE_MODULE_ORULES, dnl#{{{
 
 dnl#}}}
 
-AC_DEFUN(JD_GET_MODULES, dnl#{{{
+AC_DEFUN([JD_GET_MODULES], dnl#{{{
 [
  PROGRAM_HFILES=""
  PROGRAM_OFILES=""
@@ -433,21 +466,21 @@ AC_SUBST(PROGRAM_ELFOBJECTS)dnl
 
 dnl#}}}
 
-AC_DEFUN(JD_APPEND_RULES, dnl#{{{
+AC_DEFUN([JD_APPEND_RULES], dnl#{{{
 [
  echo "$PROGRAM_OBJECT_RULES" >> $1
 ])
 
 dnl#}}}
 
-AC_DEFUN(JD_APPEND_ELFRULES, dnl#{{{
+AC_DEFUN([JD_APPEND_ELFRULES], dnl#{{{
 [
  echo "$PROGRAM_ELF_ORULES" >> $1
 ])
 
 dnl#}}}
 
-AC_DEFUN(JD_CREATE_MODULE_EXEC_RULES, dnl#{{{
+AC_DEFUN([JD_CREATE_MODULE_EXEC_RULES], dnl#{{{
 [
  for program_module in $Program_Modules; do
    JD_CREATE_EXEC_RULE($program_module)
@@ -456,12 +489,12 @@ AC_DEFUN(JD_CREATE_MODULE_EXEC_RULES, dnl#{{{
 
 dnl#}}}
 
-AC_DEFUN(JD_TERMCAP, dnl#{{{
+AC_DEFUN([JD_TERMCAP], dnl#{{{
 [
 AC_PATH_PROG(nc5config, ncurses5-config, no)
 if test "$nc5config" = "no"
 then
-  AC_PATH_PROG(nc5config, ncurses5w-config, no)
+  AC_PATH_PROG(nc5config, ncursesw5-config, no)
 fi
 AC_MSG_CHECKING(for terminfo)
 if test "$nc5config" != "no"
@@ -488,7 +521,7 @@ do
 done
 if test "$TERMCAP"; then
   AC_MSG_RESULT(no)
-  AC_DEFINE(USE_TERMCAP)
+  AC_DEFINE(USE_TERMCAP,1,[Define to use termcap])
 fi
 AC_SUBST(TERMCAP)dnl
 AC_SUBST(MISC_TERMINFO_DIRS)dnl
@@ -496,12 +529,12 @@ AC_SUBST(MISC_TERMINFO_DIRS)dnl
 
 dnl#}}}
 
-AC_DEFUN(JD_ANSI_CC, dnl#{{{
+AC_DEFUN([JD_ANSI_CC], dnl#{{{
 [
 AC_AIX
-AC_PROG_CC
-AC_PROG_CPP
-AC_PROG_GCC_TRADITIONAL
+AC_REQUIRE([AC_PROG_CC])
+AC_REQUIRE([AC_PROG_CPP])
+AC_REQUIRE([AC_PROG_GCC_TRADITIONAL])
 AC_ISC_POSIX
 
 dnl #This stuff came from Yorick config script
@@ -513,7 +546,7 @@ AC_EGREP_CPP(yes,
   yes
 #endif
 ], [
-AC_DEFINE(_HPUX_SOURCE)
+AC_DEFINE(_HPUX_SOURCE,1,[Special define needed for HPUX])
 if test "$CC" = cc; then CC="cc -Ae"; fi
 ])dnl
 dnl
@@ -530,19 +563,22 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
 
 dnl#}}}
 
-AC_DEFUN(JD_ELF_COMPILER, dnl#{{{
+AC_DEFUN([JD_ELF_COMPILER], dnl#{{{
 [
 dnl #-------------------------------------------------------------------------
 dnl # Check for dynamic linker
 dnl #-------------------------------------------------------------------------
 DYNAMIC_LINK_LIB=""
+
+dnl# AH_TEMPLATE([HAVE_DLOPEN],1,[Define if you have dlopen])
+
 AC_CHECK_HEADER(dlfcn.h,[
-  AC_DEFINE(HAVE_DLFCN_H)
+  AC_DEFINE(HAVE_DLFCN_H,1,[Define if you have the dlfcn.h header])
   AC_CHECK_LIB(dl,dlopen,[
     DYNAMIC_LINK_LIB="-ldl"
-    AC_DEFINE(HAVE_DLOPEN)
+    AC_DEFINE(HAVE_DLOPEN,1,[Define if you have dlopen])
    ],[
-    AC_CHECK_FUNC(dlopen,AC_DEFINE(HAVE_DLOPEN))
+    AC_CHECK_FUNC(dlopen,AC_DEFINE(HAVE_DLOPEN,[Define if you have dlopen]))
     if test "$ac_cv_func_dlopen" != yes
     then
       AC_MSG_WARN(cannot perform dynamic linking)
@@ -678,9 +714,9 @@ case "$host_os" in
     INSTALL_MODULE="\$(INSTALL)"
     INSTALL_ELFLIB_TARGET="install-elf-cygwin"
     ELFLIB="lib\$(THIS_LIB).dll"
-    ELFLIB_MAJOR="lib\$(THIS_LIB)\$(ELF_MAJOR_VERSION).dll"
-    ELFLIB_MAJOR_MINOR="lib\$(THIS_LIB)\$(ELF_MAJOR_VERSION)_\$(ELF_MINOR_VERSION).dll"
-    ELFLIB_MAJOR_MINOR_MICRO="lib\$(THIS_LIB)\$(ELF_MAJOR_VERSION)_\$(ELF_MINOR_VERSION)_\$(ELF_MICRO_VERSION).dll"
+    ELFLIB_MAJOR="cyg\$(THIS_LIB)-\$(ELF_MAJOR_VERSION).dll"
+    ELFLIB_MAJOR_MINOR="cyg\$(THIS_LIB)-\$(ELF_MAJOR_VERSION)_\$(ELF_MINOR_VERSION).dll"
+    ELFLIB_MAJOR_MINOR_MICRO="cyg\$(THIS_LIB)-\$(ELF_MAJOR_VERSION)_\$(ELF_MINOR_VERSION)_\$(ELF_MICRO_VERSION).dll"
     ELFLIB_BUILD_NAME="\$(ELFLIB_MAJOR)"
     ;;
   *haiku* )
@@ -723,7 +759,7 @@ AC_SUBST(M_LIB)
 
 dnl#}}}
 
-AC_DEFUN(JD_F77_COMPILER, dnl#{{{
+AC_DEFUN([JD_F77_COMPILER], dnl#{{{
 [
 case "$host_os" in
  *linux* )
@@ -752,7 +788,7 @@ dnl# This macro process the --with-xxx, --with-xxxinc, and --with-xxxlib
 dnl# command line arguments and returns the values as shell variables
 dnl# jd_xxx_include_dir and jd_xxx_library_dir.  It does not perform any
 dnl# substitutions, nor check for the existence of the supplied values.
-AC_DEFUN(JD_WITH_LIBRARY_PATHS, dnl#{{{
+AC_DEFUN([JD_WITH_LIBRARY_PATHS], dnl#{{{
 [
  JD_UPPERCASE($1,JD_ARG1)
  jd_$1_include_dir=""
@@ -830,9 +866,10 @@ dnl#  jd_$1_inc_file
 dnl#  jd_$1_include_dir
 dnl#  jd_$1_library_dir
 dnl# If $3 is present, then also look in $3/include+$3/lib
-AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
+AC_DEFUN([JD_CHECK_FOR_LIBRARY], dnl#{{{
 [
   AC_REQUIRE([JD_EXPAND_PREFIX])dnl
+  AC_REQUIRE([JD_GET_SYS_INCLIBS])dnl
   dnl JD_UPPERCASE($1,JD_ARG1)
   JD_WITH_LIBRARY_PATHS($1)
   AC_MSG_CHECKING(for the $1 library and header files $2)
@@ -853,6 +890,7 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
 	 /usr/local/$1/include,/usr/local/$1/lib \
 	 /usr/local/include/$1,/usr/local/lib \
 	 /usr/local/include,/usr/local/lib \
+	 $JD_SYS_INCLIBS \
 	 /usr/include/$1,/usr/lib \
 	 /usr/$1/include,/usr/$1/lib \
 	 /usr/include,/usr/lib \
@@ -916,7 +954,7 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
     dnl#  gcc on some solaris systems.
     JD_ARG1[]_LIB=-L$jd_$1_library_dir
     JD_ARG1[]_LIB_DIR=$jd_$1_library_dir
-    if test "X$jd_$1_library_dir" = "X/usr/lib"
+    if test "X$jd_$1_library_dir" = "X/usr/lib" -o "X$jd_$1_include_dir" = "X/usr/include"
     then
       JD_ARG1[]_LIB=""
     else
@@ -944,7 +982,7 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
 ])
 dnl#}}}
 
-AC_DEFUN(JD_WITH_LIBRARY, dnl#{{{
+AC_DEFUN([JD_WITH_LIBRARY], dnl#{{{
 [
   JD_CHECK_FOR_LIBRARY($1, $2, $3)
   if test "$jd_with_$1_library" = "no"
@@ -954,7 +992,7 @@ AC_DEFUN(JD_WITH_LIBRARY, dnl#{{{
 ])
 dnl#}}}
 
-AC_DEFUN(JD_SLANG_VERSION, dnl#{{{
+AC_DEFUN([JD_SLANG_VERSION], dnl#{{{
 [
  slang_h=$jd_slang_include_dir/slang.h
  AC_MSG_CHECKING(SLANG_VERSION in $slang_h)
@@ -975,7 +1013,7 @@ AC_SUBST(slang_patchlevel_version)
 ])
 #}}}
 
-AC_DEFUN(JD_SLANG_MODULE_INSTALL_DIR, dnl#{{{
+AC_DEFUN([JD_SLANG_MODULE_INSTALL_DIR], dnl#{{{
 [
   AC_REQUIRE([JD_SLANG_VERSION])
   if test "X$slang_major_version" = "X1"
@@ -990,14 +1028,14 @@ AC_DEFUN(JD_SLANG_MODULE_INSTALL_DIR, dnl#{{{
 ])
 #}}}
 
-AC_DEFUN(JD_CHECK_LONG_LONG, dnl#{{{
+AC_DEFUN([JD_CHECK_LONG_LONG], dnl#{{{
 [
   AC_CHECK_TYPES(long long)
   AC_CHECK_SIZEOF(long long)
 ])
 dnl#}}}
 
-AC_DEFUN(JD_LARGE_FILE_SUPPORTXXX, dnl#{{{
+AC_DEFUN([JD_LARGE_FILE_SUPPORTXXX], dnl#{{{
 [
   AC_REQUIRE([JD_CHECK_LONG_LONG])
   AC_MSG_CHECKING(whether to explicitly activate long file support)
@@ -1022,7 +1060,7 @@ AC_DEFUN(JD_LARGE_FILE_SUPPORTXXX, dnl#{{{
 ])
 dnl#}}}
 
-AC_DEFUN(JD_LARGE_FILE_SUPPORT, dnl#{{{
+AC_DEFUN([JD_LARGE_FILE_SUPPORT], dnl#{{{
 [
   AC_SYS_LARGEFILE
   AC_FUNC_FSEEKO
@@ -1031,7 +1069,7 @@ AC_DEFUN(JD_LARGE_FILE_SUPPORT, dnl#{{{
 ])
 #}}}
 
-AC_DEFUN(JD_HAVE_ISINF, dnl#{{{
+AC_DEFUN([JD_HAVE_ISINF], dnl#{{{
 [
   AC_MSG_CHECKING([for isinf])
   AC_LINK_IFELSE([AC_LANG_PROGRAM( [[#include <math.h>]], [[isinf (0.0);]])],
