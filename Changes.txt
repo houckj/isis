@@ -31,8 +31,20 @@ Changes since 1.6.2 (released Jan 2012)
      get_back_data_scale_factor
 19.  conf_loop fits flux-corrected data when 'flux' qualifier
      is present
-20.  Support fit statistic with explicit dependence on background 
+20.  Support fit statistic with explicit dependence on background
      (e.g. wstat)
+21.  Bug-fix: When several different models were defined using
+     set_par_fun to assign a different function to the same
+     parameter index in each model (e.g. param #5 in each
+     model), the parameter functions assigned to that index
+     weren't always being restored correctly upon each switch
+     to a previously defined fit-function.  This happened
+     because the names chosen for the corresponding
+     auto-generated temporary S-Lang functions were not
+     sufficiently varied (making function name collisions quite
+     likely under these conditions).  With this fix, the
+     temporary function names include an md5 checksum and so
+     are (almost) certain to be unique.
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------

@@ -273,7 +273,7 @@ int mpfit(mp_func funct, int m, int npar,
 {
   mp_config conf;
   int i, j, info, iflag, nfree, npegged, iter;
-  int qanylim = 0, qanypegged = 0;
+  int qanylim = 0 /* , qanypegged = 0 */;
 
   int ij,jj,l;
   double actred,delta,dirder,fnorm,fnorm1,gnorm, orignorm;
@@ -488,7 +488,7 @@ int mpfit(mp_func funct, int m, int npar,
   }
 
   /* Determine if any of the parameters are pegged at the limits */
-  qanypegged = 0;
+  /* qanypegged = 0; */
   if (qanylim) {
     for (j=0; j<nfree; j++) {
       int lpegged = (qllim[j] && (x[j] == llim[j]));
@@ -496,7 +496,7 @@ int mpfit(mp_func funct, int m, int npar,
       sum = 0;
 
       if (lpegged || upegged) {
-	qanypegged = 1;
+	/* qanypegged = 1; */
 	ij = j*ldfjac;
 	for (i=0; i<m; i++, ij++) {
 	  sum += fvec[i] * fjac[ij];

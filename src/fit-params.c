@@ -816,11 +816,8 @@ int Fit_untie (Param_t *pt, unsigned int idx) /*{{{*/
 
 int Fit_set_param_function (Param_t *pt, unsigned int idx, char *str) /*{{{*/
 {
-   static char *fmt = "define _pf_%u() {return %s;}";
    Param_Info_t *p;
-   char fun_name[32];
-   char *buf;
-   int len;
+   char *fun_name = NULL;
 
    if (NULL == (p = find_param_by_index (pt, idx)))
      return -1;
@@ -832,30 +829,28 @@ int Fit_set_param_function (Param_t *pt, unsigned int idx, char *str) /*{{{*/
         return 0;
      }
 
-   len = strlen (fmt) + strlen (str) + 16;
-   if (NULL == (buf = (char *) ISIS_MALLOC (len * sizeof(char))))
+   if (-1 == SLang_run_hooks ("_isis->define_param_function", 1, str))
      return -1;
-   sprintf (buf, fmt, idx, str);
-   sprintf (fun_name, "_pf_%u", idx);
-   if (-1 == SLang_load_string (buf))
-     {
-        ISIS_FREE (buf);
-        return -1;
-     }
-   ISIS_FREE (buf);
+   if (-1 == SLpop_string (&fun_name))
+     return -1;
 
    SLang_free_function (p->fun_ptr);
    if (NULL == (p->fun_ptr = SLang_get_function (fun_name)))
-     return -1;
+     {
+        SLfree (fun_name);
+        return -1;
+     }
 
    ISIS_FREE (p->fun_str);
    if (NULL == (p->fun_str = isis_make_string (str)))
      {
+        SLfree (fun_name);
         SLang_free_function (p->fun_ptr);
         p->fun_ptr = NULL;
         return -1;
      }
 
+   SLfree (fun_name);
    p->freeze = 1;
 
    return update_derived_params (pt, INFO);

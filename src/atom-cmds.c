@@ -995,7 +995,7 @@ typedef struct
    char *lower_label;
 }
 Line_Info_Type;
-#define LINE_INFO_TYPE_INIT {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0}
+#define LINE_INFO_TYPE_INIT {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0}
 
 static SLang_CStruct_Field_Type Line_Info_Table [] =
 {

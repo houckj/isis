@@ -2,6 +2,43 @@
 () = evalfile ("inc.sl");
 msg ("testing par_fun.... ");
 
+% Test uniqueness of internally generated S-Lang parameter function name
+
+variable tolfrac = 3*DOUBLE_EPSILON;
+
+% link the centers:
+fit_fun("gauss(1)+gauss(2)");
+set_par_fun("gauss(2).center","2.0*gauss(1).center");
+set_par("gauss(1).center",5.0);
+variable g1c = get_par ("gauss(1).center");
+variable g2c = get_par ("gauss(2).center");
+if (g1c*2 - g2c > g2c * tolfrac)
+   failed ("test 1 failed");
+
+% try same setup with 2 different gaussians:
+fit_fun("gauss(3)+gauss(4)");
+set_par_fun("gauss(4).center","3.0*gauss(3).center");
+set_par("gauss(3).center",6.0);
+variable g3c = get_par ("gauss(3).center");
+variable g4c = get_par ("gauss(4).center");
+if (g3c*3 - g4c > g4c * tolfrac)
+   failed ("test 2 failed");
+% cleanup
+set_par_fun ("gauss(4).center", NULL);
+
+% Now, go back to the first pair of gaussians.
+% We expect that that setup is still in place.
+% If not, then there's a problem.
+fit_fun("gauss(1)+gauss(2)");
+set_par("gauss(1).center",10.0);
+variable g1c = get_par ("gauss(1).center");
+variable g2c = get_par ("gauss(2).center");
+if (g1c*2 - g2c > g2c * tolfrac)
+   failed ("test 3 failed");
+% cleanup
+set_par_fun ("gauss(2).center", NULL);
+
+% More tests:
 fit_fun ("gauss(1) + gauss(2) + gauss(3)");
 
 set_par ("gauss(1).center", 12.0);

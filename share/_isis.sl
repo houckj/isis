@@ -29,6 +29,7 @@ use_namespace ("_isis");
 
 require ("structfuns.sl");
 require ("print");
+require ("chksum");
 
 define pop_list (num, msg) %{{{
 {
@@ -992,4 +993,16 @@ define do_eval_with_qualifiers ()
    (fun, qualifiers) = ();
    % assume any remaining args are on the stack
    return (@fun)( ;; qualifiers);
+}
+
+% Support defining fit parameters as functions of other fit
+% parameters.
+define define_param_function (str)
+{
+   % Use md5 checksum because user's expect these functions
+   % to persist.
+   variable fun_name = sprintf ("_pf_%s", md5sum(str));
+   variable fun_def = "define ${fun_name}(){return ${str};}"$;
+   eval (fun_def, "Global");
+   return fun_name;
 }
