@@ -899,6 +899,11 @@ int isis_fit_report_statistic (Isis_Fit_Type *f, FILE *fp, double stat, unsigned
    if ((f == NULL) || (f->stat->report == NULL))
      return -1;
 
+   if (Isis_Verbose >= 0)
+     {
+        (void) SLang_run_hooks ("_isis->check_optimizer_context", 0);
+     }
+
    return f->stat->report (f->stat, fp, stat, npts, nvpars);
 }
 

@@ -1006,3 +1006,15 @@ define define_param_function (str)
    eval (fun_def, "Global");
    return fun_name;
 }
+
+define check_optimizer_context ()
+{
+   variable opt = _isis->_get_fit_method_name ();
+   variable stat = _isis->_get_fit_statistic_name ();
+
+   if ((0 == string_match (stat, "chisqr*"))
+       && (string_match (opt, "lmdif*") || string_match (opt, "mpfit*")))
+     {
+        vmessage ("*** Warning:  mpfit/lmdif optimize chi-square only.");
+     }
+}
