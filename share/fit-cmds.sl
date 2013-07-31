@@ -3614,17 +3614,26 @@ private define unpack_combined1 (ss) %{{{
    s.model = Double_Type[num_bins];
    s.model[notice_list] = tmp;
 
-   tmp = @s.bkg;
-   s.bkg = Double_Type[num_bins];
-   s.bkg[notice_list] = tmp;
+   if (s.bkg != NULL)
+     {
+        tmp = @s.bkg;
+        s.bkg = Double_Type[num_bins];
+        s.bkg[notice_list] = tmp;
+     }
 
-   tmp = @s.bkg_at;
-   s.bkg_at = Double_Type[num_bins];
-   s.bkg_at[notice_list] = tmp;
+   if (s.bkg_at != NULL)
+     {
+        tmp = @s.bkg_at;
+        s.bkg_at = Double_Type[num_bins];
+        s.bkg_at[notice_list] = tmp;
+     }
 
-   tmp = @s.src_at;
-   s.src_at = Double_Type[num_bins];
-   s.src_at[notice_list] = tmp;
+   if (s.src_at != NULL)
+     {
+        tmp = @s.src_at;
+        s.src_at = Double_Type[num_bins];
+        s.src_at[notice_list] = tmp;
+     }
 
    return s;
 }
