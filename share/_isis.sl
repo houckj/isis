@@ -29,7 +29,6 @@ use_namespace ("_isis");
 
 require ("structfuns.sl");
 require ("print");
-require ("chksum");
 
 define pop_list (num, msg) %{{{
 {
@@ -997,11 +996,31 @@ define do_eval_with_qualifiers ()
 
 % Support defining fit parameters as functions of other fit
 % parameters.
+require ("chksum");
+#ifdef md5sum
+private define __random_name (str)
+{
+   % md5 checksum is preferred because there's a
+   % fixed, unique mapping from str -> fun_name.
+   return md5sum (str);
+}
+#else
+require ("rand");
+private variable __chars = "0123456789abcdefghijklmnopqrstuvwxyz";
+private variable __num_chars = strlen (__chars);
+private define __random_name (str)
+{
+   % If the md5 checksum isn't available, just generate
+   % a short random string -- long enough to make a
+   % collision unlikely, but short enough that it isn't
+   % a resource leak for a long-running program that
+   % creates lots of temporary functions.
+   return __chars[rand_int(0,__num_chars-1, 4)];
+}
+#endif
 define define_param_function (str)
 {
-   % Use md5 checksum because user's expect these functions
-   % to persist.
-   variable fun_name = sprintf ("_pf_%s", md5sum(str));
+   variable fun_name = sprintf ("_pf_%s", __random_name (str));
    variable fun_def = "define ${fun_name}(){return ${str};}"$;
    eval (fun_def, "Global");
    return fun_name;
