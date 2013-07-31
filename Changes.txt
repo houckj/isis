@@ -45,6 +45,9 @@ Changes since 1.6.2 (released Jan 2012)
      likely under these conditions).  With this fix, the
      temporary function names include an md5 checksum and so
      are (almost) certain to be unique.
+22.  Warn about using non-chi-square fit statistic with mpfit/lmdif.
+23.  Modify implementation of #21 to improve back-compatibility.
+24.  Update cfitsio module.
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
