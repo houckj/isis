@@ -48,6 +48,7 @@ Changes since 1.6.2 (released Jan 2012)
 22.  Warn about using non-chi-square fit statistic with mpfit/lmdif.
 23.  Modify implementation of #21 to improve back-compatibility.
 24.  Update cfitsio module.
+25.  Fix back-compatibility issue from #23. Sigh.
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
