@@ -996,8 +996,8 @@ define do_eval_with_qualifiers ()
 
 % Support defining fit parameters as functions of other fit
 % parameters.
+#if (_slang_version>=20300)
 require ("chksum");
-#ifdef md5sum
 private define __random_name (str)
 {
    % md5 checksum is preferred because there's a
