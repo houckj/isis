@@ -2124,11 +2124,10 @@ static int lambert_project_d (void *vg,
    Lambert_Projection_Type *g = (Lambert_Projection_Type *)vg;
    double tx0 = g->tx0, ty0 = g->ty0;
    double inv_txscale, inv_tyscale;
-   double cos_lat0, sin_lat0, lon0, lat0;
+   double cos_lat0, sin_lat0, lon0;
    unsigned int i;
    
    lon0 = RADIANS(g->lon0);
-   lat0 = RADIANS(g->lat0);
    cos_lat0 = g->cos_lat0;
    sin_lat0 = g->sin_lat0;
 
@@ -2159,11 +2158,10 @@ static int lambert_deproject_d (void *vg,
    Lambert_Projection_Type *g = (Lambert_Projection_Type *)vg;
    double tx0 = g->tx0, ty0 = g->ty0;
    double txscale = g->txscale, tyscale = g->tyscale;
-   double cos_lat0, sin_lat0, lon0, lat0;
+   double cos_lat0, sin_lat0, lon0;
    unsigned int i;
    
    lon0 = RADIANS(g->lon0);
-   lat0 = RADIANS(g->lat0);
    cos_lat0 = g->cos_lat0;
    sin_lat0 = g->sin_lat0;
 
@@ -2190,11 +2188,10 @@ static int lambert_project_f (void *vg,
    Lambert_Projection_Type *g = (Lambert_Projection_Type *)vg;
    double tx0 = g->tx0, ty0 = g->ty0;
    double inv_txscale, inv_tyscale;
-   double cos_lat0, sin_lat0, lon0, lat0;
+   double cos_lat0, sin_lat0, lon0;
    unsigned int i;
    
    lon0 = RADIANS(g->lon0);
-   lat0 = RADIANS(g->lat0);
    cos_lat0 = g->cos_lat0;
    sin_lat0 = g->sin_lat0;
 
@@ -2225,11 +2222,10 @@ static int lambert_deproject_f (void *vg,
    Lambert_Projection_Type *g = (Lambert_Projection_Type *)vg;
    double tx0 = g->tx0, ty0 = g->ty0;
    double txscale = g->txscale, tyscale = g->tyscale;
-   double cos_lat0, sin_lat0, lon0, lat0;
+   double cos_lat0, sin_lat0, lon0;
    unsigned int i;
    
    lon0 = RADIANS(g->lon0);
-   lat0 = RADIANS(g->lat0);
    cos_lat0 = g->cos_lat0;
    sin_lat0 = g->sin_lat0;
 
