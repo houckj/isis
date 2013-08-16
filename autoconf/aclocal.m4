@@ -115,7 +115,7 @@ case "$host_os" in
       fi
     fi
   ;;
-  *osf*)
+  *osf*|*darwin* )
     if test "X$GCC" = Xyes
     then
       RPATH="-Wl,-rpath,"
