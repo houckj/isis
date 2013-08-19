@@ -78,6 +78,7 @@ redge
 refsch
 sedov
 sirf
+smaug
 srcut
 sresc
 step
@@ -109,8 +110,10 @@ edge
 expabs
 expfac
 gabs
+heilin
 highecut
 hrefl
+lyman
 notch
 pcfabs
 phabs
@@ -131,6 +134,7 @@ vphabs
 wabs
 wndabs
 xion
+zbabs
 zdust
 zedge
 zhighect
@@ -147,6 +151,7 @@ zvphabs
 zwabs
 zwndabs
 cflux
+cpflux
 gsmooth
 ireflect
 kdblur
