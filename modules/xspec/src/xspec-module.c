@@ -1004,14 +1004,6 @@ static void free_xspec_fun_type (SLtype type, void *f) /*{{{*/
 
 #include "xsFortran.h"
 
-/* #ifndef HAVE_XSPEC_12 */
-/* FIXME -- xspec12 doesn't need this crutch but some
- *          local models still do.
- * Eventually, this include file should just go away.
- */
-#include "xspec-compat.inc"
-/* #endif */
-
 /* In the xspec source code,
  * fpdatd is defined in xspec/src/functions/fpunc.f
  * fgdatd is defined in xspec/src/functions/fgunc.f

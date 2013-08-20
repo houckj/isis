@@ -146,7 +146,7 @@ xspec-module_C_FLAGS = -DHEADAS='"$(HEA)"' \
 xspec-module_O_DEP = $(SRCDIR)/_model_externs_xspec11.inc $(SRCDIR)/_model_table_xspec11.inc \
                      $(SRCDIR)/_model_externs_xspec12.inc $(SRCDIR)/_model_table_xspec12.inc \
                      $(SRCDIR)/config-xspec-version
-xspec_O_DEP = $(SRCDIR)/xspec-compat.inc
+xspec_O_DEP =
 
 #---------------------------------------------------------------------------
 # Rules
