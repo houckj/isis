@@ -97,7 +97,7 @@ c local variables
 c
       integer i,j,ifsptr,ins,insfnl,insptr,ipptr,isptr,
      *        istep,istptr,ns,nsubs
-      double precision bnsfac(3,2),dum,scl,sfx,xpscl
+      double precision bnsfac(3,2),dum(1),scl,sfx,xpscl
       logical cmode
 c
       save
@@ -162,13 +162,26 @@ c
         isptr = istptr+n
         ifsptr = isptr+nsmax*(nsmax+3)
         insptr = n+1
+cjch-start  replace isis_dcopy calls with explicit loop
+cjch        if (scale(1) .gt. 0.d0) then
+cjch          call isis_dcopy (n,scale,1,work,1)
+cjch          call isis_dcopy (n,scale,1,work(istptr),1)
+cjch        else
+cjch          call isis_dcopy (n,scl,0,work,1)
+cjch          call isis_dcopy (n,scl,0,work(istptr),1)
+cjch        end if
         if (scale(1) .gt. 0.d0) then
-          call isis_dcopy (n,scale,1,work,1)
-          call isis_dcopy (n,scale,1,work(istptr),1)
+          do i=1,n
+            work(i) = scale(i)
+            work(istptr+i-1) = scale(i)
+          enddo
         else
-          call isis_dcopy (n,scl,0,work,1)
-          call isis_dcopy (n,scl,0,work(istptr),1)
+          do i=1,n
+            work(i) = scl
+            work(istptr+i-1) = scl
+          enddo
         end if
+cjch-end  replace isis_dcopy calls with explicit loop
         do 30 i = 1,n
           iwork(i) = i
    30   continue
@@ -225,7 +238,12 @@ c
    50   continue
         call isis_sortd (n,work,iwork)
         call isis_partx (n,iwork,work,nsubs,iwork(insptr))
-        call isis_dcopy (n,x,1,work,1)
+cjch-start replace isis_dcopy calls with explicit loop
+cjch        call isis_dcopy (n,x,1,work,1)
+        do i=1,n
+          work(i) = x(i)
+        enddo
+cjch-end  replace isis_dcopy calls with explicit loop
         ins = insptr
         insfnl = insptr+nsubs-1
         ipptr = 1
@@ -334,7 +352,12 @@ c
           c(i) = c(i)+(s(i,inew)-s(i,ih))/ns
    10   continue
       else
-        call isis_dcopy (ns,0.d0,0,c,1)
+cjch-start  replace isis_dcopy calls with explicit loop
+cjch        call isis_dcopy (ns,0.d0,0,c,1)
+        do i=1,ns
+          c(i) = 0.d0
+        enddo
+cjch-end  replace isis_dcopy calls with explicit loop
         do 20 j = 1,ns+1
           if (j .ne. ih) call isis_daxpy (ns,1.d0,s(1,j),1,c,1)
    20   continue

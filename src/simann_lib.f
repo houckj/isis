@@ -346,7 +346,7 @@ C  If XP is out of bounds, select a point in bounds for the trial.
                     XP(I) = LB(I) + (UB(I) - LB(I))*isis_ranmar()
                     LNOBDS = LNOBDS + 1
                     NOBDS = NOBDS + 1
-                    IF(IPRINT .GE. 3) CALL isis_PRT3(MAX,N,XP,X,FP,F)
+                    IF(IPRINT .GE. 3) CALL isis_PRT3(MAX,N,XP,X,F)
                   END IF
 110            CONTINUE
 
@@ -596,9 +596,9 @@ C  it minimizes by maximizing the negative a function.
       RETURN
       END
 
-      SUBROUTINE isis_PRT3(MAX,N,XP,X,FP,F)
+      SUBROUTINE isis_PRT3(MAX,N,XP,X,F)
 
-      DOUBLE PRECISION  XP(*), X(*), FP, F
+      DOUBLE PRECISION  XP(*), X(*), F
       INTEGER  N
       LOGICAL  MAX
 
@@ -745,7 +745,7 @@ C  elements in VECTOR, 10 elements will be printed on each line.
 
       IF (NCOLS .GT. 10) THEN
          LINES = INT(NCOLS/10.)
-
+         LL = 0
          DO 100, I = 1, LINES
             LL = 10*(I - 1)
             WRITE(*,1000) (VECTOR(J),J = 1+LL, 10+LL)
