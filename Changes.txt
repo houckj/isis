@@ -52,6 +52,10 @@ Changes since 1.6.2 (released Jan 2012)
 26.  Modify configure script to ensure RPATH is set on Mac OS X.
 27.  Code cleanup to eliminate compiler warnings;
      drop modules/xspec/src/xspec-compat.inc
+28.  Removed half-pixel offset in contour plots.  This offset
+     was introduced in 1.0.9 to workaround a bug (change #42
+     following the 1.0.8 release), but the workaround is
+     apparently no longer needed.
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------

@@ -420,11 +420,14 @@ define plot_contour () %{{{
 
    variable r = make_axes (gx, gy, aspect);
    tr = img_transform (gx, gy);
-
-   % FIXME? this seems to be a PGPLOT bug:
+#iffalse
+   % 10/2013:  Apparently this bug got fixed in the
+   %           HEASARC pgplot, so this work-around is
+   %           no longer needed.
+   % This seems to be a PGPLOT bug:
    tr[0] -= 0.5*tr[1];
    tr[3] -= 0.5*tr[5];
-
+#endif
    Saved_Transform = @tr;
 
    % If attribute arg is
@@ -610,11 +613,14 @@ private define plot_conf_contours (s, line, c) %{{{
    variable i, nc, tr;
    tr = get_transform (s);
    nc = length(c);
-
-   % FIXME? this seems to be a PGPLOT bug:
+#iffalse
+   % 10/2013:  Apparently this bug got fixed in the
+   %           HEASARC pgplot, so this work-around is
+   %           no longer needed.
+   % This seems to be a PGPLOT bug:
    tr[0] -= 0.5*tr[1];
    tr[3] -= 0.5*tr[5];
-
+#endif
    % default color sequence:
    % Red=2, Green=3, Blue=4 (PGPLOT specific!)
    variable color = [2, 3, 4];
