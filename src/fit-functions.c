@@ -867,6 +867,26 @@ void set_function_category (char *fun_name, unsigned int *category) /*{{{*/
 
 /*}}}*/
 
+unsigned int get_function_category (char *fun_name) /*{{{*/
+{
+   Fit_Fun_t *ff;
+
+   if (fun_name == NULL)
+     return UINT_MAX;
+
+   for (ff = Fit_Fun; ff != NULL; ff = ff->next)
+     {
+        if (0 == strcmp (ff->name[0], fun_name))
+          {
+             return ff->s.category;
+          }
+     }
+
+   return UINT_MAX;
+}
+
+/*}}}*/
+
 void del_function (char *fun_name) /*{{{*/
 {
    Fit_Fun_t *ff;

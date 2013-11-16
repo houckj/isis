@@ -1483,7 +1483,7 @@ define get_back_model () %{{{
 
 %{{{ function caching and cloning
 
-% Model cacheing, and model renaming contributed by
+% Model cacheing, and model renaming originally contributed by
 % Mike Noble, Mike Nowak, Manfred Hanke
 
 %!%+
@@ -1532,7 +1532,9 @@ define cache_fun ()%{{{
         bin_lo = lo,
         bin_hi = hi,
         pars = NULL,
-        value = NULL
+        value = NULL,
+        category = _isis->_get_function_category (name),
+        operand = NULL
      };
 
    variable handle_grid_extrapolation;
@@ -1561,18 +1563,28 @@ define cache_fun ()%{{{
 
    _isis->Model_Cache[caching_name] = s;
 
+   variable operand = "", operand_needs_saving = "",
+     save_operand = "";
+   if (s.category == ISIS_FUN_OPERATOR)
+     {
+        operand = ",operand";
+        operand_needs_saving = " || (s.operand == NULL) || any(operand != s.operand)";
+        save_operand = "s.operand = @operand;";
+     }
+
    variable m =
-`define ${caching_name}_fit(lo,hi,pars)
+`define ${caching_name}_fit(lo,hi,pars${operand})
 {
    variable s = _isis->Model_Cache["${caching_name}"];
    if (lo[0] < s.bin_lo[0] || hi[-1] > s.bin_hi[-1])
      {
          ${handle_grid_extrapolation};
      }
-   if (s.pars==NULL || any(pars!=s.pars))
+   if (s.pars==NULL || any(pars!=s.pars)${operand_needs_saving})
      {
-        s.value = eval_fun2 (s.handle, s.bin_lo, s.bin_hi, pars ;; __qualifiers);
-        s.pars = pars;
+        s.value = eval_fun2 (s.handle, s.bin_lo, s.bin_hi, pars${operand} ;; __qualifiers);
+        s.pars = @pars;
+        ${save_operand}
      }`$;
 
    % multiplicative models should be bin-averaged,
@@ -1605,6 +1617,11 @@ define cache_fun ()%{{{
    variable spdh = "set_param_default_hook(\"${caching_name}\", &${caching_name}_defaults);"$;
 
    array_map (Void_Type, &eval, [m, md, asf, spdh]);
+
+   if (s.category == ISIS_FUN_OPERATOR)
+     {
+        set_function_category (caching_name, ISIS_FUN_OPERATOR);
+     }
 
    return caching_name;
 }

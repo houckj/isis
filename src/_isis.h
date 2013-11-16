@@ -82,6 +82,7 @@ extern void add_slangfun_intrin (void);
 extern void add_cfun_intrin (void);
 extern void del_function (char *fun_name);
 extern void set_function_category (char *fun_name, unsigned int *category);
+extern unsigned int get_function_category (char *fun_name);
 extern void function_list (void);
 extern void _add_slang_statistic (char *);
 extern void list_statistics_and_engines (void);

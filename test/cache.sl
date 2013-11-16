@@ -62,6 +62,20 @@ if (sum(f_mul) != mul_test_value)
 if (sum(f_mul_cache) != mul_cache_test_value)
   failed ("mul_cache sum is wrong...");
 
+variable opfun = "op";
+define op_fit(l,h,p,a){return a+ones(length(l))*p[0];}
+add_slang_function (opfun, "b");
+set_function_category (opfun, ISIS_FUN_OPERATOR);
+variable op_cache = cache_fun (opfun, lo,hi; suffix="O");
+variable b_value = 1.0, cnst_value = 1.0;
+fit_fun ("${op_cache}(1,cnst(1))"$);
+set_par ("${op_cache}(1).b"$, b_value);
+set_par ("cnst(1).a"$, cnst_value);
+variable op_expect = cnst_value + b_value;
+variable op_got = eval_fun (lo,hi);
+if (any(op_got != op_expect))
+  failed ("unexpected result from $op_cache evaluation"$);
+
 variable t = struct
 {
    name = ["par1", "par2", "par3"],

@@ -5392,6 +5392,7 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
    MAKE_INTRINSIC("_add_cfun_intrin", add_cfun_intrin, V, 0),
    MAKE_INTRINSIC_1("_del_function", del_function, V, S),
    MAKE_INTRINSIC_2("_set_function_category", set_function_category, V, S, UI),
+   MAKE_INTRINSIC_1("_get_function_category", get_function_category, UI, S),
    MAKE_INTRINSIC("_function_list", function_list, V, 0),
    MAKE_INTRINSIC("_get_fit_fun", _get_fit_fun, V, 0),
    MAKE_INTRINSIC("_get_fit_method_name", get_fit_method_name, V, 0),

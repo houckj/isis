@@ -56,6 +56,7 @@ Changes since 1.6.2 (released Jan 2012)
      was introduced in 1.0.9 to workaround a bug (change #42
      following the 1.0.8 release), but the workaround is
      apparently no longer needed.
+29.  cache_fun now supports caching of operator models.
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
