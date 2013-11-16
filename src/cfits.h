@@ -52,6 +52,7 @@ extern cfitsfile *cfits_open_file_readonly (const char *filename);
 extern cfitsfile *cfits_open_file_readonly_silent (const char *filename);
 extern int cfits_close_file (cfitsfile *fptr);
 
+extern int cfits_get_hdu_num (cfitsfile *fptr, int *hdu_num);
 extern int cfits_movabs_hdu (int hdu_num, cfitsfile *fptr);
 extern int cfits_movrel_hdu (int nmove, cfitsfile *fptr);
 extern int cfits_movnam_hdu (cfitsfile *fptr, const char *extname);

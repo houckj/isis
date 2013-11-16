@@ -2618,6 +2618,7 @@ static Hist_t *_read_typeI_pha (char *pha_filename, double min_stat_err, int use
    cfitsfile *fp = NULL;
    double sys_err_keyword, areascal_keyword;
    int nbins, val_stat, val_flux, have_sys_err_keyword, have_areascal_keyword;
+   int opened_hdu;
    int i, ret = -1;
 
    if (pha_filename == NULL)
@@ -2626,11 +2627,19 @@ static Hist_t *_read_typeI_pha (char *pha_filename, double min_stat_err, int use
    if (NULL == (fp = cfits_open_file_readonly (pha_filename)))
      return NULL;
 
-   if (-1 == cfits_move_to_matching_hdu (fp, Spectrum_Hdu_Names, Spectrum_Hdu_Names_Hook, NULL))
+   if (-1 == cfits_get_hdu_num (fp, &opened_hdu))
+     return NULL;
+
+   /* If we opened an HDU other than the first, then
+    * presumably we opened the right one */
+   if (opened_hdu == 1)
      {
-        isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__,
-                    "No recognized spectrum HDU found in %s", pha_filename);
-        goto finish;
+        if (-1 == cfits_move_to_matching_hdu (fp, Spectrum_Hdu_Names, Spectrum_Hdu_Names_Hook, NULL))
+          {
+             isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__,
+                         "No recognized spectrum HDU found in %s", pha_filename);
+             goto finish;
+          }
      }
 
    if (-1 == cfits_read_int_keyword (&nbins, "NAXIS2", fp))
@@ -2960,7 +2969,7 @@ static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *n
    Hist_t *h = NULL;
    cfitsfile *cfp = NULL;
    char bin_units[CFLEN_VALUE];
-   int k, num, nbins, reset = 0;
+   int k, num, nbins, reset = 0, opened_hdu;
    int have_backscal_col, have_bg_area_col, have_bg_counts_col;
    int have_bkg_up_col, have_bkg_down_col;
    int have_areascal_col, have_rate, have_bin_lohi, have_exposure_col;
@@ -2976,11 +2985,19 @@ static int read_typeII_pha (Hist_t *head, char * filename, int **indices, int *n
    if (NULL == (cfp = cfits_open_file_readonly_silent (filename)))
      return NOT_FITS_FORMAT;
 
-   if (-1 == cfits_move_to_matching_hdu (cfp, Spectrum_Hdu_Names, Spectrum_Hdu_Names_Hook, NULL))
+   if (-1 == cfits_get_hdu_num (cfp, &opened_hdu))
+     return -1;
+
+   /* If we opened an HDU other than the first, then
+    * presumably we opened the right one */
+   if (opened_hdu == 1)
      {
-        isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__,
-                    "No recognized spectrum HDU found in %s", filename);
-        goto finish;
+        if (-1 == cfits_move_to_matching_hdu (cfp, Spectrum_Hdu_Names, Spectrum_Hdu_Names_Hook, NULL))
+          {
+             isis_vmesg (FAIL, I_HDU_NOT_FOUND, __FILE__, __LINE__,
+                         "No recognized spectrum HDU found in %s", filename);
+             goto finish;
+          }
      }
 
    if (-1 == cfits_get_colunits (bin_units, "BIN_LO", cfp))

@@ -154,6 +154,13 @@ int cfits_movnam_hdu (cfitsfile *fptr, const char *extname)
    return 0;
 }
 
+int cfits_get_hdu_num (cfitsfile *fptr, int *hdu_num)
+{
+   /* apparently, failure is not an option */
+   (void) fits_get_hdu_num ((fitsfile *)fptr, hdu_num);
+   return 0;
+}
+
 static int move_to_matching_hdu (cfitsfile *fptr, const char *extnames[])
 {
    const char **n;
