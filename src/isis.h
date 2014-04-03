@@ -606,7 +606,7 @@ typedef int Isis_Line_Profile_Type (Isis_Hist_t *, double, double, double, int,
     int Isis_##name##_line_profile (Isis_Hist_t *grid, double flux, double wl, double atwt, int mid, double *pars, int npars, void *options)
 #else
 # define ISIS_LINE_PROFILE_MODULE(name,grid,flux,wl,atwt,mid,pars,npars,options) \
-    int Isis_##name##_api_version; \
+    extern int Isis_##name##_api_version; \
     int Isis_##name##_api_version = ISIS_API_VERSION; \
     int Isis_##name##_line_profile(Isis_Hist_t *, double, double, double, int, double *, int, void *); \
     int Isis_##name##_line_profile (Isis_Hist_t *grid, double flux, double wl, double atwt, int mid, double *pars, int npars, void *options)
