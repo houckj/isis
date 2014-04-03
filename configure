@@ -663,6 +663,7 @@ LINK_XSPEC_STATIC
 XSPEC_MODULE_LIBS
 PGPLOT_LIBDIR
 PGPLOT_LIB
+OTHER_PGPLOT_LIBS
 PGPLOT_INC
 CFITSIO_LIBNAME
 CFITSIO_LIBDIR
@@ -765,7 +766,6 @@ PACKAGE_TARNAME
 PACKAGE_NAME
 PATH_SEPARATOR
 SHELL
-OTHER_PGPLOT_LIBS
 RPATH'
 ac_subst_files=''
 ac_user_opts='
@@ -8190,10 +8190,18 @@ then
        fi
     fi
   done
-    jh_pgplot_libfile=$lib_pgplot_file
+
+  jh_pgplot_libfile=$lib_pgplot_file
   OTHER_PGPLOT_LIBS=""
   if test -f "$jh_pgplot_libfile" ; then
-    jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
+    case "$jh_pgplot_libfile" in
+       "*.so" )
+         jh_png_symbols=`ldd $jh_pgplot_libfile | grep -i png`
+         ;;
+       "*.a" )
+         jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
+         ;;
+     esac
     if test x"$jh_png_symbols" != x ; then
        OTHER_PGPLOT_LIBS="-lpng"
     fi
@@ -8360,10 +8368,18 @@ else
        fi
     fi
   done
-    jh_pgplot_libfile=$lib_pgplot_file
+
+  jh_pgplot_libfile=$lib_pgplot_file
   OTHER_PGPLOT_LIBS=""
   if test -f "$jh_pgplot_libfile" ; then
-    jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
+    case "$jh_pgplot_libfile" in
+       "*.so" )
+         jh_png_symbols=`ldd $jh_pgplot_libfile | grep -i png`
+         ;;
+       "*.a" )
+         jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
+         ;;
+     esac
     if test x"$jh_png_symbols" != x ; then
        OTHER_PGPLOT_LIBS="-lpng"
     fi
@@ -8545,6 +8561,7 @@ $as_echo_n "checking for the CCfits library and header files CCfits/CCfits.h... 
 	 /usr/include/CCfits,/usr/lib \
 	 /usr/CCfits/include,/usr/CCfits/lib \
 	 /usr/include,/usr/lib \
+	 /usr/include,/usr/lib/${host_cpu}-${build_os} \
 	 /opt/include/CCfits,/opt/lib \
 	 /opt/CCfits/include,/opt/CCfits/lib \
 	 /opt/include,/opt/lib"
@@ -8896,6 +8913,7 @@ $as_echo_n "checking for the pgplot library and header files cpgplot.h... " >&6;
 	 /usr/include/pgplot,/usr/lib \
 	 /usr/pgplot/include,/usr/pgplot/lib \
 	 /usr/include,/usr/lib \
+	 /usr/include,/usr/lib/${host_cpu}-${build_os} \
 	 /opt/include/pgplot,/opt/lib \
 	 /opt/pgplot/include,/opt/pgplot/lib \
 	 /opt/include,/opt/lib"
@@ -9103,10 +9121,18 @@ $as_echo "no" >&6; }
        fi
     fi
   done
-    jh_pgplot_libfile=$lib_pgplot_file
+
+  jh_pgplot_libfile=$lib_pgplot_file
   OTHER_PGPLOT_LIBS=""
   if test -f "$jh_pgplot_libfile" ; then
-    jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
+    case "$jh_pgplot_libfile" in
+       "*.so" )
+         jh_png_symbols=`ldd $jh_pgplot_libfile | grep -i png`
+         ;;
+       "*.a" )
+         jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
+         ;;
+     esac
     if test x"$jh_png_symbols" != x ; then
        OTHER_PGPLOT_LIBS="-lpng"
     fi
@@ -9227,6 +9253,7 @@ $as_echo_n "checking for the cfitsio library and header files fitsio.h... " >&6;
 	 /usr/include/cfitsio,/usr/lib \
 	 /usr/cfitsio/include,/usr/cfitsio/lib \
 	 /usr/include,/usr/lib \
+	 /usr/include,/usr/lib/${host_cpu}-${build_os} \
 	 /opt/include/cfitsio,/opt/lib \
 	 /opt/cfitsio/include,/opt/cfitsio/lib \
 	 /opt/include,/opt/lib"
@@ -9537,6 +9564,7 @@ $as_echo_n "checking for the slang library and header files slang.h... " >&6; }
 	 /usr/include/slang,/usr/lib \
 	 /usr/slang/include,/usr/slang/lib \
 	 /usr/include,/usr/lib \
+	 /usr/include,/usr/lib/${host_cpu}-${build_os} \
 	 /opt/include/slang,/opt/lib \
 	 /opt/slang/include,/opt/slang/lib \
 	 /opt/include,/opt/lib"

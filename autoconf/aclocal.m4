@@ -584,6 +584,7 @@ AC_DEFUN(JD_CHECK_FOR_LIBRARY, dnl#{{{
 	 /usr/include/$1,/usr/lib \
 	 /usr/$1/include,/usr/$1/lib \
 	 /usr/include,/usr/lib \
+	 /usr/include,/usr/lib/${host_cpu}-${build_os} \
 	 /opt/include/$1,/opt/lib \
 	 /opt/$1/include,/opt/$1/lib \
 	 /opt/include,/opt/lib"
@@ -1169,19 +1170,27 @@ dnl
 dnl#}}}
 
 AC_DEFUN(JH_CHECK_PGPLOT_PNG, dnl#{{{
+[
 dnl
 dnl Try to determine whether libpgplot needs libpng
 dnl
   jh_pgplot_libfile=$1
   OTHER_PGPLOT_LIBS=""
   if test -f "$jh_pgplot_libfile" ; then
-    jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
+    case "$jh_pgplot_libfile" in
+       "*.so" )
+         jh_png_symbols=`ldd $jh_pgplot_libfile | grep -i png`
+         ;;
+       "*.a" )
+         jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
+         ;;
+     esac
     if test x"$jh_png_symbols" != x ; then
        OTHER_PGPLOT_LIBS="-lpng"
     fi
   fi
   AC_SUBST(OTHER_PGPLOT_LIBS)
-)
+])
 dnl#}}}
 
 AC_DEFUN(JH_CHECK_PGPLOT_LIBNAME, dnl#{{{
