@@ -968,6 +968,7 @@ define xspec_phfit2 () %{{{
 
 %}}}
 
+#ifexists _xs_ionsneqr
 define xspec_ionsneqr () %{{{
 {
    variable msg = "Struct_Type = xspec_ionsneqr(T[], tau[]);  %% T [K], tau [s/cm^3]";
@@ -988,7 +989,9 @@ define xspec_ionsneqr () %{{{
 }
 
 %}}}
+#endif
 
+#ifexists _xs_noneq
 define xspec_noneq () %{{{
 {
    variable msg =
@@ -1024,6 +1027,7 @@ define xspec_noneq () %{{{
 }
 
 %}}}
+#endif
 
 define xspec_elabund () %{{{
 {

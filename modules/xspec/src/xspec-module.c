@@ -1166,6 +1166,12 @@ extern float GPHOTO_FC(float *kev1, float *kev2, int *Z, long *status);
 #define PHFIT2_FC FC_FUNC(phfit2,PHFIT2)
 extern float PHFIT2_FC(int *nz, int *ne, int *is, float *e, float *s);
 
+/* As of heasoft-6.16 (July 2014), these symbols are no longer exported.
+ * These interfaces can be updated if someone's using them, otherwise,
+ * they can eventually be removed.
+ */
+#undef OBSOLETE_NEI_SYMBOLS
+#ifdef OBSOLETE_NEI_SYMBOLS
 #define INITNEI_FC FC_FUNC(initnei,INITNEI)
 extern void INITNEI_FC(int *ni, int *nz);
 
@@ -1179,6 +1185,7 @@ extern void NONEQ_FC(float *tempr, int *ntp, float *tau, int *n, float *weight,
                      double *eig, double *feqb, double *feqs, double *fs,
                      double *fspec, double *work, int *lt, float *fout,
                      int *ionel, int *ionstage);
+#endif
 
 /* To pass a C string to Fortran:  for each string, append to the Fortran
  * function's parameter list a 'long' containing the length of the string.
@@ -1238,6 +1245,7 @@ static double xs_phfit2 (int *nz, int *ne, int *is, float *e) /*{{{*/
 
 /*}}}*/
 
+#ifdef OBSOLETE_NEI_SYMBOLS
 static void xs_initnei (int *nionp,int *nzmax) /*{{{*/
 {
    static int nei_is_initialized = 0;
@@ -1378,6 +1386,8 @@ push_results:
 }
 
 /*}}}*/
+
+#endif
 
 static int xs_gchat (void)
 {
@@ -1544,8 +1554,10 @@ static SLang_Intrin_Fun_Type Private_Intrinsics [] =
    MAKE_INTRINSIC_4("_xs_photo", xs_photo, D, F,F,I,I),
    MAKE_INTRINSIC_3("_xs_gphoto", xs_gphoto, D, F,F,I),
    MAKE_INTRINSIC_4("_xs_phfit2", xs_phfit2, D, I,I,I,F),
+#ifdef OBSOLETE_NEI_SYMBOLS
    MAKE_INTRINSIC_0("_xs_ionsneqr", xs_ionsneqr, V),
    MAKE_INTRINSIC_0("_xs_noneq", xs_noneq, V),
+#endif   
    MAKE_INTRINSIC_S("_xs_get_element_solar_abundance", xs_get_element_solar_abundance, D),
    MAKE_INTRINSIC_2("_xs_fpmstr", xs_fpmstr, V, S, S),
    MAKE_INTRINSIC_1("_xs_set_cosmo_hubble", xs_set_cosmo_hubble, V, F),

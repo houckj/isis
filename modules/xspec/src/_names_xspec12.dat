@@ -1,3 +1,4 @@
+agauss
 apec
 bapec
 bbody
@@ -62,6 +63,8 @@ nsa
 nsagrav
 nsatmos
 nsmax
+nsmaxg
+nsx
 nteea
 nthComp
 optxagn
@@ -76,6 +79,7 @@ pshock
 raymond
 redge
 refsch
+rnei
 sedov
 sirf
 smaug
@@ -94,8 +98,15 @@ vnei
 vnpshock
 vpshock
 vraymond
+vrnei
 vsedov
 vvapec
+vvgnei
+vvnpshock
+vvpshock
+vvrnei
+vvsedov
+zagauss
 zbbody
 zbremss
 zgauss
