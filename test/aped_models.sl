@@ -13,7 +13,7 @@ msg ("testing aped models.... ");
 % autoload aped.sl to define get_version_string function
 () = aped();
 variable version = get_version_string (atomdb);
-variable supported_versions = ["1.3.1", "2.0.1"];
+variable supported_versions = ["1.3.1", "2.0.1", "2.0.2"];
 variable result_index = wherefirst (version == supported_versions);
 if (result_index == NULL)
 {
@@ -63,11 +63,13 @@ f = eval_fun (lo, hi);
 check_value (sprintf ("sum fit_fun = %s", get_fit_fun()),
              sum(f),
              [1.3685056789748902,
-              1.8739052675912387]);
+              1.8739052675912387,
+              1.8712022330464624]);
 check_value (sprintf ("max fit_fun = %s", get_fit_fun()),
              max(f),
              [0.011614329216854643,
-              0.011900481798605351]);
+              0.011900481798605351,
+              0.011881140982484016]);
 
 % line profile modifier should now have no effect
 fit_fun ("xaped (1)");
@@ -75,11 +77,13 @@ f = eval_fun (lo, hi);
 check_value (sprintf ("sum fit_fun = %s", get_fit_fun()),
              sum(f),
              [1.3685056789748902,
-              1.8739058698230815]);
+              1.8739058698230815,
+              1.8712028343449905]);
 check_value (sprintf ("max fit_fun = %s", get_fit_fun()),
              max(f),
              [0.07392995170953862,
-              0.0713156235206039]);
+              0.0713156235206039,
+              0.07131600955911679]);
 
 % line profile modifier should work now
 fit_fun ("xaped (1, square_profile(1))");
@@ -87,11 +91,13 @@ f = eval_fun (lo, hi);
 check_value (sprintf ("sum fit_fun = %s", get_fit_fun()),
              sum(f),
              [1.3685056789748902,
-              1.8739052675912387]);
+              1.8739052675912387,
+              1.8712022330464624]);
 check_value (sprintf ("max fit_fun = %s", get_fit_fun()),
              max(f),
              [0.011614329216854643,
-              0.011900481798605351]);
+              0.011900481798605351,
+              0.011881140982484016]);
 
 % test emissivity modifier
 fit_fun ("xaped (1, modifier(1))");
@@ -99,11 +105,13 @@ f = eval_fun (lo, hi);
 check_value (sprintf ("sum fit_fun = %s", get_fit_fun()),
              sum(f),
              [0.8140366080700342,
-              1.2492451849918764]);
+              1.2492451849918764,
+              1.2477568749742591]);
 check_value (sprintf ("max fit_fun = %s", get_fit_fun()),
              max(f),
              [0.07392995170953862,
-              0.0713156235206039]);
+              0.0713156235206039,
+              0.07131600955911679]);
 
 % emissivity modifier should now be disabled
 fit_fun ("xaped (1)");
@@ -111,11 +119,13 @@ f = eval_fun (lo, hi);
 check_value (sprintf ("sum fit_fun = %s", get_fit_fun()),
              sum(f),
              [1.3685056789748902,
-              1.8739058698230815]);
+              1.8739058698230815,
+              1.8712028343449905]);
 check_value (sprintf ("max fit_fun = %s", get_fit_fun()),
              max(f),
              [0.07392995170953862,
-              0.0713156235206039]);
+              0.0713156235206039,
+              0.07131600955911679]);
 
 % emissivity modifier should work again
 fit_fun ("xaped (1, modifier(1))");
@@ -123,11 +133,13 @@ f = eval_fun (lo, hi);
 check_value (sprintf ("sum fit_fun = %s", get_fit_fun()),
              sum(f),
              [0.8140366080700342,
-              1.2492451849918764]);
+              1.2492451849918764,
+              1.2477568749742591]);
 check_value (sprintf ("max fit_fun = %s", get_fit_fun()),
              max(f),
              [0.07392995170953862,
-              0.0713156235206039]);
+              0.0713156235206039,
+              0.07131600955911679]);
 
 % Test emissivity and line modifier together
 fit_fun ("xaped (1, modifier(1), square_profile(1))");
@@ -135,11 +147,13 @@ f = eval_fun (lo, hi);
 check_value (sprintf ("sum fit_fun = %s", get_fit_fun()),
              sum(f),
              [0.8140353923673627,
-              1.2492445827600334]);
+              1.2492445827600334,
+              1.247756273675731]);
 check_value (sprintf ("max fit_fun = %s", get_fit_fun()),
              max(f),
              [0.0076028565585263075,
-              0.011900481798605351]);
+              0.011900481798605351,
+              0.011881140982484016]);
 
 % Test emissivity and line modifier together, order should not matter
 fit_fun ("xaped (1, square_profile(1), modifier(1))");
@@ -147,11 +161,13 @@ f = eval_fun (lo, hi);
 check_value (sprintf ("sum fit_fun = %s", get_fit_fun()),
              sum(f),
              [0.8140353923673627,
-              1.2492445827600334]);
+              1.2492445827600334,
+              1.247756273675731]);
 check_value (sprintf ("max fit_fun = %s", get_fit_fun()),
              max(f),
              [0.0076028565585263075,
-              0.011900481798605351]);
+              0.011900481798605351,
+              0.011881140982484016]);
 
 % all modifiers should now be disabled
 fit_fun ("xaped (1)");
@@ -159,11 +175,13 @@ f = eval_fun (lo, hi);
 check_value (sprintf ("sum fit_fun = %s", get_fit_fun()),
              sum(f),
              [1.3685056789748902,
-              1.8739058698230815]);
+              1.8739058698230815,
+              1.8712028343449905]);
 check_value (sprintf ("max fit_fun = %s", get_fit_fun()),
              max(f),
              [0.07392995170953862,
-              0.0713156235206039]);
+              0.0713156235206039,
+              0.07131600955911679]);
 
 % Try introducing a contrib hook
 variable Ne_Lines = where (el_ion(Ne,10));
@@ -193,14 +211,17 @@ f = eval_fun (lo, hi);
 check_value (sprintf ("sum fit_fun = %s with hook", get_fit_fun()),
              sum(f),
              [0.030758977978675755,
-              0.0317477357507457]);
+              0.0317477357507457,
+              0.03174762621531128]);
 check_value (sprintf ("max fit_fun = %s with hook", get_fit_fun()),
              max(f),
              [0.016703498004343294,
-              0.016849658261591658]);
+              0.016849658261591658,
+              0.016849600105867054]);
 check_value (sprintf ("number of non-zero bins with fit_fun = %s with hook", get_fit_fun()),
              length(where(f>0)),
              [29,
+              34,
               34]);
 
 % The hook and modifiers should work simultaneously
@@ -209,14 +230,17 @@ f = eval_fun (lo, hi);
 check_value (sprintf ("sum fit_fun = %s with hook", get_fit_fun()),
              sum(f),
              [0.005127893495442973,
-              0.005851670512314665]);
+              0.005851670512314665,
+              0.00585165027748971]);
 check_value (sprintf ("max fit_fun = %s with hook", get_fit_fun()),
              max(f),
              [0.0006447144328433119,
-              0.0006298649711275214]);
+              0.0006298649711275214,
+              0.0006298627914677206]);
 check_value (sprintf ("number of non-zero bins with fit_fun = %s with hook", get_fit_fun()),
              length(where(f>0)),
              [50,
+              73,
               73]);
 
 % All this machinery should work with the fit engine.
@@ -235,14 +259,17 @@ variable m = get_model_counts(1);
 check_value (sprintf ("sum fit_fun = %s with hook", get_fit_fun()),
              sum(m.value),
              [512.7893495443059,
-              585.1670512314751]);
+              585.1670512314751,
+              585.1650277489796]);
 check_value (sprintf ("max fit_fun = %s with hook", get_fit_fun()),
              max(m.value),
              [32.23572164216559,
-              31.493248556376074]);
+              31.493248556376074,
+              31.49313957338603]);
 check_value (sprintf ("number of non-zero bins with fit_fun = %s with hook", get_fit_fun()),
              length(where(m.value>0)),
              [80,
+              108,
               108]);
 
 delete_data (all_data);
@@ -261,11 +288,13 @@ f = eval_fun2 ("xaped", lo, hi, p);
 check_value (sprintf ("sum fit_fun = %s", get_fit_fun()),
              sum(f),
              [1.3685068946775618,
-              1.8739058698230815]);
+              1.8739058698230815,
+              1.8712028343449905]);
 check_value (sprintf ("max fit_fun = %s", get_fit_fun()),
              max(f),
              [0.07392995170953862,
-              0.0713156235206039]);
+              0.0713156235206039,
+              0.07131600955911679]);
 
 % eval_fun2 with xaped + line emissivity modifier
 f = eval_fun2 ("xaped", lo, hi, p,
@@ -273,11 +302,13 @@ f = eval_fun2 ("xaped", lo, hi, p,
 check_value (sprintf ("sum fit_fun = %s", get_fit_fun()),
              sum(f),
              [0.8140366080700342,
-              1.2492451849918764]);
+              1.2492451849918764,
+              1.2477568749742591]);
 check_value (sprintf ("max fit_fun = %s", get_fit_fun()),
              max(f),
              [0.07392995170953862,
-              0.0713156235206039]);
+              0.0713156235206039,
+              0.07131600955911679]);
 
 % eval_fun2 with xaped + line profile modifier
 f = eval_fun2 ("xaped", lo, hi, p,
@@ -285,11 +316,13 @@ f = eval_fun2 ("xaped", lo, hi, p,
 check_value (sprintf ("sum fit_fun = %s", get_fit_fun()),
              sum(f),
              [1.368499481870153,
-              1.8739000178550174]);
+              1.8739000178550174,
+              1.871196866855191]);
 check_value (sprintf ("max fit_fun = %s", get_fit_fun()),
              max(f),
              [0.0069056109324198926,
-              0.007765170850644935]);
+              0.007765170850644935,
+              0.007753713472105148]);
 
 % eval_fun2 with xaped + two modifiers
 f = eval_fun2 ("xaped", lo, hi, p,
@@ -298,11 +331,13 @@ f = eval_fun2 ("xaped", lo, hi, p,
 check_value (sprintf ("sum fit_fun = %s", get_fit_fun()),
              sum(f),
              [0.8140291952626265,
-              1.2492393330238132]);
+              1.2492393330238132,
+              1.2477509074844606]);
 check_value (sprintf ("max fit_fun = %s", get_fit_fun()),
              max(f),
              [0.0038878650885680738,
-              0.006468087081832207]);
+              0.006468087081832207,
+              0.00645832022695796]);
 
 % Test aped_fun_details interface
 
@@ -340,15 +375,18 @@ variable o8lya = where (trans(O,8,4,1))[0];
 check_value ("brightest line flux from aped_fun_details",
              brightest_line_flux,
              [0.2772986393051501,
-              0.27665615]);
+              0.27665615,
+              0.27664977]);
 check_value ("brightest line flux from internal sum",
              line_info(id).flux,
              [0.2772986393051501,
-              0.27665615025627893]);
+              0.27665615025627893,
+              0.2766497710393949]);
 check_value ("brightest line flux from O VIII Ly alpha lookup",
              line_info(o8lya).flux,
              [0.2772986393051501,
-              0.27665615025627893]);
+              0.27665615025627893,
+              0.2766497710393949]);
 
 private define xaped_hook (id)
 {
@@ -404,7 +442,7 @@ private variable elements, abund, max_abs_rel_diff, max_Z,
 % low T test:
 temp = 1.e7;
 
-if (result_index == 1)
+if (result_index > 0)
 {
    max_Z = 28;
    elements = [1:max_Z];
@@ -423,14 +461,14 @@ else if (result_index == 0)
 max_abs_rel_diff = check_trace_element_contin_abundance_scaling
                                      (temp, dens, elements, abund);
 %vmessage ("max_abs_rel_diff = $max_abs_rel_diff"$);
-if (max_abs_rel_diff > 1.e-6)
+if (max_abs_rel_diff > 0.02)
 throw ApplicationError,
-   "temp = $temp:  max_abs_rel_diff = $max_abs_rel_diff, expected <~5e-08"$;
+   "temp = $temp:  max_abs_rel_diff = $max_abs_rel_diff, expected <0.02"$;
 
 % high T test:
 temp = 7.e7;
 
-if (result_index == 1)
+if (result_index > 0)
 {
    max_Z = 28;
    elements = [1:max_Z];
@@ -449,8 +487,8 @@ else if (result_index == 0)
 max_abs_rel_diff = check_trace_element_contin_abundance_scaling
                                      (temp, dens, elements, abund);
 %vmessage ("max_abs_rel_diff = $max_abs_rel_diff"$);
-if (max_abs_rel_diff > 1.e-6)
+if (max_abs_rel_diff > 0.02)
 throw ApplicationError,
-   "temp = $temp,  max_abs_rel_diff = $max_abs_rel_diff, expected <~5e-08"$;
+   "temp = $temp,  max_abs_rel_diff = $max_abs_rel_diff, expected <0.02"$;
 
 msg ("ok\n");
