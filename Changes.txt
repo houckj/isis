@@ -57,6 +57,7 @@ Changes since 1.6.2 (released Jan 2012)
      following the 1.0.8 release), but the workaround is
      apparently no longer needed.
 29.  cache_fun now supports caching of operator models.
+30.  Updates to support heasoft-6.16
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
