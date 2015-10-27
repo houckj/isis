@@ -5146,8 +5146,8 @@ When the \verb|with_bkg_updown| qualifier is present,
 the background is defined using the \verb|BACKGROUND_UP|
 and \verb|BACKGROUND_DOWN| columns using this definition:
 \begin{verbatim}
-  back = (BACKGROUND_UP /BACKSCUP
-          + BACKGROUND_DOWN /BACKSCDN)
+  back = (BACKGROUND_UP + BACKGROUND_DOWN)
+         /(BACKSCUP + BACKSCDN)
 \end{verbatim}
 This background is subsequently scaled in the usual way using
 the relevant \verb|BACKSCAL| and \verb|EXPOSURE| values.

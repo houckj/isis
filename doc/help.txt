@@ -3226,8 +3226,8 @@ load_data
     is defined using the BACKGROUND_UP and BACKGROUND_DOWN columns
     using this definition:
 
-      back = (BACKGROUND_UP /BACKSCUP
-              + BACKGROUND_DOWN /BACKSCDN)
+      back = (BACKGROUND_UP + BACKGROUND_DOWN)
+             /(BACKSCUP + BACKSCDN)
 
     This background is subsequently scaled in the usual way using
     the relevant BACKSCAL and EXPOSURE values.
