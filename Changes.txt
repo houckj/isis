@@ -58,6 +58,13 @@ Changes since 1.6.2 (released Jan 2012)
      apparently no longer needed.
 29.  cache_fun now supports caching of operator models.
 30.  Updates to support heasoft-6.16
+31.  Updates to support heasoft-6.17
+32.  Regarding BACKGROUND_UP/DOWN, changed background definition
+     from:
+      back = BACKGROUND_UP/BACKSCUP + BACKGROUND_DOWN/BACKSCDN
+     to:
+      back = (BACKGROUND_UP + BACKGROUND_DOWN)
+             /(BACKSCUP + BACKSCDN)
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
