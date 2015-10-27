@@ -2493,7 +2493,7 @@ static int read_fits_background_updown_columns (cfitsfile *fp, int k, Hist_t *h)
 {
    Area_Type *a;
    double *up, *down, *area;
-   int i, n = h->nbins;
+   double backscup = 0.0, backscdn = 0.0;
 
    if (NULL == (up = (double *) ISIS_MALLOC (2*h->nbins * sizeof(double))))
      return -1;
@@ -2503,7 +2503,6 @@ static int read_fits_background_updown_columns (cfitsfile *fp, int k, Hist_t *h)
 
    if (cfits_col_exist ("BACKGROUND_UP", fp))
      {
-        double backscup;
         if (-1 == cfits_read_double_col (up, h->nbins, k, "BACKGROUND_UP", fp))
           {
              ISIS_FREE(up);
@@ -2514,17 +2513,10 @@ static int read_fits_background_updown_columns (cfitsfile *fp, int k, Hist_t *h)
              ISIS_FREE(up);
              return -1;
           }
-        if (backscup != 0)
-          {
-             for (i = 0; i < h->nbins; i++)
-               {
-                  up[i] /= backscup;
-               }
-          }
      }
+
    if (cfits_col_exist ("BACKGROUND_DOWN", fp))
      {
-        double backscdn;
         if (-1 == cfits_read_double_col (down, h->nbins, k, "BACKGROUND_DOWN", fp))
           {
              ISIS_FREE(up);
@@ -2535,18 +2527,17 @@ static int read_fits_background_updown_columns (cfitsfile *fp, int k, Hist_t *h)
              ISIS_FREE(up);
              return -1;
           }
-        if (backscdn != 0)
-          {
-             for (i = 0; i < h->nbins; i++)
-               {
-                  down[i] /= backscdn;
-               }
-          }
      }
 
-   for (i = 0; i < n; i++)
+   backscup += backscdn;
+
+   if (backscup > 0.0)
      {
-        up[i] += down[i];
+        int i, n = h->nbins;
+        for (i = 0; i < n; i++)
+          {
+             up[i] = (up[i] + down[i]) / backscup;
+          }
      }
 
    a = &h->bgd_area;
