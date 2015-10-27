@@ -171,7 +171,7 @@ private define init_data_struct (k)
      {
         scale = [((get_data_exposure (k) * get_data_backscale(k))
                   /(get_back_exposure (k) * get_back_backscale(k)))];
-        scale[where(isnan(scale))] = 1.0;
+        scale[where(isnan(scale) or isinf(scale))] = 1.0;
         if (length(scale) == 1) scale = scale[0];
      }
    else s.back = Double_Type[length(s.value)];
