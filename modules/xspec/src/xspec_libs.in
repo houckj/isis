@@ -46,7 +46,12 @@ if test x"${modelsonly}" = xyes ; then
     fi
 else
     cfitsio_libname=`/bin/ls ${libdir}/libcfitsio*.${ext}`
-    cfitsiolib=`basename $cfitsio_libname | sed -e 's/lib//' | sed -e "s/\.${ext}//"`
+    num_tokens=`echo $cfitsio_libname | wc -w`
+    if test $num_tokens -eq 1 ; then
+       cfitsiolib=`basename $cfitsio_libname | sed -e 's/lib//' | sed -e "s/\.${ext}//"`
+    else
+       cfitsiolib=cfitsio
+    fi
     cfitsiolib="-l${cfitsiolib}"
 fi
 
