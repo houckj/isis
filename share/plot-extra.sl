@@ -433,8 +433,9 @@ define plot_contour () %{{{
    % If attribute arg is
    % negative => use current line attributes
    % positive => solid lines for (+) contours, dashed for (-)
+   variable line_attr = qualifier_exists ("use_attr");
    variable pli = isis_plot_library_interface ();
-   () = (@pli.plot_contour)(a, tr, c, 1);
+   () = (@pli.plot_contour)(a, tr, c, line_attr ? -1 : 1);
 
    restore_axes (r);
 }
@@ -470,8 +471,9 @@ define oplot_contour () %{{{
    % If number of contours is
    % negative => use current line attributes
    % positive => solid lines for (+) contours, dashed for (-)
+   variable line_attr = qualifier_exists ("use_attr");
    variable pli = isis_plot_library_interface ();
-   () = (@pli.plot_contour)(a, tr, c, 1);
+   () = (@pli.plot_contour)(a, tr, c, line_attr ? -1 : 1);
 }
 
 %}}}
