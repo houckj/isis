@@ -591,6 +591,14 @@ char *isis_make_default_option_string (const char *subsystem, Isis_Option_Table_
    return s;
 }
 
+/**
+ * isis_update_option_string assumes that *optstring starts with a name
+ * from which the first updatable option is separated by a ';',
+ * in order to prevent, e.g.,
+ * 	isis_update_option_string ("simann;initial_step=0.05;t=1.0", "t", "2")
+ * to produce
+ * 	*optstring = "simann;init=2;t=1.0"
+ */
 int isis_update_option_string (char **optstring, char *optname, char *optvalue)
 {
    char *start, *end, *newstring, *s;
@@ -600,14 +608,18 @@ int isis_update_option_string (char **optstring, char *optname, char *optvalue)
      return -1;
 
    /* *optstring = $12 + $3 + $4
-    * where  $12 = $prefix + $optname
+    * where  $12 = $prefix + ";" + $optname
     *         $3 = "=" + $optvalue
     * (opt.)  $4 = ";" + $suffix
     */
 
    /* find option */
-   if (NULL == (start = strstr (*optstring, optname)))
-     return -1;
+   start = *optstring;
+   do
+     if (NULL == (start = strstr (start+1, optname)))
+       return -1;
+   while (*(start-1) != ';');
+
    /* NULL means this option appears last */
    end = strchr (start, ';');
 
