@@ -65,6 +65,7 @@ Changes since 1.6.2 (released Jan 2012)
      to:
       back = (BACKGROUND_UP + BACKGROUND_DOWN)
              /(BACKSCUP + BACKSCDN)
+32.Mh1. Fix option string update for fit-method "simann".
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
