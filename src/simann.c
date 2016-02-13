@@ -328,33 +328,27 @@ static int handle_int_option (char *subsystem, char *optname, char *value, int *
 
 /*}}}*/
 
-#define HANDLE_IOPTION(name) \
+#define HANDLE_OPTION(type, name) \
 static int handle_##name##_option (char *subsystem, char *optname, char *value, void *clientdata) \
 {\
    Isis_Fit_Engine_Type *e; \
    e = (Isis_Fit_Engine_Type *) clientdata; \
-   return handle_int_option (subsystem, optname, value, &e->name); \
+   if (-1 == handle_##type##_option (subsystem, optname, value, &e->name)) \
+     return -1; \
+   return isis_update_option_string (&e->option_string, optname, value); \
 }
 
-#define HANDLE_DOPTION(name) \
-static int handle_##name##_option (char *subsystem, char *optname, char *value, void *clientdata) \
-{\
-   Isis_Fit_Engine_Type *e; \
-   e = (Isis_Fit_Engine_Type *) clientdata; \
-   return handle_double_option (subsystem, optname, value, &e->name); \
-}
-
-HANDLE_DOPTION(initial_step)
-HANDLE_DOPTION(eps)
-HANDLE_DOPTION(t)
-HANDLE_DOPTION(rt)
-HANDLE_IOPTION(ns)
-HANDLE_IOPTION(nt)
-HANDLE_IOPTION(neps)
-HANDLE_IOPTION(maxevl)
-HANDLE_IOPTION(iprint)
-HANDLE_IOPTION(iseed1)
-HANDLE_IOPTION(iseed2)
+HANDLE_OPTION(double, initial_step)
+HANDLE_OPTION(double, eps)
+HANDLE_OPTION(double, t)
+HANDLE_OPTION(double, rt)
+HANDLE_OPTION(int, ns)
+HANDLE_OPTION(int, nt)
+HANDLE_OPTION(int, neps)
+HANDLE_OPTION(int, maxevl)
+HANDLE_OPTION(int, iprint)
+HANDLE_OPTION(int, iseed1)
+HANDLE_OPTION(int, iseed2)
 
 static Isis_Option_Table_Type Option_Table [] =
 {
