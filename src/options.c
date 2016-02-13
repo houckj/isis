@@ -594,10 +594,16 @@ char *isis_make_default_option_string (const char *subsystem, Isis_Option_Table_
 int isis_update_option_string (char **optstring, char *optname, char *optvalue)
 {
    char *start, *end, *newstring, *s;
-   int len1, len2, len3, len4;
+   int len12, len3, len4;
 
    if (optstring == NULL || optname == NULL)
      return -1;
+
+   /* *optstring = $12 + $3 + $4
+    * where  $12 = $prefix + $optname
+    *         $3 = "=" + $optvalue
+    * (opt.)  $4 = ";" + $suffix
+    */
 
    /* find option */
    if (NULL == (start = strstr (*optstring, optname)))
@@ -605,16 +611,14 @@ int isis_update_option_string (char **optstring, char *optname, char *optvalue)
    /* NULL means this option appears last */
    end = strchr (start, ';');
 
-   len1 = start - *optstring;
-   len2 = strlen(optname) + 1;
+   len12 = start - *optstring + strlen(optname);
    len3 = optvalue ? strlen(optvalue) + 1 : 0;
-   len4 = end ? strlen (end) + 1: 0;
+   len4 = end ? strlen (end) : 0;
 
-   if (NULL == (newstring = (char *) ISIS_MALLOC (len1 + len2 + len3 + len4 + 1)))
+   if (NULL == (newstring = (char *) ISIS_MALLOC (len12 + len3 + len4 + 1)))
      return -1;
 
-   s = isis_strcpy (newstring, *optstring, len1);
-   s = isis_strcpy (s, optname, len2);
+   s = isis_strcpy (newstring, *optstring, len12);
    if (len3 > 0)
      {
         sprintf (s, "=%s", optvalue);
@@ -622,7 +626,7 @@ int isis_update_option_string (char **optstring, char *optname, char *optvalue)
      }
    if (len4 > 0)
      {
-        s = isis_strcpy (s, end, len4);
+        s = isis_strcpy (s, end, len4 + 1);
      }
 
    ISIS_FREE (*optstring);
