@@ -66,6 +66,8 @@ Changes since 1.6.2 (released Jan 2012)
       back = (BACKGROUND_UP + BACKGROUND_DOWN)
              /(BACKSCUP + BACKSCDN)
 32.Mh1. Fix option string update for fit-method "simann".
+32.td1. Fix a bug when parsing the lmodel.dat file and loading 
+        local models
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------

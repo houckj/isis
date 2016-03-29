@@ -232,7 +232,6 @@ static define choose_exec_symbol_hook (m) %{{{
 {
    if (m.exec_symbol_hook != NULL)
      return;
-
    variable fmt = "_xspec_%s_f_hook";
    m.has_fortran_linkage = 1;
 
@@ -242,13 +241,13 @@ static define choose_exec_symbol_hook (m) %{{{
         switch (prefix)
           {
            case "C_" or case "c_":
-             %m.routine_name = m.routine_name[[2:]];
+             m.routine_name = m.routine_name[[2:]];
              fmt = "_xspec_%s_C_hook";
              m.has_fortran_linkage = 0;
           }
           {
            case "F_":
-             %m.routine_name = m.routine_name[[2:]];
+             m.routine_name = m.routine_name[[2:]];
              fmt = "_xspec_%s_F_hook";
              m.has_fortran_linkage = 1;
           }
@@ -426,8 +425,8 @@ define build_xspec_local_models () %{{{
 %}}}
 
 private define make_lib_path (dir, name) %{{{
-{
-   variable path = path_concat (dir, "${s}.${shared_lib_ext}"$);
+  {
+   variable path = path_concat (dir, "lib${name}.${shared_lib_ext}"$);
 
    if (NULL == stat_file (path))
      {
@@ -451,9 +450,10 @@ private define guess_lib_path (nargs) %{{{
    variable s, dir = get_local_model_dir();
 
    if (nargs == 2)
-     {
+    {
         (dir, s) = ();
-        return make_lib_path (dir, s);
+
+	return make_lib_path (dir, s);
      }
    else if (nargs == 1)
      {
@@ -477,7 +477,7 @@ private define guess_lib_path (nargs) %{{{
 
    variable names = glob ("${dir}/*.${shared_lib_ext}"$);
    if (length(names) == 1)
-     return path_concat (dir, names[0]);
+     return names[0];
 
    return NULL;
 }
@@ -578,7 +578,7 @@ private define load_lmodels_from_dir (dir, file) %{{{
 define load_xspec_local_models () %{{{
 {
    variable dirs, env;
-
+    
    switch (_NARGS)
      {
       case 0:
