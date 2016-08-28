@@ -131,7 +131,7 @@ like this:
 > DIR/bin/isis
 
 Welcome to ISIS Version 1.6.2
-Copyright (C) 1998-2012 Massachusetts Institute of Technology
+Copyright (C) 1998-2016 Massachusetts Institute of Technology
 
           Isis web page: http://space.mit.edu/cxc/isis/
    Mailing list archive: http://space.mit.edu/cxc/isis/archive/
@@ -453,7 +453,7 @@ like this:
 > /soft/bin/isis
 
 Welcome to ISIS Version 1.6.2
-Copyright (C) 1998-2012 Massachusetts Institute of Technology
+Copyright (C) 1998-2016 Massachusetts Institute of Technology
 
           Isis web page: http://space.mit.edu/cxc/isis/
    Mailing list archive: http://space.mit.edu/cxc/isis/archive/
