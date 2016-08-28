@@ -68,6 +68,9 @@ Changes since 1.6.2 (released Jan 2012)
 32.Mh1. Fix option string update for fit-method "simann".
 32.td1. Fix a bug when parsing the lmodel.dat file and loading 
         local models
+33.  Merge 32.Mh1, 32.td1 changes into main isis distribution.
+     Added pgtick wrapper; updated copyright notices and load_rmf
+     documentation.
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
