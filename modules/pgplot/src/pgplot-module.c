@@ -1,10 +1,10 @@
 /*  Copyright (C) 1998-2004 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research.
-    
+
     Author:  John E. Davis <davis@space.mit.edu>
              John C. Houck <houck@space.mit.edu>
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -38,7 +38,7 @@
  * cpgplot.h contains prototypes with dummy arguments named y1, j1, etc..
  * This causes all sorts of warning about shadowing bessel functions with those
  * names.  Why does the C library use 'y1' instead of 'bessel_y1'??
- * 
+ *
  * just to avoid problems -- include math.h afterward -  sigh.
  */
 #include <cpgplot.h>
@@ -46,7 +46,7 @@
 #include <slang.h>
 
 #ifdef __cplusplus
-extern "C" 
+extern "C"
 {
 #endif
 SLANG_MODULE(pgplot);
@@ -55,7 +55,7 @@ SLANG_MODULE(pgplot);
 #endif
 
 #include "version.h"
- 
+
 /* Almost all of the functions implemented here have exactly the same number
  * of arguments as the pgplot library functions.  The main difference is that
  * the size of the array dimensions are not needed.  Another difference is
@@ -63,23 +63,21 @@ SLANG_MODULE(pgplot);
  * the library function PGHI2D takes 12 arguments.  The corresponding slang
  * intrinsic _pghi2d takes only 9 arguments since the 2 of the 12 specify the
  * dimensions of a 2d array, and 1 is a temporary workspace argument.
- * 
+ *
  * Finally, functions that return values via the argument list are implemented
  * as slang functions that return multiple values.  An example of this is
  * _pgcurs which is prototyped in FORTRAN as:
- * 
+ *
  *      PGCURS (X, Y, CH);
- * 
+ *
  * but used in slang as:
- * 
+ *
  *      (x,y,ch) = _pgcurs ();
- * 
+ *
  * Also see _pgband for another example.
  */
 
-
-
-#define DEFAULT_DEVICE	"/XWINDOW"
+#define DEFAULT_DEVICE "/XWINDOW"
 
 /* These are some utility routines that convert double arrays to float */
 static int pop_float_vector (SLang_Array_Type **at)
@@ -96,7 +94,7 @@ static int pop_float_vector (SLang_Array_Type **at)
 }
 
 static void free_arrays (SLang_Array_Type *a, SLang_Array_Type *b,
-			 SLang_Array_Type *c, SLang_Array_Type *d)
+                         SLang_Array_Type *c, SLang_Array_Type *d)
 {
    /* NULLs ok */
    SLang_free_array (a);
@@ -109,8 +107,8 @@ static int check_vectors (SLang_Array_Type *a, SLang_Array_Type *b)
 {
    if (a->num_elements != b->num_elements)
      {
-	SLang_verror (SL_TYPE_MISMATCH, "Arrays do not match in size");
-	return -1;
+        SLang_verror (SL_TYPE_MISMATCH, "Arrays do not match in size");
+        return -1;
      }
    return 0;
 }
@@ -118,21 +116,21 @@ static int check_vectors (SLang_Array_Type *a, SLang_Array_Type *b)
 static int pop_two_float_vectors (SLang_Array_Type **a, SLang_Array_Type **b)
 {
    *a = *b = NULL;
-   
+
    if (-1 == pop_float_vector (b))
      return -1;
    if (-1 == pop_float_vector (a))
      {
-	SLang_free_array (*b);
-	*b = 0;
-	return -1;
+        SLang_free_array (*b);
+        *b = 0;
+        return -1;
      }
 
    if (-1 == check_vectors (*a, *b))
      {
-	free_arrays (*a, *b, NULL, NULL);
-	*a = *b = NULL;
-	return -1;
+        free_arrays (*a, *b, NULL, NULL);
+        *a = *b = NULL;
+        return -1;
      }
 
    return 0;
@@ -147,22 +145,22 @@ static int pop_three_float_vectors (SLang_Array_Type **a, SLang_Array_Type **b, 
 
    if (-1 == pop_two_float_vectors (a, b))
      {
-	SLang_free_array (*c);
-	*c = NULL;
-	return -1;
+        SLang_free_array (*c);
+        *c = NULL;
+        return -1;
      }
 
    if (-1 == check_vectors (*a, *c))
      {
-	free_arrays (*a, *b, *c, NULL);
-	*a = *b = *c = NULL;
-	return -1;
+        free_arrays (*a, *b, *c, NULL);
+        *a = *b = *c = NULL;
+        return -1;
      }
    return 0;
 }
 
 static int pop_four_float_vectors (SLang_Array_Type **a, SLang_Array_Type **b,
-				   SLang_Array_Type **c, SLang_Array_Type **d)
+                                   SLang_Array_Type **c, SLang_Array_Type **d)
 {
    *a = *b = *c = *d = NULL;
 
@@ -171,16 +169,16 @@ static int pop_four_float_vectors (SLang_Array_Type **a, SLang_Array_Type **b,
 
    if (-1 == pop_three_float_vectors (a, b, c))
      {
-	SLang_free_array (*d);
-	*d = NULL;
-	return -1;
+        SLang_free_array (*d);
+        *d = NULL;
+        return -1;
      }
 
    if (-1 == check_vectors (*a, *d))
      {
-	free_arrays (*a, *b, *c, *d);
-	*a = *b = *c = *d = NULL;
-	return -1;
+        free_arrays (*a, *b, *c, *d);
+        *a = *b = *c = *d = NULL;
+        return -1;
      }
    return 0;
 }
@@ -201,12 +199,12 @@ static SLang_Array_Type *pop_2d_float_array (float **data, unsigned int *ny, uns
 
    if (at->num_dims > 2)
      {
-	SLang_verror (SL_TYPE_MISMATCH, 
-		      "A 2d numeric array is expected");
-	SLang_free_array (at);
-	return NULL;
+        SLang_verror (SL_TYPE_MISMATCH,
+                      "A 2d numeric array is expected");
+        SLang_free_array (at);
+        return NULL;
      }
-   
+
    *data = (float *)at->data;
    *ny = at->dims[0];
    if (at->num_dims == 1)
@@ -216,7 +214,6 @@ static SLang_Array_Type *pop_2d_float_array (float **data, unsigned int *ny, uns
 
    return at;
 }
-
 
 static int pop_5_floats (float *x1, float *x2, float *x3, float *x4, float *x5)
 {
@@ -235,7 +232,7 @@ static int pop_5_floats (float *x1, float *x2, float *x3, float *x4, float *x5)
    if ((x1 != NULL)
        && (-1 == SLang_pop_float (x1)))
      return -1;
-   
+
    return 0;
 }
 
@@ -256,7 +253,6 @@ static int pop_4_ints (int *x1, int *x2, int *x3, int *x4)
 
    return 0;
 }
-
 
 static int push_2_doubles (double a, double b)
 {
@@ -286,7 +282,7 @@ static int push_2_ints (int a, int b)
 {
    if (-1 == SLang_push_integer (a))
      return -1;
-   
+
    return SLang_push_integer (b);
 }
 
@@ -294,18 +290,17 @@ static int push_int_2_doubles (int a, double b, double c)
 {
    if (-1 == SLang_push_integer (a))
      return -1;
-   
+
    return push_2_doubles (b, c);
 }
 
-   
 /* The pgplot interface starts here */
 
 static volatile sig_atomic_t Signal_In_Progress;
 static void sig_segv (int signo)
 {
    static char msg[] =
-"\n**** PGPLOT is buggy:  Segmentation Fault occurred while in PGCLOSE\n";
+     "\n**** PGPLOT is buggy:  Segmentation Fault occurred while in PGCLOSE\n";
    (void) signo;
    if (Signal_In_Progress)
      return;
@@ -319,17 +314,16 @@ static void sig_segv (int signo)
 static void _pgclos (void)
 {
    void (*sig_func)(int);
-   
+
    sig_func = SLsignal (SIGSEGV, sig_segv);
    if (sig_func == SIG_ERR)
      fprintf (stderr, "warning:  failed initializing signal handler for SIGSEGV\n");
-   
-    cpgclos ();
-   
+
+   cpgclos ();
+
    if (SLsignal (SIGSEGV, sig_func) == SIG_ERR)
      fprintf (stderr, "warning:  failed to re-set signal handler\n");
 }
-
 
 static int _pgopen (char *dev)
 {
@@ -337,17 +331,16 @@ static int _pgopen (char *dev)
 
    if (*dev == 0)
      dev = DEFAULT_DEVICE;
-   
+
    id = cpgopen (dev);
-   
-   return id;			       /* <= 0 is error */
+
+   return id;          /* <= 0 is error */
 }
 
 static void _pgask (int *i)
 {
    cpgask (*i);
 }
-
 
 static void _pgbbuf (void)
 {
@@ -366,52 +359,48 @@ static void _pgend (void)
 
 static void _pgldev (void)
 {
-    cpgldev();
+   cpgldev();
 }
 
 static void _pgpage (void)
 {
-    cpgpage();
+   cpgpage();
 }
 
 static void _pgupdt (void)
 {
-    cpgupdt();
+   cpgupdt();
 }
 
 static void _pgvstd (void)
 {
-    cpgvstd();
+   cpgvstd();
 }
-
 
 static void _pgsave (void)
 {
-    cpgsave();
+   cpgsave();
 }
 
 static void _pgunsa (void)
 {
-    cpgunsa();
+   cpgunsa();
 }
-
 
 static void _pgiden (void)
 {
-    cpgiden();
+   cpgiden();
 }
-
 
 static void _pgeras (void)
 {
-    cpgeras();
+   cpgeras();
 }
 
 static void _pgetxt (void)
 {
-    cpgetxt();
+   cpgetxt();
 }
-
 
 static int _pgqitf (void)
 {
@@ -437,7 +426,6 @@ static int _pgqlw (void)
    return i;
 }
 
-
 static int _pgqcf (void)
 {
    int i;
@@ -453,7 +441,6 @@ static double _pgqch (void)
    cpgqch (&f);
    return (double) f;
 }
-
 
 static int _pgqci (void)
 {
@@ -475,7 +462,7 @@ static void _pgqah (void)
 {
    float angle, barb;
    int fs;
-   
+
    cpgqah (&fs, &angle, &barb);
    push_int_2_doubles (fs, angle, barb);
 }
@@ -544,18 +531,17 @@ static void _pgqtxt ()
 static void _pgqvsz (int *units)
 {
    float a, b, c, d;
-   
+
    cpgqvsz (*units, &a, &b, &c, &d);
    push_4_doubles (a, b, c, d);
 }
 
-
 static void _pgqcs (int *units)
 {
    float xch, ych;
-   
+
    cpgqcs (*units, &xch, &ych);
-   
+
    (void) push_2_doubles (xch, ych);
 }
 
@@ -579,7 +565,7 @@ static void _pgqinf (char *item)
 {
    char buf[1024];
    int len;
-   
+
    len = (int) sizeof(buf);
 
    cpgqinf (item, buf, &len);
@@ -587,7 +573,7 @@ static void _pgqinf (char *item)
      len = 0;
    if (len >= (int) sizeof (buf))
      len = sizeof (buf) - 1;
-   
+
    buf[len] = 0;
    (void) SLang_push_string (buf);
 }
@@ -595,7 +581,7 @@ static void _pgqinf (char *item)
 static void _pgqvp (int *units)
 {
    float x1, x2, y_1, y2;
-   
+
    cpgqvp (*units, &x1, &x2, &y_1, &y2);
 
    (void) push_4_doubles (x1, x2, y_1, y2);
@@ -604,12 +590,11 @@ static void _pgqvp (int *units)
 static void _pgqwin (void)
 {
    float x1, x2, y_1, y2;
-   
+
    cpgqwin (&x1, &x2, &y_1, &y2);
-   
+
    (void) push_4_doubles (x1, x2, y_1, y2);
 }
-
 
 /* select an open graphics device */
 static void _pgslct (int *id)
@@ -631,10 +616,10 @@ static void _pgsubp (int *x, int *y)
 
 /* set window and viewport and draw labeled frame */
 static void _pgenv (double *xmin, double *xmax, double *ymin, double *ymax,
-		    int *just, int *axis)
+                    int *just, int *axis)
 {
    cpgenv ((float) *xmin, (float) *xmax, (float) *ymin, (float) *ymax,
-	   *just, *axis);
+           *just, *axis);
 }
 
 /* set window */
@@ -663,14 +648,14 @@ static void _pgwnad (double *xmin, double *xmax, double *ymin, double *ymax)
 
 /* draw labeled frame around viewport */
 static void _pgbox (char *xopt, double *xtic, int *nx,
-		    char *yopt, double *ytic, int *ny)
+                    char *yopt, double *ytic, int *ny)
 {
    cpgbox (xopt, (float) *xtic, *nx, yopt, (float) *ytic, *ny);
 }
 
 /* draw frame and write (DD) HH MM SS.S labelling */
 static void _pgtbox (char *xopt, double *xtic, int *nx,
-		     char *yopt, double *ytic, int *ny)
+                     char *yopt, double *ytic, int *ny)
 {
    cpgtbox (xopt, (float) *xtic, *nx, yopt, (float) *ytic, *ny);
 }
@@ -747,7 +732,6 @@ static void _pgsah (int *i, double *x, double *y)
    cpgsah(*i, (float) *x, (float) *y);
 }
 
-
 /* write labels for x-axis, y-axis, and top of plot */
 static void _pglab (char *a, char *b, char *c)
 {
@@ -795,18 +779,17 @@ static void _pgrect (double *x, double *y, double *a, double *b)
 {
    cpgrect ((float) *x, (float) *y, (float) *a, (float) *b);
 }
- 
 
 /* draw several graph markers */
 static void _pgpt (int *symbol)
 {
    SLang_Array_Type *x, *y;
-   
+
    if (-1 == pop_two_float_vectors (&x, &y))
      return;
-   
+
    cpgpt ((int) x->num_elements, (float *)x->data, (float *)y->data, *symbol);
-   
+
    free_arrays (x, y, NULL, NULL);
 }
 
@@ -831,8 +814,8 @@ static void _pgerry (double *len)
    if (-1 == pop_three_float_vectors (&x, &y_1, &y_2))
      return;
 
-   cpgerry ((int) x->num_elements, (float*)x->data, 
-	    (float*)y_1->data, (float *)y_2->data, (float) *len);
+   cpgerry ((int) x->num_elements, (float*)x->data,
+            (float*)y_1->data, (float *)y_2->data, (float) *len);
 
    free_arrays (x, y_1, y_2, NULL);
 }
@@ -845,8 +828,8 @@ static void _pgerrx (double *len)
    if (-1 == pop_three_float_vectors (&x1, &x2, &y))
      return;
 
-   cpgerrx ((int) x1->num_elements, 
-	    (float*)x1->data, (float*)x2->data, (float*)y->data, (float) *len);
+   cpgerrx ((int) x1->num_elements,
+            (float*)x1->data, (float*)x2->data, (float*)y->data, (float) *len);
 
    free_arrays (x1, x2, y, NULL);
 }
@@ -862,11 +845,11 @@ static void _pgerrb (double *t)
 
    if (-1 != SLang_pop_integer (&dir))
      {
-	cpgerrb (dir, (int)x->num_elements, 
-		 (float*)x->data, (float*)y->data, (float*)e->data, 
-		 (float) *t);
+        cpgerrb (dir, (int)x->num_elements,
+                 (float*)x->data, (float*)y->data, (float*)e->data,
+                 (float) *t);
      }
-   
+
    free_arrays (x, y, e, NULL);
 }
 
@@ -883,9 +866,9 @@ static void _pgbin (int *center)
 
    if (-1 == pop_two_float_vectors (&x, &data))
      return;
-   
+
    cpgbin ((int) x->num_elements, (float*)x->data, (float*)data->data, *center);
-   
+
    free_arrays (x, data, NULL, NULL);
 }
 
@@ -893,12 +876,12 @@ static void _pgbin (int *center)
 static void _pghist (double *dmin, double *dmax, int *nbins, int *flag)
 {
    SLang_Array_Type *data;
-   
+
    if (-1 == pop_float_vector (&data))
      return;
-   
-   cpghist ((int)data->num_elements, 
-	    (float*)data->data, (float)*dmin, (float)*dmax, *nbins, *flag);
+
+   cpghist ((int)data->num_elements,
+            (float*)data->data, (float)*dmin, (float)*dmax, *nbins, *flag);
 
    SLang_free_array (data);
 }
@@ -908,16 +891,15 @@ static int _pgcurs (void)
 {
    float x, y;
    char ch;
-   
+
    x = y = 0;
    ch = 0;
-   
+
    (void) cpgcurs (&x, &y, &ch);
    (void) push_2_doubles (x, y);
-   
+
    return (int) (unsigned char) ch;
 }
-
 
 /* cross-sections through a 2D data array */
 /* Prototype: _pghi2d (data[][], iy1, iy2, ix1, ix2, x[], ioff, bias, center) */
@@ -931,28 +913,28 @@ static void _pghi2d (int *ioff, double *bias, int *center)
 
    if (-1 == pop_float_vector (&x))
      return;
-   
+
    nx = x->num_elements;
 
    if ((-1 == pop_4_ints (&iy1, &iy2, &ix1, &ix2))
        || (NULL == (at = pop_2d_float_array (&data, &nyv, &nxv))))
      {
-	SLang_free_array (x);
-	return;
+        SLang_free_array (x);
+        return;
      }
 
    if ((int) nx != (ix2 - ix1 + 1))
      {
-	free_arrays (at, x, NULL, NULL);
-	SLang_verror (SL_INVALID_PARM, 
-		      "pghi2d: ix1 and ix2 are out of range");
-	return;
+        free_arrays (at, x, NULL, NULL);
+        SLang_verror (SL_INVALID_PARM,
+                      "pghi2d: ix1 and ix2 are out of range");
+        return;
      }
-   
+
    if (NULL == (ylims = (float *) SLmalloc (sizeof (float) * (nx + 1))))
      {
-	free_arrays (at, x, NULL, NULL);
-	return;
+        free_arrays (at, x, NULL, NULL);
+        return;
      }
 
    /* Don't forget to add one to the array indices since FORTRAN arrays
@@ -960,8 +942,8 @@ static void _pghi2d (int *ioff, double *bias, int *center)
     */
    if (nx && nxv && nyv)
      cpghi2d (data, nxv, nyv, ix1 + 1, ix2 + 1, iy1 + 1, iy2 + 1,
-	      (float*)x->data, *ioff, (float) *bias, *center, ylims);
-   
+              (float*)x->data, *ioff, (float) *bias, *center, ylims);
+
    SLfree ((char *) ylims);
    free_arrays (at, x, NULL, NULL);
 }
@@ -977,7 +959,7 @@ static void _pgaxis (void)
    float x1, y_1, x2, y2, v1, v2, step;
    int nsub;
    float dmajl, dmajr, f_min, disp, orient;
-   
+
    if (-1 == pop_5_floats (&dmajl, &dmajr, &f_min, &disp, &orient))
      return;
    if (-1 == SLang_pop_integer (&nsub))
@@ -988,24 +970,24 @@ static void _pgaxis (void)
      return;
    if (-1 == SLang_pop_slstring (&opt))
      return;
-   cpgaxis (opt, x1, y_1, x2, y2, v1, v2, step, 
-	    nsub, dmajl, dmajr, f_min, disp, orient);
+   cpgaxis (opt, x1, y_1, x2, y2, v1, v2, step,
+            nsub, dmajl, dmajr, f_min, disp, orient);
    SLang_free_slstring (opt);
 }
 
-static int _pgband (int *mode, int *posn, double *xref, double *yref, 
-		    SLang_Ref_Type *rx, SLang_Ref_Type *ry, SLang_Ref_Type *rc)
+static int _pgband (int *mode, int *posn, double *xref, double *yref,
+                    SLang_Ref_Type *rx, SLang_Ref_Type *ry, SLang_Ref_Type *rc)
 {
    float x, y;
    char c;
    int status;
-   
+
    status = cpgband (*mode, *posn, *xref, *yref, &x, &y, &c);
    if (status == 1)
      {
-	(void) SLang_assign_to_ref (rx, SLANG_FLOAT_TYPE, &x);
-	(void) SLang_assign_to_ref (ry, SLANG_FLOAT_TYPE, &y);
-	(void) SLang_assign_to_ref (rc, SLANG_CHAR_TYPE, &c);
+        (void) SLang_assign_to_ref (rx, SLANG_FLOAT_TYPE, &x);
+        (void) SLang_assign_to_ref (ry, SLANG_FLOAT_TYPE, &y);
+        (void) SLang_assign_to_ref (rc, SLANG_CHAR_TYPE, &c);
      }
    return status;
 }
@@ -1017,10 +999,10 @@ static int pop_tr_vector (SLang_Array_Type **tr)
 
    if ((*tr)->num_elements != 6)
      {
-	SLang_verror (SL_INVALID_PARM, "_pgcon*: expecting a 6 element 'tr' vector");
-	SLang_free_array (*tr);
-	*tr = NULL;
-	return -1;
+        SLang_verror (SL_INVALID_PARM, "_pgcon*: expecting a 6 element 'tr' vector");
+        SLang_free_array (*tr);
+        *tr = NULL;
+        return -1;
      }
    return 0;
 }
@@ -1050,19 +1032,19 @@ static void do_pgcon_bs (double *blank, int *nc_sign)
    i_1++; j_1++; i_2++; j_2++;
 
    if (blank != NULL)
-     cpgconb (a, idim, jdim, i_1, i_2, j_1, j_2, 
-	      (float *)c->data, c->num_elements,
-	      (float *)tr->data, *blank);
+     cpgconb (a, idim, jdim, i_1, i_2, j_1, j_2,
+              (float *)c->data, c->num_elements,
+              (float *)tr->data, *blank);
    else if (nc_sign != NULL)
-     cpgcont (a, idim, jdim, i_1, i_2, j_1, j_2, 
-	      (float *)c->data, *nc_sign * (int)c->num_elements,
-	      (float *)tr->data);
+     cpgcont (a, idim, jdim, i_1, i_2, j_1, j_2,
+              (float *)c->data, *nc_sign * (int)c->num_elements,
+              (float *)tr->data);
    else
-     cpgcons (a, idim, jdim, i_1, i_2, j_1, j_2, 
-	      (float *)c->data, c->num_elements,
-	      (float *)tr->data);
+     cpgcons (a, idim, jdim, i_1, i_2, j_1, j_2,
+              (float *)c->data, c->num_elements,
+              (float *)tr->data);
 
-   return_error:
+return_error:
 
    free_arrays (tr, c, at, NULL);
 }
@@ -1081,10 +1063,10 @@ static void _pgcons (void)
 static void _pgcont (int *nc_sign)
 {
    int s;
-   
+
    if (*nc_sign >= 0)
      s = 1;
-   else 
+   else
      s = -1;
    do_pgcon_bs (NULL, &s);
 }
@@ -1096,7 +1078,7 @@ static void _pgconl (char *label, int *intval, int *minint)
    int i_1, i_2, j_1, j_2;
    float c;
    SLang_Array_Type *tr, *at;
-   
+
    tr = at = NULL;
 
    if (-1 == pop_float_vector (&tr))
@@ -1110,28 +1092,28 @@ static void _pgconl (char *label, int *intval, int *minint)
 
    if (NULL == (at = pop_2d_float_array (&a, &jdim, &idim)))
      goto return_error;
-		
+
    /* Convert to FORTRAN indexing */
    i_1++; j_1++; i_2++; j_2++;
 
-   cpgconl (a, idim, jdim, i_1, i_2, j_1, j_2, 
-	    c, (float *)tr->data, 
-	    label, *intval, *minint);
-   
-   return_error:
-   
+   cpgconl (a, idim, jdim, i_1, i_2, j_1, j_2,
+            c, (float *)tr->data,
+            label, *intval, *minint);
+
+return_error:
+
    free_arrays (at, tr, NULL, NULL);
 }
 
 static void do_pgconf_xxx (void (*f)(const float *, int, int, int, int, int, int,
-				     float, float, const float *))
+                                     float, float, const float *))
 {
    float *a;
    unsigned int idim, jdim;
    int i_1, i_2, j_1, j_2;
    float c1, c2;
    SLang_Array_Type *at, *tr;
-   
+
    at = tr = NULL;
 
    if (-1 == pop_float_vector (&tr))
@@ -1145,14 +1127,14 @@ static void do_pgconf_xxx (void (*f)(const float *, int, int, int, int, int, int
 
    if (NULL == (at = pop_2d_float_array (&a, &jdim, &idim)))
      goto return_error;
-   
+
    /* Convert to FORTRAN indexing */
    i_1++; j_1++; i_2++; j_2++;
-   
-   (*f) (a, idim, jdim, i_1, i_2, j_1, j_2, 
-	 c1, c2, (float *)tr->data);
-   
-   return_error:
+
+   (*f) (a, idim, jdim, i_1, i_2, j_1, j_2,
+         c1, c2, (float *)tr->data);
+
+return_error:
    free_arrays (at, tr, NULL, NULL);
 }
 
@@ -1171,11 +1153,11 @@ static void _pgimag (void)
    do_pgconf_xxx (&cpgimag);
 }
 
-/* Warning: This routine differs from its pgplot counterpart. 
+/* Warning: This routine differs from its pgplot counterpart.
  * It does not allow the use of old arrays.  At most, 1024 points are allocated.
  */
-static void _pglcur_pgncur_pgolin (SLang_Ref_Type *rx, SLang_Ref_Type *ry, 
-				   int symbol, int what)
+static void _pglcur_pgncur_pgolin (SLang_Ref_Type *rx, SLang_Ref_Type *ry,
+                                   int symbol, int what)
 {
    SLang_Array_Type *a, *b;
    float x[1024];
@@ -1188,18 +1170,18 @@ static void _pglcur_pgncur_pgolin (SLang_Ref_Type *rx, SLang_Ref_Type *ry,
    switch (what)
      {
       case 1:
-	cpglcur (1024, &n, x, y);
-	break;
-	
+        cpglcur (1024, &n, x, y);
+        break;
+
       case 2:
-	cpgncur (1024, &n, x, y, symbol);
-	break;
-	
+        cpgncur (1024, &n, x, y, symbol);
+        break;
+
       case 3:
-	cpgolin (1024, &n, x, y, symbol);
-	break;
+        cpgolin (1024, &n, x, y, symbol);
+        break;
      }
-   
+
    if (n < 0)
      n = 0;
 
@@ -1209,16 +1191,16 @@ static void _pglcur_pgncur_pgolin (SLang_Ref_Type *rx, SLang_Ref_Type *ry,
      return;
    if (NULL == (b = SLang_create_array (SLANG_FLOAT_TYPE, 0, NULL, &n_it, 1)))
      {
-	SLang_free_array (a);
-	return;
+        SLang_free_array (a);
+        return;
      }
-   
+
    memcpy ((char *)a->data, (char *)x, n * sizeof (float));
    memcpy ((char *)b->data, (char *)y, n * sizeof (float));
-   
+
    (void) SLang_assign_to_ref (rx, SLANG_ARRAY_TYPE, &a);
    (void) SLang_assign_to_ref (ry, SLANG_ARRAY_TYPE, &b);
-   
+
    free_arrays (a, b, NULL, NULL);
 }
 
@@ -1241,13 +1223,13 @@ static void _pgpnts (void)
 {
    SLang_Array_Type *x, *y;
    SLang_Array_Type *s;
-   
+
    if (-1 == SLang_pop_array_of_type (&s, SLANG_INT_TYPE))
      return;
    if (0 == pop_two_float_vectors (&x, &y))
      {
-	cpgpnts (x->num_elements, (float *) x->data, (float *) y->data, 
-		 (int *) s->data, s->num_elements);
+        cpgpnts (x->num_elements, (float *) x->data, (float *) y->data,
+                 (int *) s->data, s->num_elements);
      }
    free_arrays (x, y, s, NULL);
 }
@@ -1258,9 +1240,9 @@ static void _pgpoly (void)
 
    if (-1 == pop_two_float_vectors (&x, &y))
      return;
-   
+
    cpgpoly (x->num_elements, (float *) x->data, (float *) y->data);
-   
+
    free_arrays (x, y, NULL, NULL);
 }
 
@@ -1270,10 +1252,10 @@ static void _pgctab (double *contra, double *bright)
 
    if (-1 == pop_four_float_vectors (&l, &r, &g, &b))
      return;
-   
+
    cpgctab ((float *)l->data, (float *)r->data, (float *)g->data, (float *)b->data,
-	    (int) l->num_elements, *contra, *bright);
-   
+            (int) l->num_elements, *contra, *bright);
+
    free_arrays (l, r, g, b);
 }
 
@@ -1287,7 +1269,6 @@ static void _pgscir (int *clo, int *chi)
 {
    cpgscir (*clo, *chi);
 }
-
 
 static void _pgscrl (double *dx, double *dy)
 {
@@ -1307,6 +1288,22 @@ static void _pgshls (int *ci, double *hue, double *lightness, double *saturation
    cpgshls (*ci, (float) *hue, (float) *lightness,  (float) *saturation);
 }
 
+static void _pgtick (void)
+{
+   float x1, x2, y1, y2, v, tikl, tikr, orient, disp;
+   char *s;
+
+   if (-1 == SLang_pop_slstring (&s))
+     return;
+
+   if ((0 == pop_5_floats (&v, &tikl, &tikr, &disp, &orient))
+       && (0 == pop_5_floats (&x1, &y1, &x2, &y2, NULL)))
+     {
+        cpgtick (x1, y1, x2, y2, v, tikl, tikr, disp, orient, s);
+     }
+   SLang_free_slstring (s);
+}
+
 /*
  * Not implemented:
  *   Obsolete:
@@ -1317,7 +1314,7 @@ static void _pgshls (int *ci, double *hue, double *lightness, double *saturation
 #define S SLANG_STRING_TYPE
 #define D SLANG_DOUBLE_TYPE
 #define R SLANG_REF_TYPE
-static SLang_Intrin_Fun_Type Module_Intrinsics [] = 
+static SLang_Intrin_Fun_Type Module_Intrinsics [] =
 {
    MAKE_INTRINSIC_4("_pgarro", _pgarro, V, D, D, D, D),
    MAKE_INTRINSIC_I("_pgask", _pgask, V),
@@ -1424,14 +1421,14 @@ static SLang_Intrin_Fun_Type Module_Intrinsics [] =
    MAKE_INTRINSIC_4("_pgswin", _pgswin, V, D, D, D, D),
    MAKE_INTRINSIC_6("_pgtbox", _pgtbox, V, S, D, I, S, D, I),
    MAKE_INTRINSIC_3("_pgtext", _pgtext, V, D, D, S),
-   /* MAKE_INTRINSIC_0("_pgtick", _pgtick), */
+   MAKE_INTRINSIC_0("_pgtick", _pgtick, V),
    MAKE_INTRINSIC_0("_pgunsa", _pgunsa, V),
    MAKE_INTRINSIC_0("_pgupdt", _pgupdt, V),
    MAKE_INTRINSIC_4("_pgvsiz", _pgvsiz, V, D, D, D, D),
    MAKE_INTRINSIC_0("_pgvstd", _pgvstd, V),
    /* MAKE_INTRINSIC_0("_pgwedg", _pgwedg), */
    MAKE_INTRINSIC_4("_pgwnad", _pgwnad, V, D, D, D, D),
-   
+
    SLANG_END_INTRIN_FUN_TABLE
 };
 
@@ -1453,35 +1450,34 @@ static SLang_IConstant_Type Module_IConstants [] =
 };
 
 static int setenv_pgplot_dir (void)
-{      
+{
    static char *pgplot_dir;
-    
+
    if (NULL != getenv ("PGPLOT_DIR"))
      return 0;
-    
+
    pgplot_dir = "PGPLOT_DIR=" PGPLOTDIR;
    if (-1 == putenv (pgplot_dir))
      {
         fprintf (stderr, "Failed setting PGPLOT_DIR environment variable: %s\n", pgplot_dir);
         return -1;
      }
-    
+
    return 0;
 }
 
 int init_pgplot_module_ns (char *ns_name)
 {
    SLang_NameSpace_Type *ns;
-   
+
    if (NULL == (ns = SLns_create_namespace (ns_name)))
      return -1;
-
 
    if ((-1 == SLns_add_intrin_fun_table (ns, Module_Intrinsics, "__PGPLOT__"))
        || (-1 == SLns_add_iconstant_table (ns, Module_IConstants, NULL))
        || (-1 == SLns_add_intrin_var_table (ns, Module_Variables, NULL)))
-      return -1;
-   
+     return -1;
+
    return setenv_pgplot_dir ();
 }
 
@@ -1500,4 +1496,3 @@ int FC_DUMMY_MAIN (void)
    return 1;
 }
 #endif
-
