@@ -3452,15 +3452,20 @@ load_rmf
             % two parameters to the RMF function when it is initialized.
             () = load_rmf ("libotherrmf.so:init_function ;sigma=4.32;a=4");
 
-    By default, isis will complain and refuse if asked to load a
-    FITS RMF file which does not adhere closely to the OGIP
-    standard format.  Setting Rmf_OGIP_Compliance=0 will reduce the
-    required level of standards compliance. If isis remains unable
-    to read the file, the best approach may be to modify the RMF
-    file to adhere more closely to the standard format.  Usually
-    this is just a matter of adding a few keywords and making sure
-    that important keywords have correct values. In particular,
-    isis looks for
+    By default, isis will generate an error if asked to load a FITS
+    RMF file that does not adhere closely to the OGIP standard
+    format.  Setting the global variable Rmf_OGIP_Compliance=0 will
+    reduce the required level of standards compliance for all input
+    RMF files.  Alternatively, one can use the strict qualifier to
+    change the setting for a specific file. For example:
+
+       rmf_index = load_rmf ("non_ogip_compliant.rmf;strict=0");
+
+    If isis is still unable to read the file, the best approach may
+    be to modify the RMF file to adhere more closely to the
+    standard format.  Usually this is just a matter of adding a few
+    keywords and making sure that important keywords have correct
+    values. In particular, isis looks for
 
       EXTNAME = EBOUNDS
       EXTNAME = MATRIX | SPECRESP MATRIX
@@ -3468,7 +3473,8 @@ load_rmf
       HDUCLAS3 = REDIST | DETECTOR | FULL
 
     The HDUCLASn keywords are required for full OGIP compliance,
-    but will be ignored if Rmf_OGIP_Compliance=0.
+    but will be ignored if Rmf_OGIP_Compliance=0, or if the
+    qualifier strict=0 is present.
 
 
  SEE ALSO
