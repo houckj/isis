@@ -980,7 +980,6 @@ static int load_line_list_extension (DB_line_t **line, int *n, cfitsfile *fp) /*
    float *wavelen_obs, *wavelen, *wavelen_err, *A_value, *A_err;
    int *upper_lev, *lower_lev;
    int element, ion_state;
-   int len;
    int ret = -1;
 
    if (NULL == line)
@@ -1005,7 +1004,7 @@ static int load_line_list_extension (DB_line_t **line, int *n, cfitsfile *fp) /*
    else
      {
         DB_line_t *tmp;
-        len = (*n + nlines) * sizeof(DB_line_t);
+        size_t len = (*n + nlines) * sizeof(DB_line_t);
         if (NULL == (tmp = (DB_line_t *) ISIS_REALLOC (*line, len)))
           return -1;
         *line = tmp;
