@@ -35,6 +35,11 @@ conv ["simpl"] = "";
 conv ["cflux"] = "";
 conv ["zashift"] = "";
 conv ["zmshift"] = "";
+conv ["cpflux"] = "";
+conv ["rfxconv"] = "";
+conv ["vashift"] = "";
+conv ["vmshift"] = "";
+conv ["xilconv"] = "";
 
 variable skip = Assoc_Type[];
 #iffalse
@@ -60,6 +65,9 @@ skip ["zvfeabs"] = "array bounds violation";
 skip ["plcabs"] = "invalid parameter defaults";
 skip ["kerrdisk"] = "invalid parameter defaults";
 skip ["nsmax"] = "invalid parameter defaults";
+skip ["nsmaxg"] = "parameter defaults inconsistent with hard limits";
+skip ["smaug"] = "invalid config";
+skip ["clumin"] = "invalid parameter defaults";
 
 % Note that c6mekl and c6vmekl compute a DEM which is
 % not constrained to be positive.
