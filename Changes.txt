@@ -77,6 +77,7 @@ Changes since 1.6.2 (released Jan 2012)
      handle larger line list in atomdb-v3.0.3
 36.  src/db-atomic.c: Change int variable to size_t to avoid integer
      overflow when loading atomdb
+37.  Updates to support heasoft-6.20
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
