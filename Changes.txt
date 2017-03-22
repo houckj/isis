@@ -75,6 +75,8 @@ Changes since 1.6.2 (released Jan 2012)
      overflow when loading full atomdb-v3.0.3
 35.  src/db-cie.c: Increase DEFAULT_HASH_TABLE_SIZE_HINT to better
      handle larger line list in atomdb-v3.0.3
+36.  src/db-atomic.c: Change int variable to size_t to avoid integer
+     overflow when loading atomdb
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------

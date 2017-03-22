@@ -926,7 +926,7 @@ static int build_hash_table (DB_t *db) /*{{{*/
 
 int DB_merge_lines (DB_t *db, DB_Merge_Type *m) /*{{{*/
 {
-   int i, offset, len;
+   int i, offset;
 
    if (NULL == db || m == NULL || m->n <= 0)
      return -1;
@@ -939,6 +939,7 @@ int DB_merge_lines (DB_t *db, DB_Merge_Type *m) /*{{{*/
      }
    else
      {
+        size_t len;
         DB_line_t *tmp;
         offset = db->nlines;
         len = (db->nlines + m->n) * sizeof(DB_line_t);
