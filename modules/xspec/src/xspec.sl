@@ -374,7 +374,7 @@ private define get_local_model_dir ()
 
 define build_xspec_local_models () %{{{
 {
-   variable msg = "build_xspec_local_models ([dir [, pkg_name]]);";
+   variable msg = "build_xspec_local_models ([dir [, pkg_name]][;lmodel=filename]);";
    variable lmoddir = get_local_model_dir ();
    variable pkg_name = "xspeclocal";
 
@@ -403,9 +403,11 @@ define build_xspec_local_models () %{{{
         throw ApplicationError, "*** Error: No read/write access to $lmoddir"$;
      }
 
+   variable lmodeldat = qualifier ("lmodel", "lmodel.dat");
+
    variable cmd;
 
-   cmd = ". $HEADAS/headas-init.sh ; initpackage $pkg_name $lmoddir/lmodel.dat $lmoddir -udmget"$;
+   cmd = ". $HEADAS/headas-init.sh ; initpackage $pkg_name $lmoddir/$lmodeldat $lmoddir -udmget"$;
    if (0 != system (cmd))
      {
         vmessage ("*** Error while running 'initpackage'");
@@ -489,19 +491,21 @@ define load_xspec_local_models () %{{{
    if (_NARGS > 2)
      {
         _pop_n (_NARGS);
-        usage ("load_xspec_local_models ([dir [, pkg_name]]);");
+        usage ("load_xspec_local_models ([dir [, pkg_name]][;lmodel=filename]);");
         return;
      }
+
+   variable lmodeldat = qualifier ("lmodel", "lmodel.dat");
 
    variable lib_path = guess_lib_path (_NARGS);
    if (lib_path == NULL)
      return;
 
    Model_File = lib_path;
-   vmessage ("Loading %s", Model_File);
+   vmessage ("Loading %s with parameter file %s", Model_File, lmodeldat);
 
    variable dir = path_dirname (lib_path);
-   variable buf = load_buf (path_concat (dir, "lmodel.dat"));
+   variable buf = load_buf (path_concat (dir, lmodeldat));
    () = load_shared_model_table (buf);
 }
 
@@ -578,7 +582,7 @@ private define load_lmodels_from_dir (dir, file) %{{{
 define load_xspec_local_models () %{{{
 {
    variable dirs, env;
-    
+
    switch (_NARGS)
      {
       case 0:
@@ -783,7 +787,8 @@ private define redshift_hook (file, args_ref) %{{{
      {
 	fp = NULL;   % close the file
 
-	args = [@args_ref, "redshift"];
+	args = @args_ref;
+        if (z == 1) args = [args, "redshift"];
 
 	variable dims, num_dims;
 	(dims, num_dims, ) = array_info(args);

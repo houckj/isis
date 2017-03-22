@@ -15313,13 +15313,15 @@ Example:
 \begin{isisfunction}
 {build\_xspec\_local\_models}
 {Compile \xspec\ local models (xspec 12+ only)}
-{build\_xspec\_local\_models ([dir [, pkg\_name]])};
+{build\_xspec\_local\_models ([dir [, pkg\_name]][;lmodel=filename])};
 {load\_xspec\_local\_models}
 
 If no arguments are provided, this function will compile the
 \xspec\ local models in the directory specified by the
 \verb|LMODDIR| environment variable.  Optionally, the directory
-path and a package name may be provided.
+path and a package name may be provided.  By default, model parameter
+names are loaded from a text file named \verb|lmodel.dat|; an alternate
+file may be specified using the \verb|lmodel| qualifier.
 
 Use \verb|load_xspec_local_models| to import the spectral
 models into isis.
@@ -15328,7 +15330,7 @@ models into isis.
 \begin{isisfunction}
 {load\_xspec\_local\_models}
 {Load \xspec\ local models}
-{load\_xspec\_local\_models ( [dir [, pkg\_name]])}
+{load\_xspec\_local\_models ( [dir [, pkg\_name]][;lmodel=filename])}
 {build\_xspec\_local\_models }
 
 \isis\ can use local models compiled for XSPEC. Any local
@@ -15336,7 +15338,9 @@ models available along path specified by the \verb|LMODDIR|
 environment variable are automatically loaded at the time the
 \xspec\ module is imported.  Local models may also be loaded by
 specifying the shared library directory and, optionally, the
-associated package name.
+associated package name. By default, model parameter
+names are loaded from a text file named \verb|lmodel.dat|;
+an alternate file may be specified using the \verb|lmodel| qualifier.
 
 Defining this global variable:
 \begin{verbatim}

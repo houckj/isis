@@ -14192,13 +14192,15 @@ build_xspec_local_models
     Compile xspec local models (xspec 12+ only)
 
  USAGE
-    build_xspec_local_models ([dir [, pkg_name]])
+    build_xspec_local_models ([dir [, pkg_name]][;lmodel=filename])
 
  DESCRIPTION
     If no arguments are provided, this function will compile the
     XSPEC local models in the directory specified by the LMODDIR
     environment variable.  Optionally, the directory path and a
-    package name may be provided.
+    package name may be provided.  By default, model parameter
+    names are loaded from a text file named lmodel.dat; an
+    alternate file may be specified using the lmodel qualifier.
 
     Use load_xspec_local_models to import the spectral models into
     isis.
@@ -14213,7 +14215,7 @@ load_xspec_local_models
     Load xspec local models
 
  USAGE
-    load_xspec_local_models ( [dir [, pkg_name]])
+    load_xspec_local_models ( [dir [, pkg_name]][;lmodel=filename])
 
  DESCRIPTION
     isis can use local models compiled for XSPEC. Any local models
@@ -14221,7 +14223,9 @@ load_xspec_local_models
     variable are automatically loaded at the time the XSPEC module
     is imported.  Local models may also be loaded by specifying the
     shared library directory and, optionally, the associated
-    package name.
+    package name. By default, model parameter names are loaded from
+    a text file named lmodel.dat; an alternate file may be
+    specified using the lmodel qualifier.
 
     Defining this global variable:
 
