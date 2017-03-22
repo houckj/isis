@@ -2573,29 +2573,41 @@ static int is_whitespace (const char *s) /*{{{*/
 
 static char *read_file_keyword (cfitsfile *fp, const char *keyname, const char *filename) /*{{{*/
 {
-   char buf[CFLEN_FILENAME];
-   char *path=NULL, *dir=NULL, *slash=NULL;
+   char *buf=NULL, *path=NULL, *dir=NULL, *slash=NULL;
+   char *str;
 
-   *buf = 0;
-
-   if (0 != cfits_read_string_keyword (buf, keyname, fp)
-       || (0 != is_whitespace (buf))
-       || (0 == isis_strcasecmp (buf, "NONE")))
+   if ((0 != cfits_read_string_keyword_alloc (&buf, keyname, fp))
+       || (buf == NULL))
      return NULL;
 
+   if ((0 != is_whitespace (buf))
+       || (0 == isis_strcasecmp (buf, "NONE")))
+     {
+        cfits_free_string_keyword (buf);
+        return NULL;
+     }
+
+   /* Someday the fitsio may use a a custom allocator that needs
+    * to free this string.  For that reason, I'll make my own copy now */
+   if (NULL == (str = isis_make_string (buf)))
+     return NULL;
+   cfits_free_string_keyword (buf);
+   buf = NULL;
+
 #ifndef HAVE_UNISTD_H
-   return isis_make_string (buf);
+   return str;
 #else
-   if ((0 == access (buf, F_OK))
+   if ((0 == access (str, F_OK))
        || (NULL == (slash = strrchr ((char *)filename, '/')))
        || (NULL == (dir = isis_make_string (filename))))
      {
-        return isis_make_string (buf);
+        return str;
      }
 
    *(dir + (slash - filename)) = 0;
-   path = isis_mkstrcat (dir, "/", buf, NULL);
+   path = isis_mkstrcat (dir, "/", str, NULL);
    ISIS_FREE(dir);
+   ISIS_FREE(str);
    return path;
 #endif
 }

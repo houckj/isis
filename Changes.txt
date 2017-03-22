@@ -78,6 +78,8 @@ Changes since 1.6.2 (released Jan 2012)
 36.  src/db-atomic.c: Change int variable to size_t to avoid integer
      overflow when loading atomdb
 37.  Updates to support heasoft-6.20
+38.  Use fits_read_key_longstr to read file paths for RESPFILE,
+     ANCRFILE, BACKFILE keywords.
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------

@@ -289,6 +289,29 @@ int cfits_read_float_keyword (float *keyvalue, const char *keyname,
    return 0;
 }
 
+int cfits_free_string_keyword (char *keyvalue)
+{
+   int status = 0;
+   (void) fits_free_memory (keyvalue, &status);
+   cfits_report_error (status);
+   if (status != 0) return -1;
+   return 0;
+}
+
+int cfits_read_string_keyword_alloc (char **keyvalue, const char *keyname,
+                                     cfitsfile *fptr)
+{
+   int status = 0;
+   char comment[CFLEN_COMMENT];
+
+   (void) fits_read_key_longstr ((fitsfile *) fptr, keyname, keyvalue,
+                                 comment, &status);
+   cfits_report_error (status);
+
+   if (status != 0) return -1;
+   return 0;
+}
+
 int cfits_read_string_keyword (char *keyvalue, const char *keyname,
                                 cfitsfile *fptr)
 {

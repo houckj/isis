@@ -71,6 +71,9 @@ extern int cfits_read_double_keyword (double *keyvalue, const char *keyname,
                                       cfitsfile *fptr);
 extern int cfits_read_string_keyword (char *keyvalue, const char *keyname,
                                       cfitsfile *fptr);
+extern int cfits_free_string_keyword (char *keyvalue);
+extern int cfits_read_string_keyword_alloc (char **keyvalue, const char *keyname,
+                                            cfitsfile *fptr);
 extern int cfits_get_colunits (char *col_units, const char *col_name,
                                cfitsfile *fptr);
 extern int cfits_read_int_colkey (int *keyvalue, const char *keyroot,
