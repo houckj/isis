@@ -54,7 +54,13 @@ define aped ()
    db.atomic_data_filemap = "filemap";
 
    db.abundance = "APED/misc/Abundances.fits";
-   db.ion_balance = "APED/ionbal/MM98_ionbal.fits";
+
+   variable ion_balance = "APED/ionbal/v" + version + "_ionbal.fits";
+   if (NULL == stat_file (path_concat (db.dir, ion_balance)))
+     {
+        ion_balance = "APED/ionbal/MM98_ionbal.fits";
+     }
+   db.ion_balance = ion_balance;
 
    db.line_emissivity = "apec_v" + version + "_line.fits";
    db.continuum_emissivity = "apec_v" + version + "_coco.fits";
