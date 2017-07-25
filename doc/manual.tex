@@ -15372,7 +15372,7 @@ array of abundance values relative to Hydrogen.
 {xspec\_config\_hook}
 {Perform xspec related customizations}
 {xspec\_config\_hook()}
-{\_\_set\_hard\_limits}
+{xspec\_rename\_model\_hook, \_\_set\_hard\_limits}
 
 \index{XSPEC module!customization}
 \index{xspec\_config\_hook@{\tt xspec\_config\_hook}}
@@ -15555,6 +15555,33 @@ subroutine distributed with xspec.  From the source code:
       photo   r       r: Cross-section in cm**2
 \end{verbatim}
 
+\end{isisfunction}
+
+\begin{isisfunction}
+{xspec\_rename\_model\_hook}
+{Define a mapping from \xspec\ model to \isisx fit-function names}
+{xspec\_rename\_model\_hook (isis\_model\_name\_assoc\_array)}
+{xspec\_config\_hook}
+
+If a function named `\verb|xspec_rename_model_hook|' is defined when
+the \xspec\ module is loaded, then that function will be called
+with an associative array as a parameter. The hook can be used
+to define different fit-function names for \xspec\ models that
+are provided to \isisx -- e.g., to avoid name clashes with its
+own intrinsic fit-functions.
+
+Unlike \verb|xspec_config_hook|, \verb|xspec_rename_model_hook| is called
+before the \xspec\ module initializes its fit functions.
+
+For example, in order to rename \xspec's \verb|voigt| model to \verb|VOIGT|,
+one can define the following function in the installation's
+\verb|isis/etc/local.sl| or even one's personal \verb|.isisrc| file:
+\begin{verbatim}
+   define xspec_rename_model_hook (isis_model_name)
+   {
+      isis_model_name["voigt"] = "VOIGT";
+   }
+\end{verbatim}
 \end{isisfunction}
 
 \begin{isisfunction}

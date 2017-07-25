@@ -83,6 +83,8 @@ Changes since 1.6.2 (released Jan 2012)
 39.  xspec module: new lmodel keyword for load_xspec_local_models,
      build_xspec_local_models.  Also, update etc/aped.sl to read
      a versioned ionization balance filename.
+40.  xspec module supports xspec_rename_model_hook to rename
+     xspec models provided to isis.
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------

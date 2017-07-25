@@ -14299,7 +14299,7 @@ xspec_config_hook
 
 
  SEE ALSO
-    __set_hard_limits
+    xspec_rename_model_hook, __set_hard_limits
 
 ------------------------------------------------------------------------
 xspec_elabund
@@ -14492,6 +14492,39 @@ xspec_photo
 
  SEE ALSO
     xspec_gphoto
+
+------------------------------------------------------------------------
+xspec_rename_model_hook
+
+ SYNOPSIS
+    Define a mapping from xspec model to ISIS fit-function names
+
+ USAGE
+    xspec_rename_model_hook (isis_model_name_assoc_array)
+
+ DESCRIPTION
+    If a function named `xspec_rename_model_hook' is defined when
+    the XSPEC module is loaded, then that function will be called
+    with an associative array as a parameter. The hook can be used
+    to define different fit-function names for XSPEC models that
+    are provided to ISIS -- e.g., to avoid name clashes with its
+    own intrinsic fit-functions.
+
+    Unlike xspec_config_hook, xspec_rename_model_hook is called
+    before the XSPEC module initializes its fit functions.
+
+    For example, in order to rename XSPEC's voigt model to VOIGT,
+    one can define the following function in the installation's
+    isis/etc/local.sl or even one's personal .isisrc file:
+
+       define xspec_rename_model_hook (isis_model_name)
+       {
+          isis_model_name["voigt"] = "VOIGT";
+       }
+
+
+ SEE ALSO
+    xspec_config_hook
 
 ------------------------------------------------------------------------
 xspec_set_cosmo

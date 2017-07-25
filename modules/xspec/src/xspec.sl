@@ -169,6 +169,8 @@ private define attach_unit_string (name, units) %{{{
 
 %}}}
 
+private variable __model_renamings = Assoc_Type[String_Type];
+
 private define create_wrapper (m) %{{{
 {
    if (m.model_type != "add"
@@ -190,9 +192,10 @@ private define create_wrapper (m) %{{{
                    m.model_name, m.init_string);
      }
 
+   variable isis_model_name = assoc_key_exists (__model_renamings, m.model_name) ? __model_renamings[m.model_name] : m.model_name;
    variable def;
    def = sprintf ("define %s_fit(l,h,p%s){%s return %s(l,h,p%s, _isis->__Xspec_Symbol[\"%s\"]);}",
-		  m.model_name, arg, set_init_string,
+		  isis_model_name, arg, set_init_string,
 		  m.exec_symbol_hook, arg,
 		  m.model_name);
 
@@ -207,23 +210,25 @@ private define create_wrapper (m) %{{{
 
    variable decl;
    decl = sprintf ("add_slang_function (\"%s\", [%s]);",
-		   m.model_name, param_names);
+		   isis_model_name, param_names);
 
    variable pdef_array_name = create_param_defaults_array (m);
    variable pdef;
    pdef = sprintf ("define %s_default(i){return %s[i];}",
-                   m.model_name, pdef_array_name);
+                   isis_model_name, pdef_array_name);
 
    variable psetdef;
    psetdef = sprintf ("set_param_default_hook (\"%s\", &%s_default)",
-                      m.model_name, m.model_name);
+                      isis_model_name, isis_model_name);
    eval(def);
    eval(decl);
    eval(pdef);
    eval(psetdef);
 
    if (m.model_type == "con")
-     set_function_category (m.model_name, ISIS_FUN_OPERATOR);
+     set_function_category (isis_model_name, ISIS_FUN_OPERATOR);
+
+   return isis_model_name;
 }
 
 %}}}
@@ -287,7 +292,7 @@ static define parse_model_table (t, mangle, load_symbol_ref, lookup_by_model_nam
    if (length(blanks) == 0) blanks = [0];
 
    variable e, m, s;
-   variable names = NULL;
+   variable names = {};
 
    xspec_track_link_errors ();
 
@@ -330,18 +335,13 @@ static define parse_model_table (t, mangle, load_symbol_ref, lookup_by_model_nam
           }
 
 	_isis->__Xspec_Symbol[m.model_name] = m.exec_symbol;
-	create_wrapper (m);
-
-	if (names != NULL)
-	  names = [names, m.model_name];
-	else names = m.model_name;
+	variable isis_model_name = create_wrapper (m);
+	list_append (names, isis_model_name);
      }
 
    if (Isis_Verbose > 0)
      {
-	variable list;
-	if (names == NULL) list = "(null)";
-	else list = strjoin (names, ", ");
+	variable list = length (names) ? strjoin (list_to_array (names), ", ") : "(null)";
 	vmessage ("loaded:  %S", list);
      }
 
@@ -678,6 +678,19 @@ private define load_xspec_models () %{{{
    try_loading_local_models ();
 }
 
+%}}}
+
+% In order to rename an xspec model, define the following function: %{{{
+%
+% define xspec_rename_model_hook (isis_model_name)
+% {
+%    isis_model_name[ "old-xspec-name" ] = "new-isis-name";
+% }
+if (2 == is_defined ("xspec_rename_model_hook"))
+{
+   __model_renamings;  % left on stack
+   eval ("xspec_rename_model_hook");
+}
 %}}}
 
 load_xspec_models ();
