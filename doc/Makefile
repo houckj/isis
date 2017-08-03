@@ -30,7 +30,7 @@ patch_index:
 	sed -e 's/\\begin{theindex}/$(TOC)/' $(DOC).ind > tmp.ind
 	mv -f tmp.ind $(DOC).ind
 
-postscript:	$(DOC).tex
+postscript:	$(DOC).pdf
 	pdftops $(DOC).pdf
 
 old-postscript:	$(DOC).tex

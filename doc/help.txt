@@ -2971,7 +2971,7 @@ is_flux_mode
      compatibility with earlier versions of ISIS -- it may be
      removed in a subsequent release.
 
-    Use this function to determine whether isis is currently
+    Use this function to determine whether ISIS is currently
     dealing with flux data or count data.  If the return value is
     one, commands such as get_data, put_data and plot_data all
     refer to flux-corrected data (e.g. the FLUX column in the Type
