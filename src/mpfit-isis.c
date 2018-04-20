@@ -1,7 +1,7 @@
 /* -*- mode: C; mode: fold -*- */
 
 /*
-    Copyright (C) 1998-2017 Massachusetts Institute of Technology
+    Copyright (C) 1998-2018 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research under
     contract SV1-61010 from the Smithsonian Institution.
