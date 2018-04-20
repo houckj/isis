@@ -1,4 +1,5 @@
 require("xspec");
+%xspec_xset ("APECROOT", "3.0.9");
 
 variable names, lo, hi, id, fp;
 fp = fopen (Xspec_Model_Names_File, "r");
