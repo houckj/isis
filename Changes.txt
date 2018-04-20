@@ -85,6 +85,7 @@ Changes since 1.6.2 (released Jan 2012)
      a versioned ionization balance filename.
 40.  xspec module supports xspec_rename_model_hook to rename
      xspec models provided to isis.
+41.  Updates to support heasoft-6.23
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
