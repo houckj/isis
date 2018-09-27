@@ -86,6 +86,10 @@ Changes since 1.6.2 (released Jan 2012)
 40.  xspec module supports xspec_rename_model_hook to rename
      xspec models provided to isis.
 41.  Updates to support heasoft-6.23
+41.td1. gainshift kernel can have negative energy offsets as long
+	as the resulting energy grid consists entirely of positive
+	values
+
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------

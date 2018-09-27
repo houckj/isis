@@ -478,7 +478,7 @@ static int compute_gainshift_kernel (Isis_Kernel_t *k, double *result, Isis_Hist
    if (-1 == compute_kernel (k, result, g, par, num, fun))
      return -1;
 
-   if ((par[0] < 0) || (par[1] == 0.0))
+   if (par[1] == 0.0)
      {
         isis_vmesg(FAIL, I_ERROR, __FILE__, __LINE__,
                    "gainshift kernel:  parameters (%g, %g) define an invalid grid",
@@ -498,6 +498,18 @@ static int compute_gainshift_kernel (Isis_Kernel_t *k, double *result, Isis_Hist
 #define NEW_LAMBDA(y)    (1.0/(1.0/y/slope - r0))
 
    shift_lo[0] = NEW_LAMBDA(ylo[0]);
+
+   if (shift_lo[0]<0.)
+     {
+        isis_vmesg(FAIL, I_ERROR, __FILE__, __LINE__,
+                   "gainshift kernel:  parameters (%g, %g) define a grid with negative energies",
+                   par[0], par[1]);
+	ISIS_FREE(tmp);
+	
+	return -1;
+     }
+
+   
    for (i = 1; i < n; i++)
      {
         shift_lo[i] = NEW_LAMBDA(ylo[i]);
