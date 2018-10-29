@@ -83,6 +83,8 @@ typedef void Xspec_Fun_t (Xspec_Param_t *p);
 #define TOL  (10 * FLT_MIN)
 
 static char *Table_Model_Filename = NULL;
+static int Table_Model_Number_Of_Parameters;
+static char *Table_Model_Type = NULL;
 static char *Xspec_Model_Names_File = NULL;
 static int Xspec_Version;
 
@@ -1191,6 +1193,8 @@ extern void NONEQ_FC(float *tempr, int *ntp, float *tau, int *n, float *weight,
  * function's parameter list a 'long' containing the length of the string.
  * This works with gcc/gfortran, but may not be totally portable.
  */
+#ifdef XSPEC_OLDTABLE
+
 #define XSPEC11_TABLE_FUN(name,xsname,XSNAME)                              \
    extern void FC_FUNC(xsname,XSNAME)(float *,int *,float *,char *,int *,float *,float *,long); \
    static void name (Xspec_Param_t *p)                                         \
@@ -1200,6 +1204,21 @@ extern void NONEQ_FC(float *tempr, int *ntp, float *tau, int *n, float *weight,
 
 XSPEC11_TABLE_FUN(xs_atbl,xsatbl,XSATBL)
 XSPEC11_TABLE_FUN(xs_mtbl,xsmtbl,XSMTBL)
+
+#else
+
+#define XSPEC12_TABLE_FUN(name,xsname,XSNAME)                              \
+   extern void FC_FUNC(xsname,XSNAME)(float *,int *,float *, int* , char *,int *, char *, float *,float *, long); \
+   static void name (Xspec_Param_t *p)                                         \
+   {                                                                           \
+     int npar = Table_Model_Number_Of_Parameters;\
+     FC_FUNC(xsname,XSNAME)(p->ear.f, &p->ne,p->param.f, &npar, p->filename, &p->ifl, Table_Model_Type, p->photar.f,p->photer.f, (long)strlen(p->filename));   \
+    }
+
+XSPEC12_TABLE_FUN(xs_atbl,tabint,TABINT)
+XSPEC12_TABLE_FUN(xs_mtbl,tabint,TABINT)
+
+#endif
 
 #if 0
 {
@@ -1442,6 +1461,42 @@ static void set_table_model_filename (char *filename) /*{{{*/
 
 /*}}}*/
 
+static void set_table_model_number_of_parameters (int *npar) /*{{{*/
+{
+  if (npar == NULL)
+  {
+    fputs ("Number of parameters not set", stderr);
+    return;
+  }
+
+  Table_Model_Number_Of_Parameters = *npar;
+}
+/* }}} */
+
+
+static void set_table_model_type (char *tabtype) /*{{{*/
+{
+   char *t;
+
+   if (tabtype == NULL)
+     {
+        fputs ("Table type not set", stderr);
+        return;
+     }
+
+   if (NULL == (t = (char *) ISIS_MALLOC (1 + strlen(tabtype))))
+     {
+        fputs ("Table type not set", stderr);
+        return;
+     }
+
+   strcpy (t, tabtype);
+   ISIS_FREE (Table_Model_Type);
+   Table_Model_Type = t;
+}
+/* }}} */
+
+
 static int evaluate_table_model (Xspec_Fun_t *fun) /*{{{*/
 {
    Isis_Hist_t g;
@@ -1527,6 +1582,8 @@ static int mtbl (void) /*{{{*/
 static SLang_Intrin_Fun_Type Table_Model_Intrinsics [] =
 {
    MAKE_INTRINSIC_S("_set_table_model_filename", set_table_model_filename, SLANG_VOID_TYPE),
+   MAKE_INTRINSIC_S("_set_table_model_type", set_table_model_type, SLANG_VOID_TYPE),
+   MAKE_INTRINSIC_I("_set_table_model_number_of_parameters", set_table_model_number_of_parameters, SLANG_VOID_TYPE),
    MAKE_INTRINSIC("_atbl", atbl, SLANG_VOID_TYPE, 0),
    MAKE_INTRINSIC("_mtbl", mtbl, SLANG_VOID_TYPE, 0),
    SLANG_END_INTRIN_FUN_TABLE

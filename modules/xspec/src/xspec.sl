@@ -843,7 +843,11 @@ private define atable_hook (file, args_ref) %{{{
 define add_atable_model () %{{{
 {
    variable msg = "add_atable_model (file, name);";
-   variable fmt = "define %s_fit(l,h,p){_set_table_model_filename(\"%s\"); variable n = length(p); if (n > 1) return p[0]*_atbl(l,h,p[[1:n-1]]); else return p[0] * _atbl(l,h,NULL);}";
+   variable fmt = "define %s_fit(l,h,p){_set_table_model_filename(\"%s\"); \
+                   variable n = length(p); \
+                   _set_table_model_number_of_parameters(n-1); \
+                   _set_table_model_type(\"add\"); \
+                   if (n > 1) return p[0]*_atbl(l,h,p[[1:n-1]]); else return p[0] * _atbl(l,h,NULL);}";
 
    _add_table_model (_NARGS, msg, fmt, &atable_hook, 1);
 }
@@ -853,7 +857,11 @@ define add_atable_model () %{{{
 define add_mtable_model () %{{{
 {
    variable msg = "add_mtable_model (file, name);";
-   variable fmt = "define %s_fit(l,h,p){_set_table_model_filename(\"%s\");return _mtbl(l,h,p);}";
+   variable fmt = "define %s_fit(l,h,p){_set_table_model_filename(\"%s\"); \
+                   variable n = length(p); \
+                   _set_table_model_number_of_parameters(n); \
+                   _set_table_model_type(\"mul\"); \
+                   return _mtbl(l,h,p);}";
 
    _add_table_model (_NARGS, msg, fmt, &redshift_hook, 0);
 }
