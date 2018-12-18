@@ -8196,7 +8196,7 @@ then
   if test -f "$jh_pgplot_libfile" ; then
     case "$jh_pgplot_libfile" in
        *".so" )
-         jh_png_symbols=`ldd $jh_pgplot_libfile | grep -i png`
+         jh_png_symbols=`objdump -pt $jh_pgplot_libfile | grep -i png`
          ;;
        *".a" )
          jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
@@ -8374,7 +8374,7 @@ else
   if test -f "$jh_pgplot_libfile" ; then
     case "$jh_pgplot_libfile" in
        *".so" )
-         jh_png_symbols=`ldd $jh_pgplot_libfile | grep -i png`
+         jh_png_symbols=`objdump -pt $jh_pgplot_libfile | grep -i png`
          ;;
        *".a" )
          jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
@@ -9127,7 +9127,7 @@ $as_echo "no" >&6; }
   if test -f "$jh_pgplot_libfile" ; then
     case "$jh_pgplot_libfile" in
        *".so" )
-         jh_png_symbols=`ldd $jh_pgplot_libfile | grep -i png`
+         jh_png_symbols=`objdump -pt $jh_pgplot_libfile | grep -i png`
          ;;
        *".a" )
          jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
