@@ -137,6 +137,13 @@ Use_Xspec_12() {
      wcs_lib="-l${wcs_lib}"
   fi
 
+  # look for libhdsp with embedded version number
+  hdsp_libname=`/bin/ls ${libdir}/libhdsp_*.${ext}`
+  if test x"${hdsp_libname}" != x ; then
+     hdsp_lib=`basename $hdsp_libname | sed -e 's/lib//' | sed -e "s/\.${ext}//"`
+     hdsp_lib="-l${hdsp_lib}"
+  fi
+
   if test x"${modelsonly}" = xyes ; then
      ccfits_lib="${CCFITS_LIB} -lCCfits"
   else
@@ -149,7 +156,7 @@ Use_Xspec_12() {
   fi
 
   # xspec 12:
-  XS_LIBS="-L${libdir} -lXSFunctions -lXSUtil -lXS ${xsmodel_lib} ${ccfits_lib} ${cfitsiolib} ${wcs_lib}"
+  XS_LIBS="-L${libdir} -lXSFunctions -lXSUtil -lXS ${xsmodel_lib} ${ccfits_lib} ${cfitsiolib} ${wcs_lib} ${hdsp_lib}"
    case "$host_os" in
       *solaris* )
          XS_LIBS="${XS_LIBS} -lCrun -lCstd"

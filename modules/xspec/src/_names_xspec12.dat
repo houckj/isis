@@ -10,9 +10,12 @@ bknpower
 bkn2pow
 bmc
 bremss
+brnei
 bvapec
+bvrnei
 bvtapec
 bvvapec
+bvvrnei
 bvvtapec
 c6mekl
 c6pmekl
@@ -50,8 +53,10 @@ gaussian
 gadem
 gnei
 grad
+grbcomp
 grbm
 hatm
+jet
 kerrbb
 kerrd
 kerrdisk
@@ -122,6 +127,7 @@ vvtapec
 zagauss
 zbbody
 zbremss
+zcutoffpl
 zgauss
 zpowerlw
 absori
