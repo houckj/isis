@@ -64,7 +64,7 @@ DEST_MODULE_INSTALL_DIR = $(DESTDIR)$(MODULE_INSTALL_DIR)
 DEST_SL_FILES_INSTALL_DIR = $(DESTDIR)$(SL_FILES_INSTALL_DIR)
 
 #---------------------------------------------------------------------------
-LIBS = $(SLANG_LIB) $(MODULE_LIBS) $(RPATH) $(DL_LIB) -lm -lpng
+LIBS = $(SLANG_LIB) $(MODULE_LIBS) $(RPATH) $(DL_LIB) -lm
 INCS = $(PGPLOT_INC) $(SLANG_INC)
 DEPS = -DPGPLOTDIR='"$(PGPLOTDIR)"'
 
