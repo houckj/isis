@@ -8195,10 +8195,10 @@ then
   OTHER_PGPLOT_LIBS=""
   if test -f "$jh_pgplot_libfile" ; then
     case "$jh_pgplot_libfile" in
-       "*.so" )
+       *".so" )
          jh_png_symbols=`ldd $jh_pgplot_libfile | grep -i png`
          ;;
-       "*.a" )
+       *".a" )
          jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
          ;;
      esac
@@ -8373,10 +8373,10 @@ else
   OTHER_PGPLOT_LIBS=""
   if test -f "$jh_pgplot_libfile" ; then
     case "$jh_pgplot_libfile" in
-       "*.so" )
+       *".so" )
          jh_png_symbols=`ldd $jh_pgplot_libfile | grep -i png`
          ;;
-       "*.a" )
+       *".a" )
          jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
          ;;
      esac
@@ -9126,10 +9126,10 @@ $as_echo "no" >&6; }
   OTHER_PGPLOT_LIBS=""
   if test -f "$jh_pgplot_libfile" ; then
     case "$jh_pgplot_libfile" in
-       "*.so" )
+       *".so" )
          jh_png_symbols=`ldd $jh_pgplot_libfile | grep -i png`
          ;;
-       "*.a" )
+       *".a" )
          jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
          ;;
      esac
