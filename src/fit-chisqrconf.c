@@ -494,15 +494,23 @@ int get_confidence_limits (Fit_Object_Type *fo, Param_t *pt, Isis_Fit_CLC_Type *
    Search_Info_Type sinfo;
    Param_Info_t *par_info = NULL;
    Fit_Param_t *initial_pars = NULL;
-   double pstart, pbest, conf_min, conf_max;
+   double pstart, pbest, conf_min, conf_max, curr_value;
    unsigned int initial_state;
    int ret = 0;
 
    if ((fo == NULL) || (ctrl == NULL) || (pconf_min == NULL) || (pconf_max == NULL))
      return -1;
 
-   *pconf_min = conf_min = 0.0;
-   *pconf_max = conf_max = 0.0;
+   if (0 != Fit_get_param_value (pt, idx, &curr_value))
+     return -1;
+   if (0 == isfinite (curr_value))
+     {
+        fprintf (stderr, "*** Error: parameter %d has invalid value %le\n", idx, curr_value);
+        return -1;
+     }
+
+   *pconf_min = conf_min = curr_value;
+   *pconf_max = conf_max = curr_value;
    initial_state = 0;
 
    sinfo.delt = ctrl->delta_stat;
