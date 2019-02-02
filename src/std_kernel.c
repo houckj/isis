@@ -505,11 +505,10 @@ static int compute_gainshift_kernel (Isis_Kernel_t *k, double *result, Isis_Hist
                    "gainshift kernel:  parameters (%g, %g) define a grid with negative energies",
                    par[0], par[1]);
 	ISIS_FREE(tmp);
-	
+
 	return -1;
      }
 
-   
    for (i = 1; i < n; i++)
      {
         shift_lo[i] = NEW_LAMBDA(ylo[i]);

@@ -1444,13 +1444,13 @@ static void set_table_model_filename (char *filename) /*{{{*/
 
    if (filename == NULL)
      {
-        fputs ("Filename not set", stderr);
+        fputs ("*** error: filename not set", stderr);
         return;
      }
 
    if (NULL == (t = (char *) ISIS_MALLOC (1 + strlen(filename))))
      {
-        fputs ("Filename not set", stderr);
+        fputs ("*** error: malloc failed", stderr);
         return;
      }
 
@@ -1465,7 +1465,7 @@ static void set_table_model_number_of_parameters (int *npar) /*{{{*/
 {
   if (npar == NULL)
   {
-    fputs ("Number of parameters not set", stderr);
+    fputs ("*** error: number of parameters not set", stderr);
     return;
   }
 
@@ -1480,13 +1480,13 @@ static void set_table_model_type (char *tabtype) /*{{{*/
 
    if (tabtype == NULL)
      {
-        fputs ("Table type not set", stderr);
+        fputs ("*** error: table type not set", stderr);
         return;
      }
 
    if (NULL == (t = (char *) ISIS_MALLOC (1 + strlen(tabtype))))
      {
-        fputs ("Table type not set", stderr);
+        fputs ("*** error: malloc failed", stderr);
         return;
      }
 
