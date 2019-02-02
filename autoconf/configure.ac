@@ -284,7 +284,11 @@ else
     echo "The XSPEC module will not be compiled."
     autoconf/compiler_check.sh "$CC" "$FC"
 fi
+if test x"$OTHER_PGPLOT_LIBS" != x ; then
     echo ""
+    echo "OTHER_PGPLOT_LIBS = $OTHER_PGPLOT_LIBS"
+fi
+echo ""
 echo "isis will be installed in" "$prefix"
 echo ""
 echo "If $prefix_input/bin exists,"

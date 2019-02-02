@@ -1174,19 +1174,35 @@ AC_DEFUN(JH_CHECK_PGPLOT_PNG, dnl#{{{
 dnl
 dnl Try to determine whether libpgplot needs libpng
 dnl
-  jh_pgplot_libfile=$1
+  AC_MSG_CHECKING(whether pgplot needs libpng)
   OTHER_PGPLOT_LIBS=""
+  jh_pgplot_libfile="$1"
   if test -f "$jh_pgplot_libfile" ; then
-    case "$jh_pgplot_libfile" in
-       "*.so" )
-         jh_png_symbols=`ldd $jh_pgplot_libfile | grep -i png`
-         ;;
-       "*.a" )
-         jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
-         ;;
-     esac
+    jh_png_symbols=`nm $jh_pgplot_libfile | grep -i png`
     if test x"$jh_png_symbols" != x ; then
-       OTHER_PGPLOT_LIBS="-lpng"
+      libfile_basename=$(basename "$jh_pgplot_libfile")
+      case "$libfile_basename" in
+
+       *.a )
+           OTHER_PGPLOT_LIBS="-lpng"
+           ;;
+
+       *.so )
+           if test -x "$HEADAS_DIR/bin/xspec" ; then
+              jh_png_libname=`objdump -p $HEADAS_DIR/bin/xspec | grep NEEDED | tr -s ' ' | cut -d' ' -f 3 | grep png`
+           else
+              jh_png_libname=""
+           fi
+           if test x"$jh_png_libname" != x ; then
+              libroot=`echo $jh_png_libname | sed -e s',\.so.*,,' -e s,lib,,`
+              OTHER_PGPLOT_LIBS="-l$libroot"
+              AC_MSG_RESULT(Using $OTHER_PGPLOT_LIBS)
+           else
+              AC_MSG_RESULT(unknown)
+           fi
+           ;;
+
+      esac
     fi
   fi
   AC_SUBST(OTHER_PGPLOT_LIBS)
@@ -1323,7 +1339,7 @@ then
 
    PGPLOT_INC="-I${HEADAS_DIR}/include"
    AC_SUBST(PGPLOT_INC)
-   JH_CHECK_PGPLOT_LIBNAME($HEADAS_DIR/lib)
+   JH_CHECK_PGPLOT_LIBNAME("$HEADAS_DIR/lib")
    PGPLOT_LIBDIR="$jh_pgplot_library_dir"
    AC_SUBST(PGPLOT_LIBDIR)
 
