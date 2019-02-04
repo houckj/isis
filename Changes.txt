@@ -92,6 +92,7 @@ Changes since 1.6.2 (released Jan 2012)
 41.td2. update xspec module tabint interface
 42.  Updates to support heasoft-6.25
 43.  Rewrite configure script logic to manage linking libpng for pgplot
+43.td1 Implements complex type as columns in the cfitsio module
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------

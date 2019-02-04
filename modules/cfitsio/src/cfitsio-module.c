@@ -178,6 +178,11 @@ static int map_fitsio_type_to_slang (int *typep, long *repeat, SLtype *stype)
 	*stype = SLANG_STRING_TYPE;
 	break;
 
+      case TCOMPLEX:
+      case TDBLCOMPLEX:
+        *stype = SLANG_COMPLEX_TYPE;
+        break;
+
       default:
 	SLang_verror (SL_NOT_IMPLEMENTED, "Fits column type %d is not supported",
 		      type);
@@ -1551,6 +1556,10 @@ static int write_col (FitsFile_Type *ft, int *colnum,
       case SLANG_UCHAR_TYPE:
 	type = TBYTE;
 	break;
+
+      case SLANG_COMPLEX_TYPE:
+        type = TDBLCOMPLEX;
+        break;
 
       default:
 	SLang_verror (SL_NOT_IMPLEMENTED,
