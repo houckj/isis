@@ -1,7 +1,7 @@
 /* -*- mode: C; mode: fold -*- */
 
 /*  This file is part of ISIS, the Interactive Spectral Interpretation System
-    Copyright (C) 1998-2019 Massachusetts Institute of Technology
+    Copyright (C) 1998-2020 Massachusetts Institute of Technology
 
     This software was developed by the MIT Center for Space Research under
     contract SV1-61010 from the Smithsonian Institution.
@@ -66,7 +66,7 @@ unsigned int Isis_Version = ISIS_VERSION;
 
 static char *Isis_Private_Namespace = "_isis";
 static char Isis_Copyright [] =
-    "Copyright (C) 1998-2019 Massachusetts Institute of Technology";
+    "Copyright (C) 1998-2020 Massachusetts Institute of Technology";
 
 static int load_path_file (char *path, char *file) /*{{{*/
 {

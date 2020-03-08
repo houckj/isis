@@ -1,6 +1,6 @@
 % -*- mode: SLang; mode: fold -*-
 %    This file is part of ISIS, the Interactive Spectral Interpretation System
-%    Copyright (C) 1998-2019 Massachusetts Institute of Technology
+%    Copyright (C) 1998-2020 Massachusetts Institute of Technology
 %
 %    Author:  John C. Houck <houck@space.mit.edu>
 %
