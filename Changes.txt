@@ -93,6 +93,8 @@ Changes since 1.6.2 (released Jan 2012)
 42.  Updates to support heasoft-6.25
 43.  Rewrite configure script logic to manage linking libpng for pgplot
 43.td1 Implements complex type as columns in the cfitsio module
+44.  Handle SIGABRT signal from xspec function failure, and print
+     an informative error message.
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
