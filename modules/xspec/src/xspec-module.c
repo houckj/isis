@@ -92,32 +92,86 @@ static volatile sig_atomic_t Signal_In_Progress;
 static void sig_segv (int signo) /*{{{*/
 {
    static char msg[] =
-"\n**** XSPEC is buggy:  Segmentation Fault while in an XSPEC function.\n";
+"\n**** XSPEC signal: segmentation fault (SIGSEGV) while in an XSPEC function.\n";
 
    (void) signo;
    if (Signal_In_Progress)
      return;
    Signal_In_Progress = 1;
    write (STDERR_FILENO, msg, sizeof(msg));
-   /* so more SEGVs won't interfere with exit() */
+   /* so more signals won't interfere with exit() */
    SLsignal (SIGSEGV, SIG_DFL);
    exit (EXIT_FAILURE);
 }
 
 /*}}}*/
 
-static void call_xspec_fun (Xspec_Fun_t *fun, Xspec_Param_t *p) /*{{{*/
+static void sig_abrt (int signo) /*{{{*/
+{
+   static char msg[] =
+"\n**** XSPEC signal: abort signal (SIGABRT) generated while in an XSPEC function.\n";
+
+   (void) signo;
+   if (Signal_In_Progress)
+     return;
+   Signal_In_Progress = 1;
+   write (STDERR_FILENO, msg, sizeof(msg));
+   /* so more signals won't interfere with exit() */
+   SLsignal (SIGABRT, SIG_DFL);
+   exit (EXIT_FAILURE);
+}
+
+/*}}}*/
+
+typedef struct
 {
    SLSig_Fun_Type *sig_func;
+   SLSig_Fun_Type *sig_func_prev;
+   const char *sig_name;
+   int sig_type;
+}
+Signal_Type;
+#define SIGNAL_TABLE_END {NULL,NULL,NULL,0}
+#define SIGNAL_ENTRY(fun,typ,name) {fun,NULL,name,typ}
 
-   sig_func = SLsignal (SIGSEGV, sig_segv);
-   if (SIG_ERR == sig_func)
-     fprintf (stderr, "warning:  failed initializing signal handler for SIGSEGV\n");
+static Signal_Type Signal_Table[] =
+{
+   SIGNAL_ENTRY(sig_segv, SIGSEGV, "segmentation violation"),
+   SIGNAL_ENTRY(sig_abrt, SIGABRT, "abort"),
+   SIGNAL_TABLE_END
+};
 
+static void set_signal_handlers (void)
+{
+   Signal_Type *st;
+   for (st = Signal_Table; st->sig_func != NULL; st++)
+     {
+        if (SIG_ERR == (st->sig_func_prev = SLsignal (st->sig_type, st->sig_func)))
+          {
+             fprintf (stderr, "warning: failed initializing signal handler for signal=%d\n",
+                      st->sig_type);
+          }
+     }
+}
+
+static void unset_signal_handlers (void)
+{
+   Signal_Type *st;
+   for (st = Signal_Table; st->sig_func != NULL; st++)
+     {
+        if (SLsignal (st->sig_type, st->sig_func_prev) == SIG_ERR)
+          {
+             fprintf (stderr, "warning: failed to re-set signal handler for signal=%d\n",
+                      st->sig_type);
+          }
+     }
+}
+
+static void call_xspec_fun (Xspec_Fun_t *fun, Xspec_Param_t *p) /*{{{*/
+{
+   set_signal_handlers ();
    (*fun)(p);
-
-   if (SLsignal (SIGSEGV, sig_func) == SIG_ERR)
-     fprintf (stderr, "warning:  failed to re-set signal handler\n");
+   unset_signal_handlers ();
 }
 
 /*}}}*/
@@ -1473,7 +1527,6 @@ static void set_table_model_number_of_parameters (int *npar) /*{{{*/
 }
 /* }}} */
 
-
 static void set_table_model_type (char *tabtype) /*{{{*/
 {
    char *t;
@@ -1495,7 +1548,6 @@ static void set_table_model_type (char *tabtype) /*{{{*/
    Table_Model_Type = t;
 }
 /* }}} */
-
 
 static int evaluate_table_model (Xspec_Fun_t *fun) /*{{{*/
 {
@@ -1614,7 +1666,7 @@ static SLang_Intrin_Fun_Type Private_Intrinsics [] =
 #ifdef OBSOLETE_NEI_SYMBOLS
    MAKE_INTRINSIC_0("_xs_ionsneqr", xs_ionsneqr, V),
    MAKE_INTRINSIC_0("_xs_noneq", xs_noneq, V),
-#endif   
+#endif
    MAKE_INTRINSIC_S("_xs_get_element_solar_abundance", xs_get_element_solar_abundance, D),
    MAKE_INTRINSIC_2("_xs_fpmstr", xs_fpmstr, V, S, S),
    MAKE_INTRINSIC_1("_xs_set_cosmo_hubble", xs_set_cosmo_hubble, V, F),
