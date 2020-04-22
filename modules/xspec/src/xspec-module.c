@@ -1278,6 +1278,7 @@ XSPEC11_TABLE_FUN(xs_mtbl,xsmtbl,XSMTBL)
 
 XSPEC12_TABLE_FUN(xs_atbl,tabint,TABINT)
 XSPEC12_TABLE_FUN(xs_mtbl,tabint,TABINT)
+XSPEC12_TABLE_FUN(xs_etbl,tabint,TABINT)
 
 #endif
 
@@ -1532,7 +1533,8 @@ static void set_table_model_number_of_parameters (int *npar) /*{{{*/
 
   Table_Model_Number_Of_Parameters = *npar;
 }
-/* }}} */
+
+/*}}}*/
 
 static void set_table_model_type (char *tabtype) /*{{{*/
 {
@@ -1638,6 +1640,13 @@ static int mtbl (void) /*{{{*/
 
 /*}}}*/
 
+static int etbl (void) /*{{{*/
+{
+    return evaluate_table_model (xs_etbl);
+}
+
+/*}}}*/
+
 static SLang_Intrin_Fun_Type Table_Model_Intrinsics [] =
 {
    MAKE_INTRINSIC_S("_set_table_model_filename", set_table_model_filename, SLANG_VOID_TYPE),
@@ -1645,6 +1654,7 @@ static SLang_Intrin_Fun_Type Table_Model_Intrinsics [] =
    MAKE_INTRINSIC_I("_set_table_model_number_of_parameters", set_table_model_number_of_parameters, SLANG_VOID_TYPE),
    MAKE_INTRINSIC("_atbl", atbl, SLANG_VOID_TYPE, 0),
    MAKE_INTRINSIC("_mtbl", mtbl, SLANG_VOID_TYPE, 0),
+   MAKE_INTRINSIC("_etbl", etbl, SLANG_VOID_TYPE, 0),
    SLANG_END_INTRIN_FUN_TABLE
 };
 

@@ -871,7 +871,11 @@ define add_mtable_model () %{{{
 define add_etable_model () %{{{
 {
    variable msg = "add_etable_model (file, name);";
-   variable fmt = "define %s_fit(l,h,p){_set_table_model_filename(\"%s\");return exp(-_mtbl(l,h,p));}";
+   variable fmt = "define %s_fit(l,h,p){_set_table_model_filename(\"%s\"); \
+                   variable n = length(p); \
+                   _set_table_model_number_of_parameters(n); \
+                   _set_table_model_type(\"exp\"); \
+                   return _etbl(l,h,p);}";
 
    _add_table_model (_NARGS, msg, fmt, &redshift_hook, 0);
 }
