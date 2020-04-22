@@ -1721,8 +1721,14 @@ static char *Headas_Setenv = NULL;
 
 static void free_env (void)
 {
-   ISIS_FREE(Xanadu_Setenv);
-   ISIS_FREE(Headas_Setenv);
+   /* If somehwere else (most likely from xspec) the HEADAS variable
+    * is set again these to paths become invalid. So better check if
+    * the environment variable still points to the same memory location
+    */
+   if (Xanadu_Setenv == getenv("XANADU"))
+     ISIS_FREE(Xanadu_Setenv);
+   if (Headas_Setenv == getenv("HEADAS"))
+     ISIS_FREE(Headas_Setenv);
 }
 
 static char *copy_and_set_env (char *env_name, char *env_builtin_value) /*{{{*/
