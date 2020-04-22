@@ -1261,12 +1261,19 @@ XSPEC11_TABLE_FUN(xs_mtbl,xsmtbl,XSMTBL)
 
 #else
 
+/* Since the tabint and tabint_ functions are not exported
+ * by xspec from the libXSFunction library the compile can not
+ * report type missmatches.
+ * The current version of heasoft v6.27.1 does change void tabint
+ * to extern "C" void tabint so better use this directly than that string + long
+ * hack for fortran.
+ */
 #define XSPEC12_TABLE_FUN(name,xsname,XSNAME)                              \
-   extern void FC_FUNC(xsname,XSNAME)(float *,int *,float *, int* , char *,int *, char *, float *,float *, long); \
+   extern void xsname (float *,int, float *, int, char *,int, char *, float *,float *); \
    static void name (Xspec_Param_t *p)                                         \
    {                                                                           \
      int npar = Table_Model_Number_Of_Parameters;\
-     FC_FUNC(xsname,XSNAME)(p->ear.f, &p->ne,p->param.f, &npar, p->filename, &p->ifl, Table_Model_Type, p->photar.f,p->photer.f, (long)strlen(p->filename));   \
+     xsname (p->ear.f, p->ne,p->param.f, npar, p->filename, p->ifl, Table_Model_Type, p->photar.f,p->photer.f);   \
     }
 
 XSPEC12_TABLE_FUN(xs_atbl,tabint,TABINT)
