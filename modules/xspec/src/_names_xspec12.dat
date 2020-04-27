@@ -1,5 +1,6 @@
 agauss
 agnsed
+agnslim
 apec
 bapec
 btapec
@@ -95,9 +96,6 @@ qsosed
 raymond
 redge
 refsch
-relline
-relline_lp
-relline_lp_ext
 rnei
 sedov
 sirf
@@ -140,6 +138,7 @@ zbknpower
 zbremss
 zcutoffpl
 zgauss
+zkerrbb
 zlogpar
 zpowerlw
 absori
@@ -156,8 +155,12 @@ heilin
 highecut
 hrefl
 ismabs
+ismdust
+logconst
+log10con
 lyman
 notch
+olivineabs
 pcfabs
 phabs
 plabs
@@ -210,14 +213,13 @@ lsmooth
 partcov
 rdblur
 reflect
-relconv
-relconv_lp
-relconv_lp_ext
 rfxconv
 rgsxsrc
 simpl
+thcomp
 vashift
 vmshift
 xilconv
 zashift
 zmshift
+bwcycl

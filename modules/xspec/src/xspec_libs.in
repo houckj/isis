@@ -144,6 +144,27 @@ Use_Xspec_12() {
      hdsp_lib="-l${hdsp_lib}"
   fi
 
+  # look for libhdutils with embedded version number
+  hdutils_libname=`/bin/ls ${libdir}/libhdutils_*.${ext}`
+  if test x"${hdutils_libname}" != x ; then
+     hdutils_lib=`basename $hdutils_libname | sed -e 's/lib//' | sed -e "s/\.${ext}//"`
+     hdutils_lib="-l${hdutils_lib}"
+  fi
+
+  # look for libhdio with embedded version number
+  hdio_libname=`/bin/ls ${libdir}/libhdio_*.${ext}`
+  if test x"${hdio_libname}" != x ; then
+     hdio_lib=`basename $hdio_libname | sed -e 's/lib//' | sed -e "s/\.${ext}//"`
+     hdio_lib="-l${hdio_lib}"
+  fi
+
+  # look for libape with embedded version number
+  ape_libname=`/bin/ls ${libdir}/libape_*.${ext}`
+  if test x"${ape_libname}" != x ; then
+     ape_lib=`basename $ape_libname | sed -e 's/lib//' | sed -e "s/\.${ext}//"`
+     ape_lib="-l${ape_lib}"
+  fi
+
   if test x"${modelsonly}" = xyes ; then
      ccfits_lib="${CCFITS_LIB} -lCCfits"
   else
@@ -156,7 +177,7 @@ Use_Xspec_12() {
   fi
 
   # xspec 12:
-  XS_LIBS="-L${libdir} -lXSFunctions -lXSUtil -lXS ${xsmodel_lib} ${ccfits_lib} ${cfitsiolib} ${wcs_lib} ${hdsp_lib}"
+  XS_LIBS="-L${libdir} -lXSFunctions -lXSUtil -lXS ${xsmodel_lib} ${ccfits_lib} ${cfitsiolib} ${wcs_lib} ${hdsp_lib} ${hdutils_lib} ${hdio_lib} ${ape_lib} -lfgsl"
    case "$host_os" in
       *solaris* )
          XS_LIBS="${XS_LIBS} -lCrun -lCstd"
