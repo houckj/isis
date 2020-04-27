@@ -4432,6 +4432,39 @@ static void fobj_get_data_weights (Fit_Object_MMT_Type *mmt) /*{{{*/
 
 /*}}}*/
 
+static void fobj_get_parameters (Fit_Object_MMT_Type *mmt) /*{{{*/
+{
+   Fit_Object_Type *fo = mmt->fo;
+   Fit_Param_t *pars = fo->info->par;
+   SLang_Array_Type *sl_par = NULL, *sl_pmin = NULL,
+                    *sl_pmax = NULL, *sl_pidx = NULL;
+
+   if ( (NULL == (sl_par = SLang_create_array(SLANG_DOUBLE_TYPE, 0, NULL, &pars->npars, 1)))
+       || (NULL == (sl_pmin = SLang_create_array(SLANG_DOUBLE_TYPE, 0, NULL, &pars->npars, 1)))
+       || (NULL == (sl_pmax = SLang_create_array(SLANG_DOUBLE_TYPE, 0, NULL, &pars->npars, 1)))
+       || (NULL == (sl_pidx = SLang_create_array(SLANG_INT_TYPE, 0, NULL, &pars->npars, 1))))
+     {
+        isis_throw_exception (Isis_Error);
+        SLang_free_array(sl_par);
+        SLang_free_array(sl_pmin);
+        SLang_free_array(sl_pmax);
+        SLang_free_array(sl_pidx);
+        return;
+     }
+
+   memcpy ((char *)sl_par->data, (char *)pars->par, pars->npars * sizeof(double));
+   memcpy ((char *)sl_pmin->data, (char *)pars->par_min, pars->npars * sizeof(double));
+   memcpy ((char *)sl_pmax->data, (char *)pars->par_max, pars->npars * sizeof(double));
+   memcpy ((char *)sl_pidx->data, (char *)pars->idx, pars->npars * sizeof(int));
+
+   SLang_push_array (sl_par, 1);
+   SLang_push_array (sl_pmin, 1);
+   SLang_push_array (sl_pmax, 1);
+   SLang_push_array (sl_pidx, 1);
+}
+
+/*}}}*/
+
 typedef struct
 {
    double stat;
@@ -5427,6 +5460,7 @@ static SLang_Intrin_Fun_Type Fit_Intrinsics [] =
    MAKE_INTRINSIC_2("fobj_eval_statistic", fobj_eval_statistic, V, MTO, I),
    MAKE_INTRINSIC_2("fobj_eval_residuals", fobj_eval_residuals, V, MTO, I),
    MAKE_INTRINSIC_1("fobj_get_data_weights", fobj_get_data_weights, V, MTO),
+   MAKE_INTRINSIC_1("fobj_get_parameters", fobj_get_parameters, V, MTO),
    SLANG_END_INTRIN_FUN_TABLE
 };
 

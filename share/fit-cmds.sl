@@ -3828,6 +3828,20 @@ define __data_weights () %{{{
 
 %}}}
 
+define __parameters () %{{{
+{
+   variable msg = "p = __parameters (obj);";
+   if (_isis->chk_num_args (_NARGS, 1, msg))
+     return;
+
+   variable obj = ();
+   variable p = struct { value, min, max, index };
+   (p.value, p.min, p.max, p.index) = _isis->fobj_get_parameters(obj);
+   return p;
+}
+
+%}}}
+
 private define fit_object_eval_statistic (s, pars) %{{{
 {
    variable enable_copying = 1;
