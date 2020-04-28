@@ -95,6 +95,12 @@ Changes since 1.6.2 (released Jan 2012)
 43.td1 Implements complex type as columns in the cfitsio module
 44.  Handle SIGABRT signal from xspec function failure, and print
      an informative error message.
+45.  Updates to support heasoft-6.27
+46.  Apply xspec module patches from Jakob Stierhof:
+     - fix bug in interface to xspec tabint function
+     - avoid potential invalid free on exit
+     - add exponential table model
+47.  Add fit object parameter access function [from Jakob Stierhof]
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
