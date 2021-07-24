@@ -2647,7 +2647,16 @@ static int check_version (void)
    float tol = 0.0001;
 
 #ifdef CFITSIO_VERSION
+ #if CFITSIO_MAJOR >= 4
+   /*
+    * Heasarc changed versioning scheme for cfitsio. CFITSIO_VERSION is now
+    * basically useless, however, they agreed to make ffvers return major + minor * 1e-2 + micro * 1e-4
+    */
+   compiled_version = CFITSIO_MAJOR + CFITSIO_MINOR * 1e-2 + CFITSIO_MICRO * 1e-4;
+   tol = 0.01; // allow for micro differences
+ #else
    compiled_version = CFITSIO_VERSION;
+ #endif
    (void) fits_get_version (&linked_version);
 #endif
 
