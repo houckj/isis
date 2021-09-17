@@ -57,6 +57,7 @@ gadem
 gnei
 grad
 grbcomp
+grbjet
 grbm
 hatm
 jet
@@ -132,6 +133,9 @@ vvpshock
 vvrnei
 vvsedov
 vvtapec
+vvwdem
+vwdem
+wdem
 zagauss
 zbbody
 zbknpower
@@ -192,6 +196,7 @@ zhighect
 zigm
 zpcfabs
 zphabs
+zxipab
 zxipcf
 zredden
 zsmdust
