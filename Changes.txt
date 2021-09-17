@@ -101,6 +101,13 @@ Changes since 1.6.2 (released Jan 2012)
      - avoid potential invalid free on exit
      - add exponential table model
 47.  Add fit object parameter access function [from Jakob Stierhof]
+48.  Apply xspec module patches from Jakob Stierhof:
+     - heasoft-6.29 release moved xsFortran.h
+     - heasoft-6.29 release broke CFITSIO_VERSION; workaround
+       computes a floating point version number.
+     Also:
+     * Update xspec module for heasoft-6.29 release
+     * Configure script checks for slsh on command path
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
