@@ -258,8 +258,17 @@ dnl Run xspec module code generator, but don't
 dnl assume that slsh is on the path.
 dnl
 if test "x$HEADAS_DIR" != "x" ; then
-    ( cd modules/xspec/src;
-      $SLANG_LIBDIR/../bin/slsh code_gen.sl 12 $HEADAS_DIR )
+  slsh_exec=""
+  if command -v slsh &> /dev/null ; then
+    slsh_exec="slsh"
+  elif test -x "$SLANG_LIBDIR/../bin/slsh" ; then
+    slsh_exec="$SLANG_LIBDIR/../bin/slsh"
+  fi
+  if test x"$slsh_exec" != x ; then
+    (cd modules/xspec/src; $slsh_exec code_gen.sl 12 $HEADAS_DIR )
+  else
+    echo "*** Cannot run Xspec code generator (slsh not found on path)"
+  fi
 fi
 
 echo ""
