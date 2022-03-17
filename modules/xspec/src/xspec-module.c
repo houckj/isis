@@ -1269,7 +1269,7 @@ XSPEC11_TABLE_FUN(xs_mtbl,xsmtbl,XSMTBL)
  * hack for fortran.
  */
 #define XSPEC12_TABLE_FUN(name,xsname,XSNAME)                              \
-   extern void xsname (float *,int, float *, int, char *,int, char *, float *,float *); \
+   extern void xsname (const float *,const int, const float *, const int, const char *,int, const char *, float *,float *); \
    static void name (Xspec_Param_t *p)                                         \
    {                                                                           \
      int npar = Table_Model_Number_Of_Parameters;\
