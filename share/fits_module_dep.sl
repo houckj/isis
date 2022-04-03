@@ -832,6 +832,9 @@ define aped_bib () %{{{
                type = fm.type[k],
                file = fm.file[k];
 
+             if (NULL == stat_file (file))
+               continue;
+
              variable r;
              switch (type)
                {case 1: r = load_ir_refs (i, up, lo, file);}
