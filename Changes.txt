@@ -108,6 +108,11 @@ Changes since 1.6.2 (released Jan 2012)
      Also:
      * Update xspec module for heasoft-6.29 release
      * Configure script checks for slsh on command path
+49.  Fix aped_bib to check that reference files listed in the APED
+     filemap exist in APED before attempting to read
+50.  Apply xspec module patch from Jakob Stierhof:
+       - update XSPEC12_TABLE_MODEL_FUN macro with const declarations
+51.  Updates to support heasoft-6.30 release
 
 Changes since 1.6.1 (released Jul 2010)
 ---------------------------------------
