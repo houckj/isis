@@ -177,7 +177,7 @@ Use_Xspec_12() {
   fi
 
   # xspec 12:
-  XS_LIBS="-L${libdir} -lXSFunctions -lXSUtil -lXS ${xsmodel_lib} ${ccfits_lib} ${cfitsiolib} ${wcs_lib} ${hdsp_lib} ${hdutils_lib} ${hdio_lib} ${ape_lib} -lfgsl"
+  XS_LIBS="-L${libdir} -lXSFunctions -lXSUtil -lXS ${xsmodel_lib} ${ccfits_lib} ${cfitsiolib} ${wcs_lib} ${hdsp_lib} ${hdutils_lib} ${hdio_lib} ${ape_lib} -lfgsl -lgsl"
    case "$host_os" in
       *solaris* )
          XS_LIBS="${XS_LIBS} -lCrun -lCstd"
