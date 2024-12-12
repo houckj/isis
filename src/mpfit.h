@@ -157,3 +157,10 @@ extern int mpfit(mp_func funct, int m, int npar,
 		 double *xall, mp_par *pars, mp_config *config, void *private_data,
 		 mp_result *result);
 
+/* C99 uses isfinite() instead of finite() */
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#define mpfinite(x) isfinite(x)
+/* Default is to assume that compiler/library has finite() function */
+#else
+#define mpfinite(x) finite(x)
+#endif

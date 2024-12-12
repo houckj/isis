@@ -584,7 +584,7 @@ int mpfit(mp_func funct, int m, int npar,
 
     for (j=0; j<nfree; j++) {
       for (i=0; i<nfree; i++) {
-	if (finite(fjac[off+i]) == 0) nonfinite = 1;
+	if (mpfinite(fjac[off+i]) == 0) nonfinite = 1;
       }
       off += ldfjac;
     }
