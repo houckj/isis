@@ -102,9 +102,9 @@ case "$host_os" in
     then
       if test "X$ac_R_nospace" = "Xno"
       then
-        RPATH="-Wl,-R,"
+        RPATH="-Wl,--disable-new-dtags,-R,"
       else
-        RPATH="-Wl,-R"
+        RPATH="-Wl,--disable-new-dtags,-R"
       fi
     else
       if test "X$ac_R_nospace" = "Xno"
@@ -118,7 +118,7 @@ case "$host_os" in
   *osf*|*darwin* )
     if test "X$GCC" = Xyes
     then
-      RPATH="-Wl,-rpath,"
+      RPATH="-Wl,--disable-new-dtags,-rpath,"
     else
       RPATH="-rpath "
     fi
