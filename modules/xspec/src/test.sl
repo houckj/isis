@@ -65,10 +65,14 @@ skip ["zvfeabs"] = "array bounds violation";
 
 skip ["plcabs"] = "invalid parameter defaults";
 skip ["kerrdisk"] = "invalid parameter defaults";
+skip ["kyconv"] = "invalid parameter defaults";
 skip ["nsmax"] = "invalid parameter defaults";
 skip ["nsmaxg"] = "parameter defaults inconsistent with hard limits";
 skip ["smaug"] = "invalid config";
 skip ["clumin"] = "invalid parameter defaults";
+skip ["cglumin"] = "invalid parameter defaults";
+skip ["sssed"] = "parameter defaults inconsistent with hard limits";
+skip ["thcomp"] = "invalid parameter defaults";
 
 % Note that c6mekl and c6vmekl compute a DEM which is
 % not constrained to be positive.
