@@ -486,7 +486,7 @@ static int contin_voigt (double *val, Isis_User_Grid_t *g, double *par, unsigned
 
 /*}}}*/
 
-ISIS_USER_SOURCE_MODULE(voigt,p,options)
+ISIS_USER_SOURCE_MODULE(Voigt,p,options)
 {
    static char *parameter_names[] = {"norm", "energy", "fwhm", "vtherm", NULL};
    static char *parameter_units[] = {"photons/s/cm^2", "keV", "keV", "km/s", NULL};

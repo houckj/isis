@@ -816,7 +816,7 @@ static Static_Function_Type Static_Function_Table [] =
   STATIC_FUNCTION(egauss),
   STATIC_FUNCTION(Powerlaw),
   STATIC_FUNCTION(blackbody),
-  STATIC_FUNCTION(voigt),
+  STATIC_FUNCTION(Voigt),
   {NULL,NULL}
 };
 
